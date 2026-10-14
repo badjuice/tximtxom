@@ -1,0 +1,15 @@
+{
+  "name": "@tximtxom/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --external:socket.io --external:sirv"
+  },
+  "dependencies": {
+    "@tximtxom/shared": "*",
+    "sirv": "^3.0.2",
+    "socket.io": "^4.8.4"
+  }
+}

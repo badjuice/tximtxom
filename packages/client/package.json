@@ -1,0 +1,23 @@
+{
+  "name": "@tximtxom/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "@tximtxom/shared": "*",
+    "howler": "^2.2.4",
+    "pixi.js": "^8.22.0",
+    "preact": "^11.0.1",
+    "socket.io-client": "^4.8.4"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/howler": "^2.2.13",
+    "vite": "^8.3.4"
+  }
+}
