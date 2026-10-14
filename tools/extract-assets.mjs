@@ -56,6 +56,18 @@ const JOKERS = {
   superposition: [3, 11],
   hourglass: [4, 3],
   blueprint: [0, 3],
+  sixth_sense: [8, 10],
+  // Legendary Jokers (bot personas): card base, and the "soul" drawn floating on top.
+  canio: [3, 8],
+  canio_soul: [3, 9],
+  triboulet: [4, 8],
+  triboulet_soul: [4, 9],
+  yorick: [5, 8],
+  yorick_soul: [5, 9],
+  chicot: [6, 8],
+  chicot_soul: [6, 9],
+  perkeo: [7, 8],
+  perkeo_soul: [7, 9],
 };
 
 async function cell(file, [x, y]) {
@@ -162,7 +174,8 @@ async function audio() {
   console.log('music1 encoded');
 }
 
-await textures();
-await font();
-await audio();
+const only = process.argv[2]; // e.g. `node tools/extract-assets.mjs textures`
+if (!only || only === 'textures') await textures();
+if (!only || only === 'font') await font();
+if (!only || only === 'audio') await audio();
 for (const f of fs.readdirSync(OUT)) console.log(`  ${f}  ${(fs.statSync(path.join(OUT, f)).size / 1024).toFixed(1)} KB`);

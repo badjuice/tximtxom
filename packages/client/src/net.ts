@@ -6,6 +6,7 @@
 import type { Socket } from 'socket.io-client';
 import { type Action, type ClientToServer, type GameEvent, type JoinResult, randomCode, type Request, type Rules, type ServerToClient } from '@tximtxom/shared';
 import { Guest, hasSavedHostRoom, Host, type P2PEvents, type Result } from './p2p';
+import { t, tError } from './i18n';
 import { store, toast } from './store';
 
 const SERVER_URL: string | undefined = import.meta.env.VITE_SERVER_URL || undefined;
@@ -57,7 +58,7 @@ function onClosed(reason: string): void {
   host = null;
   guest = null;
   store.set({ room: null, staged: null, selected: [], connected: true });
-  toast(reason, 'error');
+  toast(tError(reason), 'error');
 }
 
 // ------------------------------------------------------------------ transports
@@ -100,7 +101,7 @@ async function initP2PMode(): Promise<void> {
   if (!s) return;
   try {
     if (s.host && hasSavedHostRoom(s.code)) {
-      toast('Reopening your room…');
+      toast(t('err.reopening'));
       host = await Host.resume(p2pEvents);
       if (!host) throw new Error('gone');
       const r = host.request({ event: 'room:join', msg: { code: s.code, name: savedName(), token: s.token } });
@@ -113,7 +114,7 @@ async function initP2PMode(): Promise<void> {
   } catch {
     clearSession();
     store.set({ room: null });
-    toast('That room is no longer available', 'error');
+    toast(t('err.roomGone'), 'error');
   }
 }
 
@@ -162,7 +163,7 @@ async function request(req: Request): Promise<Result> {
 
 async function call<T extends object = object>(req: Request): Promise<({ ok: true } & T) | { ok: false; error: string }> {
   const r = await request(req);
-  if (!r.ok) toast(r.error, 'error');
+  if (!r.ok) toast(tError(r.error), 'error');
   return r as ({ ok: true } & T) | { ok: false; error: string };
 }
 
@@ -175,7 +176,7 @@ export async function createRoom(name: string, rules?: Partial<Rules>) {
       host?.close('The host left');
       host = await Host.create(p2pEvents, randomCode);
     } catch {
-      toast("Couldn't open a room. Check your connection and try again.", 'error');
+      toast(t('err.offline'), 'error');
       return { ok: false as const, error: 'offline' };
     }
   }
@@ -190,13 +191,13 @@ export async function joinRoom(code: string, name: string) {
     try {
       const r = await connectGuest(code, { code, name });
       if (!r.ok) {
-        toast(r.error, 'error');
+        toast(tError(r.error), 'error');
         return r;
       }
       saveSession(r as unknown as JoinResult, false);
       return r;
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Room not found', 'error');
+      toast(tError(err instanceof Error ? err.message : 'Room not found'), 'error');
       return { ok: false as const, error: 'not found' };
     }
   }
@@ -209,6 +210,7 @@ export const setRules = (rules: Partial<Rules>) => call({ event: 'room:rules', m
 export const addBot = () => call({ event: 'room:addBot' });
 export const kick = (playerId: string) => call({ event: 'room:kick', msg: { playerId } });
 export const startGame = () => call({ event: 'room:start' });
+export const renameBot = (playerId: string, name: string) => call({ event: 'room:renameBot', msg: { playerId, name } });
 
 export function leaveRoom(): void {
   void request({ event: 'room:leave' });

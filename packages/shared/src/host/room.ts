@@ -2,7 +2,7 @@ import { botAction } from '../bot.js';
 import { applyAction, newGame } from '../engine.js';
 import type { LobbyPlayer, RoomView } from '../protocol.js';
 import { randomSeed } from '../rng.js';
-import { DEFAULT_RULES, MAX_PLAYERS, MIN_PLAYERS, type Rules, sanitizeRules } from '../rules.js';
+import { BOT_PERSONAS, DEFAULT_RULES, MAX_PLAYERS, MIN_PLAYERS, type Rules, sanitizeRules } from '../rules.js';
 import type { Action, GameState, Seat } from '../types.js';
 import { viewFor } from '../view.js';
 
@@ -20,13 +20,14 @@ function randomId(bytes: number): string {
 
 /** How long bots "think" before acting (ms). */
 const BOT_DELAY = { turn: 900, reveal: 700, ride: 600, ready: 400 };
-const BOT_NAMES = ['Jimbo', 'Chicot', 'Perkeo', 'Yorick', 'Canio', 'Triboulet'];
 
 export interface Member {
   id: string;
   token: string;
   name: string;
   isBot: boolean;
+  /** Joker art for bots ('' for humans). */
+  avatar: string;
   clientId: string | null;
 }
 
@@ -66,18 +67,26 @@ export class Room {
   // ------------------------------------------------------------ membership
 
   addHuman(name: string, clientId: string): Member {
-    const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, clientId };
+    const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: '', clientId };
     this.members.push(m);
     if (!this.hostId) this.hostId = m.id;
     return m;
   }
 
   addBot(): Member {
-    const used = new Set(this.members.map((m) => m.name));
-    const name = BOT_NAMES.find((n) => !used.has(n)) ?? `Bot ${this.members.length + 1}`;
-    const m: Member = { id: randomId(8), token: '', name, isBot: true, clientId: null };
+    // The next Joker not already at the table.
+    const usedArt = new Set(this.members.map((m) => m.avatar));
+    const persona = BOT_PERSONAS.find((p) => !usedArt.has(p.avatar)) ?? BOT_PERSONAS[0];
+    const m: Member = { id: randomId(8), token: '', name: persona.name, isBot: true, avatar: persona.avatar, clientId: null };
     this.members.push(m);
     return m;
+  }
+
+  renameBot(id: string, name: string): boolean {
+    const m = this.members.find((x) => x.id === id && x.isBot);
+    if (!m) return false;
+    m.name = name;
+    return true;
   }
 
   remove(id: string): void {
@@ -143,7 +152,7 @@ export class Room {
     if (this.members.length < MIN_PLAYERS) return `Need at least ${MIN_PLAYERS} players`;
     if (this.members.length > MAX_PLAYERS) return `At most ${MAX_PLAYERS} players`;
     this.game = newGame(
-      this.members.map((m) => ({ id: m.id, name: m.name, isBot: m.isBot })),
+      this.members.map((m) => ({ id: m.id, name: m.name, isBot: m.isBot, avatar: m.avatar })),
       this.rules,
       randomSeed(),
     );
@@ -195,6 +204,7 @@ export class Room {
       id: x.id,
       name: x.name,
       isBot: x.isBot,
+      avatar: x.avatar,
       connected: x.isBot || !!x.clientId,
     }));
     return {
@@ -293,7 +303,7 @@ export class Room {
     room.hostId = snap.hostId;
     room.rules = snap.rules;
     // Everyone starts disconnected; bots cover for humans until they come back.
-    room.members = snap.members.map((m) => ({ ...m, clientId: null }));
+    room.members = snap.members.map((m) => ({ ...m, avatar: m.avatar ?? '', clientId: null }));
     room.game = snap.game;
     if (room.game) for (const p of room.game.players) if (!p.isBot) p.botControlled = true;
     return room;

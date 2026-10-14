@@ -1,19 +1,26 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
-import { type Card, cardLabel, cardName, type GameEvent, type GameView, suitOf } from '@tximtxom/shared';
+import { type Card, type GameEvent, type GameView, suitOf } from '@tximtxom/shared';
+import { cardShort, cardSpoken, type Key, kindName, lang, t } from '../i18n';
 import { updateSettings, useSettings } from '../settings';
 import { useStore } from '../store';
+import { SEAT_COLORS } from './Hud';
 import { JokerIcon } from './sprites';
 
 const SUIT_CLASS = ['suit-h', 'suit-c', 'suit-d', 'suit-s'];
-const KIND: Record<string, string> = { pair: 'pair', trio: 'trio', quad: 'quad', straight: 'straight' };
 
 function C({ card }: { card: Card }) {
   return (
-    <span class={`hcard ${SUIT_CLASS[suitOf(card)]}`} aria-label={cardName(card)}>
-      {cardLabel(card)}
+    <span class={`hcard ${SUIT_CLASS[suitOf(card)]}`} aria-label={cardSpoken(card)}>
+      {cardShort(card)}
     </span>
   );
+}
+
+/** t() for JSX: placeholders can be elements (coloured names, cards). */
+function tj(key: Key, vars: Record<string, ComponentChildren>): ComponentChildren {
+  const raw = t(key, Object.fromEntries(Object.keys(vars).map((k) => [k, `\u0000${k}\u0000`])));
+  return raw.split('\u0000').map((part, i) => (i % 2 ? vars[part] : part));
 }
 
 interface Line {
@@ -23,31 +30,47 @@ interface Line {
   body: ComponentChildren;
 }
 
-/** Turns the event log into readable lines. */
 function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: Record<number, Card>): Line[] {
-  const who = (s: number | null) => (s === null ? 'Nobody' : s === g.you ? 'You' : g.players[s]?.name ?? `Seat ${s + 1}`);
+  const N = (s: number | null) =>
+    s === null ? (
+      '—'
+    ) : (
+      <b class="hname" style={{ color: SEAT_COLORS[s] }}>
+        {s === g.you ? t('you') : g.players[s]?.name ?? `#${s + 1}`}
+      </b>
+    );
   const lines: Line[] = [];
   for (const { id, e } of events) {
     switch (e.t) {
       case 'cut':
-        lines.push({ id, kind: 'move', seat: e.dealer, body: <>{who(e.dealer)} cut the lowest card and deal{e.dealer === g.you ? '' : 's'} first</> });
+        lines.push({ id, kind: 'move', seat: e.dealer, body: tj('h.cut', { name: N(e.dealer) }) });
         break;
       case 'deal':
-        lines.push({ id, kind: 'round', seat: null, body: <>Round {e.round} · {who(e.dealer)} dealt</> });
+        lines.push({ id, kind: 'round', seat: null, body: tj('h.round', { n: e.round, name: N(e.dealer) }) });
         break;
       case 'draw': {
         const c = myDraws[id];
-        lines.push({ id, kind: 'move', seat: e.seat, body: c !== undefined ? <>You drew <C card={c} /></> : <>{who(e.seat)} drew from the pile</> });
+        lines.push({ id, kind: 'move', seat: e.seat, body: c !== undefined ? tj('h.youDrew', { card: <C card={c} /> }) : tj('h.drew', { name: N(e.seat) }) });
         break;
       }
       case 'take':
-        lines.push({ id, kind: 'move', seat: e.seat, body: <>{who(e.seat)} took <C card={e.card} /> from the discard</> });
+        lines.push({ id, kind: 'move', seat: e.seat, body: tj('h.took', { name: N(e.seat), card: <C card={e.card} /> }) });
         break;
       case 'discard':
-        lines.push({ id, kind: 'move', seat: e.seat, body: <>{who(e.seat)} discarded <C card={e.card} />{e.fromDraw ? ' (just drawn)' : ''}</> });
+        lines.push({
+          id,
+          kind: 'move',
+          seat: e.seat,
+          body: (
+            <>
+              {tj('h.discarded', { name: N(e.seat), card: <C card={e.card} /> })}
+              {e.fromDraw && <span class="muted"> {t('h.justDrawn')}</span>}
+            </>
+          ),
+        });
         break;
       case 'reshuffle':
-        lines.push({ id, kind: 'big', seat: null, body: <>Discards reshuffled into a new draw pile ({e.count} cards). Last pile!</> });
+        lines.push({ id, kind: 'big', seat: null, body: t('h.reshuffled', { n: e.count }) });
         break;
       case 'end':
         lines.push({
@@ -55,14 +78,13 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
           kind: 'big',
           seat: e.seat,
           body:
-            e.kind === 'exhausted' ? (
-              <>No cards left: the round ends</>
+            e.kind === 'exhausted' || e.card === null ? (
+              t('h.noCards')
             ) : (
               <>
-                {e.kind === 'pileOut' ? `${who(e.seat)} drew the last card and ended the round with ` : `${who(e.seat)} ended the round with `}
-                {e.card !== null && <C card={e.card} />}
-                {e.bonus && <b class="good"> · full hand, -10!</b>}
-                {!e.bonus && e.kind !== 'manual' && ' · no rides'}
+                {tj(e.kind === 'pileOut' ? 'h.pileOut' : 'h.txiJog', { name: N(e.seat), card: <C card={e.card} /> })}
+                {e.bonus && <b class="good"> · {t('h.fullHand')}</b>}
+                {!e.bonus && e.kind !== 'manual' && <span> · {t('h.noRides')}</span>}
               </>
             ),
         });
@@ -74,7 +96,7 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
           seat: e.seat,
           body: (
             <>
-              {who(e.seat)} showed a {KIND[e.kind] ?? e.kind}{' '}
+              {tj('h.showed', { name: N(e.seat), kind: kindName(e.kind).toLowerCase() })}{' '}
               {e.cards.map((c) => (
                 <C card={c} />
               ))}
@@ -83,12 +105,19 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
         });
         break;
       case 'ride':
-        lines.push({ id, kind: 'move', seat: e.seat, body: <><JokerIcon name="ride_the_bus" scale={0.16} /> {who(e.seat)} took a ride with <C card={e.card} /></> });
-        break;
-      case 'pass':
+        lines.push({
+          id,
+          kind: 'move',
+          seat: e.seat,
+          body: (
+            <>
+              <JokerIcon name="ride_the_bus" scale={0.16} /> {tj('h.rode', { name: N(e.seat), card: <C card={e.card} /> })}
+            </>
+          ),
+        });
         break;
       case 'doneLaying':
-        lines.push({ id, kind: 'move', seat: e.seat, body: <>{who(e.seat)} finished showing formations</> });
+        lines.push({ id, kind: 'move', seat: e.seat, body: tj('h.finished', { name: N(e.seat) }) });
         break;
       case 'score': {
         const r = g.results.find((x) => x.round === e.round);
@@ -99,22 +128,37 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
           seat: null,
           body: (
             <>
-              Round {e.round} scores:{' '}
-              {r.points.map((p, i) => (
-                <span class="hscore">
-                  {who(i)} <b class={p < 0 ? 'good' : ''}>{p >= 0 ? `+${p}` : p}</b> ({r.totals[i]})
-                </span>
-              ))}
+              <div class="hscore-title">{t('h.scores', { n: e.round })}</div>
+              <ul class="hscores">
+                {r.points.map((p, i) => (
+                  <li>
+                    {N(i)}
+                    <span class={p < 0 ? 'good' : p > 0 ? 'bad' : 'muted'}>{p > 0 ? `+${p}` : p}</span>
+                    <span class="muted">→ {r.totals[i]}</span>
+                  </li>
+                ))}
+              </ul>
             </>
           ),
         });
         break;
       }
       case 'tximtxom':
-        lines.push({ id, kind: 'big', seat: e.seat, body: <><JokerIcon name="superposition" scale={0.16} /> {who(e.seat)} called TximTxom!</> });
+        lines.push({
+          id,
+          kind: 'big',
+          seat: e.seat,
+          body: (
+            <>
+              <JokerIcon name="superposition" scale={0.16} /> {tj('h.tximtxom', { name: N(e.seat) })}
+            </>
+          ),
+        });
         break;
       case 'gameOver':
-        lines.push({ id, kind: 'big', seat: null, body: <>Game over · {e.winners.map(who).join(' & ')} win{e.winners.length === 1 && e.winners[0] !== g.you ? 's' : ''}</> });
+        lines.push({ id, kind: 'big', seat: null, body: tj('h.gameOver', { names: <>{e.winners.map((w, i) => [i > 0 && ' & ', N(w)])}</> }) });
+        break;
+      case 'pass':
         break;
     }
   }
@@ -128,6 +172,7 @@ export function HistoryPanel() {
   const g = useStore((st) => st.room?.game);
   const list = useRef<HTMLOListElement>(null);
   const lines = g ? describe(history, g, myDraws) : [];
+  void lang();
 
   // Stick to the bottom as new moves arrive.
   useEffect(() => {
@@ -137,10 +182,10 @@ export function HistoryPanel() {
 
   if (!g || !s.historyOpen) return null;
   return (
-    <aside class="history panel" aria-label="Move history">
+    <aside class="history panel" aria-label={t('h.title')}>
       <div class="history-head">
-        <h2>History</h2>
-        <button class="x" aria-label="Close history" onClick={() => updateSettings({ historyOpen: false })}>
+        <h2>{t('h.title')}</h2>
+        <button class="x" aria-label={t('close')} onClick={() => updateSettings({ historyOpen: false })}>
           ×
         </button>
       </div>
@@ -150,7 +195,7 @@ export function HistoryPanel() {
             {l.body}
           </li>
         ))}
-        {lines.length === 0 && <li class="hline muted">No moves yet.</li>}
+        {lines.length === 0 && <li class="hline muted">{t('h.empty')}</li>}
       </ol>
     </aside>
   );

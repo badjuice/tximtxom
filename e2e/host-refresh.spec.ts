@@ -1,6 +1,6 @@
 import { type Page, expect, test } from '@playwright/test';
 
-const LIGHT = JSON.stringify({ reducedMotion: true, backgroundAnim: false, crt: false, muted: true });
+const LIGHT = JSON.stringify({ reducedMotion: true, backgroundAnim: false, crt: false, muted: true, lang: 'en' });
 
 async function open(page: Page) {
   await page.addInitScript((s) => localStorage.setItem('tximtxom.settings', s), LIGHT);

@@ -1,22 +1,11 @@
-import {
-  type Action,
-  type Card,
-  canEndWith,
-  canRide,
-  cardLabel,
-  cardName,
-  type GameEvent,
-  type GameView,
-  rankOf,
-  type RoomView,
-  suitOf,
-} from '@tximtxom/shared';
+import { type Action, type Card, canEndWith, canRide, type GameEvent, type GameView, rankOf, type RoomView, suitOf } from '@tximtxom/shared';
 import { play, type Sfx, vibrate } from './audio';
 import { setMood, swirl } from './background';
 import { drawPileTop, revealGroups } from './game/scene';
 import type { DropTarget, SpawnHints, Table } from './game/table';
+import { cardShort, cardSpoken, kindName, t, tError } from './i18n';
 import { act, fetchHistory } from './net';
-import { getSettings } from './settings';
+import { getSettings, onSettings, updateSettings } from './settings';
 import { banner, type Staged, store, toast } from './store';
 
 let table: Table;
@@ -30,10 +19,15 @@ export function setAnnouncer(fn: (text: string) => void): void {
   announce = fn;
 }
 
-export function initController(t: Table): void {
-  table = t;
+export function initController(tb: Table): void {
+  table = tb;
   store.subscribe(onStore);
+  onSettings(() => {
+    if (getSettings().autoSort) applyAutoSort();
+  });
 }
+
+// ---------------------------------------------------------------- hand order
 
 export function getHandOrder(): Card[] {
   return handOrder;
@@ -41,23 +35,66 @@ export function getHandOrder(): Card[] {
 
 export function setHandOrder(order: Card[]): void {
   handOrder = order;
+  // Moving cards by hand turns auto-sort off; it would undo the move.
+  if (getSettings().autoSort) updateSettings({ autoSort: false });
   pushToTable();
+}
+
+function sorted(hand: Card[], by: 'rank' | 'suit'): Card[] {
+  return [...hand].sort((a, b) =>
+    by === 'rank' ? rankOf(a) - rankOf(b) || suitOf(a) - suitOf(b) : suitOf(a) - suitOf(b) || rankOf(a) - rankOf(b),
+  );
 }
 
 export function sortHand(by: 'rank' | 'suit'): void {
   const g = store.get().room?.game;
   if (!g || g.you === null) return;
-  const hand = [...(g.players[g.you].hand ?? [])];
-  hand.sort((a, b) =>
-    by === 'rank' ? rankOf(a) - rankOf(b) || suitOf(a) - suitOf(b) : suitOf(a) - suitOf(b) || rankOf(a) - rankOf(b),
-  );
   play('cardFan2', { volume: 0.6 });
-  setHandOrder(hand);
+  updateSettings({ sortBy: by });
+  handOrder = sorted(g.players[g.you].hand ?? [], by);
+  pushToTable();
 }
 
+export function toggleAutoSort(): void {
+  const on = !getSettings().autoSort;
+  play('button', { volume: 0.5, rate: on ? 1.2 : 0.9 });
+  updateSettings({ autoSort: on });
+  if (on) applyAutoSort();
+}
+
+/** With auto-sort on, the hand is re-sorted whenever cards come or go. */
+function applyAutoSort(): void {
+  const g = store.get().room?.game;
+  if (!g || g.you === null) return;
+  const s = getSettings();
+  const next = sorted(g.players[g.you].hand ?? [], s.sortBy);
+  if (next.join() !== handOrder.join()) {
+    handOrder = next;
+    pushToTable();
+  }
+}
+
+// ---------------------------------------------------------------- sixth sense
+
+/** Cards this player has seen go out of play this round (discards still in the pile). */
+let seenOut = new Set<Card>();
+
+export function cardsSeenOut(): Set<Card> {
+  return seenOut;
+}
+
+function trackSeen(e: GameEvent | null, g: GameView): void {
+  if (e?.t === 'deal' || e?.t === 'reshuffle') seenOut = new Set();
+  if (e?.t === 'discard') seenOut.add(e.card);
+  if (e?.t === 'take') seenOut.delete(e.card);
+  if (g.discardTop !== null) seenOut.add(g.discardTop);
+}
+
+// ---------------------------------------------------------------- room updates
+
 function name(g: GameView, seat: number | null): string {
-  if (seat === null) return 'Nobody';
-  return seat === g.you ? 'You' : g.players[seat].name;
+  if (seat === null) return '—';
+  return seat === g.you ? t('you') : g.players[seat].name;
 }
 
 let prevRoom: RoomView | null = null;
@@ -82,9 +119,10 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   const g = room?.game ?? null;
   syncHistory(g);
   if (!room || !g) {
-    setMood(room ? 'menu' : 'menu');
+    setMood('menu');
     lastEventId = 0;
     wasMyTurn = false;
+    seenOut = new Set();
     return;
   }
   // First view of this game (joined or rejoined): no replays of old events.
@@ -94,13 +132,19 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
     setMood(g.phase === 'reveal' ? 'reveal' : 'table');
     const me = g.you;
     if (me !== null) handOrder = [...(g.players[me].hand ?? [])];
+    trackSeen(null, g);
+    if (getSettings().autoSort) applyAutoSort();
     return;
   }
 
   const fresh = g.events.filter((e) => e.id > lastEventId);
   lastEventId = g.events.at(-1)?.id ?? lastEventId;
   const hints: SpawnHints = new Map();
-  for (const { e } of fresh) handleEvent(e, g, hints);
+  for (const { e } of fresh) {
+    handleEvent(e, g, hints);
+    trackSeen(e, g);
+  }
+  trackSeen(null, g);
 
   // Clear selections/staging when the situation changed under us.
   const s = store.get();
@@ -117,10 +161,14 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   if (myTurn && !wasMyTurn) {
     play('highlight2');
     vibrate(40);
-    banner('Your turn', { tone: 'info', ms: 1100 });
-    announce('Your turn. Draw from the pile or take the discard.');
+    banner(t('b.yourTurn'), { tone: 'info', ms: 1100 });
+    announce(t('sr.yourTurn'));
   }
   wasMyTurn = myTurn;
+  if (getSettings().autoSort) {
+    const hand = me !== null ? g.players[me].hand ?? [] : [];
+    handOrder = sorted(hand, getSettings().sortBy);
+  }
   pushToTable(hints);
 }
 
@@ -167,28 +215,29 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
   const sfx = (n: Sfx, o?: Parameters<typeof play>[1]) => play(n, o);
   switch (e.t) {
     case 'cut':
-      banner(`${name(g, e.dealer)} deal${e.dealer === me ? '' : 's'}`, { sub: 'Lowest card deals first', tone: 'info' });
-      announce(`${name(g, e.dealer)} won the cut and deals first.`);
+      banner(t('b.deals', { name: name(g, e.dealer) }), { sub: t('b.lowestDeals'), tone: 'info' });
+      announce(t('sr.cut', { name: name(g, e.dealer) }));
       break;
     case 'deal': {
       handOrder = me !== null ? [...(g.players[me].hand ?? [])] : [];
       const n = g.players.length;
       const speedK = getSettings().reducedMotion ? 0.3 : 1;
+      const from = drawPileTop(L, 6);
       for (let j = 0; j < n; j++) {
         const seat = (e.dealer + 1 + j) % n;
         const p = g.players[seat];
         const count = seat === me ? (p.hand?.length ?? 0) : p.handCount;
         for (let k = 0; k < count; k++) {
           const key = seat === me ? `c${p.hand![k]}` : `o${seat}_${k}`;
-          hints.set(key, { from: L.draw, delay: (k * n + j) * 0.07 * speedK, faceDown: true, reset: true });
+          hints.set(key, { from, delay: (k * n + j) * 0.07 * speedK, faceDown: true, reset: true });
         }
       }
-      if (g.discardTop !== null) hints.set(`c${g.discardTop}`, { from: L.draw, delay: 7 * n * 0.07 * speedK, faceDown: true, reset: true });
+      if (g.discardTop !== null) hints.set(`c${g.discardTop}`, { from, delay: 7 * n * 0.07 * speedK, faceDown: true, reset: true });
       for (let i = 0; i < 7 * n; i += 2) sfx('cardSlide1', { delay: i * 70 * speedK, volume: 0.5 });
       setMood('table');
       swirl(1);
-      banner(`Round ${e.round}`, { sub: `${name(g, e.dealer)} deal${e.dealer === me ? '' : 's'} and play${e.dealer === me ? '' : 's'} first`, tone: 'info' });
-      announce(`Round ${e.round}. ${name(g, e.dealer)} dealt. The dealer plays first.`);
+      banner(t('b.round', { n: e.round }), { sub: t('b.dealsPlays', { name: name(g, e.dealer) }), tone: 'info' });
+      announce(t('sr.round', { n: e.round, name: name(g, e.dealer) }));
       store.set({ selected: [], staged: null });
       break;
     }
@@ -198,30 +247,28 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
         if (g.drawn !== null) {
           // Off the top of the pile, face down; it turns over when it lands.
           hints.set(`c${g.drawn}`, { from: drawPileTop(L, g.drawCount + 1), faceDown: true });
-          announce(`You drew the ${cardName(g.drawn)}.`);
+          announce(t('sr.youDrew', { card: cardSpoken(g.drawn) }));
         }
       } else {
         hints.set(`o${e.seat}_x`, { from: drawPileTop(L, g.drawCount + 1) });
-        announce(`${name(g, e.seat)} drew from the pile.`);
+        announce(t('sr.drew', { name: name(g, e.seat) }));
       }
       break;
     case 'take':
       sfx('card3');
-      if (e.seat !== me) {
-        hints.set(`o${e.seat}_${g.players[e.seat].handCount - 1}`, { from: L.discard });
-      }
-      announce(`${name(g, e.seat)} took the ${cardName(e.card)} from the discard pile.`);
+      if (e.seat !== me) hints.set(`o${e.seat}_${g.players[e.seat].handCount - 1}`, { from: L.discard });
+      announce(t('sr.took', { name: name(g, e.seat), card: cardSpoken(e.card) }));
       break;
     case 'discard':
       sfx('cardSlide2');
       if (e.seat !== me) hints.set(`c${e.card}`, { from: seatPos(g, e.seat) });
-      announce(`${name(g, e.seat)} discarded the ${cardName(e.card)}.`);
+      announce(t('sr.discarded', { name: name(g, e.seat), card: cardSpoken(e.card) }));
       break;
     case 'reshuffle':
       sfx('cardFan2');
       swirl(1.5);
-      banner('Reshuffled!', { sub: 'Last pile: when it runs out, the round ends', tone: 'info' });
-      announce(`The discard pile was reshuffled into a new draw pile of ${e.count} cards. This only happens once.`);
+      banner(t('b.reshuffled'), { sub: t('b.reshuffledSub'), tone: 'info' });
+      announce(t('sr.reshuffle', { n: e.count }));
       break;
     case 'end': {
       const who = name(g, e.seat);
@@ -231,55 +278,58 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       table.shake.add(8);
       swirl(2);
       setMood('reveal');
-      const how = e.kind === 'pileOut' ? 'The draw pile ran out!' : e.kind === 'exhausted' ? 'No cards left!' : `${who} ended the round`;
-      const cardTxt = e.card !== null ? ` with the ${cardName(e.card)}` : '';
+      const how = e.kind === 'pileOut' ? t('b.pileOut') : e.kind === 'exhausted' ? t('b.noCards') : t('b.txiJog', { name: who });
       if (e.bonus) {
         setTimeout(() => {
           sfx('foil1');
           sfx('multhit2', { delay: 200 });
           table.particles.sparkle(L.hand.x, L.h / 2, L.w * 0.6, 200, 50);
-          banner('-10! Full hand', { sub: `${who} formed all 7 cards. No rides this round!`, joker: 'ride_the_bus', tone: 'good', ms: 2600 });
+          banner(t('b.fullHand'), { sub: t('b.fullHandSub', { name: who }), joker: 'ride_the_bus', tone: 'good', ms: 2600 });
         }, 900);
       } else if (e.kind !== 'manual') {
-        setTimeout(() => banner('No rides this round', { sub: 'The draw pile ran out', joker: 'ride_the_bus', tone: 'bad', ms: 2200 }), 1300);
+        setTimeout(() => banner(t('b.noRides'), { sub: t('b.noRidesSub'), joker: 'ride_the_bus', tone: 'bad', ms: 2200 }), 1300);
       }
-      banner(how, { sub: e.card !== null ? `Ending card: ${cardLabel(e.card)}` : undefined, tone: 'bad' });
-      announce(`${how}${cardTxt}. ${e.bonus ? `${who} gets minus 10 for a full hand; no rides.` : e.kind === 'manual' ? 'Formations will be shown one by one; you can take a ride.' : 'No rides this round.'}`);
+      banner(how, { sub: e.card !== null ? t('b.endingCard', { card: cardShort(e.card) }) : undefined, tone: 'bad' });
+      announce(
+        t('sr.end', {
+          how,
+          card: e.card !== null ? t('sr.withCard', { card: cardSpoken(e.card) }) : '',
+          after: e.bonus ? t('sr.fullHand', { name: who }) : e.kind === 'manual' ? t('sr.ridesOpen') : t('sr.noRides'),
+        }),
+      );
       break;
     }
     case 'lay': {
-      const f = g.reveal?.formations.find((x) => x.id === e.formationId);
-      if (!f) break;
-      if (e.seat !== me) for (const c of f.cards) hints.set(`c${c}`, { from: seatPos(g, e.seat) });
+      if (e.seat !== me) for (const c of e.cards) hints.set(`c${c}`, { from: seatPos(g, e.seat) });
       sfx('card3');
       sfx('chips1', { delay: 150 });
-      const grp = revealGroups(g, L).find((x) => x.id === f.id);
+      const grp = revealGroups(g, L).find((x) => x.id === e.formationId);
       if (grp) setTimeout(() => table.particles.burst(grp.x + grp.w / 2, grp.y + 40, { count: 14, colors: [0x009dff, 0xffffff] }), 250);
-      announce(`${name(g, e.seat)} laid a ${f.kind}: ${f.cards.map(cardName).join(', ')}.`);
+      announce(t('sr.laid', { name: name(g, e.seat), kind: kindName(e.kind), cards: e.cards.map(cardSpoken).join(', ') }));
       break;
     }
     case 'ride': {
+      // The card leaves the rider's hand and flies to the formation.
       hints.set(`c${e.card}`, { from: seatPos(g, e.seat) });
       sfx('multhit1');
       const grp = revealGroups(g, L).find((x) => x.id === e.formationId);
       if (grp) setTimeout(() => table.particles.burst(grp.x + grp.w / 2, grp.y + 40, { count: 16, colors: [0x4bc292, 0xffffff] }), 250);
-      if (e.seat !== me) toast(`${name(g, e.seat)} took a ride with ${cardLabel(e.card)}!`);
-      announce(`${name(g, e.seat)} took a ride with the ${cardName(e.card)}.`);
+      if (e.seat !== me) toast(t('b.rode', { name: name(g, e.seat), card: cardShort(e.card) }));
+      announce(t('sr.rode', { name: name(g, e.seat), card: cardSpoken(e.card) }));
       break;
     }
     case 'pass':
       if (e.seat !== me) sfx('button', { volume: 0.3, rate: 0.8 });
       break;
     case 'doneLaying':
-      announce(`${name(g, e.seat)} has no more formations.`);
+      announce(t('sr.doneLaying', { name: name(g, e.seat) }));
       break;
     case 'score': {
       const r = g.results.at(-1);
       if (!r) break;
       for (let i = 0; i < g.players.length; i++) sfx(i % 2 ? 'coin2' : 'coin1', { delay: 300 + i * 220 });
       setMood('table');
-      const parts = r.points.map((p, i) => `${name(g, i)} ${p}`).join(', ');
-      announce(`Round over. Points this round: ${parts}.`);
+      announce(t('sr.score', { parts: r.points.map((p, i) => `${name(g, i)} ${p}`).join(', ') }));
       break;
     }
     case 'tximtxom':
@@ -289,8 +339,8 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       swirl(3);
       setMood('win');
       table.particles.burst(L.w / 2, L.h / 2, { count: 80, speed: 520, size: 8, colors: [0xfda200, 0xfe5f55, 0x009dff, 0xffffff] });
-      banner('TximTxom!', { sub: `${name(g, e.seat)} made a 7-card straight flush!`, joker: 'superposition', tone: 'good', ms: 3500 });
-      announce(`TximTxom! ${name(g, e.seat)} wins the game with a seven card straight flush.`);
+      banner(t('b.tximtxom'), { sub: t('b.tximtxomSub', { name: name(g, e.seat) }), joker: 'superposition', tone: 'good', ms: 3500 });
+      announce(t('sr.tximtxom', { name: name(g, e.seat) }));
       break;
     case 'gameOver': {
       const iWon = me !== null && e.winners.includes(me);
@@ -304,9 +354,13 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
         sfx('negative');
         table.shake.add(6);
       }
-      const names = e.winners.map((w) => g.players[w].name).join(' & ');
-      banner(tie ? "It's a tie!" : iWon ? 'You win!' : `${names} wins!`, { tone: iWon ? 'good' : 'bad', ms: 3000, joker: iWon ? 'joker' : 'mr_bones' });
-      announce(`Game over. ${tie ? `Tie between ${names}` : `${names} wins`}.`);
+      const names = e.winners.map((w) => name(g, w)).join(' & ');
+      banner(tie ? t('go.tie') : iWon ? t('go.youWin') : t('go.wins', { name: names }), {
+        tone: iWon ? 'good' : 'bad',
+        ms: 3000,
+        joker: iWon ? 'joker' : 'mr_bones',
+      });
+      announce(t('sr.gameOver', { who: tie ? t('sr.tieBetween', { names }) : t('sr.wins', { names }) }));
       break;
     }
   }
@@ -324,7 +378,7 @@ export function tapHand(card: Card): void {
   store.set({ selected: sel });
 }
 
-/** Drag-and-drop rules (the server re-checks everything). */
+/** Drag-and-drop rules (the host re-checks everything). */
 export function canDrop(card: Card, target: DropTarget): boolean {
   const s = store.get();
   const g = s.room?.game;
@@ -397,7 +451,7 @@ export function stage(st: Staged): void {
     void send(st);
     return;
   }
-  play(st.type === 'endRound' ? 'tarot1' : 'cardSlide2', { volume: 0.7 });
+  play('cardSlide2', { volume: 0.7 });
   store.set({ staged: st, selected: [] });
 }
 
@@ -412,6 +466,10 @@ export function confirmStaged(): void {
 }
 
 // ---------------------------------------------------------------- action bar
+//
+// Everyday actions (draw, take, discard, end turn, show, pass) sit in the
+// middle. The two moves that end things, Txi jog and TximTxom, live in their
+// own corners and need a press-and-hold, so a stray click can't trigger them.
 
 export interface BarButton {
   label: string;
@@ -423,13 +481,16 @@ export interface BarButton {
 }
 
 export interface Bar {
-  left: BarButton | null;
-  middle: BarButton | null;
-  right: BarButton | null;
+  /** Basic actions, centre. */
+  main: BarButton[];
+  /** Hold-to-confirm: TximTxom (left corner). */
+  tximtxom: BarButton | null;
+  /** Hold-to-confirm: Txi jog (right corner). */
+  txiJog: BarButton | null;
   status: string | null;
 }
 
-const EMPTY: Bar = { left: null, middle: null, right: null, status: null };
+const EMPTY: Bar = { main: [], tximtxom: null, txiJog: null, status: null };
 
 export function computeBar(room: RoomView | null, selected: Card[], staged: Staged | null): Bar {
   const g = room?.game;
@@ -438,47 +499,44 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
   const hand = g.players[me].hand ?? [];
 
   if (g.phase === 'playing') {
-    if (g.turn !== me) return { ...EMPTY, status: `Waiting for ${g.players[g.turn].name}…` };
+    if (g.turn !== me) return { ...EMPTY, status: t('st.waitingFor', { name: g.players[g.turn].name }) };
 
     if (staged) {
-      const what =
-        staged.type === 'discardDrawn' ? `Discard ${cardLabel(staged.card)}` : staged.type === 'swap' ? `Discard ${cardLabel(staged.card)}` : `End the round with ${cardLabel(staged.card)}`;
       return {
-        left: { label: 'Undo', color: 'grey', enabled: true, onClick: undo, key: 'Backspace' },
-        middle: null,
-        right: {
-          label: staged.type === 'endRound' ? 'Confirm End' : 'End Turn',
-          color: staged.type === 'endRound' ? 'red' : 'green',
-          enabled: true,
-          onClick: confirmStaged,
-          key: 'E',
-        },
-        status: what,
+        ...EMPTY,
+        main: [
+          { label: t('act.undo'), color: 'grey', enabled: true, onClick: undo, key: 'Backspace' },
+          { label: t('act.endTurn'), color: 'green', enabled: true, onClick: confirmStaged, key: 'E' },
+        ],
+        status: t('st.staged', { what: t('st.stagedDiscard', { card: cardShort(staged.card) }) }),
       };
     }
 
     const tximtxom = (swap?: Card): BarButton => ({
-      label: 'TximTxom!',
+      label: t('act.tximtxom'),
       color: 'orange',
       enabled: true,
       onClick: () => void send({ type: 'tximtxom', swap }),
       key: 'T',
-      title: 'Call TximTxom with a 7-card straight flush. Wins the game.',
+      title: t('act.tximtxomTitle'),
     });
 
     if (g.step === 'choose') {
       const top = g.discardTop;
       return {
-        left: tximtxom(),
-        middle: { label: 'Draw', color: 'blue', enabled: g.drawCount > 0, onClick: () => void send({ type: 'draw' }), key: 'D' },
-        right: {
-          label: top !== null ? `Take ${cardLabel(top)}` : 'Take',
-          color: 'red',
-          enabled: top !== null,
-          onClick: () => void send({ type: 'takeDiscard' }),
-          key: 'P',
-        },
-        status: null,
+        main: [
+          { label: t('act.draw'), color: 'blue', enabled: g.drawCount > 0, onClick: () => void send({ type: 'draw' }), key: 'D' },
+          {
+            label: top !== null ? t('act.take', { card: cardShort(top) }) : t('act.take', { card: '' }),
+            color: 'red',
+            enabled: top !== null,
+            onClick: () => void send({ type: 'takeDiscard' }),
+            key: 'P',
+          },
+        ],
+        tximtxom: tximtxom(),
+        txiJog: null,
+        status: t('st.choose'),
       };
     }
 
@@ -489,48 +547,48 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
       const target = usingHand ? sel : drawn;
       const canEnd = g.mustEnd || canEndWith(target);
       return {
-        left: tximtxom(usingHand ? sel : drawn),
-        middle: g.mustEnd
-          ? { label: 'Must end', color: 'grey', enabled: false, onClick: () => {} }
-          : usingHand
-            ? { label: `Swap ${cardLabel(sel)}`, color: 'blue', enabled: true, onClick: () => stage({ type: 'swap', card: sel }), key: 'Enter' }
-            : { label: `Discard ${cardLabel(drawn)}`, color: 'blue', enabled: true, onClick: () => stage({ type: 'discardDrawn', card: drawn }), key: 'Enter' },
-        right: {
-          label: `End with ${cardLabel(target)}`,
+        main: g.mustEnd
+          ? []
+          : [
+              usingHand
+                ? { label: t('act.swap', { card: cardShort(sel) }), color: 'blue', enabled: true, onClick: () => stage({ type: 'swap', card: sel }), key: 'Enter' }
+                : { label: t('act.discard', { card: cardShort(drawn) }), color: 'blue', enabled: true, onClick: () => stage({ type: 'discardDrawn', card: drawn }), key: 'Enter' },
+            ],
+        tximtxom: tximtxom(usingHand ? sel : drawn),
+        txiJog: {
+          label: t('act.txiJog', { card: cardShort(target) }),
           color: 'red',
           enabled: canEnd,
-          onClick: () => stage({ type: 'endRound', card: target }),
+          onClick: () => void send({ type: 'endRound', card: target }),
           key: 'R',
-          title: canEnd ? undefined : 'You need a 5 or lower to end the round',
+          title: canEnd ? undefined : t('act.txiJogNeeds'),
         },
-        status: g.mustEnd
-          ? 'Last card of the pile: end the round with any card'
-          : usingHand
-            ? null
-            : 'Keep it: tap a hand card to swap. Or discard it.',
+        status: g.mustEnd ? t('st.mustEnd') : usingHand ? null : t('st.drawn'),
       };
     }
 
     // tookDiscard
     const ok = sel !== undefined && sel !== g.taken && hand.includes(sel);
     return {
-      left: tximtxom(ok ? sel : undefined),
-      middle: {
-        label: ok ? `Discard ${cardLabel(sel)}` : 'Pick a card',
-        color: 'blue',
-        enabled: ok,
-        onClick: () => ok && stage({ type: 'swap', card: sel }),
-        key: 'Enter',
-      },
-      right: {
-        label: ok ? `End with ${cardLabel(sel)}` : 'End round',
+      main: [
+        {
+          label: ok ? t('act.discard', { card: cardShort(sel) }) : t('act.pickCard'),
+          color: 'blue',
+          enabled: ok,
+          onClick: () => ok && stage({ type: 'swap', card: sel }),
+          key: 'Enter',
+        },
+      ],
+      tximtxom: tximtxom(ok ? sel : undefined),
+      txiJog: {
+        label: ok ? t('act.txiJog', { card: cardShort(sel) }) : t('act.txiJogPlain'),
         color: 'red',
         enabled: ok && canEndWith(sel),
-        onClick: () => ok && stage({ type: 'endRound', card: sel }),
+        onClick: () => ok && void send({ type: 'endRound', card: sel }),
         key: 'R',
-        title: 'You need a 5 or lower to end the round',
+        title: t('act.txiJogNeeds'),
       },
-      status: ok ? null : 'Pick a card to let go (not the one you took)',
+      status: ok ? null : t('st.tookPick'),
     };
   }
 
@@ -544,46 +602,45 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
       if (amRider && myGo) {
         const card = selected[0];
         return {
-          left: null,
-          middle: {
-            label: card !== undefined ? `Ride ${cardLabel(card)}` : 'Pick a card',
-            color: 'green',
-            enabled: card !== undefined,
-            onClick: () => card !== undefined && void send({ type: 'ride', card }),
-            key: 'Enter',
-          },
-          right: { label: 'Pass', color: 'grey', enabled: true, onClick: () => void send({ type: 'pass' }), key: 'E' },
-          status: `Take a Ride on ${name(g, owner)}'s formation?`,
+          ...EMPTY,
+          main: [
+            {
+              label: card !== undefined ? t('act.ride', { card: cardShort(card) }) : t('act.pickCard'),
+              color: 'green',
+              enabled: card !== undefined,
+              onClick: () => card !== undefined && void send({ type: 'ride', card }),
+              key: 'Enter',
+            },
+            { label: t('act.pass'), color: 'grey', enabled: true, onClick: () => void send({ type: 'pass' }), key: 'E' },
+          ],
+          status: t('st.ride', { name: name(g, owner) }),
         };
       }
-      const waiting = g.rules.rideOrder === 'roundRobin' ? g.players[w.riders[w.rrIndex]].name : 'other players';
-      return { ...EMPTY, status: amRider ? `Waiting for ${waiting}…` : `Others may ride on ${owner === me ? 'your' : `${g.players[owner].name}'s`} formation…` };
+      const waiting = g.rules.rideOrder === 'roundRobin' ? g.players[w.riders[w.rrIndex]].name : t('st.otherPlayers');
+      return {
+        ...EMPTY,
+        status: amRider ? t('st.waitingFor', { name: waiting }) : owner === me ? t('st.rideOnMine') : t('st.rideOnTheirs', { name: g.players[owner].name }),
+      };
     }
     if (r.order[r.current] === me) {
       return {
-        left: { label: 'Done', color: 'grey', enabled: true, onClick: () => void send({ type: 'doneLaying' }), key: 'E', title: 'No more formations to show' },
-        middle: {
-          label: 'Lay formation',
-          color: 'blue',
-          enabled: selected.length >= 2,
-          onClick: () => void send({ type: 'lay', cards: selected }),
-          key: 'Enter',
-        },
-        right: null,
-        status: g.noMoreFormations ? 'No more formations possible' : 'Select cards to show a formation',
+        ...EMPTY,
+        main: [
+          { label: t('act.lay'), color: 'blue', enabled: selected.length >= 2, onClick: () => void send({ type: 'lay', cards: selected }), key: 'Enter' },
+          { label: t('act.done'), color: 'grey', enabled: true, onClick: () => void send({ type: 'doneLaying' }), key: 'E', title: t('act.doneTitle') },
+        ],
+        status: g.noMoreFormations ? t('st.noMore') : t('st.select'),
       };
     }
     const cur = r.order[r.current];
-    return { ...EMPTY, status: cur !== undefined ? `${g.players[cur].name} is showing formations…` : null };
+    return { ...EMPTY, status: cur !== undefined ? t('st.showing', { name: g.players[cur].name }) : null };
   }
 
-  if (g.phase === 'roundOver') {
-    const ready = g.players[me].ready;
-    return {
-      ...EMPTY,
-      middle: ready ? null : { label: 'Next round', color: 'blue', enabled: true, onClick: () => void send({ type: 'ready' }), key: 'Enter' },
-      status: ready ? 'Waiting for the others…' : null,
-    };
-  }
   return EMPTY;
 }
+
+export function readyForNextRound(): void {
+  void send({ type: 'ready' });
+}
+
+export { tError };

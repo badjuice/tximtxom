@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { getHandOrder, setAnnouncer, tapDrawn, tapHand } from '../controller';
-import { getSettings, updateSettings } from '../settings';
+import { getSettings, updateSettings, useSettings } from '../settings';
+import { t } from '../i18n';
 import { store, useStore } from '../store';
 import { HistoryPanel } from './History';
 import { Hud } from './Hud';
@@ -13,6 +14,8 @@ export function App() {
   const room = useStore((s) => s.room);
   const connected = useStore((s) => s.connected);
   const inGame = !!room?.game;
+  // Changing language redraws everything.
+  const { lang } = useSettings();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -38,7 +41,7 @@ export function App() {
   }, []);
 
   return (
-    <>
+    <div key={lang} class="app-root">
       {!room && <Title />}
       {room && !inGame && <Lobby />}
       {inGame && <Hud />}
@@ -49,10 +52,10 @@ export function App() {
       <Announcer />
       {!connected && room && (
         <div class="reconnecting" role="status">
-          Reconnecting…
+          {t('plate.reconnecting')}
         </div>
       )}
-    </>
+    </div>
   );
 }
 

@@ -22,6 +22,7 @@ export interface NewPlayer {
   id: string;
   name: string;
   isBot: boolean;
+  avatar?: string;
 }
 
 /**
@@ -39,6 +40,7 @@ export function newGame(players: NewPlayer[], rules: Rules, seed: number): GameS
       id: p.id,
       name: p.name,
       isBot: p.isBot,
+      avatar: p.avatar ?? '',
       botControlled: false,
       hand: [],
       total: 0,

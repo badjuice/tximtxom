@@ -98,7 +98,7 @@ export class Table {
   relayout(): void {
     const g = this.input.game;
     const s = getSettings();
-    this.layout = computeLayout(innerWidth - historyInset(), innerHeight, g?.players.length ?? 2, g?.you ?? 0, s.clockwise, s.uiScale);
+    this.layout = computeLayout(innerWidth - historyInset(), innerHeight, g?.players.length ?? 2, g?.you ?? 0, s.clockwise, s.uiScale, !!g?.rules.sixthSense);
     this.world.scale.set(this.layout.scale);
     this.world.position.set(this.layout.offsetX, this.layout.offsetY);
     this.onLayout(this.layout);
@@ -113,6 +113,7 @@ export class Table {
   set(input: TableInput, hints?: SpawnHints): void {
     const prevPlayers = this.input.game?.players.length;
     const prevYou = this.input.game?.you;
+    const prevSixth = this.input.game?.rules.sixthSense;
     this.input = input;
     const g = input.game;
     if (g) {
@@ -124,7 +125,7 @@ export class Table {
       }
     }
     if (hints) for (const [k, v] of hints) this.pendingHints.set(k, v);
-    if (g && (g.players.length !== prevPlayers || g.you !== prevYou)) this.relayout();
+    if (g && (g.players.length !== prevPlayers || g.you !== prevYou || g.rules.sixthSense !== prevSixth)) this.relayout();
     else this.sync();
   }
 

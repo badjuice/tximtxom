@@ -1,6 +1,8 @@
 import { useState } from 'preact/hooks';
 import { NAME_MAX, ROOM_CODE_LENGTH } from '@tximtxom/shared';
 import { unlockAudio } from '../audio';
+import { t } from '../i18n';
+import { updateSettings, useSettings } from '../settings';
 import { createRoom, joinRoom, linkedRoom, savedName } from '../net';
 import { store, useStore } from '../store';
 import { Button } from './common';
@@ -8,10 +10,11 @@ import { JokerIcon } from './sprites';
 
 export function Title() {
   const connected = useStore((s) => s.connected);
+  const { lang } = useSettings();
   const [name, setName] = useState(savedName());
   const [code, setCode] = useState(linkedRoom());
   const [busy, setBusy] = useState(false);
-  const cleanName = name.trim() || 'Player';
+  const cleanName = name.trim() || t('title.namePlaceholder');
 
   const go = async (fn: () => Promise<unknown>) => {
     unlockAudio();
@@ -22,6 +25,13 @@ export function Title() {
 
   return (
     <main class="title-screen">
+      <div class="lang-switch" role="group" aria-label={t('language')}>
+        {(['pt', 'en'] as const).map((l) => (
+          <button class={lang === l ? 'on' : ''} aria-pressed={lang === l} onClick={() => updateSettings({ lang: l })}>
+            {l.toUpperCase()}
+          </button>
+        ))}
+      </div>
       <h1 class="logo" aria-label="TximTxom">
         {'TximTxom'.split('').map((ch, i) => (
           <span style={{ animationDelay: `${i * 0.12}s` }}>{ch}</span>
@@ -41,25 +51,25 @@ export function Title() {
         }}
       >
         <label class="field">
-          <span>Your name</span>
+          <span>{t('title.name')}</span>
           <input
             value={name}
             maxLength={NAME_MAX}
             autoComplete="nickname"
-            placeholder="Player"
+            placeholder={t('title.namePlaceholder')}
             onInput={(e) => setName((e.target as HTMLInputElement).value)}
           />
         </label>
 
         <Button color="blue" big disabled={!connected || busy} onClick={() => void go(() => createRoom(cleanName))}>
-          Create room
+          {t('title.create')}
         </Button>
 
-        <div class="or">or join a friend</div>
+        <div class="or">{t('title.orJoin')}</div>
 
         <div class="join-row">
           <label class="field code-field">
-            <span>Room code</span>
+            <span>{t('title.code')}</span>
             <input
               value={code}
               maxLength={ROOM_CODE_LENGTH}
@@ -71,18 +81,22 @@ export function Title() {
             />
           </label>
           <Button color="red" type="submit" disabled={!connected || busy || code.length !== ROOM_CODE_LENGTH}>
-            Join
+            {t('title.join')}
           </Button>
         </div>
-        {!connected && <p class="muted" role="status">Connecting to the server…</p>}
+        {!connected && (
+          <p class="muted" role="status">
+            {t('title.connecting')}
+          </p>
+        )}
       </form>
 
       <div class="title-links">
         <Button color="grey" onClick={() => store.set({ overlay: 'help' })}>
-          How to play
+          {t('title.howToPlay')}
         </Button>
         <Button color="grey" onClick={() => store.set({ overlay: 'settings' })}>
-          Settings
+          {t('title.settings')}
         </Button>
       </div>
     </main>

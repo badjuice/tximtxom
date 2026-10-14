@@ -33,6 +33,7 @@ export type Request =
   | { event: 'room:rules'; msg: Parameters<ClientToServer['room:rules']>[0] }
   | { event: 'room:addBot' }
   | { event: 'room:kick'; msg: Parameters<ClientToServer['room:kick']>[0] }
+  | { event: 'room:renameBot'; msg: Parameters<ClientToServer['room:renameBot']>[0] }
   | { event: 'room:start' }
   | { event: 'room:leave' }
   | { event: 'game:action'; msg: Action }
@@ -178,6 +179,11 @@ export class RoomServer {
         room.broadcast();
         return { ok: true };
       }
+      case 'room:renameBot':
+        if (room.game) return { ok: false, error: 'The game has started' };
+        if (!room.renameBot(String(req.msg?.playerId ?? ''), cleanName(req.msg?.name))) return { ok: false, error: 'Unknown player' };
+        room.broadcast();
+        return { ok: true };
       case 'room:start': {
         if (room.game && room.game.phase !== 'gameOver') return { ok: false, error: 'Already playing' };
         if (room.game) {

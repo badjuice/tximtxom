@@ -8,6 +8,8 @@ export interface PlayerState {
   id: string;
   name: string;
   isBot: boolean;
+  /** Joker art for bots ('' for humans). */
+  avatar: string;
   /** Seat is temporarily played by a bot because its human disconnected. */
   botControlled: boolean;
   hand: Card[];

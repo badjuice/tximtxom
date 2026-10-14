@@ -19,6 +19,8 @@ export interface Rules {
   penalty10: boolean;
   /** Seconds per turn, 0 = no timer. */
   turnTimer: number;
+  /** Players can peek at which cards are still in play (not in their hand, not seen discarded). */
+  sixthSense: boolean;
 }
 
 export const DEFAULT_RULES: Rules = {
@@ -31,6 +33,7 @@ export const DEFAULT_RULES: Rules = {
   doubleDown: false,
   penalty10: false,
   turnTimer: 0,
+  sixthSense: false,
 };
 
 export const THRESHOLD_OPTIONS = [40, 100] as const;
@@ -48,8 +51,19 @@ export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
     doubleDown: !!r.doubleDown,
     penalty10: !!r.penalty10,
     turnTimer: (TIMER_OPTIONS as readonly number[]).includes(r.turnTimer) ? r.turnTimer : 0,
+    sixthSense: !!r.sixthSense,
   };
 }
+
+/** Bots are Balatro's Jokers: a default name and the art that goes with it. */
+export const BOT_PERSONAS = [
+  { name: 'Jimbo', avatar: 'joker' },
+  { name: 'Perkeo', avatar: 'perkeo' },
+  { name: 'Triboulet', avatar: 'triboulet' },
+  { name: 'Chicot', avatar: 'chicot' },
+  { name: 'Canio', avatar: 'canio' },
+  { name: 'Yorick', avatar: 'yorick' },
+] as const;
 
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;

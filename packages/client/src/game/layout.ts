@@ -46,6 +46,8 @@ export function computeLayout(
   mySeat: number,
   clockwise: boolean,
   uiScale = 1,
+  /** Sixth Sense: leave room for the Peek button between the piles. */
+  widePiles = false,
 ): Layout {
   const portrait = screenH > screenW * 1.05;
   let w: number, h: number;
@@ -63,7 +65,7 @@ export function computeLayout(
 
   const hand = portrait
     ? { x: w / 2, y: h - 290, spacing: 90, cardScale: 1.6 * Math.min(k, 1.05) }
-    : { x: w / 2, y: h - 190, spacing: 100 * k, cardScale: 1.5 * k };
+    : { x: w / 2, y: h - 215, spacing: 100 * k, cardScale: 1.5 * k };
 
   // Opponent anchors in visual order. Counter-clockwise (default): the next
   // player sits to your right, then across, then to your left.
@@ -94,13 +96,14 @@ export function computeLayout(
   for (let s = 0; s < n; s++) {
     const rel = (s - mySeat + n) % n;
     seats[s] = rel === 0
-      ? { x: hand.x, y: hand.y, side: 'top', plate: portrait ? { x: w / 2, y: hand.y - 140 } : { x: hand.x - 4 * hand.spacing - 40, y: hand.y + 40 } }
+      ? { x: hand.x, y: hand.y, side: 'top', plate: portrait ? { x: w / 2, y: hand.y - 140 } : { x: hand.x - 4 * hand.spacing - 60, y: hand.y + 10 } }
       : anchor(ordered[rel - 1]);
   }
 
   const pileY = portrait ? Math.max(560, h * 0.42) : 315;
-  const draw = { x: w / 2 - (portrait ? 95 : 80), y: pileY };
-  const discard = { x: w / 2 + (portrait ? 95 : 80), y: pileY };
+  const gap = (portrait ? 95 : 80) + (widePiles ? 45 : 0);
+  const draw = { x: w / 2 - gap, y: pileY };
+  const discard = { x: w / 2 + gap, y: pileY };
 
   return {
     w,

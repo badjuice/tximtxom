@@ -10,6 +10,7 @@ export interface PlayerView {
   id: string;
   name: string;
   isBot: boolean;
+  avatar: string;
   botControlled: boolean;
   total: number;
   ready: boolean;
@@ -69,6 +70,7 @@ export function viewFor(state: GameState, you: Seat | null): GameView {
       id: p.id,
       name: p.name,
       isBot: p.isBot,
+      avatar: p.avatar,
       botControlled: p.botControlled,
       total: p.total,
       ready: p.ready,

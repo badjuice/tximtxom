@@ -1,7 +1,7 @@
 import { type Page, expect, test } from '@playwright/test';
 
 // Keep the headless browsers light: no animations.
-const LIGHT = JSON.stringify({ reducedMotion: true, backgroundAnim: false, crt: false, muted: true });
+const LIGHT = JSON.stringify({ reducedMotion: true, backgroundAnim: false, crt: false, muted: true, lang: 'en' });
 
 async function open(page: Page) {
   await page.addInitScript((s) => localStorage.setItem('tximtxom.settings', s), LIGHT);
@@ -10,12 +10,33 @@ async function open(page: Page) {
   await page.waitForSelector('text=Create room');
 }
 
-const bar = (page: Page, label: string) => page.locator(`.action-bar button:has-text("${label}"):not([disabled])`);
+const bar = (page: Page, label: string) => page.locator(`.main-actions button:has-text("${label}"):not([disabled])`);
 
-/** One step of a simple strategy: draw; end the round when allowed, else throw the drawn card away; pass on rides; reveal nothing. */
+/** Txi jog is a press-and-hold button. */
+async function holdTxiJog(page: Page): Promise<boolean> {
+  const b = page.locator('.corner.right .hold:not([disabled])');
+  if (!(await b.count())) return false;
+  const box = await b.boundingBox();
+  if (!box) return false;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(1300);
+  await page.mouse.up();
+  return true;
+}
+
+/** One step of a simple strategy: draw; Txi jog when allowed, else throw the drawn card away; pass on rides; reveal nothing. */
 async function step(page: Page): Promise<'done' | 'acted' | 'idle'> {
-  if ((await bar(page, 'Next round').count()) || (await page.locator('text=Back to lobby').count()) || (await page.locator('.gameover').count())) return 'done';
-  for (const label of ['Pass', 'Done', 'Draw', 'End with', 'Confirm End', 'Discard', 'End Turn']) {
+  if ((await page.locator('.summary-modal').count()) > 0) return 'done';
+  for (const label of ['Pass', 'Done', 'Draw']) {
+    const b = bar(page, label).first();
+    if (await b.count()) {
+      await b.click({ timeout: 3000 }).catch(() => {});
+      return 'acted';
+    }
+  }
+  if (await holdTxiJog(page)) return 'acted';
+  for (const label of ['Discard', 'End Turn']) {
     const b = bar(page, label).first();
     if (await b.count()) {
       await b.click({ timeout: 3000 }).catch(() => {});
@@ -57,7 +78,7 @@ test('two players create, join and finish a round', async ({ browser }) => {
     await host.waitForTimeout(200);
   }
   expect(finished.size).toBe(2);
-  // Scores are visible on both screens.
-  await expect(host.locator('.summary')).toBeVisible();
-  await expect(guest.locator('.summary')).toBeVisible();
+  // Scores are visible on both screens, with the Next round button in the modal.
+  await expect(host.locator('.summary-modal')).toBeVisible();
+  await expect(guest.locator('.summary-modal')).toBeVisible();
 });

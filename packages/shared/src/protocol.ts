@@ -6,6 +6,7 @@ export interface LobbyPlayer {
   id: string;
   name: string;
   isBot: boolean;
+  avatar: string;
   connected: boolean;
 }
 
@@ -36,6 +37,7 @@ export interface ClientToServer {
   'room:rules': (msg: { rules: Partial<Rules> }, ack: Ack) => void;
   'room:addBot': (ack: Ack) => void;
   'room:kick': (msg: { playerId: string }, ack: Ack) => void;
+  'room:renameBot': (msg: { playerId: string; name: string }, ack: Ack) => void;
   'room:start': (ack: Ack) => void;
   'room:leave': () => void;
   'game:action': (action: Action, ack: Ack) => void;

@@ -1,75 +1,101 @@
 import { useEffect, useState } from 'preact/hooks';
-import { type GameView, handPoints, type RoomView } from '@tximtxom/shared';
-import { computeBar, sortHand } from '../controller';
-import type { Layout, Point } from '../game/layout';
+import { type GameView, handPoints, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
+import { cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort } from '../controller';
+import { CARD_H, type Layout, type Point } from '../game/layout';
 import { revealGroups } from '../game/scene';
-import { leaveRoom, startGame } from '../net';
+import { kindName, t } from '../i18n';
+import { leaveRoom, MODE, startGame } from '../net';
 import { updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
-import { Button } from './common';
+import { Button, HoldButton, Modal } from './common';
 import { CardIcon, JokerIcon } from './sprites';
 
 function toScreen(L: Layout, p: Point) {
   return { left: `${L.offsetX + p.x * L.scale}px`, top: `${L.offsetY + p.y * L.scale}px` };
 }
 
-const KIND_LABEL: Record<string, string> = { pair: 'Pair', trio: 'Trio', quad: 'Quad', straight: 'Straight' };
+/** One colour per seat, used on plates and in the history. */
+export const SEAT_COLORS = ['#009dff', '#fe5f55', '#fda200', '#4bc292'];
 
 export function Hud() {
   const room = useStore((s) => s.room)!;
   const L = useStore((s) => s.layout);
   const g = room.game!;
+  const [leaving, setLeaving] = useState(false);
   if (!L) return null;
   return (
     <div class="hud">
-      <TopBar g={g} />
+      <TopBar g={g} onLeave={() => setLeaving(true)} />
       {g.players.map((_, seat) => (
         <Plate g={g} room={room} seat={seat} L={L} />
       ))}
       <PileInfo g={g} L={L} />
       {(g.phase === 'reveal' || g.phase === 'roundOver') && <FormationLabels g={g} L={L} />}
+      <HandBar g={g} L={L} />
       <ActionBar />
       {g.phase === 'roundOver' && <RoundSummary g={g} />}
       {g.phase === 'gameOver' && <GameOver g={g} room={room} />}
+      {leaving && <LeaveConfirm room={room} onClose={() => setLeaving(false)} />}
     </div>
   );
 }
 
-function TopBar({ g }: { g: GameView }) {
+function TopBar({ g, onLeave }: { g: GameView; onLeave: () => void }) {
   const open = (overlay: 'scoreboard' | 'formations' | 'settings' | 'help') => store.set({ overlay });
   const { historyOpen } = useSettings();
   return (
     <nav class="topbar" aria-label="Game menu">
-      <div class="round-chip" aria-label={`Round ${g.round}. Bust over ${g.rules.threshold}.`}>
-        <span class="muted">Round</span> <b>{g.round}</b>
-        <span class="muted"> · bust &gt;</span> <b>{g.rules.threshold}</b>
-        {g.rules.hardcore && <JokerIcon name="trio" scale={0.22} title="Hardcore: no pairs" />}
-        {g.rules.superposition && <JokerIcon name="superposition" scale={0.22} title="Superposition: Ace high or low" />}
+      <div class="round-chip">
+        <span>{t('top.round', { n: g.round })}</span>
+        <span class="bust-chip">{t('top.bust', { n: g.rules.threshold })}</span>
+        {g.rules.hardcore && <JokerIcon name="trio" scale={0.26} title={t('rule.hardcore')} />}
+        {g.rules.superposition && <JokerIcon name="superposition" scale={0.26} title={t('rule.superposition')} />}
+        {g.rules.sixthSense && <JokerIcon name="sixth_sense" scale={0.26} title={t('rule.sixthSense')} />}
       </div>
       <div class="topbar-buttons">
-        <Button color="red" onClick={() => open('scoreboard')} kbd="S" title="Scoreboard">
-          Scores
+        <Button color="red" onClick={() => open('scoreboard')} kbd="S">
+          {t('top.scores')}
         </Button>
-        <Button color="blue" onClick={() => open('formations')} kbd="F" title="Formations">
-          Formations
+        <Button color="blue" onClick={() => open('formations')} kbd="F">
+          {t('top.formations')}
         </Button>
-        <Button
-          color="purple"
-          onClick={() => updateSettings({ historyOpen: !historyOpen })}
-          kbd="H"
-          title="Move history"
-          class={historyOpen ? 'pressed' : ''}
-        >
-          History
+        <Button color="purple" onClick={() => updateSettings({ historyOpen: !historyOpen })} kbd="H" class={historyOpen ? 'pressed' : ''}>
+          {t('top.history')}
         </Button>
-        <Button color="grey" onClick={() => open('help')} title="How to play">
+        <Button color="grey" onClick={() => open('help')} title={t('top.help')} label={t('top.help')}>
           ?
         </Button>
-        <Button color="orange" onClick={() => open('settings')} title="Settings">
+        <Button color="orange" onClick={() => open('settings')} title={t('top.settings')} label={t('top.settings')}>
           ⚙
+        </Button>
+        <Button color="grey" class="leave-btn" onClick={onLeave} title={t('top.leave')}>
+          ⎋ {t('top.leave')}
         </Button>
       </div>
     </nav>
+  );
+}
+
+function LeaveConfirm({ room, onClose }: { room: RoomView; onClose: () => void }) {
+  const hosting = MODE === 'p2p' && room.hostId === room.youId;
+  return (
+    <Modal
+      title={t('leave.title')}
+      onClose={onClose}
+      footer={
+        <Button
+          color="red"
+          onClick={() => {
+            onClose();
+            leaveRoom();
+          }}
+        >
+          {t('leave.confirm')}
+        </Button>
+      }
+    >
+      <p>{hosting ? t('leave.hostBody') : t('leave.body')}</p>
+    </Modal>
   );
 }
 
@@ -79,16 +105,15 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
   const lobby = room.players.find((x) => x.id === p.id);
   const offline = lobby ? !lobby.connected : false;
   const active =
-    (g.phase === 'playing' && g.turn === seat) ||
-    (g.phase === 'reveal' && g.reveal && !g.reveal.ride && g.reveal.order[g.reveal.current] === seat);
+    (g.phase === 'playing' && g.turn === seat) || (g.phase === 'reveal' && g.reveal && !g.reveal.ride && g.reveal.order[g.reveal.current] === seat);
   const ride = g.reveal?.ride;
   let chip: string | null = null;
   if (ride && ride.riders.includes(seat)) {
-    if (p.handCount === 0) chip = 'out of cards';
-    else if (g.rules.rideOrder === 'roundRobin') chip = ride.riders[ride.rrIndex] === seat ? 'riding…' : 'waiting';
-    else chip = ride.passed.includes(seat) ? 'passed' : 'riding…';
+    if (p.handCount === 0) chip = t('plate.out');
+    else if (g.rules.rideOrder === 'roundRobin') chip = ride.riders[ride.rrIndex] === seat ? t('plate.riding') : t('plate.waiting');
+    else chip = ride.passed.includes(seat) ? t('plate.passed') : t('plate.riding');
   }
-  if (g.phase === 'roundOver' && p.ready) chip = 'ready';
+  if (g.phase === 'roundOver' && p.ready) chip = t('plate.ready');
   const result = g.results.at(-1);
   const pos = L.seats[seat]?.plate;
   if (!pos) return null;
@@ -96,27 +121,28 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
   return (
     <div
       class={`plate${active ? ' active' : ''}${me ? ' me' : ''}${offline ? ' offline' : ''}`}
-      style={toScreen(L, pos)}
-      aria-label={`${me ? 'You' : p.name}: ${p.total} points${active ? ', playing now' : ''}${g.dealer === seat ? ', dealer' : ''}`}
+      style={{ ...toScreen(L, pos), '--seat': SEAT_COLORS[seat] }}
+      aria-label={`${me ? t('you') : p.name}: ${p.total} ${t('pts')}`}
     >
       <div class="plate-name">
-        {(p.isBot || p.botControlled) && <JokerIcon name="joker" scale={0.2} title={p.isBot ? 'Bot' : 'A bot is playing for them'} />}
-        <span>{me ? 'You' : p.name}</span>
+        {p.isBot && p.avatar ? <JokerIcon name={p.avatar} scale={0.3} title={t('plate.bot')} /> : p.botControlled ? <JokerIcon name="joker" scale={0.24} title={t('plate.botFor')} /> : null}
+        <span class="seat-dot" aria-hidden="true" />
+        <span>{me ? t('you') : p.name}</span>
         {g.dealer === seat && (
-          <span class="dealer-chip" title="Dealer">
+          <span class="dealer-chip" title={t('dealer')}>
             D
           </span>
         )}
       </div>
       <div class="plate-stats">
         <span class={`total${danger ? ' danger' : ''}`}>{p.total}</span>
-        <span class="muted">pts</span>
-        {!me && g.phase !== 'roundOver' && g.phase !== 'gameOver' && <span class="muted">· {p.handCount} cards</span>}
+        <span class="muted">{t('pts')}</span>
+        {!me && g.phase !== 'roundOver' && g.phase !== 'gameOver' && <span class="muted">· {t('plate.cards', { n: p.handCount })}</span>}
         {(g.phase === 'roundOver' || g.phase === 'gameOver') && result && (
           <span class={`delta ${result.points[seat] < 0 ? 'good' : ''}`}>{result.points[seat] >= 0 ? `+${result.points[seat]}` : result.points[seat]}</span>
         )}
       </div>
-      {offline && <div class="plate-chip bad">reconnecting…</div>}
+      {offline && <div class="plate-chip bad">{t('plate.reconnecting')}</div>}
       {chip && <div class="plate-chip">{chip}</div>}
       {active && room.turnDeadline && <TimerBar deadline={room.turnDeadline} total={g.rules.turnTimer} />}
     </div>
@@ -131,7 +157,7 @@ function TimerBar({ deadline, total }: { deadline: number; total: number }) {
   }, []);
   const left = Math.max(0, deadline - now) / 1000;
   return (
-    <div class="timer" role="timer" aria-label={`${Math.ceil(left)} seconds left`}>
+    <div class="timer" role="timer" aria-label={`${Math.ceil(left)}s`}>
       <div class={`timer-fill${left < 8 ? ' low' : ''}`} style={{ width: `${(100 * left) / total}%` }} />
     </div>
   );
@@ -139,17 +165,72 @@ function TimerBar({ deadline, total }: { deadline: number; total: number }) {
 
 function PileInfo({ g, L }: { g: GameView; L: Layout }) {
   if (g.phase !== 'playing') return null;
-  const below = (p: Point) => ({ x: p.x, y: p.y + 95 * L.pileScale * 0.5 + 18 });
+  const below = (p: Point) => ({ x: p.x, y: p.y + (CARD_H * L.pileScale) / 2 + 20 });
   return (
     <>
-      <div class="pile-label" style={toScreen(L, below(L.draw))} aria-label={`Draw pile: ${g.drawCount} cards${g.reshuffled ? ', last pile' : ''}`}>
-        <b>{g.drawCount}</b> <span class="muted">draw</span>
-        {g.reshuffled && <span class="last-pile" title="Already reshuffled once: when this runs out, the round ends">LAST</span>}
+      <div class="pile-label" style={toScreen(L, below(L.draw))}>
+        <span class="muted">{t('drawPile')}</span> <b>{g.drawCount}</b>
+        {g.reshuffled && (
+          <span class="last-pile" title={t('pile.lastTitle')}>
+            {t('pile.last')}
+          </span>
+        )}
       </div>
-      <div class="pile-label" style={toScreen(L, below(L.discard))} aria-label={`Discard pile: ${g.discardCount} cards`}>
-        <b>{g.discardCount}</b> <span class="muted">discard</span>
+      <div class="pile-label" style={toScreen(L, below(L.discard))}>
+        <span class="muted">{t('discardPile')}</span> <b>{g.discardCount}</b>
       </div>
+      {g.rules.sixthSense && <SixthSense g={g} L={L} />}
     </>
+  );
+}
+
+/** "Peek" between the piles: which cards are still in play, like Balatro's deck view. */
+function SixthSense({ g, L }: { g: GameView; L: Layout }) {
+  const [open, setOpen] = useState(false);
+  const mid = { x: (L.draw.x + L.discard.x) / 2, y: L.draw.y };
+  const hand = new Set(g.you !== null ? g.players[g.you].hand ?? [] : []);
+  if (g.drawn !== null) hand.add(g.drawn);
+  const out = cardsSeenOut();
+  const ranks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+  const inPlay = (c: number) => !hand.has(c) && !out.has(c);
+  const total = Array.from({ length: 52 }, (_, i) => i).filter(inPlay).length;
+  return (
+    <div class="peek" style={toScreen(L, mid)} onPointerEnter={() => setOpen(true)} onPointerLeave={() => setOpen(false)}>
+      <button class="peek-btn" type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <JokerIcon name="sixth_sense" scale={0.34} />
+        <span>{t('ss.peek')}</span>
+      </button>
+      {open && (
+        <div class="peek-panel panel" role="dialog" aria-label={t('ss.title')}>
+          <h3>
+            {t('ss.title')} <span class="muted">· {t('ss.left', { n: total })}</span>
+          </h3>
+          <div class="peek-grid">
+            {[0, 1, 2, 3].map((s) => (
+              <div class="peek-row">
+                <span class={`peek-suit suit-${'hcds'[s]}`}>
+                  {SUIT_SYMBOLS[s]} {ranks.filter((r) => inPlay(makeCard(r, s as Suit))).length}
+                </span>
+                {ranks.map((r) => {
+                  const c = makeCard(r, s as Suit);
+                  return <CardIcon card={c} scale={0.36} dim={!inPlay(c)} />;
+                })}
+              </div>
+            ))}
+            <div class="peek-row peek-ranks">
+              <span class="peek-suit" />
+              {ranks.map((r) => (
+                <span class="peek-rank">
+                  {RANK_CODES[r]}
+                  <b>{[0, 1, 2, 3].filter((s) => inPlay(makeCard(r, s as Suit))).length}</b>
+                </span>
+              ))}
+            </div>
+          </div>
+          <p class="muted small">{t('ss.note')}</p>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -158,16 +239,44 @@ function FormationLabels({ g, L }: { g: GameView; L: Layout }) {
   return (
     <>
       {groups.map((grp) => (
-        <div class={`formation-label${grp.active ? ' active' : ''}`} style={toScreen(L, { x: grp.x + grp.w / 2, y: grp.y - 4 })}>
-          {grp.owner === g.you ? 'You' : g.players[grp.owner].name} · {KIND_LABEL[grp.kind] ?? grp.kind}
+        <div class={`formation-label${grp.active ? ' active' : ''}`} style={{ ...toScreen(L, { x: grp.x + grp.w / 2, y: grp.y - 4 }), '--seat': SEAT_COLORS[grp.owner] }}>
+          {grp.owner === g.you ? t('you') : g.players[grp.owner].name} · {kindName(grp.kind)}
         </div>
       ))}
       {g.reveal?.endCard != null && (
-        <div class="formation-label end" style={toScreen(L, { x: L.endCard.x, y: L.endCard.y - 95 * L.pileScale * 0.5 - 12 })}>
-          {g.reveal.endKind === 'manual' ? 'Ending card' : 'Last card'}
+        <div class="formation-label end" style={toScreen(L, { x: L.endCard.x, y: L.endCard.y - (CARD_H * L.pileScale) / 2 - 12 })}>
+          {g.reveal.endKind === 'manual' ? t('label.endingCard') : t('label.lastCard')}
         </div>
       )}
     </>
+  );
+}
+
+/** Sort buttons and hand points, in a row just under the hand. */
+function HandBar({ g, L }: { g: GameView; L: Layout }) {
+  const s = useSettings();
+  if (g.you === null || g.phase === 'gameOver') return null;
+  const hand = g.players[g.you].hand ?? [];
+  if (hand.length < 2) return null;
+  const y = L.hand.y + (CARD_H * L.hand.cardScale) / 2 + 22;
+  return (
+    <div class="hand-bar" style={toScreen(L, { x: L.hand.x, y })}>
+      <div class="sort-row" role="group" aria-label={t('sort.label')}>
+        <span class="muted">{t('sort.label')}</span>
+        <button class={`mini${s.sortBy === 'rank' ? ' on' : ''}`} onClick={() => sortHand('rank')}>
+          {t('sort.rank')}
+        </button>
+        <button class={`mini${s.sortBy === 'suit' ? ' on' : ''}`} onClick={() => sortHand('suit')}>
+          {t('sort.suit')}
+        </button>
+        <button class={`mini auto${s.autoSort ? ' on' : ''}`} aria-pressed={s.autoSort} title={t('sort.autoTitle')} onClick={toggleAutoSort}>
+          {t('sort.auto')}
+        </button>
+      </div>
+      <div class="hand-points" title={t('handPoints')}>
+        <span class="muted">{t('handPoints')}</span> <b>{handPoints(hand)}</b>
+      </div>
+    </div>
   );
 }
 
@@ -180,21 +289,18 @@ export function ActionBar() {
   useEffect(() => {
     if (!shake) return;
     setShaking(true);
-    const t = setTimeout(() => setShaking(false), 400);
-    return () => clearTimeout(t);
+    const tm = setTimeout(() => setShaking(false), 400);
+    return () => clearTimeout(tm);
   }, [shake]);
   const bar = computeBar(room, selected, staged);
-  const g = room?.game;
-  const showSort = g && g.you !== null && (g.players[g.you].hand?.length ?? 0) > 1 && g.phase !== 'gameOver';
-  const myPoints = g && g.you !== null ? handPoints(g.players[g.you].hand ?? []) : 0;
 
-  // Keyboard shortcuts for the bar.
+  // Keyboard shortcuts for the everyday buttons (the hold buttons handle their own keys).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (store.get().overlay || (e.target as HTMLElement)?.tagName === 'INPUT') return;
+      if (store.get().overlay || (e.target as HTMLElement)?.tagName === 'INPUT' || e.repeat) return;
       const k = e.key.length === 1 ? e.key.toUpperCase() : e.key;
-      for (const b of [bar.left, bar.middle, bar.right]) {
-        if (b && b.enabled && b.key === k) {
+      for (const b of bar.main) {
+        if (b.enabled && b.key === k) {
           e.preventDefault();
           b.onClick();
           return;
@@ -205,6 +311,7 @@ export function ActionBar() {
     return () => removeEventListener('keydown', onKey);
   }, [bar]);
 
+  if (!bar.main.length && !bar.status && !bar.txiJog && !bar.tximtxom) return null;
   return (
     <div class="action-area">
       {bar.status && (
@@ -213,31 +320,21 @@ export function ActionBar() {
         </div>
       )}
       <div class={`action-bar${shaking ? ' shake' : ''}`}>
-        {showSort && (
-          <div class="sort-box" aria-label="Sort hand">
-            <span class="muted">Sort</span>
-            <button class="mini" onClick={() => sortHand('rank')}>
-              Rank
-            </button>
-            <button class="mini" onClick={() => sortHand('suit')}>
-              Suit
-            </button>
-          </div>
-        )}
-        {[bar.left, bar.middle, bar.right].map((b, i) =>
-          b ? (
-            <Button color={b.color} disabled={!b.enabled} onClick={b.onClick} kbd={b.key === 'Enter' ? '⏎' : b.key === 'Backspace' ? '⌫' : b.key} title={b.title} class={`slot slot-${i}`}>
+        <div class="corner left">
+          {bar.tximtxom && (
+            <HoldButton color="orange" label={bar.tximtxom.label} enabled={bar.tximtxom.enabled} onConfirm={bar.tximtxom.onClick} hotkey="T" title={bar.tximtxom.title} class="special" />
+          )}
+        </div>
+        <div class="main-actions">
+          {bar.main.map((b) => (
+            <Button color={b.color} disabled={!b.enabled} onClick={b.onClick} kbd={b.key === 'Enter' ? '⏎' : b.key === 'Backspace' ? '⌫' : b.key} title={b.title} big>
               {b.label}
             </Button>
-          ) : (
-            <span class={`slot slot-${i} slot-empty`} />
-          ),
-        )}
-        {showSort && (
-          <div class="hand-points" title="Points in your hand if nothing is formed">
-            <span class="muted">Hand</span> <b>{myPoints}</b>
-          </div>
-        )}
+          ))}
+        </div>
+        <div class="corner right">
+          {bar.txiJog && <HoldButton color="red" label={bar.txiJog.label} enabled={bar.txiJog.enabled} onConfirm={bar.txiJog.onClick} hotkey="R" title={bar.txiJog.title} class="special" />}
+        </div>
       </div>
     </div>
   );
@@ -246,85 +343,129 @@ export function ActionBar() {
 function RoundSummary({ g }: { g: GameView }) {
   const r = g.results.at(-1);
   if (!r) return null;
+  const me = g.you;
+  const ready = me !== null && g.players[me].ready;
   const order = g.players.map((_, i) => i).sort((a, b) => r.points[a] - r.points[b]);
+  const who = (i: number) => (i === me ? t('you') : g.players[i].name);
   return (
-    <section class="panel summary" aria-label="Round summary">
-      <h2>Round {r.round}</h2>
-      <p class="muted">
-        {r.ender !== null ? `${r.ender === g.you ? 'You' : g.players[r.ender].name} ended the round` : 'The deck ran out'}
-        {r.endKind === 'pileOut' && ' (draw pile empty)'}
-        {r.bonus && ' with a full hand: -10!'}
+    <Modal
+      title={t('sum.round', { n: r.round })}
+      wide
+      class="summary-modal"
+      footer={
+        ready ? (
+          <span class="muted">{t('st.waitingOthers')}</span>
+        ) : (
+          <Button color="blue" big onClick={readyForNextRound} kbd="⏎">
+            {t('act.nextRound')}
+          </Button>
+        )
+      }
+    >
+      <p class="center muted">
+        {r.ender !== null ? t('sum.endedBy', { name: who(r.ender) }) : t('sum.deckOut')}
+        {r.endKind === 'pileOut' && ` ${t('sum.pileOut')}`}
+        {r.bonus && ` ${t('sum.fullHand')}`}
       </p>
       <table class="score-table">
+        <thead>
+          <tr>
+            <th>{t('sum.player')}</th>
+            <th>{t('sum.leftover')}</th>
+            <th class="num">{t('sum.thisRound')}</th>
+            <th class="num">{t('sum.total')}</th>
+          </tr>
+        </thead>
         <tbody>
           {order.map((i) => {
             const pen = r.penalties.find((p) => p.seat === i);
             return (
-              <tr>
-                <td class="pname">{i === g.you ? 'You' : g.players[i].name}</td>
+              <tr style={{ '--seat': SEAT_COLORS[i] }}>
+                <td class="pname">
+                  <span class="seat-dot" />
+                  {who(i)}
+                </td>
                 <td class="cards">
                   {r.leftovers[i].map((c) => (
-                    <CardIcon card={c} scale={0.32} />
+                    <CardIcon card={c} scale={0.48} />
                   ))}
-                  {r.leftovers[i].length === 0 && <span class="good">all formed</span>}
+                  {r.leftovers[i].length === 0 && <span class="good">{t('sum.allFormed')}</span>}
                 </td>
-                <td class={`pts ${r.points[i] < 0 ? 'good' : ''}`}>
+                <td class={`num pts ${r.points[i] < 0 ? 'good' : ''}`}>
                   {r.points[i] >= 0 ? '+' : ''}
                   {r.points[i]}
                   {pen && (
                     <span class="pen">
-                      {pen.doubled && <JokerIcon name="duo" scale={0.2} title="Double Down" />}
-                      {pen.plus10 && <JokerIcon name="credit_card" scale={0.2} title="Penalty +10" />}
+                      {pen.doubled && <JokerIcon name="duo" scale={0.22} title={t('sum.doubled')} />}
+                      {pen.plus10 && <JokerIcon name="credit_card" scale={0.22} title={t('sum.plus10')} />}
                     </span>
                   )}
                 </td>
-                <td class="total">{r.totals[i]}</td>
+                <td class="num total">{r.totals[i]}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
-    </section>
+      <RoundEnterKey onEnter={() => !ready && readyForNextRound()} />
+    </Modal>
   );
+}
+
+function RoundEnterKey({ onEnter }: { onEnter: () => void }) {
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === 'Enter' && !e.repeat && onEnter();
+    addEventListener('keydown', k);
+    return () => removeEventListener('keydown', k);
+  }, [onEnter]);
+  return null;
 }
 
 function GameOver({ g, room }: { g: GameView; room: RoomView }) {
   const isHost = room.hostId === room.youId;
   const tximtxom = g.events.some((e) => e.e.t === 'tximtxom');
-  const winners = g.winners.map((w) => (w === g.you ? 'You' : g.players[w].name));
+  const who = (i: number) => (i === g.you ? t('you') : g.players[i].name);
   const order = g.players.map((_, i) => i).sort((a, b) => g.players[a].total - g.players[b].total);
+  const title = g.winners.length > 1 ? t('go.tie') : g.winners[0] === g.you ? t('go.youWin') : t('go.wins', { name: who(g.winners[0]) });
   return (
-    <section class="panel summary gameover" aria-label="Game over">
-      <h2>{g.winners.length > 1 ? "It's a tie!" : `${winners[0]} win${winners[0] === 'You' ? '' : 's'}!`}</h2>
+    <Modal
+      title={title}
+      class="summary-modal"
+      footer={
+        <>
+          <Button color="orange" onClick={leaveRoom}>
+            {t('top.leave')}
+          </Button>
+          {isHost ? (
+            <Button color="blue" onClick={() => void startGame()}>
+              {t('go.backToLobby')}
+            </Button>
+          ) : (
+            <span class="muted">{t('go.waitingHost')}</span>
+          )}
+        </>
+      }
+    >
       {tximtxom && (
-        <p class="good">
-          <JokerIcon name="superposition" scale={0.3} /> TximTxom! A 7-card straight flush.
+        <p class="good center">
+          <JokerIcon name="superposition" scale={0.32} /> {t('go.tximtxom')}
         </p>
       )}
       <table class="score-table">
         <tbody>
           {order.map((i, rank) => (
-            <tr class={g.winners.includes(i) ? 'winner' : g.players[i].total > g.rules.threshold ? 'bust' : ''}>
+            <tr class={g.winners.includes(i) ? 'winner' : g.players[i].total > g.rules.threshold ? 'bust' : ''} style={{ '--seat': SEAT_COLORS[i] }}>
               <td>{rank + 1}.</td>
-              <td class="pname">{i === g.you ? 'You' : g.players[i].name}</td>
-              <td class="total">{g.players[i].total}</td>
-              <td>{g.players[i].total > g.rules.threshold ? 'BUST' : ''}</td>
+              <td class="pname">
+                <span class="seat-dot" />
+                {who(i)}
+              </td>
+              <td class="num total">{g.players[i].total}</td>
+              <td>{g.players[i].total > g.rules.threshold ? t('go.bust') : ''}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div class="lobby-actions">
-        <Button color="orange" onClick={leaveRoom}>
-          Leave
-        </Button>
-        {isHost ? (
-          <Button color="blue" onClick={() => void startGame()}>
-            Back to lobby
-          </Button>
-        ) : (
-          <span class="muted">Waiting for the host…</span>
-        )}
-      </div>
-    </section>
+    </Modal>
   );
 }

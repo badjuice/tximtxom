@@ -29,6 +29,10 @@ export interface Settings {
   announce: boolean;
   // Panels
   historyOpen: boolean;
+  // Language and hand sorting
+  lang: 'pt' | 'en';
+  sortBy: 'rank' | 'suit';
+  autoSort: boolean;
 }
 
 const prefersReducedMotion =
@@ -57,6 +61,9 @@ export const DEFAULT_SETTINGS: Settings = {
   confirmMoves: true,
   announce: true,
   historyOpen: false,
+  lang: 'pt',
+  sortBy: 'rank',
+  autoSort: false,
 };
 
 const KEY = 'tximtxom.settings';
@@ -123,4 +130,5 @@ export function applyCssSettings(): void {
   root.classList.toggle('high-contrast', current.highContrast);
   root.classList.toggle('crt-on', current.crt);
   root.classList.toggle('history-open', current.historyOpen);
+  root.lang = current.lang === 'pt' ? 'pt-PT' : 'en';
 }
