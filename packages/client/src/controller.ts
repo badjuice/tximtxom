@@ -2,6 +2,7 @@ import {
   type Action,
   type Card,
   canEndWith,
+  canRide,
   cardLabel,
   cardName,
   type GameEvent,
@@ -12,8 +13,8 @@ import {
 } from '@tximtxom/shared';
 import { play, type Sfx, vibrate } from './audio';
 import { setMood, swirl } from './background';
-import { revealGroups } from './game/scene';
-import type { SpawnHints, Table } from './game/table';
+import { drawPileTop, revealGroups } from './game/scene';
+import type { DropTarget, SpawnHints, Table } from './game/table';
 import { act, fetchHistory } from './net';
 import { getSettings } from './settings';
 import { banner, type Staged, store, toast } from './store';
@@ -195,11 +196,12 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       sfx('card1');
       if (e.seat === me) {
         if (g.drawn !== null) {
-          hints.set(`c${g.drawn}`, { from: L.draw, faceDown: true });
+          // Off the top of the pile, face down; it turns over when it lands.
+          hints.set(`c${g.drawn}`, { from: drawPileTop(L, g.drawCount + 1), faceDown: true });
           announce(`You drew the ${cardName(g.drawn)}.`);
         }
       } else {
-        hints.set(`o${e.seat}_x`, { from: L.draw });
+        hints.set(`o${e.seat}_x`, { from: drawPileTop(L, g.drawCount + 1) });
         announce(`${name(g, e.seat)} drew from the pile.`);
       }
       break;
@@ -320,6 +322,44 @@ export function tapHand(card: Card): void {
   const sel = s.selected.includes(card) ? s.selected.filter((c) => c !== card) : multi ? [...s.selected, card] : [card];
   play(sel.includes(card) ? 'card1' : 'cardSlide1', { volume: 0.5, rate: sel.includes(card) ? 1.15 : 0.9 });
   store.set({ selected: sel });
+}
+
+/** Drag-and-drop rules (the server re-checks everything). */
+export function canDrop(card: Card, target: DropTarget): boolean {
+  const s = store.get();
+  const g = s.room?.game;
+  if (!g || g.you === null || s.staged) return false;
+  const me = g.you;
+  const hand = g.players[me].hand ?? [];
+  if (g.phase === 'playing' && g.turn === me) {
+    if (g.mustEnd) return false;
+    if (target.kind === 'discard') {
+      if (g.step === 'drawn') return card === g.drawn || hand.includes(card);
+      if (g.step === 'tookDiscard') return hand.includes(card) && card !== g.taken;
+      return false;
+    }
+    if (target.kind === 'handCard') return g.step === 'drawn' && card === g.drawn && hand.includes(target.card);
+    return false;
+  }
+  const r = g.reveal;
+  if (g.phase === 'reveal' && r?.ride && target.kind === 'formation' && target.id === r.ride.formationId) {
+    const w = r.ride;
+    if (!w.riders.includes(me) || !hand.includes(card)) return false;
+    if (g.rules.rideOrder === 'roundRobin' ? w.riders[w.rrIndex] !== me : w.passed.includes(me)) return false;
+    const f = r.formations.find((x) => x.id === w.formationId);
+    if (!f || f.owner === me) return false;
+    if (f.kind !== 'straight' && f.rides.some((x) => x.seat === me)) return false;
+    return canRide(f.cards, card, g.rules) !== null;
+  }
+  return false;
+}
+
+export function drop(card: Card, target: DropTarget): void {
+  const g = store.get().room?.game;
+  if (!g) return;
+  if (target.kind === 'discard') void send(card === g.drawn ? { type: 'discardDrawn' } : { type: 'swap', card });
+  else if (target.kind === 'handCard') void send({ type: 'swap', card: target.card });
+  else void send({ type: 'ride', card });
 }
 
 export function tapDrawn(card: Card): void {

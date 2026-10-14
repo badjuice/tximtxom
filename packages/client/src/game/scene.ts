@@ -109,6 +109,12 @@ export function revealGroups(game: GameView, layout: Layout): FormationGroup[] {
   return groups;
 }
 
+/** Where the top card of the draw pile sits when the pile holds `count` cards. */
+export function drawPileTop(layout: Layout, count: number): Point {
+  const i = Math.max(0, Math.min(count, 6) - 1);
+  return { x: layout.draw.x - i * 0.8, y: layout.draw.y - i * 2 };
+}
+
 /** Positions for the player's own hand, in order. */
 export function handSlots(layout: Layout, count: number): { x: number; y: number; rot: number }[] {
   const spacing = Math.min(layout.hand.spacing, (layout.w - 120) / Math.max(1, count));
@@ -134,8 +140,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
       card: null,
       role: 'drawPile',
       target: {
-        x: L.draw.x - i * 0.8,
-        y: L.draw.y - i * 2,
+        ...drawPileTop(L, i + 1),
         rot: 0,
         scale: ps,
         z: 10 + i,

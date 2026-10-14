@@ -1,11 +1,13 @@
-import { Application, Assets, Container, type FederatedPointerEvent, type Spritesheet, type Texture } from 'pixi.js';
+import { Application, Assets, Container, type Spritesheet, type Texture } from 'pixi.js';
 import type { Card, GameView } from '@tximtxom/shared';
 import { getSettings, historyInset } from '../settings';
 import type { Staged } from '../store';
-import { type CardTextures, CardView } from './cardView';
+import { type CardTarget, type CardTextures, CardView } from './cardView';
 import { CARD_H, CARD_W, computeLayout, type Layout, type Point } from './layout';
 import { Particles, Shake } from './particles';
-import { type DesiredCard, describeScene, handSlots } from './scene';
+import { type DesiredCard, describeScene, GREEN, handSlots } from './scene';
+
+export type DropTarget = { kind: 'discard' } | { kind: 'handCard'; card: Card } | { kind: 'formation'; id: number };
 
 export interface TableHandlers {
   onTapHand(card: Card): void;
@@ -13,6 +15,11 @@ export interface TableHandlers {
   onTapDrawPile(): void;
   onTapDiscard(): void;
   onReorder(order: Card[]): void;
+  /** Can `card` (hand card or drawn card) be dropped on `target` right now? */
+  canDrop(card: Card, target: DropTarget): boolean;
+  onDrop(card: Card, target: DropTarget): void;
+  /** True while something (modal, panel) blocks the table. */
+  blocked(): boolean;
 }
 
 export interface TableInput {
@@ -67,10 +74,21 @@ export class Table {
     this.cards.sortableChildren = true;
     this.world.addChild(this.cards, this.particles);
     this.app.stage.addChild(this.world);
-    this.app.stage.eventMode = 'static';
-    this.app.stage.on('globalpointermove', (e) => this.onPointerMove(e));
-    this.app.stage.on('pointerup', () => this.onPointerUp());
-    this.app.stage.on('pointerupoutside', () => this.onPointerUp());
+    // Plain DOM pointer events; Pixi's own event system stays off (see updateHover).
+    this.app.stage.eventMode = 'none';
+    const canvas = this.app.canvas;
+    canvas.style.touchAction = 'none';
+    addEventListener('pointermove', (e) => this.onPointerMove(e));
+    canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
+    addEventListener('pointerup', (e) => this.onPointerUp(e));
+    addEventListener('pointercancel', () => {
+      this.drag = null;
+      this.sync();
+    });
+    canvas.addEventListener('pointerleave', () => {
+      if (!this.drag) this.pointer = null;
+    });
+    addEventListener('blur', () => (this.pointer = null));
 
     this.relayout();
     addEventListener('resize', () => this.relayout());
@@ -83,7 +101,6 @@ export class Table {
     this.layout = computeLayout(innerWidth - historyInset(), innerHeight, g?.players.length ?? 2, g?.you ?? 0, s.clockwise, s.uiScale);
     this.world.scale.set(this.layout.scale);
     this.world.position.set(this.layout.offsetX, this.layout.offsetY);
-    this.app.stage.hitArea = this.app.screen;
     this.onLayout(this.layout);
     this.sync();
   }
@@ -130,6 +147,7 @@ export class Table {
       this.clear();
       return;
     }
+    const drag = this.drag?.active ? this.drag : null;
     const desired = describeScene({
       game: g,
       layout: this.layout,
@@ -137,7 +155,7 @@ export class Table {
       selected: this.input.selected,
       staged: this.input.staged,
       discardMemory: this.discardMemory,
-      drag: this.drag?.active ? { card: this.drag.card, x: this.drag.x, y: this.drag.y } : null,
+      drag: drag ? { card: drag.card, x: drag.x, y: drag.y } : null,
     });
     const seen = new Set<string>();
     this.roles.clear();
@@ -149,7 +167,7 @@ export class Table {
       if (v && reset?.reset) {
         this.pendingHints.delete(d.key);
         v.spawnAt(reset.from.x, reset.from.y, d.target.scale * 0.9, 0);
-        if (reset.faceDown) v.showFaceDown();
+        if (reset.faceDown) v.showFaceDown(true);
         v.delay = (reset.delay ?? 0) / Math.max(0.25, getSettings().gameSpeed);
       }
       if (!v) {
@@ -157,42 +175,57 @@ export class Table {
         this.pendingHints.delete(d.key);
         v = new CardView(d.key, d.card, { ...d.target, faceUp: hint?.faceDown ? false : d.target.faceUp }, this.tex);
         if (hint) {
-          v.spawnAt(hint.from.x, hint.from.y, d.target.scale * 0.9, (Math.random() - 0.5) * 0.4);
+          v.spawnAt(hint.from.x, hint.from.y, d.target.scale, 0);
+          if (hint.faceDown) v.showFaceDown(true);
           v.delay = (hint.delay ?? 0) / Math.max(0.25, getSettings().gameSpeed);
         }
-        this.setupInput(v);
+        v.eventMode = 'none';
         this.cards.addChild(v);
         this.views.set(d.key, v);
       }
       v.setCard(d.card);
-      v.target = d.target;
-      const interactive = this.isInteractive(d);
-      v.eventMode = interactive ? 'static' : 'none';
-      v.cursor = interactive ? 'pointer' : 'default';
-      if (!interactive) v.hovered = false;
+      // While dragging, light up the places the card can go.
+      const target = drag && this.dropGlow(d, drag.card) ? { ...d.target, glow: GREEN } : d.target;
+      v.target = target;
     }
     for (const [k, v] of this.views) {
       if (!seen.has(k)) {
         this.views.delete(k);
         v.dying = true;
-        v.eventMode = 'none';
+        v.hovered = false;
         v.target = { ...v.target, alpha: 0, scale: v.target.scale * 0.8, glow: null };
         this.dying.push(v);
       }
     }
+    if (this.hoverKey && !this.roles.has(this.hoverKey)) this.hoverKey = null;
+  }
+
+  /** Should this card glow as a drop target for the dragged card? */
+  private dropGlow(d: DesiredCard, dragged: Card): boolean {
+    if (d.card === dragged) return false;
+    if (d.role === 'discardTop') return this.handlers.canDrop(dragged, { kind: 'discard' });
+    if (d.role === 'hand' && d.card !== null) return this.handlers.canDrop(dragged, { kind: 'handCard', card: d.card });
+    if (d.role === 'formation') {
+      const f = this.formationAtCard(d.card!);
+      return f !== null && this.handlers.canDrop(dragged, { kind: 'formation', id: f });
+    }
+    return false;
+  }
+
+  private formationAtCard(card: Card): number | null {
+    const g = this.input.game;
+    const f = g?.reveal?.formations.find((x) => x.cards.includes(card));
+    return f ? f.id : null;
   }
 
   private isInteractive(d: DesiredCard): boolean {
     const g = this.input.game!;
-    const me = g.you;
-    if (me === null) return false;
+    if (g.you === null) return false;
     switch (d.role) {
       case 'hand':
         return true;
       case 'drawn':
-        return d.target.glow != null;
       case 'drawPile':
-        return d.target.glow != null;
       case 'discardTop':
         return d.target.glow != null;
       default:
@@ -200,73 +233,156 @@ export class Table {
     }
   }
 
-  private setupInput(v: CardView): void {
-    v.on('pointerover', () => {
-      v.hovered = true;
-    });
-    v.on('pointerout', () => {
-      v.hovered = false;
-      v.setHoverTilt(0, 0);
-    });
-    v.on('pointermove', (e: FederatedPointerEvent) => {
-      if (!v.hovered) return;
-      const p = v.toLocal(e.global);
-      v.setHoverTilt(p.x / CARD_W, p.y / CARD_H);
-    });
-    v.on('pointerdown', (e: FederatedPointerEvent) => {
-      const d = this.roles.get(v.key);
-      if (!d) return;
-      if (d.role === 'hand' && d.card !== null) {
-        const p = this.world.toLocal(e.global);
-        this.drag = { card: d.card, start: p, x: p.x, y: p.y, active: false };
-      }
-    });
-    v.on('pointertap', () => {
-      const d = this.roles.get(v.key);
-      if (!d) return;
-      if (d.role === 'hand') return; // handled on pointerup (tap vs drag)
-      if (d.role === 'drawPile') this.handlers.onTapDrawPile();
-      else if (d.role === 'discardTop') this.handlers.onTapDiscard();
-      else if (d.role === 'drawn' && d.card !== null) this.handlers.onTapDrawn(d.card);
-      v.pop(0.15);
-    });
+  // ---------------------------------------------------------------- pointer input
+  //
+  // Hit-testing uses each card's resting position (its target), not the
+  // animated sprite. A wobbling or hover-scaled card under a still pointer
+  // used to flip between hovered and not hovered every few frames.
+
+  private pointer: Point | null = null;
+  private hoverKey: string | null = null;
+  /** How many times hover moved between cards (dev check for flicker). */
+  hoverChanges = 0;
+
+  private toVirtual(e: PointerEvent): Point {
+    return { x: (e.clientX - this.layout.offsetX) / this.layout.scale, y: (e.clientY - this.layout.offsetY) / this.layout.scale };
   }
 
-  private onPointerMove(e: FederatedPointerEvent): void {
-    if (!this.drag) return;
-    const p = this.world.toLocal(e.global);
-    this.drag.x = p.x;
-    this.drag.y = p.y;
-    if (!this.drag.active && Math.hypot(p.x - this.drag.start.x, p.y - this.drag.start.y) > DRAG_THRESHOLD) {
-      this.drag.active = true;
+  /** Is the canvas the top thing under the pointer (no panel or modal over it)? */
+  private canvasOnTop(e: PointerEvent): boolean {
+    return document.elementFromPoint(e.clientX, e.clientY) === this.app.canvas && !this.handlers.blocked();
+  }
+
+  /** Local (-0.5..0.5) position of p inside a card target, or null if outside (with margin). */
+  private local(t: CardTarget, p: Point, margin = 0): Point | null {
+    const y0 = t.y + (t.raised ? -22 : 0);
+    const dx = p.x - t.x;
+    const dy = p.y - y0;
+    const c = Math.cos(-t.rot);
+    const sn = Math.sin(-t.rot);
+    const lx = (dx * c - dy * sn) / t.scale;
+    const ly = (dx * sn + dy * c) / t.scale;
+    const m = margin / t.scale;
+    if (Math.abs(lx) > CARD_W / 2 + m || Math.abs(ly) > CARD_H / 2 + m) return null;
+    return { x: lx / CARD_W, y: ly / CARD_H };
+  }
+
+  /** Topmost card under p, optionally limited to some roles. */
+  private hit(p: Point, filter: (d: DesiredCard) => boolean): DesiredCard | null {
+    let best: DesiredCard | null = null;
+    for (const d of this.roles.values()) {
+      if (!filter(d) || (best && d.target.z <= best.target.z)) continue;
+      if (this.local(d.target, p)) best = d;
     }
-    if (this.drag.active) this.sync();
+    return best;
   }
 
-  private onPointerUp(): void {
+  private updateHover(): void {
+    let key: string | null = null;
+    const p = this.pointer;
+    if (p && !this.drag?.active) {
+      // Keep the current card hovered until the pointer is clearly outside it.
+      const cur = this.hoverKey ? this.roles.get(this.hoverKey) : undefined;
+      const top = this.hit(p, (d) => this.isInteractive(d));
+      if (cur && this.isInteractive(cur) && this.local(cur.target, p, 8) && (!top || top.key === cur.key || top.target.z < cur.target.z)) {
+        key = cur.key;
+      } else {
+        key = top?.key ?? null;
+      }
+    }
+    if (key !== this.hoverKey) {
+      if (this.hoverKey) {
+        const old = this.views.get(this.hoverKey);
+        if (old) {
+          old.hovered = false;
+          old.setHoverTilt(0, 0);
+        }
+      }
+      this.hoverKey = key;
+      this.hoverChanges++;
+    }
+    const v = key ? this.views.get(key) : undefined;
+    const d = key ? this.roles.get(key) : undefined;
+    if (v && d && p) {
+      v.hovered = true;
+      const l = this.local(d.target, p, 8);
+      if (l) v.setHoverTilt(l.x, l.y);
+    }
+    this.app.canvas.style.cursor = this.drag?.active ? 'grabbing' : key ? 'pointer' : 'default';
+  }
+
+  private onPointerMove(e: PointerEvent): void {
+    this.pointer = this.canvasOnTop(e) || this.drag ? this.toVirtual(e) : null;
+    if (this.drag && this.pointer) {
+      const p = this.pointer;
+      this.drag.x = p.x;
+      this.drag.y = p.y;
+      if (!this.drag.active && Math.hypot(p.x - this.drag.start.x, p.y - this.drag.start.y) > DRAG_THRESHOLD) {
+        this.drag.active = true;
+      }
+      if (this.drag.active) this.sync();
+    }
+  }
+
+  private onPointerDown(e: PointerEvent): void {
+    if (!this.canvasOnTop(e)) return;
+    const p = this.toVirtual(e);
+    this.pointer = p;
+    const d = this.hit(p, (x) => this.isInteractive(x));
+    if (!d) return;
+    if ((d.role === 'hand' || d.role === 'drawn') && d.card !== null) {
+      this.drag = { card: d.card, start: p, x: p.x, y: p.y, active: false };
+      this.app.canvas.setPointerCapture?.(e.pointerId);
+      return;
+    }
+    if (d.role === 'drawPile') this.handlers.onTapDrawPile();
+    else if (d.role === 'discardTop') this.handlers.onTapDiscard();
+    this.views.get(d.key)?.pop(0.15);
+  }
+
+  private onPointerUp(e: PointerEvent): void {
     const drag = this.drag;
     this.drag = null;
     if (!drag) return;
+    const role = this.roles.get(`c${drag.card}`)?.role;
     if (!drag.active) {
-      this.handlers.onTapHand(drag.card);
+      if (role === 'drawn') this.handlers.onTapDrawn(drag.card);
+      else this.handlers.onTapHand(drag.card);
       this.views.get(`c${drag.card}`)?.pop(0.12);
       return;
     }
-    // Dropped: work out the new position in the hand from x.
-    const g = this.input.game;
-    const me = g?.you;
-    if (g && me !== null && me !== undefined) {
-      const hand = g.players[me].hand ?? [];
-      const order = this.input.handOrder.filter((c) => hand.includes(c));
-      for (const c of hand) if (!order.includes(c)) order.push(c);
-      const slots = handSlots(this.layout, order.length);
-      const without = order.filter((c) => c !== drag.card);
-      let idx = slots.findIndex((s) => drag.x < s.x);
-      if (idx < 0) idx = order.length - 1;
-      without.splice(Math.min(idx, without.length), 0, drag.card);
-      this.handlers.onReorder(without);
+    const p = this.toVirtual(e);
+    // Dropped on something that takes it?
+    const under = this.hit(p, (d) => d.card !== drag.card && (d.role === 'discardTop' || d.role === 'hand' || d.role === 'formation'));
+    let target: DropTarget | null = null;
+    if (under?.role === 'discardTop') target = { kind: 'discard' };
+    else if (under?.role === 'hand' && under.card !== null) target = { kind: 'handCard', card: under.card };
+    else if (under?.role === 'formation' && under.card !== null) {
+      const id = this.formationAtCard(under.card);
+      if (id !== null) target = { kind: 'formation', id };
+    }
+    if (target && this.handlers.canDrop(drag.card, target)) {
+      this.handlers.onDrop(drag.card, target);
+    } else if (role === 'hand') {
+      this.reorder(drag.card, p.x);
     }
     this.sync();
+  }
+
+  /** Moves a hand card to the slot nearest to x. */
+  private reorder(card: Card, x: number): void {
+    const g = this.input.game;
+    const me = g?.you;
+    if (!g || me === null || me === undefined) return;
+    const hand = g.players[me].hand ?? [];
+    const order = this.input.handOrder.filter((c) => hand.includes(c));
+    for (const c of hand) if (!order.includes(c)) order.push(c);
+    const slots = handSlots(this.layout, order.length);
+    const without = order.filter((c) => c !== card);
+    let idx = slots.findIndex((s) => x < s.x);
+    if (idx < 0) idx = order.length - 1;
+    without.splice(Math.min(idx, without.length), 0, card);
+    this.handlers.onReorder(without);
   }
 
   /** Centre of a card view in virtual coordinates, if it exists. */
@@ -282,6 +398,7 @@ export class Table {
   private tick(dt: number): void {
     dt = Math.min(dt, 0.05);
     this.time += dt;
+    this.updateHover();
     for (const v of this.views.values()) v.update(dt, this.time);
     for (let i = this.dying.length - 1; i >= 0; i--) {
       const v = this.dying[i];

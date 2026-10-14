@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { initAudio, unlockAudio } from './audio';
 import { startBackground } from './background';
-import { initController, setHandOrder, tapDrawn, tapHand, send } from './controller';
+import { canDrop, drop, initController, send, setHandOrder, tapDrawn, tapHand } from './controller';
 import { Table } from './game/table';
 import { initNet } from './net';
 import { applyCssSettings, onSettings } from './settings';
@@ -23,9 +23,13 @@ async function boot() {
     onTapDrawPile: () => void send({ type: 'draw' }),
     onTapDiscard: () => void send({ type: 'takeDiscard' }),
     onReorder: setHandOrder,
+    canDrop,
+    onDrop: drop,
+    blocked: () => store.get().overlay !== null,
   });
   table.onLayout = (layout) => store.set({ layout });
   await table.init(document.getElementById('stage')!);
+  if (import.meta.env.DEV) (window as unknown as { __table: Table }).__table = table;
   initController(table);
 
   let lastSettings = '';

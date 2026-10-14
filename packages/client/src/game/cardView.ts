@@ -53,6 +53,7 @@ export class CardView extends Container {
   hovered = false;
   private tilt = { x: 0, y: 0 };
   private juice = 0;
+  private flipWhenArrived = false;
 
   constructor(key: string, card: Card | null, target: CardTarget, private tex: CardTextures) {
     super();
@@ -90,10 +91,11 @@ export class CardView extends Container {
     if (scale !== undefined) this.scale.set(scale);
   }
 
-  /** Show the back right now (it flips to its face when it lands). */
-  showFaceDown(): void {
+  /** Show the back right now. With `untilArrived`, it only flips once it reaches its spot. */
+  showFaceDown(untilArrived = false): void {
     this.shownFaceUp = false;
     this.flip = 1;
+    this.flipWhenArrived = untilArrived;
     this.refreshTextures();
   }
 
@@ -139,7 +141,9 @@ export class CardView extends Container {
 
     // Flip when the visible side should change: squash to 0, swap, expand.
     const wantFaceUp = t.faceUp && this.card !== null;
-    if (wantFaceUp !== this.shownFaceUp) {
+    const travelling = this.flipWhenArrived && Math.hypot(t.x - this.x, t.y - this.y) > 14;
+    if (!travelling) this.flipWhenArrived = false;
+    if (wantFaceUp !== this.shownFaceUp && !travelling) {
       this.flip -= h * 9;
       if (this.flip <= 0 || reduced) {
         this.flip = Math.max(0, this.flip);
