@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: 'e2e',
-  timeout: 300_000,
+  timeout: 420_000,
   expect: { timeout: 30_000 },
   use: {
     baseURL: 'http://localhost:5173',

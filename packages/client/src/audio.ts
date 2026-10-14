@@ -1,6 +1,8 @@
 import { Howl, Howler } from 'howler';
 import { getSettings, onSettings } from './settings';
 
+const A = `${import.meta.env.BASE_URL}assets/`;
+
 export type Sfx =
   | 'button' | 'cancel' | 'highlight1' | 'highlight2' | 'card1' | 'card3' | 'cardSlide1' | 'cardSlide2'
   | 'cardFan2' | 'paper1' | 'chips1' | 'chips2' | 'coin1' | 'coin2' | 'coin3' | 'multhit1' | 'multhit2'
@@ -12,9 +14,9 @@ let music: Howl | null = null;
 let musicId: number | undefined;
 
 export async function initAudio(): Promise<void> {
-  const sprite = (await (await fetch('/assets/sfx.json')).json()) as Record<string, [number, number]>;
-  sfx = new Howl({ src: ['/assets/sfx.webm', '/assets/sfx.mp3'], sprite, preload: true });
-  music = new Howl({ src: ['/assets/music1.webm', '/assets/music1.mp3'], loop: true, html5: true, preload: false });
+  const sprite = (await (await fetch(`${A}sfx.json`)).json()) as Record<string, [number, number]>;
+  sfx = new Howl({ src: [`${A}sfx.webm`, `${A}sfx.mp3`], sprite, preload: true });
+  music = new Howl({ src: [`${A}music1.webm`, `${A}music1.mp3`], loop: true, html5: true, preload: false });
   applyVolumes();
   onSettings(applyVolumes);
 }

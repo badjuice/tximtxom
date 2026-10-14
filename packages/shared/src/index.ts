@@ -7,3 +7,5 @@ export * from './engine.js';
 export * from './bot.js';
 export * from './view.js';
 export * from './protocol.js';
+export * from './host/room.js';
+export * from './host/roomServer.js';

@@ -1,21 +1,22 @@
-import { randomBytes, randomUUID } from 'node:crypto';
-import {
-  type Action,
-  applyAction,
-  botAction,
-  DEFAULT_RULES,
-  type GameState,
-  type LobbyPlayer,
-  MAX_PLAYERS,
-  MIN_PLAYERS,
-  newGame,
-  randomSeed,
-  type RoomView,
-  type Rules,
-  sanitizeRules,
-  type Seat,
-  viewFor,
-} from '@tximtxom/shared';
+import { botAction } from '../bot.js';
+import { applyAction, newGame } from '../engine.js';
+import type { LobbyPlayer, RoomView } from '../protocol.js';
+import { randomSeed } from '../rng.js';
+import { DEFAULT_RULES, MAX_PLAYERS, MIN_PLAYERS, type Rules, sanitizeRules } from '../rules.js';
+import type { Action, GameState, Seat } from '../types.js';
+import { viewFor } from '../view.js';
+
+// Runs a room: lobby, game state, bots and the turn timer. Plain TypeScript
+// with no Node or browser APIs, so the same code runs on the Node server or
+// inside the host player's browser (peer-to-peer mode).
+
+type Timer = ReturnType<typeof setTimeout>;
+
+function randomId(bytes: number): string {
+  const a = new Uint8Array(bytes);
+  globalThis.crypto.getRandomValues(a);
+  return Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
+}
 
 /** How long bots "think" before acting (ms). */
 const BOT_DELAY = { turn: 900, reveal: 700, ride: 600, ready: 400 };
@@ -26,12 +27,22 @@ export interface Member {
   token: string;
   name: string;
   isBot: boolean;
-  socketId: string | null;
+  clientId: string | null;
+}
+
+export interface RoomSnapshot {
+  code: string;
+  hostId: string;
+  rules: Rules;
+  members: Member[];
+  game: GameState | null;
 }
 
 export interface RoomHooks {
   /** Push the latest view to one member. */
   send(member: Member, view: RoomView): void;
+  /** Called after every change (used to save the room). */
+  changed?(): void;
 }
 
 export class Room {
@@ -43,8 +54,8 @@ export class Room {
   turnDeadline: number | null = null;
   lastActivity = Date.now();
 
-  private botTimer: NodeJS.Timeout | null = null;
-  private turnTimer: NodeJS.Timeout | null = null;
+  private botTimer: Timer | null = null;
+  private turnTimer: Timer | null = null;
   private timerKey = '';
 
   constructor(code: string, private hooks: RoomHooks) {
@@ -54,8 +65,8 @@ export class Room {
 
   // ------------------------------------------------------------ membership
 
-  addHuman(name: string, socketId: string): Member {
-    const m: Member = { id: randomUUID(), token: randomBytes(18).toString('base64url'), name, isBot: false, socketId };
+  addHuman(name: string, clientId: string): Member {
+    const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, clientId };
     this.members.push(m);
     if (!this.hostId) this.hostId = m.id;
     return m;
@@ -64,7 +75,7 @@ export class Room {
   addBot(): Member {
     const used = new Set(this.members.map((m) => m.name));
     const name = BOT_NAMES.find((n) => !used.has(n)) ?? `Bot ${this.members.length + 1}`;
-    const m: Member = { id: randomUUID(), token: '', name, isBot: true, socketId: null };
+    const m: Member = { id: randomId(8), token: '', name, isBot: true, clientId: null };
     this.members.push(m);
     return m;
   }
@@ -78,8 +89,8 @@ export class Room {
     return token ? this.members.find((m) => m.token === token) : undefined;
   }
 
-  bySocket(socketId: string): Member | undefined {
-    return this.members.find((m) => m.socketId === socketId);
+  byClient(clientId: string): Member | undefined {
+    return this.members.find((m) => m.clientId === clientId);
   }
 
   seatOf(member: Member): Seat | null {
@@ -89,7 +100,7 @@ export class Room {
   }
 
   get humansConnected(): number {
-    return this.members.filter((m) => !m.isBot && m.socketId).length;
+    return this.members.filter((m) => !m.isBot && m.clientId).length;
   }
 
   get isFull(): boolean {
@@ -97,17 +108,17 @@ export class Room {
   }
 
   /** A human connected (or came back). They take their seat back from the bot. */
-  connect(member: Member, socketId: string): void {
-    member.socketId = socketId;
+  connect(member: Member, clientId: string): void {
+    member.clientId = clientId;
     const seat = this.seatOf(member);
     if (this.game && seat !== null) this.game.players[seat].botControlled = false;
-    if (!this.members.some((m) => m.id === this.hostId && m.socketId)) this.hostId = member.id;
+    if (!this.members.some((m) => m.id === this.hostId && m.clientId)) this.hostId = member.id;
     this.touch();
   }
 
   /** A human dropped. In a game, a bot keeps their seat warm until they return. */
   disconnect(member: Member): void {
-    member.socketId = null;
+    member.clientId = null;
     const seat = this.seatOf(member);
     if (this.game && seat !== null) {
       this.game.players[seat].botControlled = true;
@@ -115,7 +126,7 @@ export class Room {
       this.remove(member.id);
     }
     if (this.hostId === member.id) {
-      const next = this.members.find((m) => !m.isBot && m.socketId);
+      const next = this.members.find((m) => !m.isBot && m.clientId);
       if (next) this.hostId = next.id;
     }
     this.touch();
@@ -137,7 +148,7 @@ export class Room {
       randomSeed(),
     );
     for (const m of this.members) {
-      if (!m.isBot && !m.socketId) this.game.players[this.seatOf(m)!].botControlled = true;
+      if (!m.isBot && !m.clientId) this.game.players[this.seatOf(m)!].botControlled = true;
     }
     this.touch();
     return null;
@@ -146,7 +157,7 @@ export class Room {
   /** Back to the lobby after a finished game (keeps everyone seated). */
   backToLobby(): void {
     this.game = null;
-    this.members = this.members.filter((m) => m.isBot || m.socketId);
+    this.members = this.members.filter((m) => m.isBot || m.clientId);
     this.touch();
   }
 
@@ -170,11 +181,12 @@ export class Room {
     this.scheduleBots();
     this.scheduleTurnTimer();
     this.broadcast();
+    this.hooks.changed?.();
   }
 
   broadcast(): void {
     for (const m of this.members) {
-      if (m.socketId) this.hooks.send(m, this.viewFor(m));
+      if (m.clientId) this.hooks.send(m, this.viewFor(m));
     }
   }
 
@@ -183,7 +195,7 @@ export class Room {
       id: x.id,
       name: x.name,
       isBot: x.isBot,
-      connected: x.isBot || !!x.socketId,
+      connected: x.isBot || !!x.clientId,
     }));
     return {
       code: this.code,
@@ -269,6 +281,27 @@ export class Room {
         if (this.apply(seat, a)) break;
       }
     }
+  }
+
+  /** Plain data to save and restore the room (e.g. across a host refresh). */
+  snapshot(): RoomSnapshot {
+    return { code: this.code, hostId: this.hostId, rules: this.rules, members: this.members, game: this.game };
+  }
+
+  static restore(snap: RoomSnapshot, hooks: RoomHooks): Room {
+    const room = new Room(snap.code, hooks);
+    room.hostId = snap.hostId;
+    room.rules = snap.rules;
+    // Everyone starts disconnected; bots cover for humans until they come back.
+    room.members = snap.members.map((m) => ({ ...m, clientId: null }));
+    room.game = snap.game;
+    if (room.game) for (const p of room.game.players) if (!p.isBot) p.botControlled = true;
+    return room;
+  }
+
+  /** Re-arms bots and timers after a restore. */
+  resume(): void {
+    this.touch();
   }
 
   dispose(): void {

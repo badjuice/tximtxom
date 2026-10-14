@@ -18,10 +18,10 @@ const atlases: Record<string, Atlas> = {};
 
 export async function loadSpriteAtlases(): Promise<void> {
   for (const name of ['cards', 'jokers']) {
-    const json = await (await fetch(`/assets/${name}.json`)).json();
+    const json = await (await fetch(`${import.meta.env.BASE_URL}assets/${name}.json`)).json();
     const frames: Record<string, Frame> = {};
     for (const [k, v] of Object.entries<{ frame: Frame }>(json.frames)) frames[k] = v.frame;
-    atlases[name] = { url: `/assets/${json.meta.image}`, w: json.meta.size.w, h: json.meta.size.h, frames };
+    atlases[name] = { url: `${import.meta.env.BASE_URL}assets/${json.meta.image}`, w: json.meta.size.w, h: json.meta.size.h, frames };
   }
 }
 

@@ -3,7 +3,7 @@ import { initAudio, unlockAudio } from './audio';
 import { startBackground } from './background';
 import { initController, setHandOrder, tapDrawn, tapHand, send } from './controller';
 import { Table } from './game/table';
-import './net';
+import { initNet } from './net';
 import { applyCssSettings, onSettings } from './settings';
 import { store } from './store';
 import './styles.css';
@@ -14,7 +14,7 @@ async function boot() {
   applyCssSettings();
   startBackground(document.getElementById('bg') as HTMLCanvasElement);
 
-  const font = new FontFace('m6x11', 'url(/assets/m6x11plus.woff2)');
+  const font = new FontFace('m6x11', `url(${import.meta.env.BASE_URL}assets/m6x11plus.woff2)`);
   await Promise.all([font.load().then((f) => document.fonts.add(f)).catch(() => {}), loadSpriteAtlases()]);
 
   const table = new Table({
@@ -40,6 +40,7 @@ async function boot() {
   });
 
   render(<App />, document.getElementById('app')!);
+  initNet();
 
   // Audio needs a user gesture on mobile.
   void initAudio();

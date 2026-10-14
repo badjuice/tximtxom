@@ -8,7 +8,7 @@ COPY packages/client/package.json packages/client/
 RUN npm ci --ignore-scripts
 COPY tsconfig.base.json ./
 COPY packages ./packages
-RUN npm run build
+RUN VITE_SERVER_URL=/ npm run build
 
 # ---- run (only the server bundle, its two runtime deps and the built client)
 FROM node:24-slim

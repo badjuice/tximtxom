@@ -60,7 +60,7 @@ export class Table {
     });
     host.appendChild(this.app.canvas);
 
-    const sheet = (await Assets.load('/assets/cards.json')) as Spritesheet;
+    const sheet = (await Assets.load(`${import.meta.env.BASE_URL}assets/cards.json`)) as Spritesheet;
     sheet.textureSource.scaleMode = 'nearest';
     this.tex = { get: (name: string) => sheet.textures[name] as Texture };
 

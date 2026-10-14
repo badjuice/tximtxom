@@ -7,12 +7,14 @@
   ],
   "scripts": {
     "assets": "node tools/extract-assets.mjs",
-    "dev": "concurrently -n server,client -c yellow,cyan \"npm run dev -w @tximtxom/server\" \"npm run dev -w @tximtxom/client\"",
+    "dev": "npm run dev -w @tximtxom/client",
     "build": "npm run build -w @tximtxom/client && npm run build -w @tximtxom/server",
     "start": "node packages/server/dist/index.js",
     "test": "vitest run",
     "typecheck": "tsc -p packages/shared && tsc -p packages/server && tsc -p packages/client",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "dev:server": "concurrently -n server,client -c yellow,cyan \"npm run dev -w @tximtxom/server\" \"VITE_SERVER_URL=/ npm run dev -w @tximtxom/client\"",
+    "build:pages": "VITE_BASE=/tximtxom/ npm run build -w @tximtxom/client"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0",
