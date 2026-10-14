@@ -62,9 +62,11 @@ export function computeLayout(
   const offsetX = (screenW - w * scale) / 2;
   const offsetY = (screenH - h * scale) / 2;
   const k = uiScale;
+  /** Short portrait screens (e.g. 390x700) need a tighter centre. */
+  const shortPortrait = portrait && h < 1400;
 
   const hand = portrait
-    ? { x: w / 2, y: h - 290, spacing: 90, cardScale: 1.6 * Math.min(k, 1.05) }
+    ? { x: w / 2, y: h - 430, spacing: 90, cardScale: 1.6 * Math.min(k, 1.05) }
     : { x: w / 2, y: h - 215, spacing: 100 * k, cardScale: 1.5 * k };
 
   // Opponent anchors in visual order. Counter-clockwise (default): the next
@@ -96,11 +98,16 @@ export function computeLayout(
   for (let s = 0; s < n; s++) {
     const rel = (s - mySeat + n) % n;
     seats[s] = rel === 0
-      ? { x: hand.x, y: hand.y, side: 'top', plate: portrait ? { x: w / 2, y: hand.y - 140 } : { x: hand.x - 4 * hand.spacing - 60, y: hand.y + 10 } }
+      ? {
+          x: hand.x,
+          y: hand.y,
+          side: 'top',
+          plate: shortPortrait ? { x: 85, y: 500 } : portrait ? { x: w / 2, y: hand.y - 140 } : { x: hand.x - 4 * hand.spacing - 60, y: hand.y + 10 },
+        }
       : anchor(ordered[rel - 1]);
   }
 
-  const pileY = portrait ? Math.max(560, h * 0.42) : 315;
+  const pileY = shortPortrait ? 500 : portrait ? Math.max(560, h * 0.42) : 315;
   const gap = (portrait ? 95 : 80) + (widePiles ? 45 : 0);
   const draw = { x: w / 2 - gap, y: pileY };
   const discard = { x: w / 2 + gap, y: pileY };
@@ -117,12 +124,12 @@ export function computeLayout(
     opponentScale: portrait ? 0.8 : 0.7,
     draw,
     discard,
-    pileScale: portrait ? 1.6 : 1.35,
-    drawn: portrait ? { x: w / 2, y: pileY + 215 } : { x: w / 2 + 260, y: pileY },
-    endCard: portrait ? { x: w / 2, y: pileY + 215 } : { x: w / 2 + 260, y: pileY },
+    pileScale: shortPortrait ? 1.3 : portrait ? 1.6 : 1.35,
+    drawn: shortPortrait ? { x: w - 72, y: pileY } : portrait ? { x: w / 2, y: pileY + 215 } : { x: w / 2 + 260, y: pileY },
+    endCard: shortPortrait ? { x: w - 72, y: pileY } : portrait ? { x: w / 2, y: pileY + 215 } : { x: w - 300, y: pileY },
     reveal: portrait
-      ? { x: 20, y: 400, w: w - 40, h: h - 400 - 480, cardScale: 0.95 }
-      : { x: 270, y: 175, w: w - 540, h: 260, cardScale: 0.85 },
+      ? { x: 20, y: 400, w: w - 40, h: h - 400 - 620, cardScale: 0.95 }
+      : { x: 250, y: 175, w: w - 640, h: 260, cardScale: 0.85 },
     actionBar: portrait ? { x: w / 2, y: h - 95 } : { x: w / 2, y: h - 30 },
   };
 }

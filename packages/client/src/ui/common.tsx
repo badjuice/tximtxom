@@ -50,6 +50,9 @@ export function HoldButton(props: { color: Color; label: string; sub?: string; e
   const [progress, setProgress] = useState(0);
   const start = useRef<number | null>(null);
   const raf = useRef(0);
+  // The callback changes on every redraw; a redraw must not interrupt a hold.
+  const confirm = useRef(props.onConfirm);
+  confirm.current = props.onConfirm;
 
   const begin = () => {
     if (!props.enabled || start.current !== null) return;
@@ -62,7 +65,7 @@ export function HoldButton(props: { color: Color; label: string; sub?: string; e
       if (p >= 1) {
         start.current = null;
         setProgress(0);
-        props.onConfirm();
+        confirm.current();
         return;
       }
       raf.current = requestAnimationFrame(step);
@@ -88,9 +91,14 @@ export function HoldButton(props: { color: Color; label: string; sub?: string; e
     return () => {
       removeEventListener('keydown', down);
       removeEventListener('keyup', up);
-      cancel();
     };
-  }, [props.hotkey, props.enabled, props.onConfirm]);
+  }, [props.hotkey, props.enabled]);
+
+  // Stop a hold if the button gets disabled or goes away.
+  useEffect(() => {
+    if (!props.enabled) cancel();
+  }, [props.enabled]);
+  useEffect(() => () => cancelAnimationFrame(raf.current), []);
 
   return (
     <button

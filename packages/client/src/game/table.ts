@@ -7,7 +7,7 @@ import { CARD_H, CARD_W, computeLayout, type Layout, type Point } from './layout
 import { Particles, Shake } from './particles';
 import { type DesiredCard, describeScene, GREEN, handSlots } from './scene';
 
-export type DropTarget = { kind: 'discard' } | { kind: 'handCard'; card: Card } | { kind: 'formation'; id: number };
+export type DropTarget = { kind: 'discard' } | { kind: 'handCard'; card: Card } | { kind: 'formation'; id: number } | { kind: 'table' };
 
 export interface TableHandlers {
   onTapHand(card: Card): void;
@@ -362,6 +362,9 @@ export class Table {
       const id = this.formationAtCard(under.card);
       if (id !== null) target = { kind: 'formation', id };
     }
+    // Dropped on the open table (above the hand): lay a formation.
+    const handTop = this.layout.hand.y - (CARD_H * this.layout.hand.cardScale) / 2 - 20;
+    if (!target && p.y < handTop) target = { kind: 'table' };
     if (target && this.handlers.canDrop(drag.card, target)) {
       this.handlers.onDrop(drag.card, target);
     } else if (role === 'hand') {

@@ -354,12 +354,8 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
         sfx('negative');
         table.shake.add(6);
       }
+      // The game-over modal says who won; no banner on top of it.
       const names = e.winners.map((w) => name(g, w)).join(' & ');
-      banner(tie ? t('go.tie') : iWon ? t('go.youWin') : t('go.wins', { name: names }), {
-        tone: iWon ? 'good' : 'bad',
-        ms: 3000,
-        joker: iWon ? 'joker' : 'mr_bones',
-      });
       announce(t('sr.gameOver', { who: tie ? t('sr.tieBetween', { names }) : t('sr.wins', { names }) }));
       break;
     }
@@ -396,6 +392,9 @@ export function canDrop(card: Card, target: DropTarget): boolean {
     return false;
   }
   const r = g.reveal;
+  if (g.phase === 'reveal' && r && !r.ride && target.kind === 'table') {
+    return r.order[r.current] === me && hand.includes(card);
+  }
   if (g.phase === 'reveal' && r?.ride && target.kind === 'formation' && target.id === r.ride.formationId) {
     const w = r.ride;
     if (!w.riders.includes(me) || !hand.includes(card)) return false;
@@ -413,7 +412,10 @@ export function drop(card: Card, target: DropTarget): void {
   if (!g) return;
   if (target.kind === 'discard') void send(card === g.drawn ? { type: 'discardDrawn' } : { type: 'swap', card });
   else if (target.kind === 'handCard') void send({ type: 'swap', card: target.card });
-  else void send({ type: 'ride', card });
+  else if (target.kind === 'table') {
+    const sel = store.get().selected;
+    void send({ type: 'lay', cards: sel.includes(card) ? sel : [...sel, card] });
+  } else void send({ type: 'ride', card });
 }
 
 export function tapDrawn(card: Card): void {
