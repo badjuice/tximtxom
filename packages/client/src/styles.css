@@ -781,6 +781,8 @@ input[type='text'] {
   justify-content: flex-end;
 }
 .round-chip {
+  white-space: nowrap;
+  flex: none;
   background: rgba(30, 43, 45, 0.85);
   border-radius: 8px;
   padding: 4px 10px;
