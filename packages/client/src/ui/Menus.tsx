@@ -6,6 +6,7 @@ import { resetSettings, type Settings, updateSettings, useSettings } from '../se
 import { store, useStore } from '../store';
 import { Button, Choice, Modal, Rich, Slider, Tabs, Toggle } from './common';
 import { SEAT_COLORS } from './Hud';
+import { RulesForm } from './RulesForm';
 import { CardBackIcon, CardIcon, JokerIcon, Wins } from './sprites';
 
 export function Overlays() {
@@ -20,9 +21,22 @@ export function Overlays() {
       return <SettingsMenu onClose={close} />;
     case 'help':
       return <Help onClose={close} />;
+    case 'rules':
+      return <ActiveRules onClose={close} />;
     default:
       return null;
   }
+}
+
+/** The rules of the game being played, read-only. */
+function ActiveRules({ onClose }: { onClose: () => void }) {
+  const rules = useStore((s) => s.room?.game?.rules ?? s.room?.rules);
+  if (!rules) return null;
+  return (
+    <Modal title={t('top.rules')} onClose={onClose} wide class="rules-view">
+      <RulesForm rules={rules} readOnly onChange={() => {}} />
+    </Modal>
+  );
 }
 
 // ------------------------------------------------------------------ scoreboard
@@ -207,9 +221,8 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
         active={tab}
         onChange={setTab}
       />
-      <div class="tab-body">
-        {tab === 'general' && (
-          <>
+      <div class="tab-body stacked">
+        <div class={`tab-panel${tab === 'general' ? '' : ' hidden'}`} inert={tab !== 'general'}>
             <Choice
               label={t('language')}
               value={s.lang}
@@ -248,10 +261,8 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
                 </Button>
               )}
             </div>
-          </>
-        )}
-        {tab === 'cards' && (
-          <>
+        </div>
+        <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
             <Toggle label={t('set.highContrast')} desc={t('set.highContrast.desc')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />
             <div class="toggle">
               <span class="toggle-text">
@@ -267,10 +278,8 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             </div>
             <Slider label={t('set.size')} value={s.uiScale} min={0.8} max={1.2} step={0.05} onChange={(v) => set({ uiScale: v })} format={pct} />
             <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />
-          </>
-        )}
-        {tab === 'motion' && (
-          <>
+        </div>
+        <div class={`tab-panel${tab === 'motion' ? '' : ' hidden'}`} inert={tab !== 'motion'}>
             <Toggle label={t('set.reduced')} desc={t('set.reduced.desc')} checked={s.reducedMotion} onChange={(v) => set({ reducedMotion: v })} />
             <Toggle label={t('set.shake')} checked={s.screenShake} onChange={(v) => set({ screenShake: v })} disabled={s.reducedMotion} />
             <Toggle label={t('set.bg')} checked={s.backgroundAnim} onChange={(v) => set({ backgroundAnim: v })} disabled={s.reducedMotion} />
@@ -278,17 +287,14 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             {s.crt && <Slider label={t('set.crtStrength')} value={s.crtIntensity} min={0.1} max={1} step={0.05} onChange={(v) => set({ crtIntensity: v })} format={pct} />}
             <Toggle label={t('set.flash')} desc={t('set.flash.desc')} checked={s.safeFlash} onChange={(v) => set({ safeFlash: v })} />
             <Slider label={t('set.speed')} value={s.gameSpeed} min={0.5} max={4} step={0.5} onChange={(v) => set({ gameSpeed: v })} format={(v) => `${v}x`} />
-          </>
-        )}
-        {tab === 'sound' && (
-          <>
+        </div>
+        <div class={`tab-panel${tab === 'sound' ? '' : ' hidden'}`} inert={tab !== 'sound'}>
             <Toggle label={t('set.mute')} checked={s.muted} onChange={(v) => set({ muted: v })} />
             <Slider label={t('set.master')} value={s.masterVolume} min={0} max={1} step={0.05} onChange={(v) => set({ masterVolume: v })} format={pct} />
             <Slider label={t('set.sfx')} value={s.sfxVolume} min={0} max={1} step={0.05} onChange={(v) => set({ sfxVolume: v })} format={pct} />
             <Slider label={t('set.music')} value={s.musicVolume} min={0} max={1} step={0.05} onChange={(v) => set({ musicVolume: v })} format={pct} />
             <Toggle label={t('set.vibration')} desc={t('set.vibration.desc')} checked={s.haptics} onChange={(v) => set({ haptics: v })} />
-          </>
-        )}
+        </div>
       </div>
     </Modal>
   );

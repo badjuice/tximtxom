@@ -292,7 +292,7 @@ export function Tabs<T extends string>(props: { tabs: { id: T; label: string }[]
 }
 
 /** Balatro-style panel in a dimmed overlay. Esc / backdrop closes it. */
-export function Modal(props: { title: string; onClose?: () => void; children: ComponentChildren; wide?: boolean; footer?: ComponentChildren; class?: string }) {
+export function Modal(props: { title: string; onClose?: () => void; children: ComponentChildren; wide?: boolean; footer?: ComponentChildren; class?: string; corner?: ComponentChildren }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
@@ -314,6 +314,7 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
       <div class={`panel modal${props.wide ? ' wide' : ''} ${props.class ?? ''}`} role="dialog" aria-modal="true" aria-label={props.title} tabIndex={-1} ref={ref}>
         <div class="modal-head">
           <h2>{props.title}</h2>
+          {props.corner && <div class="modal-corner">{props.corner}</div>}
         </div>
         <div class="modal-body">{props.children}</div>
         <div class="modal-foot">

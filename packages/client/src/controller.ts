@@ -15,9 +15,10 @@ let handOrder: Card[] = [];
 let wasMyTurn = false;
 /** Which ride chance we last announced ("" = none open for us). */
 let lastRideKey = '';
+let wasMyReveal = false;
 let lastTximTxomAt = 0;
 
-const CALLOUT = { you: '#009dff', ride: '#4bc292', tximtxom: '#fda200', gameOver: '#fe5f55', nope: '#fe5f55' };
+const CALLOUT = { you: '#009dff', ride: '#4bc292', tximtxom: '#fda200', gameOver: '#fe5f55', nope: '#fe5f55', reveal: '#8867a5' };
 
 /** Set when it's our moment to Panha Boleia on the open formation. */
 function myRideKey(g: GameView): string {
@@ -137,6 +138,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
     lastEventId = 0;
     lastRideKey = '';
     wasMyTurn = false;
+    wasMyReveal = false;
     seenOut = new Set();
     return;
   }
@@ -191,9 +193,18 @@ function turnCallouts(g: GameView, prevG: GameView | null): void {
     callout(t('c.yourTurn'), CALLOUT.you);
     announce(t('sr.yourTurn'));
   } else if (g.phase === 'playing' && g.turn !== me && (prevG?.phase !== 'playing' || prevG.turn !== g.turn)) {
-    callout(t('c.turnOf', { name: g.players[g.turn].name }), SEAT_COLORS[g.turn], { small: true, ms: 1100 });
+    callout(t('c.turnOf', { name: g.players[g.turn].name }), SEAT_COLORS[g.turn], { small: true, ms: 1000 });
   }
   wasMyTurn = myTurn;
+  // Our turn to lay formations (not while a ride window is open).
+  const myReveal = me !== null && g.phase === 'reveal' && !!g.reveal && !g.reveal.ride && g.reveal.order[g.reveal.current] === me;
+  if (myReveal && !wasMyReveal) {
+    play('highlight2');
+    vibrate(40);
+    callout(t('c.showYours'), CALLOUT.reveal);
+    announce(t('sr.showYours'));
+  }
+  wasMyReveal = myReveal;
   const rideKey = myRideKey(g);
   if (rideKey && rideKey !== lastRideKey) {
     play('highlight1');
@@ -457,7 +468,7 @@ export function drop(card: Card, target: DropTarget): void {
 function nope(): void {
   play('cancel');
   vibrate([30, 40, 30]);
-  callout(t('c.nope'), CALLOUT.nope, { ms: 1100 });
+  callout(t('c.nope'), CALLOUT.nope, { ms: 1000 });
 }
 
 export function badDrop(_card: Card, target: DropTarget): void {
@@ -676,6 +687,14 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
       };
     }
     if (r.order[r.current] === me) {
+      // Nothing left to form: the only move is to finish.
+      if (g.noMoreFormations) {
+        return {
+          ...EMPTY,
+          main: [{ label: t('act.finish'), color: 'green', enabled: true, onClick: () => void send({ type: 'doneLaying' }), key: 'Enter' }],
+          status: t('st.noMore'),
+        };
+      }
       return {
         ...EMPTY,
         main: [

@@ -6,7 +6,8 @@ import { revealGroups } from '../game/scene';
 import { kindName, t } from '../i18n';
 import { leaveRoom, MODE, playAgain, startGame } from '../net';
 import { updateSettings, useSettings } from '../settings';
-import { store, useStore } from '../store';
+import { copyReport } from '../report';
+import { type Overlay, store, toast, useStore } from '../store';
 import { Button, CardText, HoldButton, Modal } from './common';
 import { CardIcon, Icon, JokerIcon, Wins } from './sprites';
 
@@ -46,7 +47,7 @@ export function Hud() {
 }
 
 function TopBar({ g, onLeave }: { g: GameView; onLeave: () => void }) {
-  const open = (overlay: 'scoreboard' | 'formations' | 'settings' | 'help') => store.set({ overlay });
+  const open = (overlay: NonNullable<Overlay>) => store.set({ overlay });
   const { historyOpen } = useSettings();
   return (
     <nav class="topbar" aria-label="Game menu">
@@ -57,6 +58,9 @@ function TopBar({ g, onLeave }: { g: GameView; onLeave: () => void }) {
         {g.rules.superposition && <JokerIcon name="superposition" scale={0.26} title={t('rule.superposition')} />}
         {g.rules.smeared && <JokerIcon name="smeared" scale={0.26} title={t('rule.smeared')} />}
         {g.rules.sixthSense && <JokerIcon name="sixth_sense" scale={0.26} title={t('rule.sixthSense')} />}
+        <button class="rules-btn" onClick={() => open('rules')}>
+          {t('top.rules')}
+        </button>
       </div>
       <div class="topbar-buttons">
         <Button color="red" onClick={() => open('scoreboard')} kbd="S">
@@ -451,6 +455,16 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
     <Modal
       title={title}
       class="summary-modal"
+      corner={
+        <button
+          class="report-btn"
+          title={t('go.copyReport')}
+          aria-label={t('go.copyReport')}
+          onClick={async () => toast((await copyReport()) ? t('go.reportCopied') : t('go.reportFailed'), 'info')}
+        >
+          ⧉
+        </button>
+      }
       footer={
         <>
           <Button color="orange" onClick={leaveRoom}>

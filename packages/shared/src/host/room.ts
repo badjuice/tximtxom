@@ -37,6 +37,21 @@ export interface Member {
   wins?: number;
 }
 
+/** One line of the host's action log, kept for bug reports. */
+export interface LogEntry {
+  at: number;
+  /** Who did it: a seat's move, or a player joining/leaving. */
+  seat?: Seat;
+  name?: string;
+  what: string;
+  /** Made by a bot: a bot player, a bot covering a disconnected human, or the turn timer. */
+  auto?: boolean;
+  /** Rejected moves, with the engine's reason. */
+  error?: string;
+}
+
+const LOG_MAX = 600;
+
 export interface RoomSnapshot {
   code: string;
   hostId: string;
@@ -45,6 +60,7 @@ export interface RoomSnapshot {
   game: GameState | null;
   /** When a human last did something (ms since epoch). Missing in old saves. */
   lastHumanActivity?: number;
+  log?: LogEntry[];
 }
 
 /** A saved room nobody has touched for ROOM_IDLE_MS should not come back. */
@@ -69,6 +85,8 @@ export class Room {
   game: GameState | null = null;
   turnDeadline: number | null = null;
   lastHumanActivity = Date.now();
+  /** Moves, connections and rejected moves of this room, newest last. */
+  log: LogEntry[] = [];
 
   private botTimer: Timer | null = null;
   private idleTimer: Timer | null = null;
@@ -190,7 +208,13 @@ export class Room {
   }
 
   /** A human connected (or came back). They take their seat back from the bot. */
+  private record(e: Omit<LogEntry, 'at'>): void {
+    this.log.push({ at: Date.now(), ...e });
+    if (this.log.length > LOG_MAX) this.log.splice(0, this.log.length - LOG_MAX);
+  }
+
   connect(member: Member, clientId: string): void {
+    this.record({ name: member.name, what: 'connect' });
     member.clientId = clientId;
     const seat = this.seatOf(member);
     if (this.game && seat !== null) this.game.players[seat].botControlled = false;
@@ -202,6 +226,7 @@ export class Room {
 
   /** A human dropped. In a game, a bot keeps their seat warm until they return. */
   disconnect(member: Member): void {
+    this.record({ name: member.name, what: 'disconnect' });
     member.clientId = null;
     const seat = this.seatOf(member);
     if (this.game && seat !== null) {
@@ -256,12 +281,13 @@ export class Room {
     if (!this.game) return 'The game has not started';
     const seat = this.seatOf(member);
     if (seat === null) return 'You are not playing';
-    return this.apply(seat, action);
+    return this.apply(seat, action, false);
   }
 
-  private apply(seat: Seat, action: Action): string | null {
+  private apply(seat: Seat, action: Action, auto: boolean): string | null {
     const before = this.game!.phase;
     const res = applyAction(this.game!, seat, action);
+    this.record({ seat, what: JSON.stringify(action), auto: auto || undefined, error: res.ok ? undefined : res.error });
     if (!res.ok) return res.error;
     this.game = res.state;
     if (before !== 'gameOver' && this.game.phase === 'gameOver') {
@@ -337,7 +363,7 @@ export class Room {
       this.botTimer = null;
       const m = this.nextBotMove();
       if (!m) return;
-      const err = this.apply(m.seat, m.action);
+      const err = this.apply(m.seat, m.action, true);
       if (err) console.error(`[${this.code}] bot ${m.seat} ${JSON.stringify(m.action)}: ${err}`);
     }, delay);
   }
@@ -378,14 +404,14 @@ export class Room {
       for (let i = 0; i < 20 && this.game; i++) {
         const a = botAction(this.game, seat);
         if (!a || a.type === 'ready') break;
-        if (this.apply(seat, a)) break;
+        if (this.apply(seat, a, true)) break;
       }
     }
   }
 
   /** Plain data to save and restore the room (e.g. across a host refresh). */
   snapshot(): RoomSnapshot {
-    return { code: this.code, hostId: this.hostId, rules: this.rules, members: this.members, game: this.game, lastHumanActivity: this.lastHumanActivity };
+    return { code: this.code, hostId: this.hostId, rules: this.rules, members: this.members, game: this.game, lastHumanActivity: this.lastHumanActivity, log: this.log };
   }
 
   static restore(snap: RoomSnapshot, hooks: RoomHooks): Room {
@@ -396,6 +422,8 @@ export class Room {
     room.members = snap.members.map((m) => ({ ...m, avatar: m.avatar ?? '', clientId: null }));
     room.game = snap.game;
     room.lastHumanActivity = snap.lastHumanActivity ?? 0;
+    room.log = snap.log ?? [];
+    room.record({ what: 'restored after a host refresh' });
     room.armIdle();
     if (room.game) for (const p of room.game.players) if (!p.isBot) p.botControlled = true;
     return room;

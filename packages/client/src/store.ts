@@ -11,7 +11,7 @@ export type Staged =
   | { type: 'swap'; card: Card }
   | { type: 'endRound'; card: Card };
 
-export type Overlay = null | 'scoreboard' | 'formations' | 'settings' | 'help';
+export type Overlay = null | 'scoreboard' | 'formations' | 'settings' | 'help' | 'rules';
 
 export interface ClientState {
   connected: boolean;
@@ -23,7 +23,7 @@ export interface ClientState {
   toast: { id: number; text: string; kind: 'info' | 'error' } | null;
   banner: { id: number; text: string; sub?: string; joker?: string; tone?: 'good' | 'bad' | 'info' } | null;
   /** Balatro-style pop-up text over a spinning polygon ("Your turn", "TximTxom!"). */
-  callout: { id: number; text: string; color: string; small?: boolean } | null;
+  callout: { id: number; text: string; color: string; small?: boolean; ms: number } | null;
   /** Bumped to trigger a "nope" shake on the action bar. */
   shake: number;
   layout: Layout | null;
@@ -92,10 +92,11 @@ let calloutId = 0;
 /** Shows a callout for `ms`. `small` is for less important ones (other players' turns). */
 export function callout(text: string, color: string, opts: { ms?: number; small?: boolean } = {}): void {
   const id = ++calloutId;
-  store.set({ callout: { id, text, color, small: opts.small } });
+  const ms = opts.ms ?? 1250;
+  store.set({ callout: { id, text, color, small: opts.small, ms } });
   setTimeout(() => {
     if (store.get().callout?.id === id) store.set({ callout: null });
-  }, opts.ms ?? 1500);
+  }, ms);
 }
 
 let bannerId = 0;

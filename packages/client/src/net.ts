@@ -241,6 +241,12 @@ export function act(action: Action) {
   return call({ event: 'game:action', msg: action });
 }
 
+/** The host's action log and the final state (only after the game ends). */
+export async function fetchDebug(): Promise<{ log: unknown[]; state: unknown; members: unknown[] } | { error: string }> {
+  const r = await request({ event: 'room:debug' });
+  return r.ok ? (r as unknown as { log: unknown[]; state: unknown; members: unknown[] }) : { error: r.error };
+}
+
 /** Full move log of the current game (used after joining or missing updates). */
 export async function fetchHistory(): Promise<{ id: number; e: GameEvent }[] | null> {
   const r = await request({ event: 'game:history' });

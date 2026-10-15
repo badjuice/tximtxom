@@ -39,6 +39,7 @@ export type Request =
   | { event: 'room:avatar'; msg: Parameters<ClientToServer['room:avatar']>[0] }
   | { event: 'room:start' }
   | { event: 'room:again' }
+  | { event: 'room:debug' }
   | { event: 'room:leave' }
   | { event: 'room:ping' }
   | { event: 'game:action'; msg: Action }
@@ -120,7 +121,7 @@ export class RoomServer {
     if (m) room.disconnect(m);
   }
 
-  handle(clientId: string, req: Request): Result<JoinResult> | Result<{ events: { id: number; e: GameEvent }[] }> | Result {
+  handle(clientId: string, req: Request): Result<JoinResult> | Result<{ events: { id: number; e: GameEvent }[] }> | Result<{ log: unknown[]; state: unknown; members: unknown[] }> | Result {
     // Anything a human sends counts as activity (create/join count via Room.connect).
     this.ctx(clientId)?.room.markHumanActive();
     switch (req.event) {
@@ -169,6 +170,14 @@ export class RoomServer {
         if (!a || typeof a !== 'object' || typeof a.type !== 'string') return { ok: false, error: 'Bad action' };
         const err = c.room.act(c.member, a);
         return err ? { ok: false, error: err } : { ok: true };
+      }
+      case 'room:debug': {
+        // Only once the game is over: the full state shows everyone's cards.
+        const c = this.ctx(clientId);
+        if (!c) return { ok: false, error: 'Not in a room' };
+        if (c.room.game && c.room.game.phase !== 'gameOver') return { ok: false, error: 'The game is not over' };
+        const members = c.room.members.map((m) => ({ id: m.id, name: m.name, isBot: m.isBot, connected: !!m.clientId, wins: m.wins ?? 0 }));
+        return { ok: true, log: c.room.log, state: c.room.game, members };
       }
       case 'game:history': {
         const c = this.ctx(clientId);

@@ -44,6 +44,8 @@ export interface ClientToServer {
   /** Switch to the next free Joker art: your own, or (host only) a bot's, which also renames it. Lobby only. */
   'room:avatar': (msg: { playerId: string }, ack: Ack) => void;
   'room:start': (ack: Ack) => void;
+  /** After a game ends: the host's action log and the full final state, for bug reports. */
+  'room:debug': (ack: Ack<{ log: unknown[]; state: unknown; members: unknown[] }>) => void;
   /** Host, after a game ends: a new game with the same table (wins are kept). */
   'room:again': (ack: Ack) => void;
   'room:leave': () => void;

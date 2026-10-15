@@ -1137,126 +1137,111 @@ input[type='text'] {
 
 /* ---------------------------------------------------------- banners & toasts */
 
-/* Callouts: Balatro's "Nope!" / "Again!" pop-ups. Two polygons spin behind
-   letters that pop in one by one; the whole thing shrinks away at the end. */
+/* Callouts, after Balatro's attention_text (functions/UI_definitions.lua):
+   letters pop in over ~0.17s with a quick pulse, hold, then pop out over
+   0.33s; a single square backdrop grows, turns slowly and fades with them. */
 .callout {
   position: fixed;
   left: 50%;
-  top: 40%;
+  top: 42%;
   z-index: 40;
-  width: min(500px, 92vw);
-  height: 240px;
-  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
   display: grid;
   place-items: center;
   pointer-events: none;
-  animation: callout-life 1.5s ease-in forwards;
 }
-.callout.small {
-  width: min(380px, 84vw);
-  height: 180px;
-  animation-duration: 1.1s;
-}
-.callout-poly {
+.callout-square {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+  width: 230px;
+  height: 230px;
+  margin: -115px 0 0 -115px;
+  left: 0;
+  top: 0;
+  background: var(--c);
+  border-radius: 6px;
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--c) 60%, #000);
+  animation:
+    callout-square var(--life) cubic-bezier(0.2, 0.9, 0.3, 1) forwards,
+    callout-fade 0.33s ease-in calc(var(--life) - 0.33s) forwards;
 }
-.callout-poly .back {
-  fill: color-mix(in srgb, var(--c) 55%, #000);
-  transform-origin: 50% 50%;
-  animation: callout-poly-back 1.5s ease-out;
-}
-.callout-poly .front {
-  fill: var(--c);
-  stroke: #fff;
-  stroke-width: 1.2;
-  vector-effect: non-scaling-stroke;
-  transform-origin: 50% 50%;
-  animation: callout-poly-front 1.5s ease-out;
+.callout.small .callout-square {
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
 }
 .callout-text {
-  position: relative;
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
   display: flex;
-  font-size: 3.2em;
+  font-size: 3em;
   color: #fff;
   white-space: nowrap;
   text-shadow:
-    0 4px 0 rgba(0, 0, 0, 0.45),
-    0 0 2px rgba(0, 0, 0, 0.6);
+    0 4px 0 rgba(0, 0, 0, 0.5),
+    0 0 3px rgba(0, 0, 0, 0.5);
 }
 .callout.small .callout-text {
-  font-size: 2.1em;
+  font-size: 2em;
 }
 .callout-text span {
   display: inline-block;
-  transform: scale(0);
+  scale: 0;
   animation:
-    callout-letter 0.35s cubic-bezier(0.2, 2, 0.4, 1) forwards,
-    callout-wobble 0.6s ease-in-out infinite alternate;
+    callout-pop-in 0.12s ease-out var(--pop) forwards,
+    callout-pulse 0.22s ease-in-out calc(0.2s + var(--i) * 0.025s),
+    callout-pop-out 0.33s ease-in calc(var(--life) - 0.33s) forwards;
 }
-@keyframes callout-letter {
+@keyframes callout-square {
   from {
-    transform: scale(0) translateY(20%) rotate(-20deg);
+    transform: rotate(var(--spin)) scale(0.15);
   }
   to {
-    transform: scale(1);
+    transform: rotate(calc(var(--spin) + 14deg)) scale(1);
   }
 }
-@keyframes callout-wobble {
-  from {
-    translate: 0 -2px;
-    rotate: -3deg;
-  }
-  to {
-    translate: 0 2px;
-    rotate: 3deg;
-  }
-}
-@keyframes callout-poly-back {
-  from {
-    transform: scale(0.2) rotate(-40deg);
-  }
-  25% {
-    transform: scale(1.12) rotate(6deg);
-  }
-  to {
-    transform: scale(1) rotate(24deg);
-  }
-}
-@keyframes callout-poly-front {
-  from {
-    transform: scale(0.1) rotate(30deg);
-  }
-  22% {
-    transform: scale(1.05) rotate(-4deg);
-  }
-  to {
-    transform: scale(0.94) rotate(-18deg);
-  }
-}
-@keyframes callout-life {
-  0%,
-  80% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+@keyframes callout-fade {
   to {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.2) rotate(8deg);
+  }
+}
+@keyframes callout-pop-in {
+  from {
+    scale: 0;
+  }
+  to {
+    scale: 1;
+  }
+}
+@keyframes callout-pulse {
+  50% {
+    translate: 0 -6px;
+    rotate: -4deg;
+  }
+}
+@keyframes callout-pop-out {
+  from {
+    scale: 1;
+  }
+  to {
+    scale: 0;
   }
 }
 @media (max-width: 600px) {
   .callout-text {
-    font-size: 2.3em;
+    font-size: 2.2em;
   }
   .callout.small .callout-text {
-    font-size: 1.6em;
+    font-size: 1.5em;
+  }
+  .callout-square {
+    width: 170px;
+    height: 170px;
+    margin: -85px 0 0 -85px;
   }
 }
-
 
 .banner {
   position: fixed;
@@ -1451,7 +1436,8 @@ input[type='text'] {
     right: 0;
   }
   .history-open .banner,
-  .history-open .toast {
+  .history-open .toast,
+  .history-open .callout {
     left: calc(50% - 150px);
   }
   .history-open .hud .summary {
@@ -2464,4 +2450,72 @@ input.rename {
     max-height: 70vh;
     top: 46%;
   }
+}
+
+/* Tabbed modals keep one size: every panel sits in the same grid cell and
+   the hidden ones still take up room, so the tallest tab sets the height. */
+.tab-body.stacked {
+  display: grid;
+}
+.tab-body.stacked > .tab-panel {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
+}
+.tab-body.stacked > .tab-panel.hidden {
+  visibility: hidden;
+}
+
+/* Rules button in the round chip; the rules modal is read-only but not dimmed. */
+.rules-btn {
+  font: inherit;
+  font-size: 0.85em;
+  color: #fff;
+  background: var(--green);
+  box-shadow: 0 2px 0 var(--green-d);
+  border: none;
+  border-radius: 6px;
+  padding: 1px 8px;
+  min-height: 24px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.rules-btn:hover {
+  filter: brightness(1.15);
+}
+.rules-view .toggle.disabled {
+  opacity: 1;
+}
+.rules-view .toggle input,
+.rules-view .seg button {
+  cursor: default;
+}
+
+/* A small square button in a modal's title bar (game report). */
+.modal-head {
+  position: relative;
+}
+.modal-corner {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.report-btn {
+  font: inherit;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.report-btn:hover,
+.report-btn:focus-visible {
+  opacity: 1;
 }
