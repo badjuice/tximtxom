@@ -4,7 +4,7 @@ import { type Key, t } from '../i18n';
 import { leaveRoom } from '../net';
 import { resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
-import { Button, Choice, Modal, Rich, Slider, Tabs, Toggle } from './common';
+import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle } from './common';
 import { SEAT_COLORS } from './Hud';
 import { RulesForm } from './RulesForm';
 import { CardBackIcon, CardIcon, JokerIcon, Wins } from './sprites';
@@ -296,6 +296,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             <Toggle label={t('set.vibration')} desc={t('set.vibration.desc')} checked={s.haptics} onChange={(v) => set({ haptics: v })} />
         </div>
       </div>
+      <Credits />
     </Modal>
   );
 }

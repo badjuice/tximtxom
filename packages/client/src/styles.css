@@ -2519,3 +2519,51 @@ input.rename {
 .report-btn:focus-visible {
   opacity: 1;
 }
+
+/* Version and author link (title screen, Settings). */
+.credits {
+  margin: 0;
+  font-size: 0.8em;
+  color: var(--muted);
+  text-align: center;
+  user-select: text;
+}
+.credits a {
+  color: var(--blue);
+}
+.title-screen > .credits {
+  position: absolute;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+}
+
+/* "Invite link copied" pops up inside the room-code box (same letter pop
+   as the callouts); the code keeps its space so nothing moves. */
+.room-code {
+  position: relative;
+  overflow: hidden;
+}
+.room-code.copied .code-text {
+  visibility: hidden;
+}
+.room-code.copied {
+  border-color: var(--green);
+}
+.copied-msg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.36em;
+  letter-spacing: 0;
+  color: #fff;
+  background: var(--green);
+  animation: callout-fade 0.25s ease-in 1.35s forwards;
+}
+.copied-msg span {
+  display: inline-block;
+  scale: 0;
+  animation: callout-pop-in 0.12s ease-out var(--pop) forwards;
+}

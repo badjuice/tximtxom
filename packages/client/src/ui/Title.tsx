@@ -5,7 +5,7 @@ import { t } from '../i18n';
 import { updateSettings, useSettings } from '../settings';
 import { createRoom, joinRoom, linkedRoom, savedName } from '../net';
 import { store, useStore } from '../store';
-import { Button } from './common';
+import { Button, Credits } from './common';
 import { JokerIcon } from './sprites';
 
 export function Title() {
@@ -99,6 +99,7 @@ export function Title() {
           {t('title.settings')}
         </Button>
       </div>
+      <Credits />
     </main>
   );
 }

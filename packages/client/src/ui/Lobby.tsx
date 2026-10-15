@@ -1,8 +1,9 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { MAX_PLAYERS, MIN_PLAYERS, NAME_MAX } from '@tximtxom/shared';
+import { play } from '../audio';
 import { t } from '../i18n';
 import { addBot, cycleAvatar, kick, leaveRoom, renamePlayer, setRules, startGame } from '../net';
-import { toast, useStore } from '../store';
+import { useStore } from '../store';
 import { Button } from './common';
 import { SEAT_COLORS } from './Hud';
 import { RulesForm } from './RulesForm';
@@ -13,13 +14,21 @@ export function Lobby() {
   const isHost = room.hostId === room.youId;
   const link = `${location.origin}${location.pathname}?room=${room.code}`;
   const [editing, setEditing] = useState<string | null>(null);
+  // "Link copied" shows inside the code box for a moment (a counter restarts the animation).
+  const [copied, setCopied] = useState(0);
+  useEffect(() => {
+    if (!copied) return;
+    const id = setTimeout(() => setCopied(0), 1600);
+    return () => clearTimeout(id);
+  }, [copied]);
 
   const share = async () => {
     try {
       if (navigator.share) await navigator.share({ title: 'TximTxom', text: t('lobby.invite', { code: room.code }), url: link });
       else {
         await navigator.clipboard.writeText(link);
-        toast(t('lobby.linkCopied'));
+        play('highlight1', { volume: 0.6 });
+        setCopied((n) => n + 1);
       }
     } catch {
       /* user cancelled */
@@ -30,8 +39,15 @@ export function Lobby() {
     <main class="lobby">
       <section class="panel lobby-room">
         <h2>{t('lobby.room')}</h2>
-        <button class="room-code" onClick={share} aria-label={`${t('title.code')} ${room.code.split('').join(' ')}`}>
-          {room.code}
+        <button class={`room-code${copied ? ' copied' : ''}`} onClick={share} aria-label={`${t('title.code')} ${room.code.split('').join(' ')}`}>
+          <span class="code-text">{room.code}</span>
+          {copied > 0 && (
+            <span class="copied-msg" key={copied} role="status">
+              {[...t('lobby.linkCopied')].map((ch, i, all) => (
+                <span style={{ '--pop': `${(0.17 * i) / all.length}s` }}>{ch === ' ' ? '\u00a0' : ch}</span>
+              ))}
+            </span>
+          )}
         </button>
         <p class="muted">{t('lobby.share')}</p>
 

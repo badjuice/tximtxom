@@ -2,6 +2,7 @@ import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { play } from '../audio';
 import { t } from '../i18n';
+import { AUTHOR_URL, VERSION } from '../version';
 import { JokerIcon } from './sprites';
 
 type Color = 'red' | 'blue' | 'orange' | 'green' | 'grey' | 'purple';
@@ -327,6 +328,18 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
         </div>
       </div>
     </div>
+  );
+}
+
+/** "TximTxom v0.12.0 · github.com/badjuice" */
+export function Credits() {
+  return (
+    <p class="credits">
+      TximTxom v{VERSION} ·{' '}
+      <a href={AUTHOR_URL} target="_blank" rel="noopener">
+        github.com/badjuice
+      </a>
+    </p>
   );
 }
 
