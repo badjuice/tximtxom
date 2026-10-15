@@ -227,13 +227,30 @@ input:focus-visible {
   min-height: 56px;
   padding: 0.4em 1.2em;
 }
+/* Keyboard shortcut keycaps: a small light key with a darker edge. */
 .kbd {
   font: inherit;
   font-size: 0.6em;
-  opacity: 0.75;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 4px;
-  padding: 1px 4px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.7em;
+  height: 1.7em;
+  padding: 0 0.35em;
+  margin-left: 0.5em;
+  vertical-align: middle;
+  color: #2b3c3f;
+  background: linear-gradient(#f4f6f1, #d9dfd8);
+  border-radius: 5px;
+  box-shadow:
+    0 2px 0 #8d9a98,
+    0 3px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
+  translate: 0 -1px;
+}
+.btn:disabled .kbd {
+  opacity: 0.45;
 }
 @media (hover: none) {
   .kbd {
@@ -1536,7 +1553,6 @@ input[type='text'] {
   }
 }
 .tilt.tilting {
-  animation-play-state: paused;
   --ts: 1.12;
   transition: transform 0.06s linear;
   filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.3));
@@ -1561,22 +1577,25 @@ input[type='text'] {
   animation: soul-float 2.6s ease-in-out infinite;
   pointer-events: none;
 }
+/* The float uses translate/rotate and the hover zoom uses scale, so the
+   soul keeps floating while hovered. */
 @keyframes soul-float {
   0%,
   100% {
-    transform: translateY(-2%) rotate(-1.5deg);
+    translate: 0 -2%;
+    rotate: -1.5deg;
   }
   50% {
-    transform: translateY(-9%) rotate(1.5deg);
+    translate: 0 -9%;
+    rotate: 1.5deg;
   }
 }
 /* On hover the soul comes toward the viewer instead of rising, so it stays over its card. */
 .tilt .soul {
-  transition: transform 0.25s ease-out;
+  transition: scale 0.25s ease-out;
 }
 .tilt.tilting .soul {
-  transform: scale(1.14);
-  animation: none;
+  scale: 1.14;
 }
 
 /* --- tabs */
