@@ -2567,3 +2567,41 @@ input.rename {
   scale: 0;
   animation: callout-pop-in 0.12s ease-out var(--pop) forwards;
 }
+
+/* Rule colour groups: a tinted card with a coloured edge. Neutral rules keep
+   the plain grey panel. */
+.toggle.tone-punish,
+.lg.tone-punish {
+  --tone: var(--red);
+}
+.toggle.tone-info,
+.lg.tone-info {
+  --tone: var(--blue);
+}
+.toggle.tone-support,
+.lg.tone-support {
+  --tone: var(--green);
+}
+.toggle[class*='tone-'] {
+  background: color-mix(in srgb, var(--tone) 16%, var(--panel-in));
+  box-shadow: inset 4px 0 0 var(--tone);
+}
+.rules-legend {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0 0 2px;
+  font-size: 0.8em;
+  color: var(--muted);
+}
+.lg::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  border-radius: 2px;
+  background: var(--tone, var(--grey));
+  vertical-align: middle;
+}

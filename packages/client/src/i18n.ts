@@ -72,6 +72,10 @@ const en = {
   'rule.sixthSense': 'Sixth Sense',
   'rule.sixthSense.desc': 'A peek button shows which cards are still in play',
   'rule.smeared': 'Smeared',
+  'rule.tone.punish': 'Punishing',
+  'rule.tone.info': 'Information',
+  'rule.tone.support': 'Support',
+  'rule.tone.neutral': 'Neutral',
   'rule.smeared.desc': 'Straights can mix suits. TximTxom still needs one suit',
 
   // terms
@@ -447,6 +451,10 @@ const pt: Record<Key, string> = {
   'rule.sixthSense': 'Sexto Sentido',
   'rule.sixthSense.desc': 'Um botão para espreitar que cartas ainda estão em jogo',
   'rule.smeared': 'Borrod',
+  'rule.tone.punish': 'Castigo',
+  'rule.tone.info': 'Informação',
+  'rule.tone.support': 'Ajuda',
+  'rule.tone.neutral': 'Neutra',
   'rule.smeared.desc': 'As escadas podem misturar naipes. O TximTxom continua a ser de um só naipe',
 
   // Game terms chosen by the user (some kept in Portuguese).

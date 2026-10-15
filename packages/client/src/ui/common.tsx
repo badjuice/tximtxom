@@ -152,9 +152,12 @@ export function HoldButton(props: { color: Color; label: string; sub?: string; e
   );
 }
 
-export function Toggle(props: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void; joker?: string; disabled?: boolean }) {
+/** Rule colour groups: punishing (red), information (blue), support (green); none = neutral grey. */
+export type Tone = 'punish' | 'info' | 'support';
+
+export function Toggle(props: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void; joker?: string; disabled?: boolean; tone?: Tone }) {
   return (
-    <label class={`toggle${props.disabled ? ' disabled' : ''}`}>
+    <label class={`toggle${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`}>
       {props.joker && <JokerIcon name={props.joker} scale={0.55} />}
       <span class="toggle-text">
         <span class="toggle-label">{props.label}</span>
@@ -183,9 +186,10 @@ export function Choice<T extends string | number>(props: {
   onChange: (v: T) => void;
   joker?: string;
   disabled?: boolean;
+  tone?: Tone;
 }) {
   return (
-    <div class={`toggle choice${props.disabled ? ' disabled' : ''}`} role="group" aria-label={props.label}>
+    <div class={`toggle choice${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`} role="group" aria-label={props.label}>
       {props.joker && <JokerIcon name={props.joker} scale={0.55} />}
       <span class="toggle-text">
         <span class="toggle-label">{props.label}</span>

@@ -5,8 +5,12 @@ feature or rule raises the middle number and a fix or wording change raises
 the last one. Versions up to 0.11.0 were assigned afterwards from the commit
 history; each is tagged in git (`v0.4.0` and so on).
 
+## 0.13.0 (2026-10-15)
+- Rules are colour-coded: punishing (red), information (blue), support (green), neutral (grey).
+
 ## 0.12.0 (2026-10-15)
 - The version and a link to the author's GitHub show on the title screen and in Settings.
+- "Invite link copied" shows inside the room-code box instead of a pop-up.
 
 ## 0.11.0 (2026-10-15)
 - Game over: a button copies a game report (moves, host action log, final state) for bug reports.
