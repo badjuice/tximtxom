@@ -25,6 +25,13 @@ const en = {
   'title.connecting': 'Connecting…',
   'title.howToPlay': 'How to play',
   'title.settings': 'Settings',
+  'title.changelog': 'Changelog',
+  'cl.title': 'Changelog',
+  'cl.new': 'New',
+  'cl.change': 'Changed',
+  'cl.fix': 'Fixed',
+  'cl.removed': 'Removed',
+  'cl.current': 'current',
 
   // lobby
   'lobby.room': 'Room',
@@ -406,6 +413,13 @@ const pt: Record<Key, string> = {
   'title.connecting': 'A ligar…',
   'title.howToPlay': 'Como jogar',
   'title.settings': 'Definições',
+  'title.changelog': 'Alterações',
+  'cl.title': 'Alterações',
+  'cl.new': 'Novo',
+  'cl.change': 'Mudou',
+  'cl.fix': 'Corrigido',
+  'cl.removed': 'Removido',
+  'cl.current': 'atual',
 
   'lobby.room': 'Sala',
   'lobby.share': 'Partilha este código (toca para enviar um link)',

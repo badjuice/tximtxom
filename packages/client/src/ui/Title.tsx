@@ -98,6 +98,9 @@ export function Title() {
         <Button color="grey" onClick={() => store.set({ overlay: 'settings' })}>
           {t('title.settings')}
         </Button>
+        <Button color="purple" onClick={() => store.set({ overlay: 'changelog' })}>
+          {t('title.changelog')}
+        </Button>
       </div>
       <Credits />
     </main>

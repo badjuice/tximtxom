@@ -6,6 +6,7 @@ import { resetSettings, type Settings, updateSettings, useSettings } from '../se
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle } from './common';
 import { SEAT_COLORS } from './Hud';
+import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { RulesForm } from './RulesForm';
 import { CardBackIcon, CardIcon, JokerIcon, Wins } from './sprites';
 
@@ -23,9 +24,46 @@ export function Overlays() {
       return <Help onClose={close} />;
     case 'rules':
       return <ActiveRules onClose={close} />;
+    case 'changelog':
+      return <Changelog onClose={close} />;
     default:
       return null;
   }
+}
+
+/** Every change to the game, newest first, marked new / changed / fixed / removed. */
+function Changelog({ onClose }: { onClose: () => void }) {
+  const { lang } = useSettings();
+  const kinds: ChangeKind[] = ['new', 'change', 'fix', 'removed'];
+  return (
+    <Modal title={t('cl.title')} onClose={onClose} wide class="changelog-modal">
+      <p class="cl-legend">
+        {kinds.map((k) => (
+          <span class={`cl-kind k-${k}`}>
+            {KIND_ICON[k]} {t(`cl.${k}` as Key)}
+          </span>
+        ))}
+      </p>
+      {CHANGELOG.map((rel, i) => (
+        <section class="cl-release">
+          <h3>
+            v{rel.version} <span class="muted">· {rel.date}</span>
+            {i === 0 && <span class="tag">{t('cl.current')}</span>}
+          </h3>
+          <ul>
+            {rel.items.map((it) => (
+              <li class={`k-${it.kind}`}>
+                <span class="cl-icon" title={t(`cl.${it.kind}` as Key)} aria-label={t(`cl.${it.kind}` as Key)}>
+                  {KIND_ICON[it.kind]}
+                </span>
+                <span>{lang === 'pt' ? it.pt : it.en}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </Modal>
+  );
 }
 
 /** The rules of the game being played, read-only. */

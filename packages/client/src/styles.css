@@ -2605,3 +2605,63 @@ input.rename {
   background: var(--tone, var(--grey));
   vertical-align: middle;
 }
+
+/* Changelog: one section per version; each line marked by kind. */
+.changelog-modal .modal-body {
+  max-height: 70vh;
+}
+.cl-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  justify-content: center;
+  margin: 0 0 8px;
+  font-size: 0.85em;
+}
+.cl-release {
+  margin-bottom: 12px;
+}
+.cl-release h3 {
+  margin: 0 0 4px;
+  color: var(--gold);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.cl-release ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cl-release li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  background: var(--panel-in);
+  border-radius: 6px;
+  padding: 4px 8px;
+  box-shadow: inset 3px 0 0 var(--k);
+  font-size: 0.9em;
+}
+.k-new {
+  --k: var(--green);
+}
+.k-change {
+  --k: var(--blue);
+}
+.k-fix {
+  --k: var(--orange);
+}
+.k-removed {
+  --k: var(--red);
+}
+.cl-kind {
+  border-bottom: 2px solid var(--k);
+}
+.cl-icon {
+  flex: none;
+  font-family: system-ui, 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+}
