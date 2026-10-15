@@ -57,6 +57,7 @@ const JOKERS = {
   hourglass: [4, 3],
   blueprint: [0, 3],
   sixth_sense: [8, 10],
+  smeared: [4, 6],
   // Legendary Jokers (bot personas): card base, and the "soul" drawn floating on top.
   canio: [3, 8],
   canio_soul: [3, 9],

@@ -27,6 +27,7 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         onChange={(superposition) => onChange({ superposition })}
         disabled={readOnly}
       />
+      <Toggle label={t('rule.smeared')} desc={t('rule.smeared.desc')} joker="smeared" checked={rules.smeared} onChange={(smeared) => onChange({ smeared })} disabled={readOnly} />
       <Choice
         label={t('rule.rideOrder')}
         desc={t('rule.rideOrder.desc')}

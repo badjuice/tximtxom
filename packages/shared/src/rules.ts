@@ -21,6 +21,8 @@ export interface Rules {
   turnTimer: number;
   /** Players can peek at which cards are still in play (not in their hand, not seen discarded). */
   sixthSense: boolean;
+  /** Straights may mix suits. TximTxom still needs a single suit. */
+  smeared: boolean;
 }
 
 export const DEFAULT_RULES: Rules = {
@@ -34,6 +36,7 @@ export const DEFAULT_RULES: Rules = {
   penalty10: false,
   turnTimer: 0,
   sixthSense: false,
+  smeared: false,
 };
 
 export const THRESHOLD_OPTIONS = [40, 100] as const;
@@ -52,6 +55,7 @@ export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
     penalty10: !!r.penalty10,
     turnTimer: (TIMER_OPTIONS as readonly number[]).includes(r.turnTimer) ? r.turnTimer : 0,
     sixthSense: !!r.sixthSense,
+    smeared: !!r.smeared,
   };
 }
 

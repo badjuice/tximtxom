@@ -50,6 +50,7 @@ function TopBar({ g, onLeave }: { g: GameView; onLeave: () => void }) {
         <span class="bust-chip">{t('top.bust', { n: g.rules.threshold })}</span>
         {g.rules.hardcore && <JokerIcon name="trio" scale={0.26} title={t('rule.hardcore')} />}
         {g.rules.superposition && <JokerIcon name="superposition" scale={0.26} title={t('rule.superposition')} />}
+        {g.rules.smeared && <JokerIcon name="smeared" scale={0.26} title={t('rule.smeared')} />}
         {g.rules.sixthSense && <JokerIcon name="sixth_sense" scale={0.26} title={t('rule.sixthSense')} />}
       </div>
       <div class="topbar-buttons">

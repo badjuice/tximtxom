@@ -68,6 +68,8 @@ const en = {
   'rule.off': 'Off',
   'rule.sixthSense': 'Sixth Sense',
   'rule.sixthSense.desc': 'A peek button shows which cards are still in play',
+  'rule.smeared': 'Smeared',
+  'rule.smeared.desc': 'Straights can mix suits. TximTxom still needs one suit',
 
   // terms
   pair: 'Pair',
@@ -261,7 +263,10 @@ const en = {
   'f.pairOff': 'Not allowed in Hardcore',
   'f.trio': 'Three of a rank',
   'f.quad': 'Four of a rank',
-  'f.straight': '3+ in a row, always the same suit',
+  'f.straight': '3+ in a row of one suit',
+  'f.mixed': 'Mixed suits',
+  'f.mixedOn': 'Smeared: a straight can mix suits',
+  'f.mixedOff': 'Only with Smeared',
   'f.aceLow': 'Ace low',
   'f.aceLowDesc': 'Aces are low by default',
   'f.aceHigh': 'Ace high',
@@ -270,9 +275,12 @@ const en = {
   'f.noWrap': 'No wrap',
   'f.noWrapDesc': 'An Ace never sits in the middle',
   'f.tximtxomDesc': 'A 7-card straight flush. Call it on your turn to win the game!',
+  'f.tximtxomSmeared': 'A 7-card straight flush, one suit even with Smeared. Call it on your turn to win the game!',
   'f.ride': 'Panha Boleia',
   'f.rideDesc':
     'When a formation is shown, others can add to it: one card per player on a pair or trio, or same-suit cards at either end of a straight. Not after a full hand (-10) or when the Draw Pile ran out.',
+  'f.rideDescSmeared':
+    'When a formation is shown, others can add to it: one card per player on a pair or trio, or cards of any suit at either end of a straight. Not after a full hand (-10) or when the Draw Pile ran out.',
 
   // settings
   'set.title': 'Settings',
@@ -326,13 +334,13 @@ const en = {
   'help.tab.ride': 'Panha Boleia',
   'help.tab.more': 'More',
   'help.goal':
-    'Keep the {b}fewest points{/b} in your hand. Cards in {g}formations{/g} (pairs, trios, quads, same-suit straights of 3+) don\'t count. Card values: {o}A = 1{/o}, 2–10 as printed, {o}J = 11, Q = 12, K = 13{/o}. When someone goes over the limit it\'s {r}Rabenta{/r}, and the {b}lowest total wins{/b}.',
+    'Keep the {b}fewest points{/b} in your hand. Cards in {g}formations{/g} (pairs, trios, quads, straights of 3+ in one suit, or any suits with {o}Smeared{/o}) don\'t count. Card values: {o}A = 1{/o}, 2–10 as printed, {o}J = 11, Q = 12, K = 13{/o}. When someone goes over the limit it\'s {r}Rabenta{/r}, and the {b}lowest total wins{/b}.',
   'help.turn':
     'Take the face-up card from the {o}Discard Pile{/o} or draw from the {b}Draw Pile{/b}. A card you take from the discard must stay: let go of another card. A drawn card can be kept (swap it in) or thrown straight onto the Discard Pile. You can {g}drag cards{/g} instead of using the buttons.',
   'help.end':
     '{r}Txi jog{/r} ends the round: after picking a card, slide a card ranked {r}5 or lower{/r} (Ace = 1) under the Discard Pile. It can be the card you drew or one from your hand, not the discard you just took. With all 7 cards formed you get {g}-10{/g} and nobody may Panha Boleia.',
   'help.ride':
-    'After {r}Txi jog{/r}, formations are shown one by one. Other players can {g}Panha Boleia{/g}: add their own cards to them to shed points. One card per player on a pair or trio; same-suit cards at either end of a straight.',
+    'After {r}Txi jog{/r}, formations are shown one by one. Other players can {g}Panha Boleia{/g}: add their own cards to them to shed points. One card per player on a pair or trio; cards at either end of a straight, in its suit (any suit with {o}Smeared{/o}).',
   'help.more':
     'The first time the Draw Pile empties, the discards (except the top one) are reshuffled. The second time, whoever drew the last card must {r}Txi jog{/r} with any card, and there is no Panha Boleia. Hold a {o}7-card straight flush{/o} and call {o}TximTxom!{/o} on your turn to win the whole game. Turns go counter-clockwise; the dealer plays first and the deal rotates.',
 
@@ -418,6 +426,8 @@ const pt: Record<Key, string> = {
   'rule.off': 'Não',
   'rule.sixthSense': 'Sexto Sentido',
   'rule.sixthSense.desc': 'Um botão para espreitar que cartas ainda estão em jogo',
+  'rule.smeared': 'Borrod',
+  'rule.smeared.desc': 'As sequências podem misturar naipes. O TximTxom continua a ser de um só naipe',
 
   // KRIOLU? formation names and other terms are Portuguese placeholders
   pair: 'Par',
@@ -600,7 +610,10 @@ const pt: Record<Key, string> = {
   'f.pairOff': 'Não vale em Hardcore',
   'f.trio': 'Três do mesmo valor',
   'f.quad': 'Quatro do mesmo valor',
-  'f.straight': '3 ou mais seguidas, sempre do mesmo naipe',
+  'f.straight': '3 ou mais seguidas do mesmo naipe',
+  'f.mixed': 'Naipes misturados',
+  'f.mixedOn': 'Borrod: uma sequência pode misturar naipes',
+  'f.mixedOff': 'Só com Borrod',
   'f.aceLow': 'Ás baixo',
   'f.aceLowDesc': 'O Ás é baixo por defeito',
   'f.aceHigh': 'Ás alto',
@@ -609,9 +622,12 @@ const pt: Record<Key, string> = {
   'f.noWrap': 'Sem volta',
   'f.noWrapDesc': 'O Ás nunca fica no meio',
   'f.tximtxomDesc': 'Sequência de 7 do mesmo naipe. Chama-a na tua vez para ganhar o jogo!',
+  'f.tximtxomSmeared': 'Sequência de 7 do mesmo naipe, mesmo com Borrod. Chama-a na tua vez para ganhar o jogo!',
   'f.ride': 'Panha Boleia',
   'f.rideDesc':
     'Quando uma formação é mostrada, os outros podem juntar-lhe cartas: uma carta por jogador num par ou trio, ou cartas do mesmo naipe nas pontas de uma sequência. Não vale depois de uma mão cheia (-10) nem quando o Monte acabou.',
+  'f.rideDescSmeared':
+    'Quando uma formação é mostrada, os outros podem juntar-lhe cartas: uma carta por jogador num par ou trio, ou cartas de qualquer naipe nas pontas de uma sequência. Não vale depois de uma mão cheia (-10) nem quando o Monte acabou.',
 
   'set.title': 'Definições',
   'set.tab.general': 'Geral',
@@ -662,13 +678,13 @@ const pt: Record<Key, string> = {
   'help.tab.ride': 'Panha Boleia',
   'help.tab.more': 'Mais',
   'help.goal':
-    'Fica com {b}menos pontos{/b} na mão. As cartas em {g}formações{/g} (pares, trios, quadras, sequências de 3+ do mesmo naipe) não contam. Valores: {o}Ás = 1{/o}, 2–10 o que diz a carta, {o}V = 11, D = 12, R = 13{/o}. Quando alguém passa do limite é {r}Rabenta{/r}, e {b}ganha o total mais baixo{/b}.',
+    'Fica com {b}menos pontos{/b} na mão. As cartas em {g}formações{/g} (pares, trios, quadras, sequências de 3+ do mesmo naipe, ou de qualquer naipe com {o}Borrod{/o}) não contam. Valores: {o}Ás = 1{/o}, 2–10 o que diz a carta, {o}V = 11, D = 12, R = 13{/o}. Quando alguém passa do limite é {r}Rabenta{/r}, e {b}ganha o total mais baixo{/b}.',
   'help.turn':
     'Apanha a carta virada do {o}Descarte{/o} ou tira do {b}Monte{/b}. A carta que apanhas do Descarte fica contigo: larga outra. Uma carta tirada do Monte pode ficar (troca-a por uma da mão) ou ir logo para o Descarte. Podes {g}arrastar as cartas{/g} em vez de usar os botões.',
   'help.end':
     '{r}Txi jog{/r} acaba a ronda: depois de tirar ou apanhar, mete uma carta de {r}5 ou menos{/r} (Ás = 1) por baixo do Descarte. Pode ser a carta que tiraste ou uma da mão, mas não a que acabaste de apanhar do Descarte. Com as 7 cartas formadas ganhas {g}-10{/g} e ninguém pode fazer Panha Boleia.',
   'help.ride':
-    'Depois do {r}Txi jog{/r}, as formações são mostradas uma a uma. Os outros jogadores podem fazer {g}Panha Boleia{/g}: juntar cartas suas para se livrarem de pontos. Uma carta por jogador num par ou trio; cartas do mesmo naipe nas pontas de uma sequência.',
+    'Depois do {r}Txi jog{/r}, as formações são mostradas uma a uma. Os outros jogadores podem fazer {g}Panha Boleia{/g}: juntar cartas suas para se livrarem de pontos. Uma carta por jogador num par ou trio; cartas do mesmo naipe nas pontas de uma sequência (qualquer naipe com {o}Borrod{/o}).',
   'help.more':
     'Da primeira vez que o Monte acaba, o Descarte (menos a carta de cima) é baralhado. Da segunda vez, quem tirou a última carta tem de fazer {r}Txi jog{/r} com qualquer carta, e não há Panha Boleia. Com uma {o}sequência de 7 do mesmo naipe{/o} na mão, chama {o}TximTxom!{/o} na tua vez e ganhas o jogo todo. Joga-se no sentido anti-horário; quem dá joga primeiro e a vez de dar roda.',
 

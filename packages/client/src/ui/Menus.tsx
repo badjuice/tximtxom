@@ -107,6 +107,7 @@ const EX = {
   trio: parseCards('9C 9D 9S'),
   quad: parseCards('KH KC KD KS'),
   straight: parseCards('4D 5D 6D 7D'),
+  mixed: parseCards('8H 9S 10D JC'),
   aceLow: parseCards('AS 2S 3S'),
   aceHigh: parseCards('QS KS AS'),
   bad: parseCards('KS AS 2S'),
@@ -131,13 +132,16 @@ function Formations({ onClose }: { onClose: () => void }) {
   const rules = useStore((s) => s.room?.game?.rules ?? s.room?.rules);
   const hardcore = !!rules?.hardcore;
   const superposition = !!rules?.superposition;
+  const smeared = !!rules?.smeared;
   const tximtxom = useTximTxomExample(superposition);
+  // Smaller example cards on phones so the list fits without scrolling.
+  const narrow = innerWidth <= 700 || innerHeight <= 500;
   const row = (name: string, color: string, cards: number[], desc: string, opts: { off?: boolean; joker?: string } = {}) => (
     <div class={`f-row${opts.off ? ' off' : ''}`}>
       <span class={`level-tag tag-${color}`}>{name}</span>
       <span class="f-cards">
         {cards.map((c) => (
-          <CardIcon card={c} scale={0.44} dim={opts.off} />
+          <CardIcon card={c} scale={narrow ? 0.3 : 0.44} dim={opts.off} />
         ))}
       </span>
       <span class="f-desc">
@@ -148,12 +152,13 @@ function Formations({ onClose }: { onClose: () => void }) {
   );
   return (
     <Modal title={t('f.title')} onClose={onClose} wide>
-      <p class="center muted">{t('f.lead')}</p>
+      <p class="center muted f-lead">{t('f.lead')}</p>
       <div class="f-grid">
         {row(t('pair'), 'blue', EX.pair, hardcore ? t('f.pairOff') : t('f.pair'), { off: hardcore, joker: hardcore ? 'trio' : undefined })}
         {row(t('trio'), 'blue', EX.trio, t('f.trio'))}
         {row(t('quad'), 'blue', EX.quad, t('f.quad'))}
         {row(t('straight'), 'red', EX.straight, t('f.straight'))}
+        {row(t('f.mixed'), 'red', EX.mixed, smeared ? t('f.mixedOn') : t('f.mixedOff'), { off: !smeared, joker: 'smeared' })}
         {row(t('f.aceLow'), 'red', EX.aceLow, t('f.aceLowDesc'))}
         {row(t('f.aceHigh'), 'red', EX.aceHigh, superposition ? t('f.aceHighOn') : t('f.aceHighOff'), { off: !superposition, joker: 'superposition' })}
         {row(t('f.noWrap'), 'grey', EX.bad, t('f.noWrapDesc'), { off: true })}
@@ -162,15 +167,15 @@ function Formations({ onClose }: { onClose: () => void }) {
         <span class="level-tag tag-orange">TximTxom</span>
         <span class="f-cards">
           {tximtxom.map((c) => (
-            <CardIcon card={c} scale={0.5} />
+            <CardIcon card={c} scale={narrow ? 0.34 : 0.5} />
           ))}
         </span>
-        <span class="f-desc">{t('f.tximtxomDesc')}</span>
+        <span class="f-desc">{smeared ? t('f.tximtxomSmeared') : t('f.tximtxomDesc')}</span>
       </div>
       <p class="f-ride">
         <JokerIcon name="ride_the_bus" scale={0.34} />
         <span>
-          <b class="hl hl-g">{t('f.ride')}</b> {t('f.rideDesc')}
+          <b class="hl hl-g">{t('f.ride')}</b> {smeared ? t('f.rideDescSmeared') : t('f.rideDesc')}
         </span>
       </p>
     </Modal>

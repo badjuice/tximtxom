@@ -12,6 +12,7 @@ import {
 const base = { hardcore: false, superposition: false };
 const hardcore = { hardcore: true, superposition: false };
 const superpos = { hardcore: false, superposition: true };
+const smeared = { hardcore: false, superposition: false, smeared: true };
 
 describe('sets', () => {
   it('pairs, trios, quads', () => {
@@ -63,6 +64,24 @@ describe('Take a Ride', () => {
     expect(canRide(P('JH QH KH'), P('AH')[0], base)).toBeNull();
     expect(canRide(P('JH QH KH'), P('AH')[0], superpos)).not.toBeNull();
     expect(canRide(P('AH 2H 3H'), P('KH')[0], superpos)).toBeNull();
+  });
+});
+
+describe('Smeared', () => {
+  it('lets straights mix suits', () => {
+    expect(classifyFormation(P('4H 5S 6D'), base)).toBeNull();
+    expect(classifyFormation(P('4H 5S 6D'), smeared)?.kind).toBe('straight');
+    expect(classifyFormation(P('4H 5S 7D'), smeared)).toBeNull();
+    expect(classifyFormation(P('QH KS AD'), { ...smeared, superposition: true })?.kind).toBe('straight');
+  });
+  it('lets any suit ride a straight', () => {
+    expect(canRide(P('4H 5H 6H'), P('7C')[0], base)).toBeNull();
+    expect(canRide(P('4H 5H 6H'), P('7C')[0], smeared)).not.toBeNull();
+    expect(canRide(P('4H 5H 6H'), P('6C')[0], smeared)).toBeNull();
+  });
+  it('still needs one suit for TximTxom', () => {
+    expect(isTximTxom(P('AS 2H 3S 4S 5S 6S 7S'), smeared)).toBe(false);
+    expect(isTximTxom(P('AS 2S 3S 4S 5S 6S 7S'), smeared)).toBe(true);
   });
 });
 

@@ -1976,6 +1976,13 @@ input.rename {
   .f-grid {
     grid-template-columns: 1fr;
   }
+  .f-tximtxom {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+  .f-tximtxom .f-desc {
+    flex-basis: 100%;
+  }
   .sb-row {
     grid-template-columns: 1.4em 1fr 2.6em;
   }
@@ -1991,6 +1998,37 @@ input.rename {
   }
   .hand-bar {
     gap: 6px;
+  }
+}
+
+/* Formations menu on phones (portrait or landscape): compact rows, no scrolling. */
+@media (max-width: 700px), (max-height: 500px) {
+  .f-grid {
+    gap: 4px;
+  }
+  .f-row {
+    padding: 3px 8px;
+    gap: 8px;
+  }
+  .f-row .level-tag {
+    min-width: 6.5em;
+    font-size: 0.75em;
+  }
+  .f-desc .sprite.joker,
+  .f-ride .sprite.joker {
+    display: none;
+  }
+  .f-tximtxom {
+    margin-top: 4px;
+  }
+  .f-ride {
+    font-size: 0.75em;
+    margin: 4px 0 0;
+  }
+}
+@media (max-height: 500px) {
+  .f-lead {
+    display: none;
   }
 }
 

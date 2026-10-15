@@ -43,6 +43,7 @@ describe('bot simulation', () => {
     ['hardcore + superposition', { hardcore: true, superposition: true }],
     ['round robin + penalties', { rideOrder: 'roundRobin', doubleDown: true, penalty10: true }],
     ['auto ride, 100 points', { autoRide: true, threshold: 100 }],
+    ['smeared + superposition', { smeared: true, superposition: true }],
   ];
   for (const [name, overrides] of variants) {
     it(`plays full games without breaking invariants (${name})`, () => {

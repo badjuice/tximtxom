@@ -9,7 +9,7 @@ export interface FormationInfo {
   cards: Card[];
 }
 
-type RuleFlags = Pick<Rules, 'hardcore' | 'superposition'>;
+type RuleFlags = Pick<Rules, 'hardcore' | 'superposition'> & { smeared?: boolean };
 
 function setKind(n: number): FormationKind | null {
   return n === 2 ? 'pair' : n === 3 ? 'trio' : n === 4 ? 'quad' : null;
@@ -28,7 +28,7 @@ function straightOrder(cards: readonly Card[], aceHigh: boolean): Card[] | null 
 /**
  * Checks whether a group of cards is a legal formation.
  * - Sets: 2-4 cards of one rank (3-4 in Hardcore).
- * - Straights: 3+ consecutive cards of ONE suit. Ace is low (A-2-3); with
+ * - Straights: 3+ consecutive cards of ONE suit (any suits with Smeared). Ace is low (A-2-3); with
  *   Superposition it may instead be high (Q-K-A). Since an Ace takes exactly
  *   one value per straight, it can never sit in the middle and nothing wraps.
  */
@@ -45,7 +45,7 @@ export function classifyFormation(cards: readonly Card[], rules: RuleFlags): For
 
   if (cards.length < 3) return null;
   const s0 = suitOf(cards[0]);
-  if (!cards.every((c) => suitOf(c) === s0)) return null;
+  if (!rules.smeared && !cards.every((c) => suitOf(c) === s0)) return null;
   const low = straightOrder(cards, false);
   if (low) return { kind: 'straight', cards: low };
   if (rules.superposition) {
@@ -61,8 +61,8 @@ export function isValidFormation(cards: readonly Card[], rules: RuleFlags): bool
 
 /**
  * Can `card` be added to an existing formation (Take a Ride)?
- * Pairs/trios take a single card of the same rank; straights take same-suit
- * cards at either end. The "one card per player per pair/trio" limit is
+ * Pairs/trios take a single card of the same rank; straights take cards at
+ * either end (same suit unless Smeared). The "one card per player per pair/trio" limit is
  * enforced by the engine, which knows who already rode.
  */
 export function canRide(formation: readonly Card[], card: Card, rules: RuleFlags): FormationInfo | null {
@@ -75,9 +75,10 @@ export function canRide(formation: readonly Card[], card: Card, rules: RuleFlags
   return wasSet === isSet ? after : null;
 }
 
+/** A 7-card straight of one suit. Smeared does not apply here. */
 export function isTximTxom(hand: readonly Card[], rules: RuleFlags): boolean {
   if (hand.length !== HAND_SIZE) return false;
-  const f = classifyFormation(hand, rules);
+  const f = classifyFormation(hand, { ...rules, smeared: false });
   return f?.kind === 'straight';
 }
 

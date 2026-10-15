@@ -1,6 +1,6 @@
 # TximTxom
 
-TximTxom is an online card game for 2 to 4 players that runs in the browser. Each player holds 7 cards and tries to group them into pairs, trios, quads and same-suit straights, because only ungrouped cards count as points. A player who goes over the points limit (40 or 100) ends the game, and the lowest total wins. The full rules are in [docs/RULES.md](docs/RULES.md); in-game, see **How to play** and **Formations**.
+TximTxom is an online card game for 2 to 4 players that runs in the browser. Each player holds 7 cards and tries to group them into pairs, trios, quads and straights, because only ungrouped cards count as points. A player who goes over the points limit (40 or 100) ends the game, and the lowest total wins. The full rules are in [docs/RULES.md](docs/RULES.md); in-game, see **How to play** and **Formations**.
 
 Play it at **https://badjuice.github.io/tximtxom/**.
 
