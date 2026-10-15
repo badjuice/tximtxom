@@ -1,7 +1,8 @@
 // UI text in Portuguese (default) and English.
-// Kriolu game terms the user gave: Txi jog (end the round), Rabenta (bust),
-// Panha Boleia (take a ride), Borrod (Smeared). The user picked the other
-// Portuguese-side terms: Trinca, Escada, Dealer, Passar vez.
+// Kriolu game terms (Portuguese text only; English uses plain words):
+// Txi jog (end the round), Rabenta (bust), Panha Boleia (take a ride),
+// Borrod (Smeared), Jog txid (game over). The user also picked the
+// Portuguese terms Trinca, Escada, Dealer, Passar vez.
 import { type Card, rankOf, suitOf, SUIT_SYMBOLS, RANK_CODES } from '@tximtxom/shared';
 import { getSettings } from './settings';
 
@@ -47,17 +48,17 @@ const en = {
   'lobby.invite': 'Join my TximTxom room: {code}',
 
   // rules
-  'rule.bust': 'Rabenta at',
-  'rule.bust.desc': 'Going OVER this total busts (rabenta); the lowest total wins',
+  'rule.bust': 'Bust at',
+  'rule.bust.desc': 'Going OVER this total is a bust; the lowest total wins',
   'rule.hardcore': 'Hardcore',
   'rule.hardcore.desc': 'No pairs: only trios, quads and straights count',
   'rule.superposition': 'Superposition',
   'rule.superposition.desc': 'Ace high (Q-K-A) or low (A-2-3), never in the middle. Still worth 1',
-  'rule.rideOrder': 'Panha Boleia order',
+  'rule.rideOrder': 'Ride order',
   'rule.rideOrder.desc': 'Everyone at once, or one player at a time',
   'rule.together': 'Together',
   'rule.inTurns': 'In turns',
-  'rule.autoRide': 'Auto Boleia',
+  'rule.autoRide': 'Auto Ride',
   'rule.autoRide.desc': 'The game places ride cards for everyone',
   'rule.notice': 'Formation notice',
   'rule.notice.desc': 'Say "no more formations possible" while revealing',
@@ -87,7 +88,7 @@ const en = {
 
   // top bar
   'top.round': 'Round {n}',
-  'top.bust': 'Rabenta > {n}',
+  'top.bust': 'Bust > {n}',
   'top.scores': 'Scores',
   'top.formations': 'Formations',
   'top.history': 'History',
@@ -127,8 +128,8 @@ const en = {
   'act.take': 'Take {card}',
   'act.discard': 'Discard {card}',
   'act.swap': 'Swap {card}',
-  'act.txiJog': 'Txi jog ma {card}',
-  'act.txiJogPlain': 'Txi jog',
+  'act.txiJog': 'End with {card}',
+  'act.txiJogPlain': 'End round',
   'act.tximtxom': 'TximTxom!',
   'act.hold': 'hold to confirm',
   'act.endTurn': 'End Turn',
@@ -137,10 +138,10 @@ const en = {
   'act.pickCard': 'Pick a card',
   'act.lay': 'Show formation',
   'act.done': 'Done',
-  'act.ride': 'Panha Boleia {card}',
+  'act.ride': 'Ride with {card}',
   'act.pass': 'Pass',
   'act.nextRound': 'Next round',
-  'act.txiJogNeeds': 'You need a 5 or lower to Txi jog',
+  'act.txiJogNeeds': 'You need a 5 or lower to end the round',
   'act.tximtxomTitle': 'Call TximTxom with a 7-card straight flush. Wins the game.',
   'act.doneTitle': 'No more formations to show',
 
@@ -150,11 +151,11 @@ const en = {
   'st.stagedDiscard': 'Discard {card}',
   'st.choose': 'Tap the Draw Pile, or take the top of the Discard Pile',
   'st.drawn': 'Drag it to the Discard Pile, or onto a hand card to swap',
-  'st.mustEnd': 'Last card of the pile: Txi jog with any card',
+  'st.mustEnd': 'Last card of the pile: end the round with any card',
   'st.tookPick': 'Drag a card to the Discard Pile (not the one you took)',
-  'st.ride': "Panha Boleia on {name}'s formation? Drag a card onto it",
-  'st.rideOnMine': 'Others may Panha Boleia on your formation…',
-  'st.rideOnTheirs': "Others may Panha Boleia on {name}'s formation…",
+  'st.ride': "Take a ride on {name}'s formation? Drag a card onto it",
+  'st.rideOnMine': 'Others may take a ride on your formation…',
+  'st.rideOnTheirs': "Others may take a ride on {name}'s formation…",
   'st.otherPlayers': 'other players',
   'st.select': 'Select cards and drag them onto the table to show a formation',
   'st.noMore': 'No more formations possible',
@@ -163,7 +164,7 @@ const en = {
 
   // summary / game over
   'sum.round': 'Round {n}',
-  'sum.endedBy': '{name} did Txi jog',
+  'sum.endedBy': '{name} ended the round',
   'sum.deckOut': 'The deck ran out',
   'sum.pileOut': '(draw pile empty)',
   'sum.fullHand': 'with a full hand: -10!',
@@ -178,7 +179,7 @@ const en = {
   'go.youWin': 'You win!',
   'go.wins': '{name} wins!',
   'go.tximtxom': 'TximTxom! A 7-card straight flush.',
-  'go.bust': 'RABENTA',
+  'go.bust': 'BUST',
   'go.backToLobby': 'Back to lobby',
   'go.playAgain': 'Play again',
   'go.waitingHost': 'Waiting for the host…',
@@ -196,17 +197,17 @@ const en = {
   'b.dealsPlays': '{name} dealt and plays first',
   'b.reshuffled': 'Reshuffled!',
   'b.reshuffledSub': 'Last pile: when it runs out, the round ends',
-  'b.txiJog': '{name}: Txi jog!',
+  'b.txiJog': '{name} ends the round!',
   'b.pileOut': 'The Draw Pile ran out!',
   'b.noCards': 'No cards left!',
   'b.endingCard': 'Ending card: {card}',
   'b.fullHand': '-10! Full hand',
-  'b.fullHandSub': '{name} formed all 7 cards. No Panha Boleia this round!',
-  'b.noRides': 'No Panha Boleia this round',
+  'b.fullHandSub': '{name} formed all 7 cards. No rides this round!',
+  'b.noRides': 'No rides this round',
   'b.noRidesSub': 'The Draw Pile ran out',
   'b.tximtxom': 'TximTxom!',
   'b.tximtxomSub': '{name} made a 7-card straight flush!',
-  'b.rode': '{name}: Panha Boleia with {card}!',
+  'b.rode': '{name} rode with {card}!',
   'b.notTximtxom': 'Not a TximTxom!',
 
   // screen reader
@@ -220,11 +221,11 @@ const en = {
   'sr.reshuffle': 'The discard pile was reshuffled into a new draw pile of {n} cards. This only happens once.',
   'sr.end': '{how}{card}. {after}',
   'sr.withCard': ' with the {card}',
-  'sr.fullHand': '{name} gets minus 10 for a full hand; no Panha Boleia.',
-  'sr.ridesOpen': 'Formations will be shown one by one; you can Panha Boleia.',
-  'sr.noRides': 'No Panha Boleia this round.',
+  'sr.fullHand': '{name} gets minus 10 for a full hand; no rides.',
+  'sr.ridesOpen': 'Formations will be shown one by one; you can take a ride.',
+  'sr.noRides': 'No rides this round.',
   'sr.laid': '{name} showed a {kind}: {cards}.',
-  'sr.rode': '{name}: Panha Boleia with the {card}.',
+  'sr.rode': '{name} rode with the {card}.',
   'sr.doneLaying': '{name} has no more formations.',
   'sr.score': 'Round over. Points this round: {parts}.',
   'sr.tximtxom': 'TximTxom! {name} wins the game with a seven card straight flush.',
@@ -244,12 +245,12 @@ const en = {
   'h.justDrawn': '(just drawn)',
   'h.reshuffled': 'Discards reshuffled into a new Draw Pile ({n} cards). Last pile!',
   'h.noCards': 'No cards left: the round ends',
-  'h.txiJog': '{name}: Txi jog ma {card}',
-  'h.pileOut': '{name} drew the last card: Txi jog ma {card}',
+  'h.txiJog': '{name}: ended with {card}',
+  'h.pileOut': '{name} drew the last card: ended with {card}',
   'h.fullHand': 'full hand, -10!',
-  'h.noRides': 'no Panha Boleia',
+  'h.noRides': 'no rides',
   'h.showed': '{name} showed a {kind}',
-  'h.rode': '{name}: Panha Boleia with {card}',
+  'h.rode': '{name} rode with {card}',
   'h.finished': '{name} finished showing formations',
   'h.scores': 'Round {n} scores',
   'h.tximtxom': '{name} called TximTxom!',
@@ -257,9 +258,9 @@ const en = {
 
   // scoreboard
   'sb.title': 'Scoreboard',
-  'sb.lead': 'Fewer points is better. Going over {n} is Rabenta; then the lowest total wins.',
-  'sb.toBust': '{n} to Rabenta',
-  'sb.busted': 'Rabenta!',
+  'sb.lead': 'Fewer points is better. Going over {n} is a bust; then the lowest total wins.',
+  'sb.toBust': '{n} to bust',
+  'sb.busted': 'Bust!',
   'sb.lastRound': 'last round',
   'sb.rounds': 'Rounds',
   'sb.noRounds': 'No rounds scored yet.',
@@ -285,7 +286,7 @@ const en = {
   'f.noWrapDesc': 'An Ace never sits in the middle',
   'f.tximtxomDesc': 'A 7-card straight flush. Call it on your turn to win the game!',
   'f.tximtxomSmeared': 'A 7-card straight flush, one suit even with Smeared. Call it on your turn to win the game!',
-  'f.ride': 'Panha Boleia',
+  'f.ride': 'Take a Ride',
   'f.rideDesc':
     'When a formation is shown, others can add to it: one card per player on a pair or trio, or same-suit cards at either end of a straight. Not after a full hand (-10) or when the Draw Pile ran out.',
   'f.rideDescSmeared':
@@ -326,7 +327,7 @@ const en = {
   'set.confirm.desc': 'Buttons wait for "End Turn" so you can undo (drag-and-drop plays at once)',
   'set.announce': 'Screen reader announcements',
   'set.announce.desc': 'Read out turns, draws, discards and scores',
-  'set.keys': 'Keyboard: 1–8 select · D draw · P take · Enter main action · E end turn / pass · Backspace undo · hold R Txi jog · hold T TximTxom · S scores · F formations · H history',
+  'set.keys': 'Keyboard: 1–8 select · D draw · P take · Enter main action · E end turn / pass · Backspace undo · hold R end round · hold T TximTxom · S scores · F formations · H history',
   'set.reset': 'Reset to defaults',
 
   // sixth sense
@@ -339,27 +340,27 @@ const en = {
   'help.title': 'How to play',
   'help.tab.goal': 'Goal',
   'help.tab.turn': 'Your turn',
-  'help.tab.end': 'Txi jog',
-  'help.tab.ride': 'Panha Boleia',
+  'help.tab.end': 'End round',
+  'help.tab.ride': 'Take a Ride',
   'help.tab.more': 'More',
   'help.goal':
-    'Keep the {b}fewest points{/b} in your hand. Cards in {g}formations{/g} (pairs, trios, quads, straights of 3+ in one suit, or any suits with {o}Smeared{/o}) don\'t count. Card values: {o}A = 1{/o}, 2–10 as printed, {o}J = 11, Q = 12, K = 13{/o}. When someone goes over the limit it\'s {r}Rabenta{/r}, and the {b}lowest total wins{/b}.',
+    'Keep the {b}fewest points{/b} in your hand. Cards in {g}formations{/g} (pairs, trios, quads, straights of 3+ in one suit, or any suits with {o}Smeared{/o}) don\'t count. Card values: {o}A = 1{/o}, 2–10 as printed, {o}J = 11, Q = 12, K = 13{/o}. When someone goes over the limit it\'s a {r}bust{/r}, and the {b}lowest total wins{/b}.',
   'help.turn':
     'Take the face-up card from the {o}Discard Pile{/o} or draw from the {b}Draw Pile{/b}. A card you take from the discard must stay: let go of another card. A drawn card can be kept (swap it in) or thrown straight onto the Discard Pile. You can {g}drag cards{/g} instead of using the buttons.',
   'help.end':
-    '{r}Txi jog{/r} ends the round: after picking a card, slide a card ranked {r}5 or lower{/r} (Ace = 1) under the Discard Pile. It can be the card you drew or one from your hand, not the discard you just took. With all 7 cards formed you get {g}-10{/g} and nobody may Panha Boleia.',
+    '{r}End the round{/r}: after picking a card, slide a card ranked {r}5 or lower{/r} (Ace = 1) under the Discard Pile. It can be the card you drew or one from your hand, not the discard you just took. With all 7 cards formed you get {g}-10{/g} and nobody may take a ride.',
   'help.ride':
-    'After {r}Txi jog{/r}, formations are shown one by one. Other players can {g}Panha Boleia{/g}: add their own cards to them to shed points. One card per player on a pair or trio; cards at either end of a straight, in its suit (any suit with {o}Smeared{/o}).',
+    'After the round ends, formations are shown one by one. Other players can {g}take a ride{/g}: add their own cards to them to shed points. One card per player on a pair or trio; cards at either end of a straight, in its suit (any suit with {o}Smeared{/o}).',
   'help.more':
-    'The first time the Draw Pile empties, the discards (except the top one) are reshuffled. The second time, whoever drew the last card must {r}Txi jog{/r} with any card, and there is no Panha Boleia. Hold a {o}7-card straight flush{/o} and call {o}TximTxom!{/o} on your turn to win the whole game. Turns go counter-clockwise; the dealer plays first and the deal rotates.',
+    'The first time the Draw Pile empties, the discards (except the top one) are reshuffled. The second time, whoever drew the last card must {r}end the round{/r} with any card, and there are no rides. Hold a {o}7-card straight flush{/o} and call {o}TximTxom!{/o} on your turn to win the whole game. Turns go counter-clockwise; the dealer plays first and the deal rotates.',
 
   // errors (from the rules engine / host)
   'err.notYourTurn': 'Not your turn',
   'err.pickFirst': 'Pick a card first',
-  'err.only5': 'You can only Txi jog with a 5 or lower',
+  'err.only5': 'You can only end the round with a 5 or lower',
   'err.justTook': "You can't let go of the card you just took",
   'err.notTximtxom': 'Not a TximTxom!',
-  'err.mustEnd': 'The Draw Pile is gone: you must Txi jog',
+  'err.mustEnd': 'The Draw Pile is gone: you must end the round',
   'err.invalidFormation': 'That is not a valid formation',
   'err.oneCard': 'Only one card per player on a pair or trio',
   'err.noFit': "That card doesn't fit",
