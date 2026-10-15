@@ -38,6 +38,7 @@ export type Request =
   | { event: 'room:rename'; msg: Parameters<ClientToServer['room:rename']>[0] }
   | { event: 'room:avatar'; msg: Parameters<ClientToServer['room:avatar']>[0] }
   | { event: 'room:start' }
+  | { event: 'room:again' }
   | { event: 'room:leave' }
   | { event: 'room:ping' }
   | { event: 'game:action'; msg: Action }
@@ -215,6 +216,11 @@ export class RoomServer {
         room.remove(target.id);
         room.broadcast();
         return { ok: true };
+      }
+      case 'room:again': {
+        if (room.game?.phase !== 'gameOver') return { ok: false, error: 'The game is not over' };
+        const err = room.playAgain();
+        return err ? { ok: false, error: err } : { ok: true };
       }
       case 'room:start': {
         if (room.game && room.game.phase !== 'gameOver') return { ok: false, error: 'Already playing' };

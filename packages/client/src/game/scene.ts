@@ -41,6 +41,11 @@ export interface SceneInput {
 }
 
 /** Lays out formations in rows inside the reveal area. */
+/** Card overlap in a formation, as a share of card width. Formations whose
+ *  Panha Boleia is over close up to save room (tunable). */
+export const FORMATION_STEP = 0.55;
+export const FORMATION_STEP_DONE = 0.3;
+
 export function revealGroups(game: GameView, layout: Layout): FormationGroup[] {
   const r = game.reveal;
   if (!r) return [];
@@ -48,7 +53,6 @@ export function revealGroups(game: GameView, layout: Layout): FormationGroup[] {
   const sc = area.cardScale;
   const cw = CARD_W * sc;
   const ch = CARD_H * sc;
-  const step = cw * 0.55;
   const gap = 26;
   const rowH = ch + 34;
   const groups: FormationGroup[] = [];
@@ -56,6 +60,9 @@ export function revealGroups(game: GameView, layout: Layout): FormationGroup[] {
   let y = area.y + 22;
   const rows: FormationGroup[][] = [[]];
   for (const f of r.formations) {
+    // The formation still open for riding keeps full spacing; finished ones tighten.
+    const open = r.ride?.formationId === f.id;
+    const step = cw * (open ? FORMATION_STEP : FORMATION_STEP_DONE);
     const w = (f.cards.length - 1) * step + cw;
     if (x + w > area.x + area.w && x > area.x) {
       x = area.x;
@@ -70,7 +77,7 @@ export function revealGroups(game: GameView, layout: Layout): FormationGroup[] {
       x,
       y,
       w,
-      active: r.ride?.formationId === f.id,
+      active: open,
       cards: f.cards.map((card, i) => ({ card, x: x + cw / 2 + i * step, y: y + ch / 2, rider: riderOf.get(card) ?? null })),
     };
     groups.push(g);
@@ -260,7 +267,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
         key: `c${leaving.card}`,
         card: leaving.card,
         role: 'drawn',
-        target: { x: p.x + 10, y: p.y - 14, rot: 0.08, scale: ps, z: 150, faceUp: true, glow: leaving.at === 'end' ? RED : GOLD },
+        target: { x: p.x + 10, y: p.y - 14, rot: 0.08, scale: ps, z: 150, faceUp: true, glow: leaving.at === 'end' ? RED : GOLD, wobble: true },
       });
     }
   }
@@ -278,7 +285,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
           card: c,
           role: 'leftover',
           seat: s,
-          target: { x: slots[i].x, y: slots[i].y, rot: slots[i].rot, scale: os, z: 30 + i, faceUp: true },
+          target: { x: slots[i].x, y: slots[i].y, rot: slots[i].rot, scale: os, z: 30 + i, faceUp: true, wobble: true },
         });
       });
       return;
@@ -290,7 +297,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
         card: null,
         role: 'opponent',
         seat: s,
-        target: { x: slots[i].x, y: slots[i].y, rot: slots[i].rot, scale: os, z: 30 + i, faceUp: false },
+        target: { x: slots[i].x, y: slots[i].y, rot: slots[i].rot, scale: os, z: 30 + i, faceUp: false, wobble: true },
       });
     }
     // Their drawn card, held up for them to peek at.
@@ -323,6 +330,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
             scale: L.reveal.cardScale,
             z: 60 + i,
             faceUp: true,
+            wobble: true,
             glow: c.rider !== null ? GREEN : grp.active ? GOLD : null,
           },
         });

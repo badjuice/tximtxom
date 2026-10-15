@@ -6,13 +6,27 @@ import type { DropTarget, SpawnHints, Table } from './game/table';
 import { cardShort, cardSpoken, kindName, t, tError } from './i18n';
 import { act, fetchHistory } from './net';
 import { getSettings, onSettings, updateSettings } from './settings';
-import { banner, type Staged, store, toast } from './store';
+import { banner, callout, SEAT_COLORS, type Staged, store, toast } from './store';
 
 let table: Table;
 let lastEventId = 0;
 let lastRoomCode = '';
 let handOrder: Card[] = [];
 let wasMyTurn = false;
+/** Which ride chance we last announced ("" = none open for us). */
+let lastRideKey = '';
+let lastTximTxomAt = 0;
+
+const CALLOUT = { you: '#009dff', ride: '#4bc292', tximtxom: '#fda200', gameOver: '#fe5f55', nope: '#fe5f55' };
+
+/** Set when it's our moment to Panha Boleia on the open formation. */
+function myRideKey(g: GameView): string {
+  const me = g.you;
+  const w = g.reveal?.ride;
+  if (me === null || !w || g.rules.autoRide || !w.riders.includes(me) || !(g.players[me].hand ?? []).length) return '';
+  if (g.rules.rideOrder === 'roundRobin' ? w.riders[w.rrIndex] !== me : w.passed.includes(me)) return '';
+  return `${w.formationId}`;
+}
 let announce: (text: string) => void = () => {};
 
 export function setAnnouncer(fn: (text: string) => void): void {
@@ -121,6 +135,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   if (!room || !g) {
     setMood('menu');
     lastEventId = 0;
+    lastRideKey = '';
     wasMyTurn = false;
     seenOut = new Set();
     return;
@@ -134,6 +149,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
     if (me !== null) handOrder = [...(g.players[me].hand ?? [])];
     trackSeen(null, g);
     if (getSettings().autoSort) applyAutoSort();
+    turnCallouts(g, null);
     return;
   }
 
@@ -149,7 +165,6 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   // Clear selections/staging when the situation changed under us.
   const s = store.get();
   const me = g.you;
-  const myTurn = me !== null && g.phase === 'playing' && g.turn === me;
   const prevG = prev.game;
   const stepChanged = !prevG || prevG.step !== g.step || prevG.turn !== g.turn || prevG.phase !== g.phase;
   const rideChanged = prevG?.reveal?.ride?.formationId !== g.reveal?.ride?.formationId || prevG?.reveal?.current !== g.reveal?.current;
@@ -158,18 +173,33 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
     store.set({ staged: null, selected: s.selected.filter((c) => hand.includes(c) && !stepChanged) });
   }
 
-  if (myTurn && !wasMyTurn) {
-    play('highlight2');
-    vibrate(40);
-    banner(t('b.yourTurn'), { tone: 'info', ms: 1100 });
-    announce(t('sr.yourTurn'));
-  }
-  wasMyTurn = myTurn;
+  turnCallouts(g, prevG);
   if (getSettings().autoSort) {
     const hand = me !== null ? g.players[me].hand ?? [] : [];
     handOrder = sorted(hand, getSettings().sortBy);
   }
   pushToTable(hints);
+}
+
+/** "Your turn!", "Chicot's turn", "Panha Boleia!": announced when they start. */
+function turnCallouts(g: GameView, prevG: GameView | null): void {
+  const me = g.you;
+  const myTurn = me !== null && g.phase === 'playing' && g.turn === me;
+  if (myTurn && !wasMyTurn) {
+    play('highlight2');
+    vibrate(40);
+    callout(t('c.yourTurn'), CALLOUT.you);
+    announce(t('sr.yourTurn'));
+  } else if (g.phase === 'playing' && g.turn !== me && (prevG?.phase !== 'playing' || prevG.turn !== g.turn)) {
+    callout(t('c.turnOf', { name: g.players[g.turn].name }), SEAT_COLORS[g.turn], { small: true, ms: 1100 });
+  }
+  wasMyTurn = myTurn;
+  const rideKey = myRideKey(g);
+  if (rideKey && rideKey !== lastRideKey) {
+    play('highlight1');
+    callout(t('c.ride'), CALLOUT.ride);
+  }
+  lastRideKey = rideKey;
 }
 
 /** Keeps the full move log: merges the recent events, fetches everything if there's a gap. */
@@ -339,7 +369,8 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       swirl(3);
       setMood('win');
       table.particles.burst(L.w / 2, L.h / 2, { count: 80, speed: 520, size: 8, colors: [0xfda200, 0xfe5f55, 0x009dff, 0xffffff] });
-      banner(t('b.tximtxom'), { sub: t('b.tximtxomSub', { name: name(g, e.seat) }), joker: 'superposition', tone: 'good', ms: 3500 });
+      lastTximTxomAt = Date.now();
+      callout(t('b.tximtxom'), CALLOUT.tximtxom, { ms: 2200 });
       announce(t('sr.tximtxom', { name: name(g, e.seat) }));
       break;
     case 'gameOver': {
@@ -354,6 +385,8 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
         sfx('negative');
         table.shake.add(6);
       }
+      // After a TximTxom, let its callout finish first.
+      setTimeout(() => callout(t('c.gameOver'), CALLOUT.gameOver, { ms: 1800 }), Math.max(0, lastTximTxomAt + 2200 - Date.now()));
       // The game-over modal says who won; no banner on top of it.
       const names = e.winners.map((w) => name(g, w)).join(' & ');
       announce(t('sr.gameOver', { who: tie ? t('sr.tieBetween', { names }) : t('sr.wins', { names }) }));
@@ -420,6 +453,18 @@ export function drop(card: Card, target: DropTarget): void {
   } else void send({ type: 'ride', card });
 }
 
+/** Balatro's "Nope!": a Panha Boleia card that doesn't fit. */
+function nope(): void {
+  play('cancel');
+  vibrate([30, 40, 30]);
+  callout(t('c.nope'), CALLOUT.nope, { ms: 1100 });
+}
+
+export function badDrop(_card: Card, target: DropTarget): void {
+  const g = store.get().room?.game;
+  if (g && target.kind === 'formation' && myRideKey(g)) nope();
+}
+
 export function tapDrawn(card: Card): void {
   const s = store.get();
   if (s.staged) return;
@@ -440,6 +485,10 @@ function isMultiSelect(g: GameView): boolean {
 export async function send(action: Action): Promise<boolean> {
   play('button');
   const r = await act(action);
+  if (!r.ok && action.type === 'ride') {
+    nope();
+    return false;
+  }
   if (!r.ok) {
     play('cancel');
     vibrate([30, 40, 30]);
@@ -615,7 +664,7 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
               onClick: () => card !== undefined && void send({ type: 'ride', card }),
               key: 'Enter',
             },
-            { label: t('act.pass'), color: 'grey', enabled: true, onClick: () => void send({ type: 'pass' }), key: 'E' },
+            { label: t('act.pass'), color: 'red', enabled: true, onClick: () => void send({ type: 'pass' }), key: 'E' },
           ],
           status: t('st.ride', { name: name(g, owner) }),
         };
@@ -631,7 +680,7 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
         ...EMPTY,
         main: [
           { label: t('act.lay'), color: 'blue', enabled: selected.length >= 2, onClick: () => void send({ type: 'lay', cards: selected }), key: 'Enter' },
-          { label: t('act.done'), color: 'grey', enabled: true, onClick: () => void send({ type: 'doneLaying' }), key: 'E', title: t('act.doneTitle') },
+          { label: t('act.done'), color: 'red', enabled: true, onClick: () => void send({ type: 'doneLaying' }), key: 'E', title: t('act.doneTitle') },
         ],
         status: g.noMoreFormations ? t('st.noMore') : t('st.select'),
       };

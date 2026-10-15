@@ -8,6 +8,8 @@ export interface LobbyPlayer {
   isBot: boolean;
   avatar: string;
   connected: boolean;
+  /** Games won in this room. */
+  wins: number;
 }
 
 /** Everything a client needs, sent after every change. */
@@ -42,6 +44,8 @@ export interface ClientToServer {
   /** Switch to the next free Joker art: your own, or (host only) a bot's, which also renames it. Lobby only. */
   'room:avatar': (msg: { playerId: string }, ack: Ack) => void;
   'room:start': (ack: Ack) => void;
+  /** Host, after a game ends: a new game with the same table (wins are kept). */
+  'room:again': (ack: Ack) => void;
   'room:leave': () => void;
   /** The player clicked or typed: keeps the room from closing as idle. */
   'room:ping': (ack: Ack) => void;

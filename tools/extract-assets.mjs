@@ -126,6 +126,32 @@ async function textures() {
   const jokers = [];
   for (const [k, pos] of Object.entries(JOKERS)) jokers.push([k, await cell('Jokers.png', pos)]);
   await buildAtlas('jokers', jokers);
+  await icons();
+}
+
+// Small icons from other sheets: [file, cell size, col, row].
+const ICONS = {
+  tag_handy: ['tags.png', 34, 1, 3], // marks whose turn it is
+  stake_gold: ['chips.png', 29, 2, 1], // games won
+};
+
+async function icons() {
+  let x = 0;
+  const frames = {};
+  const composites = [];
+  for (const [key, [file, size, col, row]] of Object.entries(ICONS)) {
+    const buf = await sharp(path.join(TEX, file)).extract({ left: col * size, top: row * size, width: size, height: size }).png().toBuffer();
+    frames[key] = { frame: { x, y: 0, w: size, h: size }, sourceSize: { w: size, h: size }, spriteSourceSize: { x: 0, y: 0, w: size, h: size } };
+    composites.push({ input: buf, left: x, top: 0 });
+    x += size;
+  }
+  const height = Math.max(...Object.values(ICONS).map((i) => i[1]));
+  await sharp({ create: { width: x, height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite(composites)
+    .png({ compressionLevel: 9, palette: true, effort: 10 })
+    .toFile(path.join(OUT, 'icons.png'));
+  fs.writeFileSync(path.join(OUT, 'icons.json'), JSON.stringify({ frames, meta: { image: 'icons.png', size: { w: x, h: height }, scale: 1 } }));
+  console.log(`atlas icons: ${Object.keys(ICONS).length} frames`);
 }
 
 // ---------------------------------------------------------------- font

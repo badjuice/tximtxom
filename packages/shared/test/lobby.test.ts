@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOT_PERSONAS, HUMAN_JOKERS, RoomServer } from '../src/index.js';
+import { BOT_PERSONAS, HUMAN_JOKERS, makeCard, RoomServer } from '../src/index.js';
 
 function setup() {
   const server = new RoomServer({ send: () => {}, closed: () => {} });
@@ -61,5 +61,33 @@ describe('lobby art and names', () => {
     server.handle('host', { event: 'room:start' });
     expect(server.handle('guest', { event: 'room:rename', msg: { playerId: guest.id, name: 'x' } }).ok).toBe(false);
     expect(server.handle('guest', { event: 'room:avatar', msg: { playerId: guest.id } }).ok).toBe(false);
+  });
+});
+
+describe('wins and play again', () => {
+  it('counts wins and starts a new game with the same table', () => {
+    const server = new RoomServer({ send: () => {}, closed: () => {} });
+    const { code } = server.handle('host', { event: 'room:create', msg: { name: 'Nox' } }) as { ok: true; code: string };
+    server.handle('host', { event: 'room:addBot' });
+    server.handle('host', { event: 'room:start' });
+    const room = server.rooms.get(code)!;
+    expect(server.handle('host', { event: 'room:again' }).ok).toBe(false); // not over yet
+    // A TximTxom hand ends the game at once.
+    const g = room.game!;
+    const seat = g.turn;
+    const hand = [1, 2, 3, 4, 5, 6, 7].map((r) => makeCard(r, 0)); // A-7 of one suit
+    const others = g.players.flatMap((p) => p.hand).filter((c) => !hand.includes(c));
+    for (const p of g.players) p.hand = [];
+    g.players[seat].hand = hand;
+    g.players[1 - seat].hand = others.slice(0, 7);
+    const member = room.members.find((m) => m.id === g.players[seat].id)!;
+    const err = room.act(member, { type: 'tximtxom' });
+    expect(err).toBeNull();
+    expect(room.game!.phase).toBe('gameOver');
+    expect(member.wins).toBe(1);
+    expect(room.viewFor(room.members[0]).players.find((p) => p.id === member.id)!.wins).toBe(1);
+    expect(server.handle('host', { event: 'room:again' }).ok).toBe(true);
+    expect(room.game!.phase).not.toBe('gameOver');
+    expect(member.wins).toBe(1);
   });
 });

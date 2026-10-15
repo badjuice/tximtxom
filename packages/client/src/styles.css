@@ -848,6 +848,81 @@ input[type='text'] {
   border-radius: 4px;
   margin-top: 2px;
 }
+/* Nothing on a plate changes its size: fixed width, names cut with "…",
+   and status chips / the timer hang below instead of growing the plate. */
+.plate {
+  --pw: 172px;
+  width: var(--pw);
+  min-width: 0;
+}
+.plate-nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.plate-name {
+  min-width: 0;
+}
+.plate-chip {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 3px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 0 6px;
+  margin: 0;
+}
+.plate-chip.bad + .plate-chip {
+  top: calc(100% + 1.5em);
+}
+.plate .timer {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 2px;
+  height: 3px;
+  margin: 0;
+}
+.wins {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+  vertical-align: middle;
+  flex: none;
+}
+.wins b {
+  color: var(--gold);
+  font-weight: normal;
+  font-size: 0.9em;
+}
+.turn-tag {
+  position: absolute;
+  right: -12px;
+  top: -14px;
+  animation: tag-in 0.45s cubic-bezier(0.2, 2, 0.4, 1), tag-bob 1.6s ease-in-out 0.45s infinite alternate;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35));
+}
+@keyframes tag-in {
+  from {
+    transform: scale(0) rotate(-30deg);
+  }
+}
+@keyframes tag-bob {
+  from {
+    transform: rotate(-8deg) translateY(0);
+  }
+  to {
+    transform: rotate(8deg) translateY(-3px);
+  }
+}
+.pile-label b,
+.hand-points b {
+  display: inline-block;
+  min-width: 2ch;
+  text-align: right;
+}
 .plate-chip.bad {
   background: var(--red-d);
 }
@@ -1044,6 +1119,127 @@ input[type='text'] {
 }
 
 /* ---------------------------------------------------------- banners & toasts */
+
+/* Callouts: Balatro's "Nope!" / "Again!" pop-ups. Two polygons spin behind
+   letters that pop in one by one; the whole thing shrinks away at the end. */
+.callout {
+  position: fixed;
+  left: 50%;
+  top: 40%;
+  z-index: 40;
+  width: min(500px, 92vw);
+  height: 240px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  animation: callout-life 1.5s ease-in forwards;
+}
+.callout.small {
+  width: min(380px, 84vw);
+  height: 180px;
+  animation-duration: 1.1s;
+}
+.callout-poly {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.callout-poly .back {
+  fill: color-mix(in srgb, var(--c) 55%, #000);
+  transform-origin: 50% 50%;
+  animation: callout-poly-back 1.5s ease-out;
+}
+.callout-poly .front {
+  fill: var(--c);
+  stroke: #fff;
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+  transform-origin: 50% 50%;
+  animation: callout-poly-front 1.5s ease-out;
+}
+.callout-text {
+  position: relative;
+  display: flex;
+  font-size: 3.2em;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.45),
+    0 0 2px rgba(0, 0, 0, 0.6);
+}
+.callout.small .callout-text {
+  font-size: 2.1em;
+}
+.callout-text span {
+  display: inline-block;
+  transform: scale(0);
+  animation:
+    callout-letter 0.35s cubic-bezier(0.2, 2, 0.4, 1) forwards,
+    callout-wobble 0.6s ease-in-out infinite alternate;
+}
+@keyframes callout-letter {
+  from {
+    transform: scale(0) translateY(20%) rotate(-20deg);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes callout-wobble {
+  from {
+    translate: 0 -2px;
+    rotate: -3deg;
+  }
+  to {
+    translate: 0 2px;
+    rotate: 3deg;
+  }
+}
+@keyframes callout-poly-back {
+  from {
+    transform: scale(0.2) rotate(-40deg);
+  }
+  25% {
+    transform: scale(1.12) rotate(6deg);
+  }
+  to {
+    transform: scale(1) rotate(24deg);
+  }
+}
+@keyframes callout-poly-front {
+  from {
+    transform: scale(0.1) rotate(30deg);
+  }
+  22% {
+    transform: scale(1.05) rotate(-4deg);
+  }
+  to {
+    transform: scale(0.94) rotate(-18deg);
+  }
+}
+@keyframes callout-life {
+  0%,
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(8deg);
+  }
+}
+@media (max-width: 600px) {
+  .callout-text {
+    font-size: 2.3em;
+  }
+  .callout.small .callout-text {
+    font-size: 1.6em;
+  }
+}
+
 
 .banner {
   position: fixed;
@@ -1316,7 +1512,31 @@ input[type='text'] {
   transition: transform 0.18s ease-out, filter 0.18s;
   will-change: transform;
 }
+/* Idle life, like Balatro's cards: a slow sway and bob. Uses rotate/translate,
+   so it stacks with the hover tilt (transform) instead of fighting it. */
+.sprite.tilt {
+  animation: idle-sway 3.4s ease-in-out infinite alternate;
+}
+.sprite.tilt:nth-child(3n + 2) {
+  animation-delay: -1.3s;
+  animation-duration: 3.9s;
+}
+.sprite.tilt:nth-child(3n) {
+  animation-delay: -2.4s;
+  animation-duration: 3.1s;
+}
+@keyframes idle-sway {
+  from {
+    rotate: -1.6deg;
+    translate: 0 -1px;
+  }
+  to {
+    rotate: 1.6deg;
+    translate: 0 1.5px;
+  }
+}
 .tilt.tilting {
+  animation-play-state: paused;
   --ts: 1.12;
   transition: transform 0.06s linear;
   filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.3));
@@ -1535,12 +1755,13 @@ input[type='text'] {
   color: #fff;
   font-weight: normal;
 }
-.suit-h,
-.suit-d {
+/* Light suit colours for the dark Peek panel only; chips keep the card colours. */
+.peek-suit.suit-h,
+.peek-suit.suit-d {
   color: #ff7a7a;
 }
-.suit-c,
-.suit-s {
+.peek-suit.suit-c,
+.peek-suit.suit-s {
   color: #cfe0e2;
 }
 
@@ -1581,9 +1802,52 @@ input[type='text'] {
   background: var(--orange);
   box-shadow: 0 2px 0 var(--orange-d);
 }
-.mini.auto.on {
+.sort-sep {
+  width: 2px;
+  align-self: stretch;
+  margin: 2px 2px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 1px;
+}
+.auto-toggle {
+  font: inherit;
+  color: var(--muted);
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 4px;
+  cursor: pointer;
+}
+.auto-toggle.on {
+  color: #fff;
+}
+.mini-switch {
+  position: relative;
+  width: 30px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--grey-d);
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.35);
+  transition: background 0.15s;
+}
+.mini-switch .knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+.auto-toggle.on .mini-switch {
   background: var(--green);
-  box-shadow: 0 2px 0 var(--green-d);
+}
+.auto-toggle.on .mini-switch .knob {
+  transform: translateX(14px);
 }
 
 /* --- action area: everyday actions in the middle, risky ones in the corners */
@@ -1606,7 +1870,19 @@ input[type='text'] {
   pointer-events: auto;
 }
 .main-actions .btn {
-  min-width: 150px;
+  /* Same size whatever the label says, so the buttons don't jump around. */
+  width: 250px;
+  white-space: nowrap;
+}
+.main-actions .btn .btn-label,
+.hold .btn-label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.hold.special {
+  width: 210px;
 }
 .corner {
   display: flex;
@@ -2048,10 +2324,12 @@ input.rename {
     grid-area: right;
   }
   .main-actions .btn {
+    width: auto;
     min-width: 0;
-    flex: 1;
+    flex: 1 1 0;
   }
-  .hold {
+  .hold,
+  .hold.special {
     min-height: 44px;
     width: 100%;
   }
@@ -2145,8 +2423,11 @@ input.rename {
     padding: 0.35em 0.5em;
   }
   .plate {
-    min-width: 84px;
+    --pw: 124px;
     padding: 2px 6px;
+  }
+  .turn-tag {
+    zoom: 0.75;
   }
   .banner-text {
     font-size: 1.5em;

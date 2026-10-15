@@ -6,7 +6,7 @@ import { resetSettings, type Settings, updateSettings, useSettings } from '../se
 import { store, useStore } from '../store';
 import { Button, Choice, Modal, Rich, Slider, Tabs, Toggle } from './common';
 import { SEAT_COLORS } from './Hud';
-import { CardBackIcon, CardIcon, JokerIcon } from './sprites';
+import { CardBackIcon, CardIcon, JokerIcon, Wins } from './sprites';
 
 export function Overlays() {
   const overlay = useStore((s) => s.overlay);
@@ -29,6 +29,7 @@ export function Overlays() {
 
 function Scoreboard({ onClose }: { onClose: () => void }) {
   const g = useStore((s) => s.room?.game);
+  const lobby = useStore((s) => s.room?.players ?? []);
   if (!g) return null;
   const max = g.rules.threshold;
   const order = g.players.map((_, i) => i).sort((a, b) => g.players[a].total - g.players[b].total);
@@ -47,8 +48,9 @@ function Scoreboard({ onClose }: { onClose: () => void }) {
             <div class={`sb-row${rank === 0 ? ' lead' : ''}`} style={{ '--seat': SEAT_COLORS[i] }}>
               <span class="sb-rank">{rank + 1}</span>
               <span class="sb-name">
-                {p.isBot && p.avatar ? <JokerIcon name={p.avatar} scale={0.3} /> : <span class="seat-dot" />}
+                {p.avatar ? <JokerIcon name={p.avatar} scale={0.3} /> : <span class="seat-dot" />}
                 {who(i)}
+                <Wins n={lobby.find((x) => x.id === p.id)?.wins ?? 0} scale={0.5} />
                 {g.dealer === i && <span class="dealer-chip">D</span>}
               </span>
               <span class="sb-total">{p.total}</span>

@@ -2,6 +2,9 @@ import { useEffect, useState } from 'preact/hooks';
 import type { Card, GameEvent, RoomView } from '@tximtxom/shared';
 import type { Layout } from './game/layout';
 
+/** One colour per seat, used on plates, callouts and in the history. */
+export const SEAT_COLORS = ['#009dff', '#fe5f55', '#fda200', '#4bc292'];
+
 /** A move picked on screen but not sent yet (sent on "End Turn"). */
 export type Staged =
   | { type: 'discardDrawn'; card: Card }
@@ -19,6 +22,8 @@ export interface ClientState {
   overlay: Overlay;
   toast: { id: number; text: string; kind: 'info' | 'error' } | null;
   banner: { id: number; text: string; sub?: string; joker?: string; tone?: 'good' | 'bad' | 'info' } | null;
+  /** Balatro-style pop-up text over a spinning polygon ("Your turn", "TximTxom!"). */
+  callout: { id: number; text: string; color: string; small?: boolean } | null;
   /** Bumped to trigger a "nope" shake on the action bar. */
   shake: number;
   layout: Layout | null;
@@ -55,6 +60,7 @@ export const store = createStore<ClientState>({
   overlay: null,
   toast: null,
   banner: null,
+  callout: null,
   shake: 0,
   layout: null,
   history: [],
@@ -80,6 +86,16 @@ export function toast(text: string, kind: 'info' | 'error' = 'info'): void {
   setTimeout(() => {
     if (store.get().toast?.id === id) store.set({ toast: null });
   }, kind === 'error' ? 2600 : 2000);
+}
+
+let calloutId = 0;
+/** Shows a callout for `ms`. `small` is for less important ones (other players' turns). */
+export function callout(text: string, color: string, opts: { ms?: number; small?: boolean } = {}): void {
+  const id = ++calloutId;
+  store.set({ callout: { id, text, color, small: opts.small } });
+  setTimeout(() => {
+    if (store.get().callout?.id === id) store.set({ callout: null });
+  }, opts.ms ?? 1500);
 }
 
 let bannerId = 0;

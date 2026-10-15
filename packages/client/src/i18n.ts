@@ -109,6 +109,7 @@ const en = {
   'plate.ready': 'ready',
   'plate.bot': 'Bot',
   'plate.botFor': 'A bot is playing for them',
+  'plate.theirTurn': 'Their turn',
 
   // piles / hand
   'pile.last': 'LAST',
@@ -179,10 +180,16 @@ const en = {
   'go.tximtxom': 'TximTxom! A 7-card straight flush.',
   'go.bust': 'RABENTA',
   'go.backToLobby': 'Back to lobby',
+  'go.playAgain': 'Play again',
   'go.waitingHost': 'Waiting for the host…',
 
   // banners
   'b.yourTurn': 'Your turn',
+  'c.yourTurn': 'Your turn!',
+  'c.turnOf': "{name}'s turn",
+  'c.ride': 'Take a Ride!',
+  'c.gameOver': 'Game over!',
+  'c.nope': 'Nope!',
   'b.deals': '{name} deals',
   'b.lowestDeals': 'Lowest card deals first',
   'b.round': 'Round {n}',
@@ -468,6 +475,7 @@ const pt: Record<Key, string> = {
   'plate.ready': 'pronto',
   'plate.bot': 'Bot',
   'plate.botFor': 'Um bot está a jogar por esta pessoa',
+  'plate.theirTurn': 'É a vez desta pessoa',
 
   'pile.last': 'ÚLTIMO',
   'pile.lastTitle': 'Já foi baralhado uma vez: quando acabar, a ronda acaba',
@@ -534,9 +542,15 @@ const pt: Record<Key, string> = {
   'go.tximtxom': 'TximTxom! Uma escada de 7 do mesmo naipe.',
   'go.bust': 'RABENTOU',
   'go.backToLobby': 'Voltar à sala',
+  'go.playAgain': 'Jogar outra vez',
   'go.waitingHost': 'À espera do anfitrião…',
 
   'b.yourTurn': 'É a tua vez',
+  'c.yourTurn': 'A tua vez!',
+  'c.turnOf': 'Vez de {name}',
+  'c.ride': 'Panha Boleia!',
+  'c.gameOver': 'Jog txid!',
+  'c.nope': 'Nope!',
   'b.deals': 'Dealer: {name}',
   'b.lowestDeals': 'A carta mais baixa dá primeiro',
   'b.round': 'Ronda {n}',

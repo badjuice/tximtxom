@@ -18,7 +18,7 @@ interface Atlas {
 const atlases: Record<string, Atlas> = {};
 
 export async function loadSpriteAtlases(): Promise<void> {
-  for (const name of ['cards', 'jokers']) {
+  for (const name of ['cards', 'jokers', 'icons']) {
     const json = await (await fetch(`${import.meta.env.BASE_URL}assets/${name}.json`)).json();
     const frames: Record<string, Frame> = {};
     for (const [k, v] of Object.entries<{ frame: Frame }>(json.frames)) frames[k] = v.frame;
@@ -78,6 +78,22 @@ export function JokerIcon({ name, scale = 0.5, title }: { name: string; scale?: 
       {...tilt}
     >
       {hasFrame('jokers', soul) && <span class="sprite soul" style={spriteStyle('jokers', soul, scale)} />}
+    </span>
+  );
+}
+
+/** A small icon from the icons atlas (tags, stake chips). */
+export function Icon({ name, scale = 1, title, class: cls }: { name: string; scale?: number; title?: string; class?: string }) {
+  return <span class={`sprite icon ${cls ?? ''}`} style={spriteStyle('icons', name, scale)} title={title} role={title ? 'img' : undefined} aria-label={title} aria-hidden={title ? undefined : 'true'} />;
+}
+
+/** Games won, as Balatro's Gold Stake chip with a count ("x2"). Nothing before the first win. */
+export function Wins({ n, scale = 0.6 }: { n: number; scale?: number }) {
+  if (!n) return null;
+  return (
+    <span class="wins" title={`${n}`}>
+      <Icon name="stake_gold" scale={scale} />
+      {n > 1 && <b>x{n}</b>}
     </span>
   );
 }

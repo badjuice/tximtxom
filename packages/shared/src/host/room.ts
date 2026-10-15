@@ -30,9 +30,11 @@ export interface Member {
   token: string;
   name: string;
   isBot: boolean;
-  /** Joker art for bots ('' for humans). */
+  /** Joker art. */
   avatar: string;
   clientId: string | null;
+  /** Games won in this room. Missing in old saves. */
+  wins?: number;
 }
 
 export interface RoomSnapshot {
@@ -236,6 +238,13 @@ export class Room {
     return null;
   }
 
+  /** Straight into a new game after one ends, with whoever is still here. */
+  playAgain(): string | null {
+    this.game = null;
+    this.members = this.members.filter((m) => m.isBot || m.clientId);
+    return this.start();
+  }
+
   /** Back to the lobby after a finished game (keeps everyone seated). */
   backToLobby(): void {
     this.game = null;
@@ -251,9 +260,17 @@ export class Room {
   }
 
   private apply(seat: Seat, action: Action): string | null {
+    const before = this.game!.phase;
     const res = applyAction(this.game!, seat, action);
     if (!res.ok) return res.error;
     this.game = res.state;
+    if (before !== 'gameOver' && this.game.phase === 'gameOver') {
+      // Every winner (all of them on a tie) gets a win.
+      for (const s of this.game.winners) {
+        const m = this.members.find((x) => x.id === this.game!.players[s].id);
+        if (m) m.wins = (m.wins ?? 0) + 1;
+      }
+    }
     this.touch();
     return null;
   }
@@ -278,6 +295,7 @@ export class Room {
       isBot: x.isBot,
       avatar: x.avatar,
       connected: x.isBot || !!x.clientId,
+      wins: x.wins ?? 0,
     }));
     return {
       code: this.code,

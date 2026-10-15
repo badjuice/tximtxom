@@ -18,6 +18,8 @@ export interface TableHandlers {
   /** Can `card` (hand card or drawn card) be dropped on `target` right now? */
   canDrop(card: Card, target: DropTarget): boolean;
   onDrop(card: Card, target: DropTarget): void;
+  /** A card was dropped on a formation it doesn't fit. */
+  onBadDrop(card: Card, target: DropTarget): void;
   /** True while something (modal, panel) blocks the table. */
   blocked(): boolean;
 }
@@ -368,6 +370,8 @@ export class Table {
     if (!target && p.y < handTop) target = { kind: 'table' };
     if (target && this.handlers.canDrop(drag.card, target)) {
       this.handlers.onDrop(drag.card, target);
+    } else if (target?.kind === 'formation') {
+      this.handlers.onBadDrop(drag.card, target);
     } else if (role === 'hand') {
       this.reorder(drag.card, p.x);
     }

@@ -6,7 +6,7 @@ import { toast, useStore } from '../store';
 import { Button } from './common';
 import { SEAT_COLORS } from './Hud';
 import { RulesForm } from './RulesForm';
-import { JokerIcon } from './sprites';
+import { JokerIcon, Wins } from './sprites';
 
 export function Lobby() {
   const room = useStore((s) => s.room)!;
@@ -71,6 +71,7 @@ export function Lobby() {
                 <span class="pname">
                   {p.name}
                   {p.id === room.youId && ` (${t('you').toLowerCase()})`}
+                  <Wins n={p.wins} />
                 </span>
               )}
               {p.id === room.hostId && <span class="tag">{t('lobby.host')}</span>}

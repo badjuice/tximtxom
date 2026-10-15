@@ -48,6 +48,7 @@ export function App() {
       {inGame && <HistoryPanel />}
       <Overlays />
       <Banner />
+      <Callout />
       <Toast />
       <Announcer />
       {!connected && room && (
@@ -55,6 +56,35 @@ export function App() {
           {t('plate.reconnecting')}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Irregular polygon points around (50,50), like Balatro's text backdrops. */
+function polygon(n: number, seed: number): string {
+  const pts: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    const r = 38 + ((Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453) % 1 + 1) % 1 * 12;
+    pts.push(`${(50 + Math.cos(a) * r).toFixed(1)},${(50 + Math.sin(a) * r).toFixed(1)}`);
+  }
+  return pts.join(' ');
+}
+
+function Callout() {
+  const c = useStore((s) => s.callout);
+  if (!c) return null;
+  return (
+    <div class={`callout${c.small ? ' small' : ''}`} key={c.id} style={{ '--c': c.color }} aria-hidden="true">
+      <svg class="callout-poly" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <polygon class="back" points={polygon(7, c.id)} />
+        <polygon class="front" points={polygon(6, c.id + 0.5)} />
+      </svg>
+      <div class="callout-text">
+        {[...c.text].map((ch, i) => (
+          <span style={{ animationDelay: `${0.12 + i * 0.035}s, ${0.5 + i * 0.035}s` }}>{ch === ' ' ? '\u00a0' : ch}</span>
+        ))}
+      </div>
     </div>
   );
 }

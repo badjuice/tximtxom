@@ -4,18 +4,23 @@ import { cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort }
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { revealGroups } from '../game/scene';
 import { kindName, t } from '../i18n';
-import { leaveRoom, MODE, startGame } from '../net';
+import { leaveRoom, MODE, playAgain, startGame } from '../net';
 import { updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
-import { Button, HoldButton, Modal } from './common';
-import { CardIcon, JokerIcon } from './sprites';
+import { Button, CardText, HoldButton, Modal } from './common';
+import { CardIcon, Icon, JokerIcon, Wins } from './sprites';
 
 function toScreen(L: Layout, p: Point) {
   return { left: `${L.offsetX + p.x * L.scale}px`, top: `${L.offsetY + p.y * L.scale}px` };
 }
 
-/** One colour per seat, used on plates and in the history. */
-export const SEAT_COLORS = ['#009dff', '#fe5f55', '#fda200', '#4bc292'];
+/** Plates have a fixed width (--pw); keep them fully on screen near the edges. */
+function onScreen(pos: { left: string; top: string }) {
+  return { ...pos, left: `clamp(calc(var(--pw) / 2 + 4px), ${pos.left}, calc(100% - var(--pw) / 2 - 4px))` };
+}
+
+import { SEAT_COLORS } from '../store';
+export { SEAT_COLORS };
 
 export function Hud() {
   const room = useStore((s) => s.room)!;
@@ -122,7 +127,7 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
   return (
     <div
       class={`plate${p.avatar ? ' has-art' : ''}${active ? ' active' : ''}${me ? ' me' : ''}${offline ? ' offline' : ''}`}
-      style={{ ...toScreen(L, pos), '--seat': SEAT_COLORS[seat] }}
+      style={{ ...onScreen(toScreen(L, pos)), '--seat': SEAT_COLORS[seat] }}
       aria-label={`${me ? t('you') : p.name}: ${p.total} ${t('pts')}`}
     >
       {p.avatar && (
@@ -134,7 +139,8 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
       <div class="plate-name">
         {!p.isBot && p.botControlled && <span class="tag" title={t('plate.botFor')}>{t('lobby.bot')}</span>}
         <span class="seat-dot" aria-hidden="true" />
-        <span>{me ? t('you') : p.name}</span>
+        <span class="plate-nm">{me ? t('you') : p.name}</span>
+        <Wins n={lobby?.wins ?? 0} scale={0.5} />
         {g.dealer === seat && (
           <span class="dealer-chip" title={t('dealer')}>
             D
@@ -149,6 +155,8 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
           <span class={`delta ${result.points[seat] < 0 ? 'good' : ''}`}>{result.points[seat] >= 0 ? `+${result.points[seat]}` : result.points[seat]}</span>
         )}
       </div>
+      {/* Balatro's Handy Tag marks the player whose turn it is. */}
+      {active && !me && <Icon name="tag_handy" scale={0.9} class="turn-tag" title={t('plate.theirTurn')} />}
       {offline && <div class="plate-chip bad">{t('plate.reconnecting')}</div>}
       {chip && <div class="plate-chip">{chip}</div>}
       {active && room.turnDeadline && <TimerBar deadline={room.turnDeadline} total={g.rules.turnTimer} />}
@@ -276,7 +284,12 @@ function HandBar({ g, L }: { g: GameView; L: Layout }) {
         <button class={`mini${s.sortBy === 'suit' ? ' on' : ''}`} onClick={() => sortHand('suit')}>
           {t('sort.suit')}
         </button>
-        <button class={`mini auto${s.autoSort ? ' on' : ''}`} aria-pressed={s.autoSort} title={t('sort.autoTitle')} onClick={toggleAutoSort}>
+        <span class="sort-sep" aria-hidden="true" />
+        {/* A switch, not a third sort option: keeps the hand sorted as cards come and go. */}
+        <button class={`auto-toggle${s.autoSort ? ' on' : ''}`} role="switch" aria-checked={s.autoSort} title={t('sort.autoTitle')} onClick={toggleAutoSort}>
+          <span class="mini-switch" aria-hidden="true">
+            <span class="knob" />
+          </span>
           {t('sort.auto')}
         </button>
       </div>
@@ -323,7 +336,7 @@ export function ActionBar() {
     <div class="action-area">
       {bar.status && (
         <div class="bar-status" role="status">
-          {bar.status}
+          <CardText text={bar.status} />
         </div>
       )}
       <div class={`action-bar${shaking ? ' shake' : ''}`}>
@@ -335,7 +348,7 @@ export function ActionBar() {
         <div class="main-actions">
           {bar.main.map((b) => (
             <Button color={b.color} disabled={!b.enabled} onClick={b.onClick} kbd={b.key === 'Enter' ? '⏎' : b.key === 'Backspace' ? '⌫' : b.key} title={b.title} big>
-              {b.label}
+              <CardText text={b.label} />
             </Button>
           ))}
         </div>
@@ -444,9 +457,14 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
             {t('top.leave')}
           </Button>
           {isHost ? (
-            <Button color="blue" onClick={() => void startGame()}>
-              {t('go.backToLobby')}
-            </Button>
+            <>
+              <Button color="blue" onClick={() => void startGame()}>
+                {t('go.backToLobby')}
+              </Button>
+              <Button color="green" onClick={() => void playAgain()}>
+                {t('go.playAgain')}
+              </Button>
+            </>
           ) : (
             <span class="muted">{t('go.waitingHost')}</span>
           )}
@@ -466,6 +484,7 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
               <td class="pname">
                 <span class="seat-dot" />
                 {who(i)}
+                <Wins n={room.players.find((x) => x.id === g.players[i].id)?.wins ?? 0} />
               </td>
               <td class="num total">{g.players[i].total}</td>
               <td>{g.players[i].total > g.rules.threshold ? t('go.bust') : ''}</td>

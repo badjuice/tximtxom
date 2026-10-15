@@ -40,6 +40,22 @@ export function Button(props: {
   );
 }
 
+const SUIT_OF_SYMBOL: Record<string, string> = { '♥': 'h', '♦': 'd', '♣': 'c', '♠': 's' };
+const CARD_IN_TEXT = /(10|[2-9AJQK]|Ás)([♥♦♣♠])/g;
+
+/** Text with any card names in it (like "Swap 6♦") shown as suit-coloured chips. */
+export function CardText({ text }: { text: string }) {
+  const parts: ComponentChildren[] = [];
+  let last = 0;
+  for (const m of text.matchAll(CARD_IN_TEXT)) {
+    if (m.index! > last) parts.push(text.slice(last, m.index));
+    parts.push(<span class={`hcard suit-${SUIT_OF_SYMBOL[m[2]]}`}>{m[0]}</span>);
+    last = m.index! + m[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return <>{parts}</>;
+}
+
 const HOLD_MS = 850;
 
 /**
@@ -121,7 +137,9 @@ export function HoldButton(props: { color: Color; label: string; sub?: string; e
     >
       <span class="hold-fill" aria-hidden="true" />
       <span class="btn-label">
-        {props.label}
+        <span>
+          <CardText text={props.label} />
+        </span>
         <small class="hold-sub">{props.sub ?? t('act.hold')}</small>
       </span>
       {props.hotkey && (

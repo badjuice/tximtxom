@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { initAudio, unlockAudio } from './audio';
 import { startBackground } from './background';
-import { canDrop, drop, initController, send, setHandOrder, tapDrawn, tapHand } from './controller';
+import { badDrop, canDrop, drop, initController, send, setHandOrder, tapDrawn, tapHand } from './controller';
 import { Table } from './game/table';
 import { initNet } from './net';
 import { applyCssSettings, onSettings } from './settings';
@@ -25,6 +25,7 @@ async function boot() {
     onReorder: setHandOrder,
     canDrop,
     onDrop: drop,
+    onBadDrop: badDrop,
     blocked: () => store.get().overlay !== null,
   });
   table.onLayout = (layout) => store.set({ layout });
