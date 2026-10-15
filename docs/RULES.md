@@ -86,3 +86,4 @@ Every player holds 7 cards at the end of their turn. On your turn, choose one:
 
 ## Disconnects
 A bot takes over the seat right away. A player who comes back gets the seat back with their hand and score.
+A room closes when no human has clicked, typed or played for 10 minutes; bots alone don't keep it open. Everyone goes back to the title screen.

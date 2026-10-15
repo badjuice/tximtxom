@@ -18,6 +18,10 @@ function randomId(bytes: number): string {
   return Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+/** A room closes when no human has done anything for this long. Bots don't count. */
+export const ROOM_IDLE_MS = 10 * 60 * 1000;
+export const IDLE_REASON = 'Nobody played for 10 minutes';
+
 /** How long bots "think" before acting (ms). */
 const BOT_DELAY = { turn: 900, reveal: 700, ride: 600, ready: 400 };
 
@@ -37,6 +41,13 @@ export interface RoomSnapshot {
   rules: Rules;
   members: Member[];
   game: GameState | null;
+  /** When a human last did something (ms since epoch). Missing in old saves. */
+  lastHumanActivity?: number;
+}
+
+/** A saved room nobody has touched for ROOM_IDLE_MS should not come back. */
+export function isExpired(snap: RoomSnapshot, now = Date.now()): boolean {
+  return now - (snap.lastHumanActivity ?? 0) >= ROOM_IDLE_MS;
 }
 
 export interface RoomHooks {
@@ -44,6 +55,8 @@ export interface RoomHooks {
   send(member: Member, view: RoomView): void;
   /** Called after every change (used to save the room). */
   changed?(): void;
+  /** No human activity for ROOM_IDLE_MS: the room should close. */
+  expired?(): void;
 }
 
 export class Room {
@@ -53,15 +66,33 @@ export class Room {
   members: Member[] = [];
   game: GameState | null = null;
   turnDeadline: number | null = null;
-  lastActivity = Date.now();
+  lastHumanActivity = Date.now();
 
   private botTimer: Timer | null = null;
+  private idleTimer: Timer | null = null;
   private turnTimer: Timer | null = null;
   private timerKey = '';
 
   constructor(code: string, private hooks: RoomHooks) {
     this.code = code;
     this.hostId = '';
+    this.armIdle();
+  }
+
+  /** A human clicked, typed or made a move. */
+  markHumanActive(): void {
+    this.lastHumanActivity = Date.now();
+    this.armIdle();
+  }
+
+  private armIdle(): void {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    const wait = Math.max(0, this.lastHumanActivity + ROOM_IDLE_MS - Date.now());
+    this.idleTimer = setTimeout(() => {
+      this.idleTimer = null;
+      if (Date.now() - this.lastHumanActivity >= ROOM_IDLE_MS) this.hooks.expired?.();
+      else this.armIdle();
+    }, wait);
   }
 
   // ------------------------------------------------------------ membership
@@ -122,6 +153,8 @@ export class Room {
     const seat = this.seatOf(member);
     if (this.game && seat !== null) this.game.players[seat].botControlled = false;
     if (!this.members.some((m) => m.id === this.hostId && m.clientId)) this.hostId = member.id;
+    this.lastHumanActivity = Date.now();
+    this.armIdle();
     this.touch();
   }
 
@@ -186,7 +219,6 @@ export class Room {
   }
 
   private touch(): void {
-    this.lastActivity = Date.now();
     this.scheduleBots();
     this.scheduleTurnTimer();
     this.broadcast();
@@ -295,7 +327,7 @@ export class Room {
 
   /** Plain data to save and restore the room (e.g. across a host refresh). */
   snapshot(): RoomSnapshot {
-    return { code: this.code, hostId: this.hostId, rules: this.rules, members: this.members, game: this.game };
+    return { code: this.code, hostId: this.hostId, rules: this.rules, members: this.members, game: this.game, lastHumanActivity: this.lastHumanActivity };
   }
 
   static restore(snap: RoomSnapshot, hooks: RoomHooks): Room {
@@ -305,6 +337,8 @@ export class Room {
     // Everyone starts disconnected; bots cover for humans until they come back.
     room.members = snap.members.map((m) => ({ ...m, avatar: m.avatar ?? '', clientId: null }));
     room.game = snap.game;
+    room.lastHumanActivity = snap.lastHumanActivity ?? 0;
+    room.armIdle();
     if (room.game) for (const p of room.game.players) if (!p.isBot) p.botControlled = true;
     return room;
   }
@@ -317,5 +351,7 @@ export class Room {
   dispose(): void {
     if (this.botTimer) clearTimeout(this.botTimer);
     if (this.turnTimer) clearTimeout(this.turnTimer);
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.botTimer = this.turnTimer = this.idleTimer = null;
   }
 }

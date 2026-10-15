@@ -40,6 +40,8 @@ export interface ClientToServer {
   'room:renameBot': (msg: { playerId: string; name: string }, ack: Ack) => void;
   'room:start': (ack: Ack) => void;
   'room:leave': () => void;
+  /** The player clicked or typed: keeps the room from closing as idle. */
+  'room:ping': (ack: Ack) => void;
   'game:action': (action: Action, ack: Ack) => void;
   /** The full move log of the current game. */
   'game:history': (ack: Ack<{ events: { id: number; e: GameEvent }[] }>) => void;

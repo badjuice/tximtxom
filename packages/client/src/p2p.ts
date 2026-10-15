@@ -3,7 +3,7 @@
 // WebRTC. PeerJS's public broker only introduces the browsers; game traffic
 // goes directly between them.
 import Peer, { type DataConnection } from 'peerjs';
-import { type Request, type RoomSnapshot, RoomServer, type RoomView } from '@tximtxom/shared';
+import { IDLE_REASON, isExpired, type Request, type RoomSnapshot, RoomServer, type RoomView } from '@tximtxom/shared';
 
 export type Result = { ok: true; [k: string]: unknown } | { ok: false; error: string };
 
@@ -77,6 +77,11 @@ export class Host {
         send: (clientId, view) => (clientId === LOCAL ? events.state(view) : this.post(clientId, { t: 'state', view })),
         closed: (clientId, reason) => (clientId === LOCAL ? events.closed(reason) : this.post(clientId, { t: 'closed', reason })),
         changed: () => this.scheduleSave(),
+        // Nobody played for a while: everyone has been sent away, so stop hosting.
+        roomClosed: () => {
+          localStorage.removeItem(SAVE_KEY);
+          setTimeout(() => this.peer.destroy(), 300);
+        },
       },
       () => code,
     );
@@ -103,11 +108,20 @@ export class Host {
   static async resume(events: P2PEvents): Promise<Host | null> {
     const saved = loadSaved();
     if (!saved) return null;
+    if (isExpired(saved)) {
+      localStorage.removeItem(SAVE_KEY);
+      throw new Error(IDLE_REASON);
+    }
     for (let tries = 0; ; tries++) {
       try {
         const peer = await openPeer(peerIdFor(saved.code));
         const host = new Host(peer, saved.code, events);
-        host.server.restore(saved);
+        if (!host.server.restore(saved)) {
+          // Went stale while we waited for the peer id.
+          localStorage.removeItem(SAVE_KEY);
+          peer.destroy();
+          throw new Error(IDLE_REASON);
+        }
         return host;
       } catch (err) {
         if ((err as { type?: string }).type !== 'unavailable-id' || tries > 20) throw err;

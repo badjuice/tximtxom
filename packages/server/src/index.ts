@@ -10,8 +10,6 @@ import { Server } from 'socket.io';
 import { type ClientToServer, type Request, RoomServer, type ServerToClient } from '@tximtxom/shared';
 
 const PORT = Number(process.env.PORT ?? 3001);
-/** Rooms with no connected humans are closed after this long. */
-const ROOM_IDLE_MS = 15 * 60 * 1000;
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const clientDist = [path.resolve(here, '../../client/dist'), path.resolve(here, '../client')].find((p) =>
@@ -44,7 +42,7 @@ const server = new RoomServer({
 });
 
 // Every client event maps 1:1 onto a RoomServer request.
-const EVENTS = ['room:create', 'room:join', 'room:rules', 'room:addBot', 'room:kick', 'room:renameBot', 'room:start', 'room:leave', 'game:action', 'game:history'] as const;
+const EVENTS = ['room:create', 'room:join', 'room:rules', 'room:addBot', 'room:kick', 'room:renameBot', 'room:start', 'room:leave', 'room:ping', 'game:action', 'game:history'] as const;
 
 io.on('connection', (socket) => {
   for (const event of EVENTS) {
@@ -56,8 +54,6 @@ io.on('connection', (socket) => {
   }
   socket.on('disconnect', () => server.disconnect(socket.id));
 });
-
-setInterval(() => server.sweep(ROOM_IDLE_MS), 60 * 1000).unref();
 
 http.listen(PORT, () => {
   console.log(`TximTxom server on http://localhost:${PORT}${clientDist ? ` (serving ${clientDist})` : ''}`);

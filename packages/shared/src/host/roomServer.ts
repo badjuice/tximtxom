@@ -5,7 +5,7 @@ import type { Action } from '../types.js';
 import type { ClientToServer, JoinResult, RoomView } from '../protocol.js';
 import { NAME_MAX, ROOM_CODE_LENGTH } from '../protocol.js';
 import type { GameEvent } from '../types.js';
-import { type Member, Room, type RoomSnapshot } from './room.js';
+import { IDLE_REASON, isExpired, type Member, Room, type RoomSnapshot } from './room.js';
 
 // No easily-confused letters (I, O).
 export const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -23,6 +23,8 @@ export interface ServerHooks {
   closed(clientId: string, reason: string): void;
   /** Called after any change, e.g. to save state. */
   changed?(): void;
+  /** A room closed by itself (nobody played for a while). */
+  roomClosed?(code: string): void;
 }
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
@@ -36,6 +38,7 @@ export type Request =
   | { event: 'room:renameBot'; msg: Parameters<ClientToServer['room:renameBot']>[0] }
   | { event: 'room:start' }
   | { event: 'room:leave' }
+  | { event: 'room:ping' }
   | { event: 'game:action'; msg: Action }
   | { event: 'game:history' };
 
@@ -59,25 +62,29 @@ export class RoomServer {
     },
   ) {}
 
-  private makeRoom(code: string): Room {
-    const room = new Room(code, {
-      send: (m: Member, view) => {
+  private roomHooks(code: string) {
+    return {
+      send: (m: Member, view: RoomView) => {
         if (m.clientId) this.hooks.send(m.clientId, view);
       },
       changed: () => this.hooks.changed?.(),
-    });
+      expired: () => {
+        const room = this.rooms.get(code);
+        if (room) this.closeRoom(room, IDLE_REASON);
+      },
+    };
+  }
+
+  private makeRoom(code: string): Room {
+    const room = new Room(code, this.roomHooks(code));
     this.rooms.set(code, room);
     return room;
   }
 
-  /** Restores a saved room (peer-to-peer host refreshed the page). */
-  restore(snap: RoomSnapshot): Room {
-    const room = Room.restore(snap, {
-      send: (m: Member, view) => {
-        if (m.clientId) this.hooks.send(m.clientId, view);
-      },
-      changed: () => this.hooks.changed?.(),
-    });
+  /** Restores a saved room (peer-to-peer host refreshed the page). Stale rooms stay closed. */
+  restore(snap: RoomSnapshot): Room | null {
+    if (isExpired(snap)) return null;
+    const room = Room.restore(snap, this.roomHooks(snap.code));
     this.rooms.set(room.code, room);
     room.resume();
     return room;
@@ -87,6 +94,19 @@ export class RoomServer {
     const room = this.clientRoom.get(clientId);
     const member = room?.byClient(clientId);
     return room && member ? { room, member } : null;
+  }
+
+  /** Ends a room and sends everyone in it back to the title screen. */
+  closeRoom(room: Room, reason: string): void {
+    for (const m of room.members) {
+      if (!m.clientId) continue;
+      this.hooks.closed(m.clientId, reason);
+      this.clientRoom.delete(m.clientId);
+      m.clientId = null;
+    }
+    room.dispose();
+    this.rooms.delete(room.code);
+    this.hooks.roomClosed?.(room.code);
   }
 
   /** A client went away (socket closed / peer connection dropped). */
@@ -99,7 +119,11 @@ export class RoomServer {
   }
 
   handle(clientId: string, req: Request): Result<JoinResult> | Result<{ events: { id: number; e: GameEvent }[] }> | Result {
+    // Anything a human sends counts as activity (create/join count via Room.connect).
+    this.ctx(clientId)?.room.markHumanActive();
     switch (req.event) {
+      case 'room:ping':
+        return this.ctx(clientId) ? { ok: true } : { ok: false, error: 'Not in a room' };
       case 'room:create': {
         this.disconnect(clientId);
         const room = this.makeRoom(this.newCode());
@@ -192,17 +216,6 @@ export class RoomServer {
         }
         const err = room.start();
         return err ? { ok: false, error: err } : { ok: true };
-      }
-    }
-  }
-
-  /** Closes rooms with nobody connected for `idleMs`. */
-  sweep(idleMs: number): void {
-    const now = Date.now();
-    for (const [code, room] of this.rooms) {
-      if (room.humansConnected === 0 && now - room.lastActivity > idleMs) {
-        room.dispose();
-        this.rooms.delete(code);
       }
     }
   }

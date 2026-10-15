@@ -4,7 +4,7 @@
 // - server: a Socket.IO server hosts rooms. Used when the build sets
 //   VITE_SERVER_URL ("/" means the same origin, as in `npm run dev:server`).
 import type { Socket } from 'socket.io-client';
-import { type Action, type ClientToServer, type GameEvent, type JoinResult, randomCode, type Request, type Rules, type ServerToClient } from '@tximtxom/shared';
+import { type Action, type ClientToServer, type GameEvent, IDLE_REASON, type JoinResult, randomCode, type Request, type Rules, type ServerToClient } from '@tximtxom/shared';
 import { Guest, hasSavedHostRoom, Host, type P2PEvents, type Result } from './p2p';
 import { t, tError } from './i18n';
 import { store, toast } from './store';
@@ -111,10 +111,10 @@ async function initP2PMode(): Promise<void> {
     } else {
       throw new Error('gone');
     }
-  } catch {
+  } catch (err) {
     clearSession();
     store.set({ room: null });
-    toast(t('err.roomGone'), 'error');
+    toast(err instanceof Error && err.message === IDLE_REASON ? tError(IDLE_REASON) : t('err.roomGone'), 'error');
   }
 }
 
@@ -139,6 +139,16 @@ export function initNet(): void {
   addEventListener('beforeunload', (e) => {
     if (host?.busy) e.preventDefault();
   });
+  // Clicks and key presses tell the host a human is still here (at most every 30s).
+  // Rooms with no human activity for 10 minutes close.
+  let lastPing = 0;
+  const ping = () => {
+    if (!store.get().room || Date.now() - lastPing < 30_000) return;
+    lastPing = Date.now();
+    void request({ event: 'room:ping' });
+  };
+  addEventListener('pointerdown', ping, { capture: true, passive: true });
+  addEventListener('keydown', ping, { capture: true, passive: true });
 }
 
 /** Sends a request over whichever connection is active. */

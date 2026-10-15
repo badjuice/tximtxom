@@ -363,6 +363,7 @@ const en = {
   'err.noAnswer': 'No answer from the host',
   'err.reopening': 'Reopening your room…',
   'err.roomGone': 'That room is no longer available',
+  'err.idle': 'The room closed: nobody played for 10 minutes',
 };
 
 export type Key = keyof typeof en;
@@ -706,6 +707,7 @@ const pt: Record<Key, string> = {
   'err.noAnswer': 'O anfitrião não responde',
   'err.reopening': 'A reabrir a tua sala…',
   'err.roomGone': 'Essa sala já não existe',
+  'err.idle': 'A sala fechou: ninguém jogou durante 10 minutos',
 };
 
 const dicts = { en, pt };
@@ -740,6 +742,7 @@ const ERRORS: Record<string, Key> = {
   'That room is full': 'err.full',
   'No answer from the host': 'err.noAnswer',
   'The host is gone': 'err.hostGone',
+  'Nobody played for 10 minutes': 'err.idle',
   'The host closed the room': 'err.hostLeft',
 };
 
