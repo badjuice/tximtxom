@@ -1,7 +1,7 @@
 // UI text in Portuguese (default) and English.
 // Kriolu game terms the user gave: Txi jog (end the round), Rabenta (bust),
-// Panha Boleia (take a ride). Terms marked KRIOLU? are Portuguese placeholders
-// until the Kriolu words arrive.
+// Panha Boleia (take a ride), Borrod (Smeared). The user picked the other
+// Portuguese-side terms: Trinca, Escada, Dealer, Passar vez.
 import { type Card, rankOf, suitOf, SUIT_SYMBOLS, RANK_CODES } from '@tximtxom/shared';
 import { getSettings } from './settings';
 
@@ -406,7 +406,7 @@ const pt: Record<Key, string> = {
   'rule.bust': 'Rabenta aos',
   'rule.bust.desc': 'Quem passar deste total rabenta; ganha o total mais baixo',
   'rule.hardcore': 'Hardcore',
-  'rule.hardcore.desc': 'Sem pares: só contam trios, quadras e sequências',
+  'rule.hardcore.desc': 'Sem pares: só contam trincas, quadras e escadas',
   'rule.superposition': 'Superposição',
   'rule.superposition.desc': 'Ás alto (D-R-Ás) ou baixo (Ás-2-3), nunca no meio. Vale sempre 1',
   'rule.rideOrder': 'Ordem da Panha Boleia',
@@ -427,19 +427,19 @@ const pt: Record<Key, string> = {
   'rule.sixthSense': 'Sexto Sentido',
   'rule.sixthSense.desc': 'Um botão para espreitar que cartas ainda estão em jogo',
   'rule.smeared': 'Borrod',
-  'rule.smeared.desc': 'As sequências podem misturar naipes. O TximTxom continua a ser de um só naipe',
+  'rule.smeared.desc': 'As escadas podem misturar naipes. O TximTxom continua a ser de um só naipe',
 
-  // KRIOLU? formation names and other terms are Portuguese placeholders
+  // Game terms chosen by the user (some kept in Portuguese).
   pair: 'Par',
-  trio: 'Trio',
+  trio: 'Trinca',
   quad: 'Quadra',
-  straight: 'Sequência',
+  straight: 'Escada',
   formation: 'formação',
   drawPile: 'Monte',
   discardPile: 'Descarte',
   handPoints: 'Pontos na mão',
   round: 'Ronda',
-  dealer: 'Dá as cartas',
+  dealer: 'Dealer',
 
   'top.round': 'Ronda {n}',
   'top.bust': 'Rabenta > {n}',
@@ -457,7 +457,7 @@ const pt: Record<Key, string> = {
   'plate.cards': '{n} cartas',
   'plate.reconnecting': 'a voltar a ligar…',
   'plate.riding': 'na boleia…',
-  'plate.passed': 'passou',
+  'plate.passed': 'passou a vez',
   'plate.waiting': 'à espera',
   'plate.out': 'sem cartas',
   'plate.ready': 'pronto',
@@ -489,10 +489,10 @@ const pt: Record<Key, string> = {
   'act.lay': 'Mostrar formação',
   'act.done': 'Já está',
   'act.ride': 'Panha Boleia {card}',
-  'act.pass': 'Passar',
+  'act.pass': 'Passar vez',
   'act.nextRound': 'Próxima ronda',
   'act.txiJogNeeds': 'Precisas de um 5 ou menos para fazer Txi jog',
-  'act.tximtxomTitle': 'Chama TximTxom com uma sequência de 7 do mesmo naipe. Ganha o jogo.',
+  'act.tximtxomTitle': 'Chama TximTxom com uma escada de 7 do mesmo naipe. Ganha o jogo.',
   'act.doneTitle': 'Não tenho mais formações para mostrar',
 
   'st.waitingFor': 'À espera de {name}…',
@@ -526,13 +526,13 @@ const pt: Record<Key, string> = {
   'go.tie': 'Empate!',
   'go.youWin': 'Ganhaste!',
   'go.wins': '{name} ganhou!',
-  'go.tximtxom': 'TximTxom! Uma sequência de 7 do mesmo naipe.',
+  'go.tximtxom': 'TximTxom! Uma escada de 7 do mesmo naipe.',
   'go.bust': 'RABENTOU',
   'go.backToLobby': 'Voltar à sala',
   'go.waitingHost': 'À espera do anfitrião…',
 
   'b.yourTurn': 'É a tua vez',
-  'b.deals': '{name} dá as cartas',
+  'b.deals': 'Dealer: {name}',
   'b.lowestDeals': 'A carta mais baixa dá primeiro',
   'b.round': 'Ronda {n}',
   'b.dealsPlays': '{name} deu e joga primeiro',
@@ -547,7 +547,7 @@ const pt: Record<Key, string> = {
   'b.noRides': 'Não há Panha Boleia nesta ronda',
   'b.noRidesSub': 'O Monte acabou',
   'b.tximtxom': 'TximTxom!',
-  'b.tximtxomSub': '{name} fez uma sequência de 7 do mesmo naipe!',
+  'b.tximtxomSub': '{name} fez uma escada de 7 do mesmo naipe!',
   'b.rode': '{name}: Panha Boleia com {card}!',
   'b.notTximtxom': 'Não é TximTxom!',
 
@@ -568,7 +568,7 @@ const pt: Record<Key, string> = {
   'sr.rode': '{name}: Panha Boleia com o {card}.',
   'sr.doneLaying': '{name} não tem mais formações.',
   'sr.score': 'Fim da ronda. Pontos desta ronda: {parts}.',
-  'sr.tximtxom': 'TximTxom! {name} ganha o jogo com uma sequência de sete do mesmo naipe.',
+  'sr.tximtxom': 'TximTxom! {name} ganha o jogo com uma escada de sete do mesmo naipe.',
   'sr.gameOver': 'Fim do jogo. {who}.',
   'sr.tieBetween': 'Empate entre {names}',
   'sr.wins': '{names} ganhou',
@@ -612,7 +612,7 @@ const pt: Record<Key, string> = {
   'f.quad': 'Quatro do mesmo valor',
   'f.straight': '3 ou mais seguidas do mesmo naipe',
   'f.mixed': 'Naipes misturados',
-  'f.mixedOn': 'Borrod: uma sequência pode misturar naipes',
+  'f.mixedOn': 'Borrod: uma escada pode misturar naipes',
   'f.mixedOff': 'Só com Borrod',
   'f.aceLow': 'Ás baixo',
   'f.aceLowDesc': 'O Ás é baixo por defeito',
@@ -621,13 +621,13 @@ const pt: Record<Key, string> = {
   'f.aceHighOff': 'Só com Superposição',
   'f.noWrap': 'Sem volta',
   'f.noWrapDesc': 'O Ás nunca fica no meio',
-  'f.tximtxomDesc': 'Sequência de 7 do mesmo naipe. Chama-a na tua vez para ganhar o jogo!',
-  'f.tximtxomSmeared': 'Sequência de 7 do mesmo naipe, mesmo com Borrod. Chama-a na tua vez para ganhar o jogo!',
+  'f.tximtxomDesc': 'Escada de 7 do mesmo naipe. Chama-a na tua vez para ganhar o jogo!',
+  'f.tximtxomSmeared': 'Escada de 7 do mesmo naipe, mesmo com Borrod. Chama-a na tua vez para ganhar o jogo!',
   'f.ride': 'Panha Boleia',
   'f.rideDesc':
-    'Quando uma formação é mostrada, os outros podem juntar-lhe cartas: uma carta por jogador num par ou trio, ou cartas do mesmo naipe nas pontas de uma sequência. Não vale depois de uma mão cheia (-10) nem quando o Monte acabou.',
+    'Quando uma formação é mostrada, os outros podem juntar-lhe cartas: uma carta por jogador num par ou trinca, ou cartas do mesmo naipe nas pontas de uma escada. Não vale depois de uma mão cheia (-10) nem quando o Monte acabou.',
   'f.rideDescSmeared':
-    'Quando uma formação é mostrada, os outros podem juntar-lhe cartas: uma carta por jogador num par ou trio, ou cartas de qualquer naipe nas pontas de uma sequência. Não vale depois de uma mão cheia (-10) nem quando o Monte acabou.',
+    'Quando uma formação é mostrada, os outros podem juntar-lhe cartas: uma carta por jogador num par ou trinca, ou cartas de qualquer naipe nas pontas de uma escada. Não vale depois de uma mão cheia (-10) nem quando o Monte acabou.',
 
   'set.title': 'Definições',
   'set.tab.general': 'Geral',
@@ -678,15 +678,15 @@ const pt: Record<Key, string> = {
   'help.tab.ride': 'Panha Boleia',
   'help.tab.more': 'Mais',
   'help.goal':
-    'Fica com {b}menos pontos{/b} na mão. As cartas em {g}formações{/g} (pares, trios, quadras, sequências de 3+ do mesmo naipe, ou de qualquer naipe com {o}Borrod{/o}) não contam. Valores: {o}Ás = 1{/o}, 2–10 o que diz a carta, {o}V = 11, D = 12, R = 13{/o}. Quando alguém passa do limite é {r}Rabenta{/r}, e {b}ganha o total mais baixo{/b}.',
+    'Fica com {b}menos pontos{/b} na mão. As cartas em {g}formações{/g} (pares, trincas, quadras, escadas de 3+ do mesmo naipe, ou de qualquer naipe com {o}Borrod{/o}) não contam. Valores: {o}Ás = 1{/o}, 2–10 o que diz a carta, {o}V = 11, D = 12, R = 13{/o}. Quando alguém passa do limite é {r}Rabenta{/r}, e {b}ganha o total mais baixo{/b}.',
   'help.turn':
     'Apanha a carta virada do {o}Descarte{/o} ou tira do {b}Monte{/b}. A carta que apanhas do Descarte fica contigo: larga outra. Uma carta tirada do Monte pode ficar (troca-a por uma da mão) ou ir logo para o Descarte. Podes {g}arrastar as cartas{/g} em vez de usar os botões.',
   'help.end':
     '{r}Txi jog{/r} acaba a ronda: depois de tirar ou apanhar, mete uma carta de {r}5 ou menos{/r} (Ás = 1) por baixo do Descarte. Pode ser a carta que tiraste ou uma da mão, mas não a que acabaste de apanhar do Descarte. Com as 7 cartas formadas ganhas {g}-10{/g} e ninguém pode fazer Panha Boleia.',
   'help.ride':
-    'Depois do {r}Txi jog{/r}, as formações são mostradas uma a uma. Os outros jogadores podem fazer {g}Panha Boleia{/g}: juntar cartas suas para se livrarem de pontos. Uma carta por jogador num par ou trio; cartas do mesmo naipe nas pontas de uma sequência (qualquer naipe com {o}Borrod{/o}).',
+    'Depois do {r}Txi jog{/r}, as formações são mostradas uma a uma. Os outros jogadores podem fazer {g}Panha Boleia{/g}: juntar cartas suas para se livrarem de pontos. Uma carta por jogador num par ou trinca; cartas do mesmo naipe nas pontas de uma escada (qualquer naipe com {o}Borrod{/o}).',
   'help.more':
-    'Da primeira vez que o Monte acaba, o Descarte (menos a carta de cima) é baralhado. Da segunda vez, quem tirou a última carta tem de fazer {r}Txi jog{/r} com qualquer carta, e não há Panha Boleia. Com uma {o}sequência de 7 do mesmo naipe{/o} na mão, chama {o}TximTxom!{/o} na tua vez e ganhas o jogo todo. Joga-se no sentido anti-horário; quem dá joga primeiro e a vez de dar roda.',
+    'Da primeira vez que o Monte acaba, o Descarte (menos a carta de cima) é baralhado. Da segunda vez, quem tirou a última carta tem de fazer {r}Txi jog{/r} com qualquer carta, e não há Panha Boleia. Com uma {o}escada de 7 do mesmo naipe{/o} na mão, chama {o}TximTxom!{/o} na tua vez e ganhas o jogo todo. Joga-se no sentido anti-horário; o Dealer joga primeiro e o Dealer muda a cada ronda.',
 
   'err.notYourTurn': 'Não é a tua vez',
   'err.pickFirst': 'Primeiro tira ou apanha uma carta',
@@ -695,7 +695,7 @@ const pt: Record<Key, string> = {
   'err.notTximtxom': 'Não é TximTxom!',
   'err.mustEnd': 'O Monte acabou: tens de fazer Txi jog',
   'err.invalidFormation': 'Isso não é uma formação válida',
-  'err.oneCard': 'Só uma carta por jogador num par ou trio',
+  'err.oneCard': 'Só uma carta por jogador num par ou trinca',
   'err.noFit': 'Essa carta não encaixa',
   'err.roomNotFound': 'Sala não encontrada (o anfitrião está ligado?)',
   'err.started': 'Esse jogo já começou',
