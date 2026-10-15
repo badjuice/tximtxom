@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { MAX_PLAYERS, MIN_PLAYERS, NAME_MAX } from '@tximtxom/shared';
 import { t } from '../i18n';
-import { addBot, kick, leaveRoom, renameBot, setRules, startGame } from '../net';
+import { addBot, cycleAvatar, kick, leaveRoom, renamePlayer, setRules, startGame } from '../net';
 import { toast, useStore } from '../store';
 import { Button } from './common';
 import { SEAT_COLORS } from './Hud';
@@ -37,9 +37,19 @@ export function Lobby() {
 
         <h3>{t('lobby.players', { n: room.players.length, max: MAX_PLAYERS })}</h3>
         <ul class="player-list">
-          {room.players.map((p, i) => (
+          {room.players.map((p, i) => {
+            const mine = p.id === room.youId;
+            // You can change your own name and Joker; the host also changes the bots'.
+            const editable = mine || (isHost && p.isBot);
+            return (
             <li class={p.connected ? '' : 'offline'} style={{ '--seat': SEAT_COLORS[i] }}>
-              {p.isBot ? <JokerIcon name={p.avatar || 'joker'} scale={0.42} /> : <span class="seat-dot big" aria-hidden="true" />}
+              {editable ? (
+                <button class="art-btn" title={t('lobby.cycleArt')} aria-label={t('lobby.cycleArtFor', { name: p.name })} onClick={() => void cycleAvatar(p.id)}>
+                  <JokerIcon name={p.avatar || 'joker'} scale={0.42} />
+                </button>
+              ) : (
+                <JokerIcon name={p.avatar || 'joker'} scale={0.42} />
+              )}
               {editing === p.id ? (
                 <input
                   class="rename"
@@ -53,7 +63,7 @@ export function Lobby() {
                   }}
                   onBlur={(e) => {
                     const v = (e.target as HTMLInputElement).value.trim();
-                    if (v && v !== p.name) void renameBot(p.id, v);
+                    if (v && v !== p.name) void renamePlayer(p.id, v);
                     setEditing(null);
                   }}
                 />
@@ -65,7 +75,7 @@ export function Lobby() {
               )}
               {p.id === room.hostId && <span class="tag">{t('lobby.host')}</span>}
               {p.isBot && <span class="tag">{t('lobby.bot')}</span>}
-              {isHost && p.isBot && editing !== p.id && (
+              {editable && editing !== p.id && (
                 <button class="icon-btn" aria-label={t('lobby.renameBot', { name: p.name })} title={t('lobby.rename')} onClick={() => setEditing(p.id)}>
                   ✎
                 </button>
@@ -76,7 +86,8 @@ export function Lobby() {
                 </button>
               )}
             </li>
-          ))}
+            );
+          })}
         </ul>
         {isHost && room.players.length < MAX_PLAYERS && (
           <Button color="grey" onClick={() => void addBot()}>

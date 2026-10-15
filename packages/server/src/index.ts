@@ -42,7 +42,7 @@ const server = new RoomServer({
 });
 
 // Every client event maps 1:1 onto a RoomServer request.
-const EVENTS = ['room:create', 'room:join', 'room:rules', 'room:addBot', 'room:kick', 'room:renameBot', 'room:start', 'room:leave', 'room:ping', 'game:action', 'game:history'] as const;
+const EVENTS = ['room:create', 'room:join', 'room:rules', 'room:addBot', 'room:kick', 'room:rename', 'room:avatar', 'room:start', 'room:leave', 'room:ping', 'game:action', 'game:history'] as const;
 
 io.on('connection', (socket) => {
   for (const event of EVENTS) {

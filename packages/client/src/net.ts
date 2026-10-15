@@ -220,7 +220,11 @@ export const setRules = (rules: Partial<Rules>) => call({ event: 'room:rules', m
 export const addBot = () => call({ event: 'room:addBot' });
 export const kick = (playerId: string) => call({ event: 'room:kick', msg: { playerId } });
 export const startGame = () => call({ event: 'room:start' });
-export const renameBot = (playerId: string, name: string) => call({ event: 'room:renameBot', msg: { playerId, name } });
+export const renamePlayer = (playerId: string, name: string) => {
+  if (playerId === store.get().room?.youId) localStorage.setItem(NAME_KEY, name);
+  return call({ event: 'room:rename', msg: { playerId, name } });
+};
+export const cycleAvatar = (playerId: string) => call({ event: 'room:avatar', msg: { playerId } });
 
 export function leaveRoom(): void {
   void request({ event: 'room:leave' });

@@ -121,12 +121,18 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
   const danger = p.total > g.rules.threshold * 0.75;
   return (
     <div
-      class={`plate${active ? ' active' : ''}${me ? ' me' : ''}${offline ? ' offline' : ''}`}
+      class={`plate${p.avatar ? ' has-art' : ''}${active ? ' active' : ''}${me ? ' me' : ''}${offline ? ' offline' : ''}`}
       style={{ ...toScreen(L, pos), '--seat': SEAT_COLORS[seat] }}
       aria-label={`${me ? t('you') : p.name}: ${p.total} ${t('pts')}`}
     >
+      {p.avatar && (
+        // The Joker shakes like a Balatro trigger when this player's turn starts.
+        <span class={`plate-art${active ? ' juice' : ''}`} key={active ? 'on' : 'off'}>
+          <JokerIcon name={p.avatar} scale={0.42} title={p.isBot ? t('plate.bot') : p.botControlled ? t('plate.botFor') : undefined} />
+        </span>
+      )}
       <div class="plate-name">
-        {p.isBot && p.avatar ? <JokerIcon name={p.avatar} scale={0.3} title={t('plate.bot')} /> : p.botControlled ? <JokerIcon name="joker" scale={0.24} title={t('plate.botFor')} /> : null}
+        {!p.isBot && p.botControlled && <span class="tag" title={t('plate.botFor')}>{t('lobby.bot')}</span>}
         <span class="seat-dot" aria-hidden="true" />
         <span>{me ? t('you') : p.name}</span>
         {g.dealer === seat && (

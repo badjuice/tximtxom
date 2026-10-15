@@ -37,7 +37,10 @@ export interface ClientToServer {
   'room:rules': (msg: { rules: Partial<Rules> }, ack: Ack) => void;
   'room:addBot': (ack: Ack) => void;
   'room:kick': (msg: { playerId: string }, ack: Ack) => void;
-  'room:renameBot': (msg: { playerId: string; name: string }, ack: Ack) => void;
+  /** Rename yourself, or (host only) a bot. Lobby only. */
+  'room:rename': (msg: { playerId: string; name: string }, ack: Ack) => void;
+  /** Switch to the next free Joker art: your own, or (host only) a bot's, which also renames it. Lobby only. */
+  'room:avatar': (msg: { playerId: string }, ack: Ack) => void;
   'room:start': (ack: Ack) => void;
   'room:leave': () => void;
   /** The player clicked or typed: keeps the room from closing as idle. */

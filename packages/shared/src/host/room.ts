@@ -97,8 +97,19 @@ export class Room {
 
   // ------------------------------------------------------------ membership
 
+  /** Joker art nobody at the table uses yet, in persona order. */
+  private freePersona(after = -1) {
+    const used = new Set(this.members.map((m) => m.avatar));
+    for (let i = 1; i <= BOT_PERSONAS.length; i++) {
+      const p = BOT_PERSONAS[(after + i + BOT_PERSONAS.length) % BOT_PERSONAS.length];
+      if (!used.has(p.avatar)) return p;
+    }
+    return null;
+  }
+
   addHuman(name: string, clientId: string): Member {
-    const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: '', clientId };
+    const art = this.freePersona()?.avatar ?? 'joker';
+    const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: art, clientId };
     this.members.push(m);
     if (!this.hostId) this.hostId = m.id;
     return m;
@@ -106,17 +117,29 @@ export class Room {
 
   addBot(): Member {
     // The next Joker not already at the table.
-    const usedArt = new Set(this.members.map((m) => m.avatar));
-    const persona = BOT_PERSONAS.find((p) => !usedArt.has(p.avatar)) ?? BOT_PERSONAS[0];
+    const persona = this.freePersona() ?? BOT_PERSONAS[0];
     const m: Member = { id: randomId(8), token: '', name: persona.name, isBot: true, avatar: persona.avatar, clientId: null };
     this.members.push(m);
     return m;
   }
 
-  renameBot(id: string, name: string): boolean {
-    const m = this.members.find((x) => x.id === id && x.isBot);
+  rename(id: string, name: string): boolean {
+    const m = this.members.find((x) => x.id === id);
     if (!m) return false;
     m.name = name;
+    this.touch();
+    return true;
+  }
+
+  /** Moves a member to the next Joker nobody else has. Bots take that Joker's name too. */
+  cycleAvatar(id: string): boolean {
+    const m = this.members.find((x) => x.id === id);
+    if (!m) return false;
+    const next = this.freePersona(BOT_PERSONAS.findIndex((p) => p.avatar === m.avatar));
+    if (!next) return false;
+    m.avatar = next.avatar;
+    if (m.isBot) m.name = next.name;
+    this.touch();
     return true;
   }
 

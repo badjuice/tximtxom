@@ -35,7 +35,8 @@ export type Request =
   | { event: 'room:rules'; msg: Parameters<ClientToServer['room:rules']>[0] }
   | { event: 'room:addBot' }
   | { event: 'room:kick'; msg: Parameters<ClientToServer['room:kick']>[0] }
-  | { event: 'room:renameBot'; msg: Parameters<ClientToServer['room:renameBot']>[0] }
+  | { event: 'room:rename'; msg: Parameters<ClientToServer['room:rename']>[0] }
+  | { event: 'room:avatar'; msg: Parameters<ClientToServer['room:avatar']>[0] }
   | { event: 'room:start' }
   | { event: 'room:leave' }
   | { event: 'room:ping' }
@@ -179,6 +180,18 @@ export class RoomServer {
     const c = this.ctx(clientId);
     if (!c) return { ok: false, error: 'Not in a room' };
     const { room, member } = c;
+
+    // Your own name and art, or (host only) a bot's.
+    if (req.event === 'room:rename' || req.event === 'room:avatar') {
+      if (room.game) return { ok: false, error: 'The game has started' };
+      const target = room.members.find((x) => x.id === req.msg?.playerId);
+      if (!target) return { ok: false, error: 'Unknown player' };
+      if (target.id !== member.id && !(target.isBot && room.hostId === member.id)) return { ok: false, error: 'Only the host can do that' };
+      if (req.event === 'room:rename') room.rename(target.id, cleanName(req.msg?.name));
+      else room.cycleAvatar(target.id);
+      return { ok: true };
+    }
+
     if (room.hostId !== member.id) return { ok: false, error: 'Only the host can do that' };
     switch (req.event) {
       case 'room:rules':
@@ -203,11 +216,6 @@ export class RoomServer {
         room.broadcast();
         return { ok: true };
       }
-      case 'room:renameBot':
-        if (room.game) return { ok: false, error: 'The game has started' };
-        if (!room.renameBot(String(req.msg?.playerId ?? ''), cleanName(req.msg?.name))) return { ok: false, error: 'Unknown player' };
-        room.broadcast();
-        return { ok: true };
       case 'room:start': {
         if (room.game && room.game.phase !== 'gameOver') return { ok: false, error: 'Already playing' };
         if (room.game) {

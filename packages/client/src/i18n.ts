@@ -33,6 +33,8 @@ const en = {
   'lobby.bot': 'bot',
   'lobby.addBot': '+ Add bot',
   'lobby.rename': 'Rename',
+  'lobby.cycleArt': 'Click for another Joker',
+  'lobby.cycleArtFor': 'Change the Joker for {name}',
   'lobby.renameBot': 'Rename {name}',
   'lobby.remove': 'Remove {name}',
   'lobby.leave': 'Leave',
@@ -393,6 +395,8 @@ const pt: Record<Key, string> = {
   'lobby.bot': 'bot',
   'lobby.addBot': '+ Juntar bot',
   'lobby.rename': 'Mudar nome',
+  'lobby.cycleArt': 'Clica para mudar de Joker',
+  'lobby.cycleArtFor': 'Mudar o Joker de {name}',
   'lobby.renameBot': 'Mudar o nome de {name}',
   'lobby.remove': 'Tirar {name}',
   'lobby.leave': 'Sair',
@@ -409,7 +413,7 @@ const pt: Record<Key, string> = {
   'rule.hardcore': 'Hardcore',
   'rule.hardcore.desc': 'Sem pares: só contam trincas, quadras e escadas',
   'rule.superposition': 'Superposição',
-  'rule.superposition.desc': 'Ás alto (D-R-Ás) ou baixo (Ás-2-3), nunca no meio. Vale sempre 1',
+  'rule.superposition.desc': 'Ás alto (Q-K-Ás) ou baixo (Ás-2-3), nunca no meio. Vale sempre 1',
   'rule.rideOrder': 'Ordem da Panha Boleia',
   'rule.rideOrder.desc': 'Todos ao mesmo tempo, ou um jogador de cada vez',
   'rule.together': 'Juntos',
@@ -606,7 +610,7 @@ const pt: Record<Key, string> = {
   'sb.leader': 'à frente',
 
   'f.title': 'Formações',
-  'f.lead': 'As cartas em formações não contam. As outras somam pontos: Ás = 1 … 10, V = 11, D = 12, R = 13.',
+  'f.lead': 'As cartas em formações não contam. As outras somam pontos: Ás = 1 … 10, J = 11, Q = 12, K = 13.',
   'f.pair': 'Duas do mesmo valor',
   'f.pairOff': 'Não vale em Hardcore',
   'f.trio': 'Três do mesmo valor',
@@ -679,7 +683,7 @@ const pt: Record<Key, string> = {
   'help.tab.ride': 'Panha Boleia',
   'help.tab.more': 'Mais',
   'help.goal':
-    'Fica com {b}menos pontos{/b} na mão. As cartas em {g}formações{/g} (pares, trincas, quadras, escadas de 3+ do mesmo naipe, ou de qualquer naipe com {o}Borrod{/o}) não contam. Valores: {o}Ás = 1{/o}, 2–10 o que diz a carta, {o}V = 11, D = 12, R = 13{/o}. Quando alguém passa do limite é {r}Rabenta{/r}, e {b}ganha o total mais baixo{/b}.',
+    'Fica com {b}menos pontos{/b} na mão. As cartas em {g}formações{/g} (pares, trincas, quadras, escadas de 3+ do mesmo naipe, ou de qualquer naipe com {o}Borrod{/o}) não contam. Valores: {o}Ás = 1{/o}, 2–10 o que diz a carta, {o}J = 11, Q = 12, K = 13{/o}. Quando alguém passa do limite é {r}Rabenta{/r}, e {b}ganha o total mais baixo{/b}.',
   'help.turn':
     'Apanha a carta virada do {o}Descarte{/o} ou tira do {b}Monte{/b}. A carta que apanhas do Descarte fica contigo: larga outra. Uma carta tirada do Monte pode ficar (troca-a por uma da mão) ou ir logo para o Descarte. Podes {g}arrastar as cartas{/g} em vez de usar os botões.',
   'help.end':
@@ -757,7 +761,7 @@ const RANK_PT = ['', 'Ás', 'Dois', 'Três', 'Quatro', 'Cinco', 'Seis', 'Sete', 
 const SUIT_PT = ['Copas', 'Paus', 'Ouros', 'Espadas'];
 const RANK_EN = ['', 'Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King'];
 const SUIT_EN = ['Hearts', 'Clubs', 'Diamonds', 'Spades'];
-const RANK_SHORT_PT = ['', 'Ás', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'V', 'D', 'R'];
+const RANK_SHORT_PT = ['', 'Ás', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
 /** Spoken card name, e.g. "Cinco de Espadas" / "Five of Spades". */
 export function cardSpoken(c: Card): string {

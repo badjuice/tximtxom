@@ -1933,6 +1933,71 @@ input.rename {
   font-size: 1em;
 }
 
+/* Joker art: click to cycle in the lobby; shown on each seat plate in the game. */
+.art-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  line-height: 0;
+}
+.art-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.plate.has-art {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  align-items: center;
+  padding-left: 6px;
+}
+.plate.has-art > :not(.plate-art) {
+  grid-column: 2;
+}
+.plate-art {
+  grid-column: 1;
+  grid-row: 1 / span 4;
+  display: inline-block;
+  line-height: 0;
+}
+@media (max-width: 600px), (max-height: 500px) {
+  .plate-art {
+    zoom: 0.75;
+  }
+  .plate.has-art {
+    column-gap: 5px;
+  }
+}
+/* Balatro's Joker trigger: a quick pop with a wobble that settles. */
+.plate-art.juice {
+  animation: juice 0.7s ease-out;
+}
+@keyframes juice {
+  0% {
+    transform: scale(1) rotate(0);
+  }
+  15% {
+    transform: scale(1.3) rotate(-12deg);
+  }
+  30% {
+    transform: scale(1.22) rotate(9deg);
+  }
+  45% {
+    transform: scale(1.14) rotate(-6deg);
+  }
+  60% {
+    transform: scale(1.08) rotate(4deg);
+  }
+  80% {
+    transform: scale(1.03) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
 .plate-stats {
   white-space: nowrap;
 }
