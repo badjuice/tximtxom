@@ -109,6 +109,7 @@ export function HoldButton(props: { color: Color; label: string; sub?: string; e
       aria-label={`${props.label}. ${t('act.hold')}`}
       style={{ '--hold': progress } as Record<string, number>}
       onPointerDown={(e) => {
+        e.preventDefault(); // no text selection or long-press menu while holding
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         begin();
       }}
@@ -227,6 +228,8 @@ export function Slider(props: { label: string; value: number; min: number; max: 
         aria-valuenow={props.value}
         aria-valuetext={text}
         onPointerDown={(e) => {
+          e.preventDefault(); // dragging must not select the text around it
+          (e.currentTarget as HTMLElement).focus();
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
           setFrom(e.clientX);
         }}

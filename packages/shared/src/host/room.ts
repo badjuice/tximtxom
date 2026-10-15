@@ -2,7 +2,7 @@ import { botAction } from '../bot.js';
 import { applyAction, newGame } from '../engine.js';
 import type { LobbyPlayer, RoomView } from '../protocol.js';
 import { randomSeed } from '../rng.js';
-import { BOT_PERSONAS, DEFAULT_RULES, MAX_PLAYERS, MIN_PLAYERS, type Rules, sanitizeRules } from '../rules.js';
+import { BOT_PERSONAS, DEFAULT_RULES, HUMAN_JOKERS, MAX_PLAYERS, MIN_PLAYERS, type Rules, sanitizeRules } from '../rules.js';
 import type { Action, GameState, Seat } from '../types.js';
 import { viewFor } from '../view.js';
 
@@ -97,18 +97,29 @@ export class Room {
 
   // ------------------------------------------------------------ membership
 
-  /** Joker art nobody at the table uses yet, in persona order. */
-  private freePersona(after = -1) {
+  /** The next entry after `current` whose art nobody at the table uses yet. */
+  private nextFree<T>(list: readonly T[], art: (x: T) => string, current = ''): T | null {
     const used = new Set(this.members.map((m) => m.avatar));
-    for (let i = 1; i <= BOT_PERSONAS.length; i++) {
-      const p = BOT_PERSONAS[(after + i + BOT_PERSONAS.length) % BOT_PERSONAS.length];
-      if (!used.has(p.avatar)) return p;
+    const start = list.findIndex((x) => art(x) === current);
+    for (let i = 1; i <= list.length; i++) {
+      const x = list[(start + i + list.length) % list.length];
+      if (!used.has(art(x))) return x;
     }
     return null;
   }
 
+  /** Bots are the legendary Jokers (and Jimbo). */
+  private freePersona(current = '') {
+    return this.nextFree(BOT_PERSONAS, (p) => p.avatar, current);
+  }
+
+  /** Humans pick from their own set of Jokers. */
+  private freeHumanArt(current = ''): string | null {
+    return this.nextFree(HUMAN_JOKERS, (a) => a, current);
+  }
+
   addHuman(name: string, clientId: string): Member {
-    const art = this.freePersona()?.avatar ?? 'joker';
+    const art = this.freeHumanArt() ?? 'joker';
     const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: art, clientId };
     this.members.push(m);
     if (!this.hostId) this.hostId = m.id;
@@ -135,10 +146,16 @@ export class Room {
   cycleAvatar(id: string): boolean {
     const m = this.members.find((x) => x.id === id);
     if (!m) return false;
-    const next = this.freePersona(BOT_PERSONAS.findIndex((p) => p.avatar === m.avatar));
-    if (!next) return false;
-    m.avatar = next.avatar;
-    if (m.isBot) m.name = next.name;
+    if (m.isBot) {
+      const next = this.freePersona(m.avatar);
+      if (!next) return false;
+      m.avatar = next.avatar;
+      m.name = next.name;
+    } else {
+      const next = this.freeHumanArt(m.avatar);
+      if (!next) return false;
+      m.avatar = next;
+    }
     this.touch();
     return true;
   }

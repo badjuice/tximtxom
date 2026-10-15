@@ -69,6 +69,9 @@ export const BOT_PERSONAS = [
   { name: 'Yorick', avatar: 'yorick' },
 ] as const;
 
+/** Joker art human players cycle through in the room. */
+export const HUMAN_JOKERS = ['joker', 'greedy', 'lusty', 'wrathful', 'gluttonous', 'even_steven', 'odd_todd', 'green_joker', 'blue_joker', 'golden'] as const;
+
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;
 export const HAND_SIZE = 7;

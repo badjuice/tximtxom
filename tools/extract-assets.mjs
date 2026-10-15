@@ -58,6 +58,16 @@ const JOKERS = {
   blueprint: [0, 3],
   sixth_sense: [8, 10],
   smeared: [4, 6],
+  // Art human players pick from.
+  greedy: [6, 1],
+  lusty: [7, 1],
+  wrathful: [8, 1],
+  gluttonous: [9, 1],
+  even_steven: [8, 3],
+  odd_todd: [9, 3],
+  green_joker: [2, 11],
+  blue_joker: [7, 10],
+  golden: [9, 2],
   // Legendary Jokers (bot personas): card base, and the "soul" drawn floating on top.
   canio: [3, 8],
   canio_soul: [3, 9],

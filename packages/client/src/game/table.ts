@@ -333,6 +333,7 @@ export class Table {
     if (!d) return;
     if ((d.role === 'hand' || d.role === 'drawn') && d.card !== null) {
       this.drag = { card: d.card, start: p, x: p.x, y: p.y, active: false };
+      e.preventDefault(); // a card dragged over the history panel must not select its text
       this.app.canvas.setPointerCapture?.(e.pointerId);
       return;
     }

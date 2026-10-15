@@ -1350,8 +1350,12 @@ input[type='text'] {
     transform: translateY(-9%) rotate(1.5deg);
   }
 }
+/* On hover the soul comes toward the viewer instead of rising, so it stays over its card. */
+.tilt .soul {
+  transition: transform 0.25s ease-out;
+}
 .tilt.tilting .soul {
-  transform: translateY(-10%) scale(1.05);
+  transform: scale(1.14);
   animation: none;
 }
 
@@ -1926,6 +1930,22 @@ input[type='text'] {
 }
 .icon-btn:hover {
   color: #fff;
+}
+/* Modal and history text can be selected, but controls never: dragging a
+   slider or holding a button must not highlight labels. */
+button,
+label,
+.toggle,
+.seg,
+.tabs,
+.bslider,
+[role='slider'],
+.lang-switch,
+.plate,
+.hand-bar,
+.action-bar {
+  user-select: none;
+  -webkit-user-select: none;
 }
 input.rename {
   flex: 1;

@@ -410,8 +410,10 @@ export function canDrop(card: Card, target: DropTarget): boolean {
 export function drop(card: Card, target: DropTarget): void {
   const g = store.get().room?.game;
   if (!g) return;
-  if (target.kind === 'discard') void send(card === g.drawn ? { type: 'discardDrawn' } : { type: 'swap', card });
-  else if (target.kind === 'handCard') void send({ type: 'swap', card: target.card });
+  // Like the buttons, a dropped discard waits for End Turn (with "confirm moves"
+  // on), so other players don't see the card until the turn is sent.
+  if (target.kind === 'discard') stage(card === g.drawn ? { type: 'discardDrawn', card } : { type: 'swap', card });
+  else if (target.kind === 'handCard') stage({ type: 'swap', card: target.card });
   else if (target.kind === 'table') {
     const sel = store.get().selected;
     void send({ type: 'lay', cards: sel.includes(card) ? sel : [...sel, card] });
@@ -507,7 +509,7 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
       return {
         ...EMPTY,
         main: [
-          { label: t('act.undo'), color: 'grey', enabled: true, onClick: undo, key: 'Backspace' },
+          { label: t('act.undo'), color: 'orange', enabled: true, onClick: undo, key: 'Backspace' },
           { label: t('act.endTurn'), color: 'green', enabled: true, onClick: confirmStaged, key: 'E' },
         ],
         status: t('st.staged', { what: t('st.stagedDiscard', { card: cardShort(staged.card) }) }),

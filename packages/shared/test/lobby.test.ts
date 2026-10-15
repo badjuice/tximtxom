@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOT_PERSONAS, RoomServer } from '../src/index.js';
+import { BOT_PERSONAS, HUMAN_JOKERS, RoomServer } from '../src/index.js';
 
 function setup() {
   const server = new RoomServer({ send: () => {}, closed: () => {} });
@@ -29,6 +29,16 @@ describe('lobby art and names', () => {
       expect(bot.name).toBe(BOT_PERSONAS.find((p) => p.avatar === bot.avatar)!.name);
       const names = room.members.filter((m) => m.isBot).map((m) => m.name);
       expect(new Set(names).size).toBe(names.length);
+    }
+  });
+
+  it('humans cycle through the human Jokers only', () => {
+    const { server, room, guest } = setup();
+    for (let i = 0; i < HUMAN_JOKERS.length * 2; i++) {
+      server.handle('guest', { event: 'room:avatar', msg: { playerId: guest.id } });
+      expect(HUMAN_JOKERS).toContain(guest.avatar);
+      const arts = room.members.map((m) => m.avatar);
+      expect(new Set(arts).size).toBe(arts.length);
     }
   });
 
