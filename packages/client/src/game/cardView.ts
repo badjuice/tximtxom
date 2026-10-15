@@ -28,6 +28,8 @@ export interface CardTarget {
 
 const STIFF = 170;
 const DAMP = 20;
+/** Longest spring integration step (s); stable for these constants. */
+const MAX_STEP = 1 / 120;
 
 export class CardView extends Container {
   readonly key: string;
@@ -175,10 +177,17 @@ export class CardView extends Container {
       const sc = this.scale.x + (ts - this.scale.x) * k;
       this.scale.set(sc);
     } else {
+      // Integrate in small fixed steps. One big step (a slow frame, or game
+      // speed above 1x) makes this spring unstable: cards overshoot further
+      // every frame, fly off and only come back once frames are fast again.
+      const n = Math.max(1, Math.ceil(h / MAX_STEP));
+      const sh = h / n;
       const step = (pos: number, vel: number, goal: number) => {
-        const acc = STIFF * (goal - pos) - DAMP * vel;
-        vel += acc * h;
-        return [pos + vel * h, vel];
+        for (let i = 0; i < n; i++) {
+          vel += (STIFF * (goal - pos) - DAMP * vel) * sh;
+          pos += vel * sh;
+        }
+        return [pos, vel];
       };
       [this.x, this.vx] = step(this.x, this.vx, tx);
       [this.y, this.vy] = step(this.y, this.vy, ty);

@@ -16,6 +16,18 @@ let wasMyTurn = false;
 /** Which ride chance we last announced ("" = none open for us). */
 let lastRideKey = '';
 let wasMyReveal = false;
+/** While the deal animation runs (ms timestamp), turn callouts wait. */
+let dealUntil = 0;
+
+/** A turn callout, held back until the deal is over; dropped if the moment has passed by then. */
+function turnCallout(text: string, color: string, opts: { small?: boolean; ms?: number }, stillValid: (g: GameView) => boolean): void {
+  const wait = dealUntil - Date.now();
+  if (wait <= 0) return callout(text, color, opts);
+  setTimeout(() => {
+    const g = store.get().room?.game;
+    if (g && stillValid(g)) callout(text, color, opts);
+  }, wait);
+}
 let lastTximTxomAt = 0;
 
 const CALLOUT = { you: '#009dff', ride: '#4bc292', tximtxom: '#fda200', gameOver: '#fe5f55', nope: '#fe5f55', reveal: '#8867a5' };
@@ -142,8 +154,19 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
     seenOut = new Set();
     return;
   }
+  // We watched this game start (from the lobby, or Play again): play its
+  // opening events (cut, deal) like any other, so round 1 is dealt on screen.
+  const lastId = g.events.at(-1)?.id ?? 0;
+  const justStarted = !!prev && prev.code === room.code && (!prev.game || lastId < lastEventId) && g.round === 1;
+  if (justStarted) {
+    lastRoomCode = room.code;
+    lastEventId = 0;
+    seenOut = new Set();
+    const me = g.you;
+    if (me !== null) handOrder = [...(g.players[me].hand ?? [])];
+  }
   // First view of this game (joined or rejoined): no replays of old events.
-  if (room.code !== lastRoomCode || !prev?.game) {
+  else if (room.code !== lastRoomCode || !prev?.game) {
     lastRoomCode = room.code;
     lastEventId = g.events.at(-1)?.id ?? 0;
     setMood(g.phase === 'reveal' ? 'reveal' : 'table');
@@ -190,10 +213,11 @@ function turnCallouts(g: GameView, prevG: GameView | null): void {
   if (myTurn && !wasMyTurn) {
     play('highlight2');
     vibrate(40);
-    callout(t('c.yourTurn'), CALLOUT.you);
+    turnCallout(t('c.yourTurn'), CALLOUT.you, {}, (x) => x.phase === 'playing' && x.turn === me);
     announce(t('sr.yourTurn'));
   } else if (g.phase === 'playing' && g.turn !== me && (prevG?.phase !== 'playing' || prevG.turn !== g.turn)) {
-    callout(t('c.turnOf', { name: g.players[g.turn].name }), SEAT_COLORS[g.turn], { small: true, ms: 1000 });
+    const turn = g.turn;
+    turnCallout(t('c.turnOf', { name: g.players[turn].name }), SEAT_COLORS[turn], { small: true, ms: 1000 }, (x) => x.phase === 'playing' && x.turn === turn);
   }
   wasMyTurn = myTurn;
   // Our turn to lay formations (not while a ride window is open).
@@ -274,6 +298,8 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
         }
       }
       if (g.discardTop !== null) hints.set(`c${g.discardTop}`, { from, delay: 7 * n * 0.07 * speedK, faceDown: true, reset: true });
+      // Turn callouts wait until the cards have landed.
+      dealUntil = Date.now() + ((7 * n + 4) * 70 * speedK) / Math.max(0.25, getSettings().gameSpeed);
       for (let i = 0; i < 7 * n; i += 2) sfx('cardSlide1', { delay: i * 70 * speedK, volume: 0.5 });
       setMood('table');
       swirl(1);

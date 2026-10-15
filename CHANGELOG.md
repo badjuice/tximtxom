@@ -5,6 +5,13 @@ feature or rule raises the middle number and a fix or wording change raises
 the last one. Versions up to 0.11.0 were assigned afterwards from the commit
 history; each is tagged in git (`v0.4.0` and so on).
 
+## 0.13.1 (2026-10-15)
+- Fixed cards flying around and snapping back when a game started. The card
+  springs went unstable on slow frames or at game speed above 1x; they now
+  move in small fixed steps.
+- Round 1 is dealt on screen too (also after Play again); turn callouts wait
+  for the deal to finish.
+
 ## 0.13.0 (2026-10-15)
 - Rules are colour-coded: punishing (red), information (blue), support (green), neutral (grey).
 
