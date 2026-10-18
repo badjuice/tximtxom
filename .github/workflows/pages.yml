@@ -26,6 +26,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build:pages
+        env:
+          # TURN relay list, JSON array of RTCIceServer (repository variable); empty = no relay.
+          VITE_ICE_SERVERS: ${{ vars.ICE_SERVERS }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: packages/client/dist

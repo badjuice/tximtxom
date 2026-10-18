@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.14.3 (2026-10-18)
+- 🐛 Players whose networks block direct connections can play together: the game falls back to a relay server.
+
 ## 0.14.2 (2026-10-18)
 - ✨ The title screen shows four Aces fanned like a hand.
 - 🔧 A drawn card leaves the Draw Pile face down and turns over when it lands.

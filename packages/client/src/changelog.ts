@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.14.3',
+    date: '2026-10-18',
+    items: [
+      f('Players whose networks block direct connections can play together: the game falls back to a relay server.', 'Jogadores cujas redes bloqueiam ligações diretas já conseguem jogar juntos: o jogo passa por um servidor de relay.'),
+    ],
+  },
+  {
     version: '0.14.2',
     date: '2026-10-18',
     items: [
