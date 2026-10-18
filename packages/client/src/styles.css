@@ -316,34 +316,27 @@ input[type='text'] {
     0 6px 0 var(--red-d),
     0 10px 0 rgba(0, 0, 0, 0.4);
 }
-.logo span {
-  display: inline-block;
-  --amp: 12px;
-  animation: letter-wave 2.6s ease-in-out calc(var(--i) * 0.09s) infinite;
-}
-.logo span:nth-child(odd) {
+.logo .wave [aria-hidden] > span:nth-child(odd) {
   color: var(--red);
 }
-.logo span:nth-child(even) {
+.logo .wave [aria-hidden] > span:nth-child(even) {
   color: var(--blue);
   text-shadow:
     0 6px 0 var(--blue-d),
     0 10px 0 rgba(0, 0, 0, 0.4);
 }
-/* Balatro-style floating text: each letter rises in turn, so a wave runs
-   across the word, then everything rests until the next pass. */
+/* Balatro-style text: every letter wobbles gently on its own phase; the
+   hops on top are driven from WaveText (they animate translate, this rotate). */
 .wave > [aria-hidden] > span {
   display: inline-block;
-  animation: letter-wave 2.8s ease-in-out calc(var(--i) * 0.07s) infinite;
+  animation: letter-idle 1.3s ease-in-out calc(var(--i) * -0.37s) infinite alternate;
 }
-@keyframes letter-wave {
-  0%,
-  14%,
-  100% {
-    translate: 0 0;
+@keyframes letter-idle {
+  from {
+    rotate: -2.5deg;
   }
-  7% {
-    translate: 0 calc(-1 * var(--amp, 3px));
+  to {
+    rotate: 2.5deg;
   }
 }
 /* Four Aces fanned like a hand: each card turns around a point below the row. */

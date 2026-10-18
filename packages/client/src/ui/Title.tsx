@@ -5,7 +5,7 @@ import { t } from '../i18n';
 import { updateSettings, useSettings } from '../settings';
 import { createRoom, joinRoom, linkedRoom, saveName, savedName } from '../net';
 import { store, useStore } from '../store';
-import { Button, Credits } from './common';
+import { Button, Credits, WaveText } from './common';
 import { CardIcon } from './sprites';
 
 // Four Aces fanned like a hand, red and black alternating: spades, hearts, clubs, diamonds.
@@ -37,10 +37,8 @@ export function Title() {
           </button>
         ))}
       </div>
-      <h1 class="logo" aria-label="TximTxom">
-        {'TximTxom'.split('').map((ch, i) => (
-          <span style={{ '--i': i }}>{ch}</span>
-        ))}
+      <h1 class="logo">
+        <WaveText text="TximTxom" amp={12} />
       </h1>
       <div class="logo-fan" aria-hidden="true">
         {FAN.map((suit, i) => (

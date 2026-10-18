@@ -7,16 +7,54 @@ import { JokerIcon } from './sprites';
 
 type Color = 'red' | 'blue' | 'orange' | 'green' | 'grey' | 'purple';
 
-/** Short labels float like Balatro's: the letters rise one after another in a slow wave. */
+/** Short labels move like Balatro's: every letter wobbles a little, and one
+ *  at a time they hop, start to end, then one quiet beat and again. */
 const WAVE_MAX = 18;
+const WAVE_STEP_MS = 120;
+const HOP_MS = 380;
 
-/** Text whose letters rise in a wave. Longer text than `max` stays still. */
-export function WaveText({ text, max = WAVE_MAX }: { text: string; max?: number }) {
-  if (text.length > max) return <>{text}</>;
+// One clock drives every wave on screen; each wave keeps its own position.
+const waves = new Map<HTMLElement, { pos: number; amp: number }>();
+let waveTimer: ReturnType<typeof setInterval> | null = null;
+
+function waveTick(): void {
+  if (document.hidden || document.documentElement.classList.contains('reduced-motion')) return;
+  for (const [el, w] of waves) {
+    const letters = el.children;
+    // Positions 0..n-1 hop a letter; position n is the quiet beat before starting over.
+    w.pos = (w.pos + 1) % (letters.length + 1);
+    const letter = letters[w.pos] as HTMLElement | undefined;
+    letter?.animate([{ translate: '0 0', easing: 'ease-out' }, { translate: `0 -${w.amp}px`, easing: 'ease-in' }, { translate: '0 0' }], { duration: HOP_MS });
+  }
+}
+
+function useWave(amp: number, on: boolean) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    waves.set(el, { pos: -1, amp });
+    waveTimer ??= setInterval(waveTick, WAVE_STEP_MS);
+    return () => {
+      waves.delete(el);
+      if (!waves.size && waveTimer) {
+        clearInterval(waveTimer);
+        waveTimer = null;
+      }
+    };
+  }, [amp, on]);
+  return ref;
+}
+
+/** Text whose letters wobble and hop in turn. Longer text than `max` stays still. */
+export function WaveText({ text, max = WAVE_MAX, amp = 3 }: { text: string; max?: number; amp?: number }) {
+  const on = text.length <= max;
+  const ref = useWave(amp, on);
+  if (!on) return <>{text}</>;
   return (
     <span class="wave">
       <span class="sr-only">{text}</span>
-      <span aria-hidden="true">
+      <span aria-hidden="true" ref={ref}>
         {[...text].map((ch, i) => (
           <span style={{ '--i': i }}>{ch === ' ' ? ' ' : ch}</span>
         ))}
