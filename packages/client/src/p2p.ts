@@ -30,29 +30,50 @@ export const peerIdFor = (code: string) => PREFIX + code;
 export const UNREACHABLE = "Found the room, but couldn't connect to the host";
 
 // How browsers find a way to each other. STUN servers tell each side its
-// public address, which is enough for most home routers; when both sides are
-// behind strict NATs (often mobile data) only a TURN relay gets through.
-// There is no free public TURN any more (PeerJS's turn.peerjs.com no longer
-// resolves), so a build that has one passes the full list in
-// VITE_ICE_SERVERS (JSON array of RTCIceServer).
+// public address, which is enough for most home routers; when one side is
+// behind a strict NAT (often mobile data or some ISPs) only a TURN relay gets
+// through. The relay is Metered's Open Relay: the build passes its credentials
+// URL in VITE_TURN_CREDENTIALS_URL and we fetch the server list once. A build
+// can also pass a fixed list in VITE_ICE_SERVERS (JSON array of RTCIceServer).
 const DEFAULT_ICE: RTCIceServer[] = [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
   { urls: 'stun:stun.cloudflare.com:3478' },
 ];
 
-function rtcConfig(): RTCConfiguration {
-  let iceServers = DEFAULT_ICE;
-  const custom = import.meta.env.VITE_ICE_SERVERS;
-  if (custom) {
-    try {
-      iceServers = JSON.parse(custom);
-    } catch {
-      console.warn('VITE_ICE_SERVERS is not valid JSON; using the defaults');
+let iceServersPromise: Promise<RTCIceServer[]> | null = null;
+
+/** STUN plus the relay, if one is configured. Without a relay (or if it can't be reached), STUN only. */
+function iceServers(): Promise<RTCIceServer[]> {
+  iceServersPromise ??= (async () => {
+    const custom = import.meta.env.VITE_ICE_SERVERS;
+    if (custom) {
+      try {
+        return JSON.parse(custom) as RTCIceServer[];
+      } catch {
+        console.warn('VITE_ICE_SERVERS is not valid JSON; using the defaults');
+      }
     }
-  }
+    const url = import.meta.env.VITE_TURN_CREDENTIALS_URL;
+    if (!url) return DEFAULT_ICE;
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const relay = (await res.json()) as RTCIceServer[];
+      return [...DEFAULT_ICE, ...relay];
+    } catch (err) {
+      console.warn('Could not get relay servers; direct connections only', err);
+      iceServersPromise = null; // try again next time
+      return DEFAULT_ICE;
+    }
+  })();
+  return iceServersPromise;
+}
+
+async function rtcConfig(): Promise<RTCConfiguration> {
+  const servers = await iceServers();
   // ?relay=1 sends everything through TURN, to check that the relay works.
   const relayOnly = new URL(location.href).searchParams.get('relay') === '1';
-  return relayOnly ? { iceServers, iceTransportPolicy: 'relay' } : { iceServers };
+  return relayOnly ? { iceServers: servers, iceTransportPolicy: 'relay' } : { iceServers: servers };
 }
 
 /** Broker errors worth retrying: its WebSocket failed or dropped. */
@@ -62,7 +83,7 @@ const TRANSIENT = new Set(['network', 'server-error', 'socket-error', 'socket-cl
 async function openPeer(id?: string): Promise<Peer> {
   for (let attempt = 1; ; attempt++) {
     try {
-      return await openPeerOnce(id);
+      return await openPeerOnce(id, await rtcConfig());
     } catch (err) {
       const type = (err as { type?: string }).type ?? '';
       if (!TRANSIENT.has(type) || attempt >= 4) throw err;
@@ -71,9 +92,9 @@ async function openPeer(id?: string): Promise<Peer> {
   }
 }
 
-function openPeerOnce(id?: string): Promise<Peer> {
+function openPeerOnce(id: string | undefined, config: RTCConfiguration): Promise<Peer> {
   return new Promise((resolve, reject) => {
-    const options = { debug: 1, config: rtcConfig() };
+    const options = { debug: 1, config };
     const peer = id ? new Peer(id, options) : new Peer(options);
     const onError = (err: { type?: string }) => {
       peer.off('open', onOpen);

@@ -26,6 +26,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build:pages
+        env:
+          # Metered Open Relay credentials URL (repository variable); empty = no relay.
+          VITE_TURN_CREDENTIALS_URL: ${{ vars.TURN_CREDENTIALS_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: packages/client/dist
