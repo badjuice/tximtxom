@@ -143,7 +143,10 @@ export function describeScene(input: SceneInput): DesiredCard[] {
   const myTurn = me !== null && g.phase === 'playing' && g.turn === me;
   const revealing = g.phase === 'reveal';
   const roundDone = g.phase === 'roundOver' || g.phase === 'gameOver';
-  const pileAlpha = revealing || roundDone ? 0.1 : 1;
+  // Once the round ends, the draw and discard piles slide together into one
+  // stack beside the ending card, out of the way of the formations.
+  const merged = revealing || roundDone;
+  const stack = { x: L.endCard.x - 60, y: L.endCard.y };
   const ps = L.pileScale;
 
   // --- Draw pile (only the top few backs are drawn)
@@ -155,12 +158,11 @@ export function describeScene(input: SceneInput): DesiredCard[] {
       card: null,
       role: 'drawPile',
       target: {
-        ...drawPileTop(L, i + 1),
+        ...(merged ? { x: stack.x - i * 0.8, y: stack.y - i * 2 } : drawPileTop(L, i + 1)),
         rot: 0,
         scale: ps,
         z: 10 + i,
         faceUp: false,
-        alpha: pileAlpha,
         wobble: top,
         glow: top && myTurn && g.step === 'choose' ? GOLD : null,
       },
@@ -170,14 +172,22 @@ export function describeScene(input: SceneInput): DesiredCard[] {
   // --- Discard pile: the top card, plus the previous one peeking out underneath.
   const endCard = g.reveal?.endCard ?? null;
   const top = g.discardTop;
-  if (top !== null && top !== endCard) {
+  if (merged && top !== null && top !== endCard) {
+    // Face down on top of the draw pile, as one stack.
+    out.push({
+      key: `c${top}`,
+      card: top,
+      role: 'discardTop',
+      target: { x: stack.x - shown * 0.8, y: stack.y - shown * 2, rot: 0, scale: ps, z: 10 + shown, faceUp: false },
+    });
+  } else if (top !== null && top !== endCard) {
     const under = input.discardMemory.at(-2);
     if (under !== undefined && under !== top && g.discardCount >= 2) {
       out.push({
         key: `c${under}`,
         card: under,
         role: 'pileUnder',
-        target: { x: L.discard.x + 4, y: L.discard.y + 2, rot: 0.12, scale: ps, z: 19, faceUp: true, alpha: pileAlpha },
+        target: { x: L.discard.x + 4, y: L.discard.y + 2, rot: 0.12, scale: ps, z: 19, faceUp: true },
       });
     }
     let x = L.discard.x;
@@ -198,7 +208,6 @@ export function describeScene(input: SceneInput): DesiredCard[] {
         scale: ps,
         z: 20,
         faceUp: true,
-        alpha: pileAlpha,
         wobble: true,
         glow: myTurn && g.step === 'choose' ? GOLD : null,
       },
@@ -245,6 +254,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
           faceUp: true,
           raised: selected.includes(c),
           wobble: !dragging,
+          dragged: dragging,
           glow: c === g.taken && myTurn && g.step === 'tookDiscard' ? BLUE : null,
         },
       });
@@ -351,7 +361,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
         key: `c${endCard}`,
         card: endCard,
         role: 'endCard',
-        target: { x: L.endCard.x, y: L.endCard.y, rot: 0.05, scale: ps, z: 25, faceUp: true, glow: RED, wobble: true },
+        target: { x: L.endCard.x, y: L.endCard.y + 6, rot: 0.08, scale: ps, z: 25, faceUp: true, glow: RED, wobble: true },
       });
     }
   }

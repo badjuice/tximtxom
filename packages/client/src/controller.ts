@@ -1,6 +1,6 @@
 import { type Action, type Card, canEndWith, canRide, type GameEvent, type GameView, type RoomView } from '@tximtxom/shared';
 import { play, type Sfx, vibrate } from './audio';
-import { setMood, swirl } from './background';
+import { setMood, shuffleTablePalette, swirl } from './background';
 import { drawPileTop, revealGroups, sortedCards } from './game/scene';
 import type { DropTarget, SpawnHints, Table } from './game/table';
 import { cardShort, cardSpoken, kindName, t, tError } from './i18n';
@@ -150,7 +150,9 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   const g = room?.game ?? null;
   syncHistory(g);
   if (!room || !g) {
-    setMood('menu');
+    // A new room gets new colours; the red and blue stay on the title screen.
+    if (room && room.code !== prev?.code) shuffleTablePalette();
+    setMood(room ? 'table' : 'menu');
     lastEventId = 0;
     lastRideKey = '';
     wasMyTurn = false;
@@ -305,6 +307,8 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       // Turn callouts wait until the cards have landed.
       dealUntil = Date.now() + ((7 * n + 4) * 70 * speedK) / Math.max(0.25, getSettings().gameSpeed);
       for (let i = 0; i < 7 * n; i += 2) sfx('cardSlide1', { delay: i * 70 * speedK, volume: 0.5 });
+      // Every round is dealt on a new colour, like a new blind in Balatro.
+      shuffleTablePalette();
       setMood('table');
       swirl(1);
       banner(t('b.round', { n: e.round }), { sub: t('b.dealsPlays', { name: name(g, e.dealer) }), tone: 'info' });

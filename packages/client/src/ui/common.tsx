@@ -10,8 +10,10 @@ type Color = 'red' | 'blue' | 'orange' | 'green' | 'grey' | 'purple';
 /** Short labels move like Balatro's: every letter wobbles a little, and one
  *  at a time they hop, start to end, then one quiet beat and again. */
 const WAVE_MAX = 18;
-const WAVE_STEP_MS = 120;
-const HOP_MS = 380;
+const HOP_MS = 300;
+// A letter lands and rests this long before the next one hops.
+const HOP_GAP_MS = 90;
+const WAVE_STEP_MS = HOP_MS + HOP_GAP_MS;
 
 // One clock drives every wave on screen; each wave keeps its own position.
 const waves = new Map<HTMLElement, { pos: number; amp: number }>();
@@ -216,7 +218,7 @@ export function Toggle(props: { label: string; desc?: string; checked: boolean; 
     <label class={`toggle${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`}>
       {props.joker && <JokerIcon name={props.joker} scale={0.55} />}
       <span class="toggle-text">
-        <span class="toggle-label">{props.label}</span>
+        <span class="toggle-label">{props.joker ? <WaveText text={props.label} max={28} /> : props.label}</span>
         {props.desc && <span class="toggle-desc">{props.desc}</span>}
       </span>
       <input
@@ -248,7 +250,7 @@ export function Choice<T extends string | number>(props: {
     <div class={`toggle choice${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`} role="group" aria-label={props.label}>
       {props.joker && <JokerIcon name={props.joker} scale={0.55} />}
       <span class="toggle-text">
-        <span class="toggle-label">{props.label}</span>
+        <span class="toggle-label">{props.joker ? <WaveText text={props.label} max={28} /> : props.label}</span>
         {props.desc && <span class="toggle-desc">{props.desc}</span>}
       </span>
       <span class="seg">
@@ -263,7 +265,7 @@ export function Choice<T extends string | number>(props: {
               props.onChange(o.value);
             }}
           >
-            <WaveText text={o.label} />
+            {o.label}
           </button>
         ))}
       </span>

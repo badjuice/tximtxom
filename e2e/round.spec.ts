@@ -60,7 +60,7 @@ test('two players create, join and finish a round', async ({ browser }) => {
   await guest.fill('input[autocomplete=nickname]', 'Guest');
   await guest.fill('.code-field input', code);
   await guest.click('button:has-text("Join")');
-  await expect(host.locator('.player-list li')).toHaveCount(2);
+  await expect(host.locator('.player-list li:not(.empty-seat)')).toHaveCount(2);
   await expect(guest.locator('text=Waiting for the host')).toBeVisible();
 
   await host.click('text=Start game');

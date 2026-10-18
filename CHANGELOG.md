@@ -5,6 +5,22 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.15.0 (2026-10-18)
+- ✨ Buttons, headings and the title wobble, and a wave hops across their letters one at a time.
+- 🔧 New background: a simpler swirl of our own that spins up and changes colour when the screen changes.
+- ✨ Rooms and rounds get a random colour palette, including a new gold and silver one. Red and blue stay on the title screen.
+- ✨ "Fill with bots" and "Remove all bots" in the lobby, above the player list. Free seats hold their place, so nothing jumps around when players join.
+- 🔧 Bots are marked with the Uncommon Tag, and the lobby icons sit in fixed columns.
+- ✨ The Aces on the title screen can be picked up, dragged and tapped.
+- 🔧 When the round ends, the draw and discard piles slide into one stack next to the ending card.
+- 🐛 "Your turn" and other callouts no longer show on top of open windows.
+- ✨ Tags on the player plates: the Rare Tag marks the host and the Handy Tag whose turn it is. Hover them for a hint.
+- 🔧 New rename and remove icons in the lobby.
+- 🔧 A dragged card stays upright instead of leaning.
+- 🔧 Opening the history panel moves the table over in one go.
+- 🔧 The buttons under the title panel fill its width.
+- 🐛 A host who reloaded right after a change (like starting the game) could come back to an older state of the room.
+
 ## 0.14.3 (2026-10-18)
 - 🐛 Players whose networks block direct connections can play together: the game falls back to a relay server.
 

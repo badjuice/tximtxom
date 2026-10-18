@@ -98,6 +98,7 @@ export class Host {
   private server: RoomServer;
   private conns = new Map<string, DataConnection>();
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
+  private ended = false;
 
   private constructor(
     private peer: Peer,
@@ -111,6 +112,7 @@ export class Host {
         changed: () => this.scheduleSave(),
         // Nobody played for a while: everyone has been sent away, so stop hosting.
         roomClosed: () => {
+          this.ended = true;
           localStorage.removeItem(SAVE_KEY);
           setTimeout(() => this.peer.destroy(), 300);
         },
@@ -118,6 +120,8 @@ export class Host {
       () => code,
     );
     peer.on('connection', (conn) => this.accept(conn));
+    // A reload right after a change must not lose it to the save delay.
+    addEventListener('pagehide', () => this.saveTimer && this.saveNow());
     // The broker connection can drop (e.g. phone asleep); guests already
     // connected keep playing, and we reconnect so new guests can find us.
     peer.on('disconnected', () => setTimeout(() => !peer.destroyed && peer.reconnect(), 1000));
@@ -191,11 +195,14 @@ export class Host {
 
   private scheduleSave(): void {
     if (this.saveTimer) return;
-    this.saveTimer = setTimeout(() => {
-      this.saveTimer = null;
-      const room = this.server.rooms.get(this.code);
-      if (room) localStorage.setItem(SAVE_KEY, JSON.stringify(room.snapshot()));
-    }, 300);
+    this.saveTimer = setTimeout(() => this.saveNow(), 300);
+  }
+
+  private saveNow(): void {
+    if (this.saveTimer) clearTimeout(this.saveTimer);
+    this.saveTimer = null;
+    const room = this.server.rooms.get(this.code);
+    if (room && !this.ended) localStorage.setItem(SAVE_KEY, JSON.stringify(room.snapshot()));
   }
 
   /** Is a game running that guests depend on? */
@@ -209,6 +216,7 @@ export class Host {
     for (const conn of this.conns.values()) {
       if (conn.open) conn.send({ t: 'closed', reason } satisfies Wire);
     }
+    this.ended = true;
     localStorage.removeItem(SAVE_KEY);
     this.server.rooms.get(this.code)?.dispose();
     setTimeout(() => this.peer.destroy(), 300);

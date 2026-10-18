@@ -43,35 +43,57 @@ void main() {
 
   vec3 col = mix(uC1, uC2, smoothstep(0.43, 0.47, n));
   col = mix(col, uC3, smoothstep(0.56, 0.6, n));
+  // Keep the paint behind the UI: pull it towards the dark colour and grey it a little.
+  col = mix(uC3, col, 0.55);
+  col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 0.8);
   gl_FragColor = vec4(col, 1.0);
 }
 `;
 
 type RGB = [number, number, number];
 
-/** Colour moods: the table is green, it flashes other colours for big moments. */
-export const MOODS: Record<string, [RGB, RGB, RGB]> = {
-  table: [hex('#2f8a5f'), hex('#1b5e4a'), hex('#0e2f2a')],
+/** Colour moods. The menu's red and blue belong to the title screen only;
+ *  rooms and tables get a random palette instead, and big moments flash their own colours. */
+export const MOODS = {
   menu: [hex('#de443b'), hex('#006bb4'), hex('#162325')],
   reveal: [hex('#4f6dc4'), hex('#2d3f73'), hex('#141b2d')],
   win: [hex('#fda200'), hex('#c46a00'), hex('#2a1a07')],
   bust: [hex('#c8313a'), hex('#6e1b20'), hex('#1e0b0c')],
-};
+} satisfies Record<string, [RGB, RGB, RGB]>;
+
+export type Mood = keyof typeof MOODS | 'table';
+
+/** Palettes for rooms and tables, picked at random. */
+const TABLE_PALETTES: [RGB, RGB, RGB][] = [
+  [hex('#2f8a5f'), hex('#1b5e4a'), hex('#0e2f2a')], // green felt
+  [hex('#d9a92c'), hex('#9aa3ad'), hex('#202328')], // gold and silver
+  [hex('#8a5cc4'), hex('#4e2f7a'), hex('#1d1230')], // purple
+  [hex('#2a9d9b'), hex('#1a5f66'), hex('#0b2a2e')], // teal
+  [hex('#c4497f'), hex('#6e2350'), hex('#220c1b')], // magenta
+];
+let tablePalette = TABLE_PALETTES[Math.floor(Math.random() * TABLE_PALETTES.length)];
 
 function hex(h: string): RGB {
   const n = parseInt(h.slice(1), 16);
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 }
 
-let target = MOODS.menu;
+let target: [RGB, RGB, RGB] = MOODS.menu;
 let colours = MOODS.menu.map((c) => [...c]) as [RGB, RGB, RGB];
 let spinBoost = 0;
 
-export function setMood(name: keyof typeof MOODS): void {
-  if (MOODS[name] === target) return;
-  target = MOODS[name];
+export function setMood(name: Mood): void {
+  const next = name === 'table' ? tablePalette : MOODS[name];
+  if (next === target) return;
+  target = next;
   // Like moving between screens in Balatro: the paint spins up while the colours change.
   swirl(1.2);
+}
+
+/** Picks a different random palette for the table (used by the next setMood('table')). */
+export function shuffleTablePalette(): void {
+  const others = TABLE_PALETTES.filter((p) => p !== tablePalette);
+  tablePalette = others[Math.floor(Math.random() * others.length)];
 }
 
 /** Briefly speeds up the swirl, for big plays and screen changes. */

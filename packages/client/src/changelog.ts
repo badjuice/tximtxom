@@ -19,6 +19,26 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.15.0',
+    date: '2026-10-18',
+    items: [
+      n('Buttons, headings and the title wobble, and a wave hops across their letters one at a time.', 'Botões, títulos e o logótipo abanam, e uma onda salta pelas letras, uma de cada vez.'),
+      c('New background: a simpler swirl of our own that spins up and changes colour when the screen changes.', 'Fundo novo: um redemoinho mais simples, feito por nós, que acelera e muda de cor quando o ecrã muda.'),
+      n('Rooms and rounds get a random colour palette, including a new gold and silver one. Red and blue stay on the title screen.', 'Salas e rondas recebem cores ao calhas, incluindo uma nova em dourado e prateado. O vermelho e azul ficam só no ecrã inicial.'),
+      n('"Fill with bots" and "Remove all bots" in the lobby, above the player list. Free seats hold their place, so nothing jumps around when players join.', '"Encher com bots" e "Tirar os bots" na sala, acima da lista de jogadores. Os lugares vazios guardam o espaço, para nada saltar quando alguém entra.'),
+      c('Bots are marked with the Uncommon Tag, and the lobby icons sit in fixed columns.', 'Os bots têm a Uncommon Tag, e os ícones da sala ficam em colunas fixas.'),
+      n('The Aces on the title screen can be picked up, dragged and tapped.', 'Os Ases do ecrã inicial podem ser apanhados, arrastados e tocados.'),
+      c('When the round ends, the draw and discard piles slide into one stack next to the ending card.', 'Quando a ronda acaba, o monte e a pilha de descarte juntam-se num só monte ao lado da carta final.'),
+      f('"Your turn" and other callouts no longer show on top of open windows.', '"É a tua vez" e outros avisos já não aparecem por cima das janelas abertas.'),
+      n('Tags on the player plates: the Rare Tag marks the host and the Handy Tag whose turn it is. Hover them for a hint.', 'Etiquetas nas placas dos jogadores: a Rare Tag marca o anfitrião e a Handy Tag de quem é a vez. Passa o rato por cima para ver a dica.'),
+      c('New rename and remove icons in the lobby.', 'Ícones novos para mudar o nome e remover na sala.'),
+      c('A dragged card stays upright instead of leaning.', 'Uma carta arrastada fica direita em vez de inclinar.'),
+      c('Opening the history panel moves the table over in one go.', 'Abrir o histórico desloca a mesa de uma vez.'),
+      c('The buttons under the title panel fill its width.', 'Os botões por baixo do painel inicial ocupam a largura toda.'),
+      f('A host who reloaded right after a change (like starting the game) could come back to an older state of the room.', 'Um anfitrião que recarregasse logo após uma mudança (como começar o jogo) podia voltar a um estado antigo da sala.'),
+    ],
+  },
+  {
     version: '0.14.3',
     date: '2026-10-18',
     items: [

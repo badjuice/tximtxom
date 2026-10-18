@@ -56,6 +56,8 @@ export class Table {
   particles = new Particles();
   shake = new Shake();
   private views = new Map<string, CardView>();
+  /** Last table size, so a resize can be told apart from other relayouts. */
+  private viewport = '';
   private dying: CardView[] = [];
   private tex!: CardTextures;
   private input: TableInput = { game: null, handOrder: [], autoSortBy: null, selected: [], staged: null };
@@ -112,11 +114,16 @@ export class Table {
   relayout(): void {
     const g = this.input.game;
     const s = getSettings();
+    const viewport = `${innerWidth - historyInset()}x${innerHeight}`;
+    const resized = this.viewport !== '' && viewport !== this.viewport;
+    this.viewport = viewport;
     this.layout = computeLayout(innerWidth - historyInset(), innerHeight, g?.players.length ?? 2, g?.you ?? 0, s.clockwise, s.uiScale, !!g?.rules.sixthSense);
     this.world.scale.set(this.layout.scale);
     this.world.position.set(this.layout.offsetX, this.layout.offsetY);
     this.onLayout(this.layout);
     this.sync();
+    // Opening the history panel or resizing just moves the table; cards don't fly to their new spots.
+    if (resized) for (const v of this.views.values()) v.snapToTarget();
   }
 
   /** Screen position (CSS px) of a virtual point. */

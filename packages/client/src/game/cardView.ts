@@ -24,6 +24,8 @@ export interface CardTarget {
   wobble?: boolean;
   /** Glowing outline. */
   glow?: number | null;
+  /** Held by the pointer: stays upright, no lean or tilt. */
+  dragged?: boolean;
 }
 
 const STIFF = 170;
@@ -91,6 +93,16 @@ export class CardView extends Container {
     this.y = y;
     this.rotation = rot;
     if (scale !== undefined) this.scale.set(scale);
+  }
+
+  /** Jump straight to the target, e.g. when the table is resized. */
+  snapToTarget(): void {
+    const t = this.target;
+    this.x = t.x;
+    this.y = t.y + (t.raised ? -22 : 0);
+    this.rotation = t.rot;
+    this.scale.set(t.scale);
+    this.vx = this.vy = this.vr = this.vs = 0;
   }
 
   /** Show the back right now. With `untilArrived`, it only flips once it reaches its spot. */
@@ -197,12 +209,12 @@ export class CardView extends Container {
       [sc, this.vs] = step(this.scale.y, this.vs, ts + this.juice);
       this.juice = Math.max(0, this.juice - h * 1.6);
       this.scale.set(sc);
-      // Lean into the direction of travel, like Balatro's cards.
-      this.rotation += Math.max(-0.25, Math.min(0.25, this.vx * 0.0006));
+      // Lean into the direction of travel, like Balatro's cards (not while held).
+      if (!t.dragged) this.rotation += Math.max(-0.25, Math.min(0.25, this.vx * 0.0006));
     }
 
     // Fake 3D tilt under the pointer.
-    const tilt = reduced ? 0 : this.hoverAmt;
+    const tilt = reduced || t.dragged ? 0 : this.hoverAmt;
     this.body.skew.set(this.tilt.y * 0.12 * tilt, -this.tilt.x * 0.12 * tilt);
     this.body.scale.x = this.flip * this.flip;
 

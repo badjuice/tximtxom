@@ -159,8 +159,9 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
           <span class={`delta ${result.points[seat] < 0 ? 'good' : ''}`}>{result.points[seat] >= 0 ? `+${result.points[seat]}` : result.points[seat]}</span>
         )}
       </div>
-      {/* Balatro's Handy Tag marks the player whose turn it is. */}
-      {active && !me && <Icon name="tag_handy" scale={0.9} class="turn-tag" title={t('plate.theirTurn')} />}
+      {/* Balatro's Handy Tag marks the player whose turn it is; the Rare Tag marks the host. */}
+      {active && <Icon name="tag_handy" scale={0.9} class="turn-tag" title={me ? t('b.yourTurn') : t('plate.theirTurn')} />}
+      {p.id === room.hostId && <Icon name="tag_rare" scale={0.7} class="host-tag" title={t('lobby.hostTitle')} />}
       {offline && <div class="plate-chip bad">{t('plate.reconnecting')}</div>}
       {chip && <div class="plate-chip">{chip}</div>}
       {active && room.turnDeadline && <TimerBar deadline={room.turnDeadline} total={g.rules.turnTimer} />}

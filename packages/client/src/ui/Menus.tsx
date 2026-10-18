@@ -4,7 +4,7 @@ import { type Key, t } from '../i18n';
 import { leaveRoom } from '../net';
 import { resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
-import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle } from './common';
+import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { RulesForm } from './RulesForm';
@@ -192,7 +192,9 @@ function Formations({ onClose }: { onClose: () => void }) {
   const narrow = innerWidth <= 700 || innerHeight <= 500;
   const row = (name: string, color: string, cards: number[], desc: string, opts: { off?: boolean; joker?: string } = {}) => (
     <div class={`f-row${opts.off ? ' off' : ''}`}>
-      <span class={`level-tag tag-${color}`}>{name}</span>
+      <span class={`level-tag tag-${color}`}>
+        <WaveText text={name} />
+      </span>
       <span class="f-cards">
         {cards.map((c) => (
           <CardIcon card={c} scale={narrow ? 0.3 : 0.44} dim={opts.off} />
@@ -218,7 +220,9 @@ function Formations({ onClose }: { onClose: () => void }) {
         {row(t('f.noWrap'), 'grey', EX.bad, t('f.noWrapDesc'), { off: true })}
       </div>
       <div class="f-row f-tximtxom">
-        <span class="level-tag tag-orange">TximTxom</span>
+        <span class="level-tag tag-orange">
+          <WaveText text="TximTxom" />
+        </span>
         <span class="f-cards">
           {tximtxom.map((c) => (
             <CardIcon card={c} scale={narrow ? 0.34 : 0.5} />

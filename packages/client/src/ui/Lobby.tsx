@@ -7,7 +7,30 @@ import { useStore } from '../store';
 import { Button, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
 import { RulesForm } from './RulesForm';
-import { JokerIcon, Wins } from './sprites';
+import { Icon, JokerIcon, Wins } from './sprites';
+
+const PencilIcon = () => (
+  <svg viewBox="0 0 16 16" width="18" height="18" shape-rendering="crispEdges" aria-hidden="true">
+    <polygon points="3,11 10,4 12,6 5,13" fill="#eac058" />
+    <polygon points="10,4 11,3 13,5 12,6" fill="#fe5f55" />
+    <polygon points="3,11 5,13 2,14" fill="#e6e6e6" />
+  </svg>
+);
+
+const RemoveIcon = () => (
+  <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+    <path d="M4 4 L12 12 M12 4 L4 12" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" />
+  </svg>
+);
+
+/** Adds bots one at a time until the room is full. */
+async function fillWithBots(missing: number) {
+  for (let i = 0; i < missing; i++) await addBot();
+}
+
+async function removeBots(ids: string[]) {
+  for (const id of ids) await kick(id);
+}
 
 /** Focuses the rename box once, when it appears (not on every re-render). */
 const focusOnMount = (el: HTMLInputElement | null) => {
@@ -18,6 +41,7 @@ const focusOnMount = (el: HTMLInputElement | null) => {
 export function Lobby() {
   const room = useStore((s) => s.room)!;
   const isHost = room.hostId === room.youId;
+  const bots = room.players.filter((p) => p.isBot);
   const link = `${location.origin}${location.pathname}?room=${room.code}`;
   const [editing, setEditing] = useState<string | null>(null);
   // "Link copied" shows inside the code box for a moment (a counter restarts the animation).
@@ -60,6 +84,24 @@ export function Lobby() {
         <p class="muted">{t('lobby.share')}</p>
 
         <h3>{t('lobby.players', { n: room.players.length, max: MAX_PLAYERS })}</h3>
+        {/* Above the list and always the same size, so nothing below it moves.
+            The second button fills the room, or empties it of bots once there are some. */}
+        {isHost && (
+          <div class="bot-row">
+            <Button color="grey" disabled={room.players.length >= MAX_PLAYERS} onClick={() => void addBot()}>
+              {t('lobby.addBot')}
+            </Button>
+            {bots.length ? (
+              <Button color="grey" onClick={() => void removeBots(bots.map((b) => b.id))}>
+                {t('lobby.removeBots')}
+              </Button>
+            ) : (
+              <Button color="grey" disabled={room.players.length >= MAX_PLAYERS} onClick={() => void fillWithBots(MAX_PLAYERS - room.players.length)}>
+                {t('lobby.fillBots')}
+              </Button>
+            )}
+          </div>
+        )}
         <ul class="player-list">
           {room.players.map((p, i) => {
             const mine = p.id === room.youId;
@@ -99,27 +141,33 @@ export function Lobby() {
                   <Wins n={p.wins} />
                 </span>
               )}
-              {p.id === room.hostId && <span class="tag">{t('lobby.host')}</span>}
-              {p.isBot && <span class="tag">{t('lobby.bot')}</span>}
-              {editable && editing !== p.id && (
-                <button class="icon-btn" aria-label={t('lobby.renameBot', { name: p.name })} title={t('lobby.rename')} onClick={() => setEditing(p.id)}>
-                  ✎
-                </button>
-              )}
-              {isHost && p.id !== room.youId && (
-                <button class="x" aria-label={t('lobby.remove', { name: p.name })} onClick={() => void kick(p.id)}>
-                  ×
-                </button>
-              )}
+              {/* Fixed slots (tag, rename, remove) keep every row's icons in the same columns. */}
+              <span class="slot">
+                {p.id === room.hostId && <Icon name="tag_rare" scale={0.7} title={t('lobby.hostTitle')} />}
+                {p.isBot && <Icon name="tag_uncommon" scale={0.7} title={t('lobby.botTitle')} />}
+              </span>
+              <span class="slot">
+                {editable && editing !== p.id && (
+                  <button class="icon-btn" aria-label={t('lobby.renameBot', { name: p.name })} title={t('lobby.rename')} onClick={() => setEditing(p.id)}>
+                    <PencilIcon />
+                  </button>
+                )}
+              </span>
+              <span class="slot">
+                {isHost && p.id !== room.youId && (
+                  <button class="x" aria-label={t('lobby.remove', { name: p.name })} title={t('lobby.remove', { name: p.name })} onClick={() => void kick(p.id)}>
+                    <RemoveIcon />
+                  </button>
+                )}
+              </span>
             </li>
             );
           })}
+          {/* Free seats hold their place, so joining or adding bots doesn't push the buttons down. */}
+          {Array.from({ length: MAX_PLAYERS - room.players.length }, () => (
+            <li class="empty-seat">{t('lobby.emptySeat')}</li>
+          ))}
         </ul>
-        {isHost && room.players.length < MAX_PLAYERS && (
-          <Button color="grey" onClick={() => void addBot()}>
-            {t('lobby.addBot')}
-          </Button>
-        )}
         <div class="lobby-actions">
           <Button color="orange" onClick={leaveRoom}>
             {t('lobby.leave')}
@@ -134,7 +182,11 @@ export function Lobby() {
             </p>
           )}
         </div>
-        {isHost && room.players.length < MIN_PLAYERS && <p class="muted">{t('lobby.needPlayers', { n: MIN_PLAYERS })}</p>}
+        {isHost && (
+          <p class="muted" style={{ visibility: room.players.length < MIN_PLAYERS ? 'visible' : 'hidden' }}>
+            {t('lobby.needPlayers', { n: MIN_PLAYERS })}
+          </p>
+        )}
       </section>
 
       <section class="panel lobby-rules">

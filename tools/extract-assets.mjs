@@ -132,6 +132,8 @@ async function textures() {
 // Small icons from other sheets: [file, cell size, col, row].
 const ICONS = {
   tag_handy: ['tags.png', 34, 1, 3], // marks whose turn it is
+  tag_rare: ['tags.png', 34, 1, 0], // marks the host
+  tag_uncommon: ['tags.png', 34, 0, 0], // marks bots in the lobby
   stake_gold: ['chips.png', 29, 2, 1], // games won
 };
 
