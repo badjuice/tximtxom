@@ -1,11 +1,14 @@
-import { Container, Graphics, Sprite, type Texture } from 'pixi.js';
+import { Container, type Filter, Graphics, Sprite, type Texture } from 'pixi.js';
 import { type Card, cardCode } from '@tximtxom/shared';
 import { getSettings } from '../settings';
+import { dissolveFilter, setDissolve } from './dissolve';
 import { CARD_H, CARD_W } from './layout';
 
 export interface CardTextures {
   get(name: string): Texture;
 }
+
+const DISSOLVE_S = 0.7;
 
 /** Where a card wants to be. The view springs towards it. */
 export interface CardTarget {
@@ -39,7 +42,11 @@ export class CardView extends Container {
   target: CardTarget;
   /** Seconds to wait before moving (staggered deals). */
   delay = 0;
+  /** Seconds to stay at the spawn spot after appearing (a new deck "placed" before the deal). */
+  hold = 0;
   dying = false;
+  /** Set while the card burns away; `done` once it has gone. */
+  private dissolving: { t: number; filter: Filter; started: boolean; onStart?: () => void } | null = null;
 
   private shadow: Sprite;
   private body: Container;
@@ -105,6 +112,18 @@ export class CardView extends Container {
     this.vx = this.vy = this.vr = this.vs = 0;
   }
 
+  /** Burn the card away where it stands (Balatro's Hanged Man), after `delay` seconds. */
+  dissolve(delay: number, onStart?: () => void): void {
+    this.dying = true;
+    this.hovered = false;
+    this.dissolving = { t: -delay, filter: dissolveFilter(), started: false, onStart };
+  }
+
+  /** The dissolve has finished; the table can remove the card. */
+  get dissolved(): boolean {
+    return !!this.dissolving && this.dissolving.t >= DISSOLVE_S;
+  }
+
   /** Show the back right now. With `untilArrived`, it only flips once it reaches its spot. */
   showFaceDown(untilArrived = false): void {
     this.shownFaceUp = false;
@@ -145,11 +164,31 @@ export class CardView extends Container {
   update(dt: number, time: number): void {
     const s = getSettings();
     const t = this.target;
+    const d = this.dissolving;
+    if (d) {
+      d.t += dt;
+      if (d.t < 0) return;
+      if (!d.started) {
+        d.started = true;
+        this.body.filters = [d.filter];
+        this.shadow.visible = false;
+        d.onStart?.();
+      }
+      const k = Math.min(1, d.t / DISSOLVE_S);
+      setDissolve(d.filter, k);
+      // A quick shiver as it starts to burn.
+      if (!s.reducedMotion) this.body.rotation = Math.sin(d.t * 60) * 0.04 * (1 - k);
+      return;
+    }
     if (this.delay > 0) {
       this.delay -= dt;
       return;
     }
     this.visible = true;
+    if (this.hold > 0) {
+      this.hold -= dt;
+      return;
+    }
     const reduced = s.reducedMotion;
     const speed = Math.max(0.25, s.gameSpeed);
     const h = dt * speed;

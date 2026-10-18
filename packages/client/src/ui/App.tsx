@@ -51,6 +51,7 @@ export function App() {
       <Banner />
       <Callout />
       <Toast />
+      <Hint />
       <Announcer />
       {!connected && room && (
         <div class="reconnecting" role="status">
@@ -105,6 +106,64 @@ function Toast() {
   return (
     <div class={`toast ${t.kind}`} key={t.id} role={t.kind === 'error' ? 'alert' : 'status'}>
       {t.text}
+    </div>
+  );
+}
+
+/**
+ * Our own hover hint in place of the browser's tooltip, for any element with
+ * a `title`. While the hint shows, the title moves to `data-tip` (so the
+ * browser doesn't show its own) and comes back when the pointer leaves.
+ */
+function Hint() {
+  const [tip, setTip] = useState<{ text: string; x: number; y: number; below: boolean } | null>(null);
+  useEffect(() => {
+    let current: HTMLElement | null = null;
+    let touchTimer = 0;
+    const release = () => {
+      if (current?.dataset.tip !== undefined) {
+        current.setAttribute('title', current.dataset.tip);
+        delete current.dataset.tip;
+      }
+      current = null;
+      setTip(null);
+    };
+    const over = (e: PointerEvent) => {
+      const el = (e.target as Element | null)?.closest?.('[title]') as HTMLElement | null;
+      if (el === current) return;
+      release();
+      const text = el?.getAttribute('title');
+      if (!el || !text) return;
+      current = el;
+      el.dataset.tip = text;
+      el.removeAttribute('title');
+      const r = el.getBoundingClientRect();
+      const below = r.top < 70;
+      const x = Math.min(innerWidth - 90, Math.max(90, r.left + r.width / 2));
+      setTip({ text, x, y: below ? r.bottom + 8 : r.top - 8, below });
+      // Touch has no "leave": show it for a moment.
+      clearTimeout(touchTimer);
+      if (e.pointerType !== 'mouse') touchTimer = window.setTimeout(release, 1800);
+    };
+    const down = (e: PointerEvent) => e.pointerType === 'mouse' && release();
+    addEventListener('pointerover', over);
+    addEventListener('pointerdown', down);
+    addEventListener('scroll', release, true);
+    addEventListener('blur', release);
+    document.documentElement.addEventListener('pointerleave', release);
+    return () => {
+      release();
+      removeEventListener('pointerover', over);
+      removeEventListener('pointerdown', down);
+      removeEventListener('scroll', release, true);
+      removeEventListener('blur', release);
+      document.documentElement.removeEventListener('pointerleave', release);
+    };
+  }, []);
+  if (!tip) return null;
+  return (
+    <div class={`hint${tip.below ? ' below' : ''}`} style={{ left: `${tip.x}px`, top: `${tip.y}px` }} aria-hidden="true">
+      {tip.text}
     </div>
   );
 }

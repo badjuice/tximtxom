@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.15.1',
+    date: '2026-10-18',
+    items: [
+      n('Before a new deal, the cards left on the table burn away like the Hanged Man in Balatro, and a fresh deck is placed in the middle.', 'Antes de cada distribuição, as cartas que ficaram na mesa desfazem-se como com o Hanged Man do Balatro, e um baralho novo é posto no meio.'),
+      c('The title Aces swing while you drag them: they lean into the movement and wobble when shaken.', 'Os Ases do ecrã inicial balançam enquanto os arrastas: inclinam-se com o movimento e abanam quando sacudidos.'),
+      c("Hover hints use the game's own style instead of the browser's.", 'As dicas ao passar o rato usam o estilo do jogo em vez do do navegador.'),
+      f('Callout text has a dark outline, so it reads over card backs.', 'O texto dos avisos tem um contorno escuro, para se ler por cima do verso das cartas.'),
+    ],
+  },
+  {
     version: '0.15.0',
     date: '2026-10-18',
     items: [

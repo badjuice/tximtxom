@@ -294,19 +294,32 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       const n = g.players.length;
       const speedK = getSettings().reducedMotion ? 0.3 : 1;
       const from = drawPileTop(L, 6);
+      // Cards left from the last round burn away (Balatro's Hanged Man), then a
+      // fresh deck is placed in the middle and slides to the draw pile.
+      let lead = 0; // seconds before the deal starts
+      if (table.hasCards) {
+        const clear = table.dissolveAll();
+        const hold = 0.45;
+        const middle = { x: L.w / 2, y: L.h / 2 };
+        for (let i = 0; i < 6; i++) hints.set(`d${i}`, { from: { x: middle.x - i * 0.8, y: middle.y - i * 2 }, hidden: clear, hold });
+        sfx('tarot1', { volume: 0.6 });
+        sfx('cardFan2', { delay: clear * 1000, volume: 0.6 });
+        lead = clear + hold + 0.35;
+      }
+      const gs = Math.max(0.25, getSettings().gameSpeed);
       for (let j = 0; j < n; j++) {
         const seat = (e.dealer + 1 + j) % n;
         const p = g.players[seat];
         const count = seat === me ? (p.hand?.length ?? 0) : p.handCount;
         for (let k = 0; k < count; k++) {
           const key = seat === me ? `c${p.hand![k]}` : `o${seat}_${k}`;
-          hints.set(key, { from, delay: (k * n + j) * 0.07 * speedK, faceDown: true, reset: true });
+          hints.set(key, { from, delay: (k * n + j) * 0.07 * speedK, hidden: lead, faceDown: true, reset: true });
         }
       }
-      if (g.discardTop !== null) hints.set(`c${g.discardTop}`, { from, delay: 7 * n * 0.07 * speedK, faceDown: true, reset: true });
+      if (g.discardTop !== null) hints.set(`c${g.discardTop}`, { from, delay: 7 * n * 0.07 * speedK, hidden: lead, faceDown: true, reset: true });
       // Turn callouts wait until the cards have landed.
-      dealUntil = Date.now() + ((7 * n + 4) * 70 * speedK) / Math.max(0.25, getSettings().gameSpeed);
-      for (let i = 0; i < 7 * n; i += 2) sfx('cardSlide1', { delay: i * 70 * speedK, volume: 0.5 });
+      dealUntil = Date.now() + lead * 1000 + ((7 * n + 4) * 70 * speedK) / gs;
+      for (let i = 0; i < 7 * n; i += 2) sfx('cardSlide1', { delay: lead * 1000 + (i * 70 * speedK) / gs, volume: 0.5 });
       // Every round is dealt on a new colour, like a new blind in Balatro.
       shuffleTablePalette();
       setMood('table');

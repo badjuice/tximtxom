@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.15.1 (2026-10-18)
+- ✨ Before a new deal, the cards left on the table burn away like the Hanged Man in Balatro, and a fresh deck is placed in the middle.
+- 🔧 The title Aces swing while you drag them: they lean into the movement and wobble when shaken.
+- 🔧 Hover hints use the game's own style instead of the browser's.
+- 🐛 Callout text has a dark outline, so it reads over card backs.
+
 ## 0.15.0 (2026-10-18)
 - ✨ Buttons, headings and the title wobble, and a wave hops across their letters one at a time.
 - 🔧 New background: a simpler swirl of our own that spins up and changes colour when the screen changes.

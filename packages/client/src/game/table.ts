@@ -43,6 +43,8 @@ export type SpawnHints = Map<
     reset?: boolean;
     /** Seconds the card stays out of sight before it starts moving (not scaled by game speed). */
     hidden?: number;
+    /** Seconds it then waits at `from` before moving to its spot. */
+    hold?: number;
   }
 >;
 
@@ -75,6 +77,8 @@ export class Table {
     await this.app.init({
       backgroundAlpha: 0,
       antialias: false,
+      // The card dissolve is a GLSL filter.
+      preference: 'webgl',
       resizeTo: window,
       resolution: Math.min(2, window.devicePixelRatio || 1),
       autoDensity: true,
@@ -156,6 +160,31 @@ export class Table {
     this.relayout();
   }
 
+  /** Is anything on the table? */
+  get hasCards(): boolean {
+    return this.views.size > 0;
+  }
+
+  /**
+   * Burns every card on the table away, sweeping left to right, with sparks.
+   * The next sync builds fresh views for whatever comes after.
+   * Returns the seconds until the table is clear.
+   */
+  dissolveAll(): number {
+    const sweep = 0.35;
+    const left = Math.min(...[...this.views.values()].map((v) => v.x));
+    const right = Math.max(...[...this.views.values()].map((v) => v.x));
+    for (const [k, v] of this.views) {
+      this.views.delete(k);
+      const delay = (sweep * (v.x - left)) / Math.max(1, right - left) + Math.random() * 0.06;
+      v.dissolve(delay, () => this.particles.burst(v.x, v.y, { count: 6, colors: [0xd9a0ff, 0x8a5cc4, 0x3d2a52], speed: 140, size: 5, life: 0.7 }));
+      this.dying.push(v);
+    }
+    this.roles.clear();
+    this.hoverKey = null;
+    return sweep + 0.06 + 0.7;
+  }
+
   /** Clears the table (e.g. when leaving a room). */
   clear(): void {
     for (const v of this.views.values()) v.destroy();
@@ -201,6 +230,7 @@ export class Table {
           v.spawnAt(hint.from.x, hint.from.y, d.target.scale, 0);
           if (hint.faceDown) v.showFaceDown(true);
           v.delay = (hint.delay ?? 0) / Math.max(0.25, getSettings().gameSpeed) + (hint.hidden ?? 0);
+          v.hold = hint.hold ?? 0;
           if (hint.hidden) v.visible = false;
         }
         v.eventMode = 'none';
@@ -433,7 +463,7 @@ export class Table {
     for (let i = this.dying.length - 1; i >= 0; i--) {
       const v = this.dying[i];
       v.update(dt, this.time);
-      if (v.alpha < 0.03) {
+      if (v.alpha < 0.03 || v.dissolved) {
         v.destroy();
         this.dying.splice(i, 1);
       }

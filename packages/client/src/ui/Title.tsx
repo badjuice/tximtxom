@@ -1,8 +1,8 @@
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { makeCard, NAME_MAX, ROOM_CODE_LENGTH, type Suit } from '@tximtxom/shared';
 import { play, unlockAudio } from '../audio';
 import { t } from '../i18n';
-import { updateSettings, useSettings } from '../settings';
+import { getSettings, updateSettings, useSettings } from '../settings';
 import { createRoom, joinRoom, linkedRoom, saveName, savedName } from '../net';
 import { store, useStore } from '../store';
 import { Button, Credits, WaveText } from './common';
@@ -13,16 +13,47 @@ const FAN: Suit[] = [3, 0, 1, 2];
 const FAN_ANGLE = [-12, -4, 4, 12];
 const FAN_DROP = [9, 1, 1, 9];
 
-/** A title-screen Ace you can pick up: it stands upright while held and springs
- *  back into the fan when let go. A tap makes it hop. */
+/** A title-screen Ace you can pick up. While held it swings on a spring:
+ *  it tilts into sideways movement and wobbles when shaken. Let go, it
+ *  bounces back into the fan. A tap makes it hop. */
 function FanCard({ suit, i }: { suit: Suit; i: number }) {
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const [hops, setHops] = useState(0);
+  const el = useRef<HTMLSpanElement>(null);
   const start = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  // Swing state: angle (deg), angular speed, and a smoothed sideways pointer speed (px/ms).
+  const swing = useRef({ rot: 0, vel: 0, vx: 0, lastX: 0, lastT: 0, frame: 0 });
+
+  const stopSwing = () => {
+    cancelAnimationFrame(swing.current.frame);
+    if (el.current) el.current.style.rotate = '';
+  };
+  useEffect(() => stopSwing, []);
+
+  const startSwing = (x: number) => {
+    const w = swing.current;
+    Object.assign(w, { rot: FAN_ANGLE[i], vel: 0, vx: 0, lastX: x, lastT: performance.now() });
+    const tick = () => {
+      // Lean into the movement (capped), then spring there with a bit of overshoot.
+      const target = Math.max(-30, Math.min(30, w.vx * 26));
+      w.vel = (w.vel + (target - w.rot) * 0.18) * 0.85;
+      w.rot += w.vel;
+      w.vx *= 0.93; // stopped moving: settle back upright
+      if (el.current) el.current.style.rotate = `${w.rot.toFixed(2)}deg`;
+      w.frame = requestAnimationFrame(tick);
+    };
+    if (!getSettings().reducedMotion) w.frame = requestAnimationFrame(tick);
+  };
+
   const style: Record<string, string> = { '--a': `${FAN_ANGLE[i]}deg`, '--y': `${FAN_DROP[i]}px` };
-  if (drag) Object.assign(style, { translate: `${drag.x}px ${drag.y + FAN_DROP[i]}px`, rotate: '0deg', scale: '1.1', zIndex: '5' });
+  if (drag) Object.assign(style, { translate: `${drag.x}px ${drag.y + FAN_DROP[i]}px`, scale: '1.1', zIndex: '5' });
+  const release = () => {
+    stopSwing();
+    setDrag(null);
+  };
   return (
     <span
+      ref={el}
       class={`fan-card${drag ? ' held' : ''}`}
       style={style}
       onPointerDown={(e) => {
@@ -36,8 +67,17 @@ function FanCard({ suit, i }: { suit: Suit; i: number }) {
         const x = e.clientX - s.x;
         const y = e.clientY - s.y;
         if (!s.moved && Math.hypot(x, y) < 5) return;
-        if (!s.moved) play('cardSlide1', { volume: 0.5 });
+        if (!s.moved) {
+          play('cardSlide1', { volume: 0.5 });
+          startSwing(e.clientX);
+        }
         s.moved = true;
+        const w = swing.current;
+        const now = performance.now();
+        const dt = Math.max(1, now - w.lastT);
+        w.vx = w.vx * 0.6 + ((e.clientX - w.lastX) / dt) * 0.4;
+        w.lastX = e.clientX;
+        w.lastT = now;
         setDrag({ x, y });
       }}
       onPointerUp={() => {
@@ -45,7 +85,7 @@ function FanCard({ suit, i }: { suit: Suit; i: number }) {
         start.current = null;
         if (s?.moved) {
           play('cardSlide2', { volume: 0.4 });
-          setDrag(null);
+          release();
         } else {
           play('card1', { volume: 0.5, rate: 0.9 + i * 0.08 });
           setHops((n) => n + 1);
@@ -53,7 +93,7 @@ function FanCard({ suit, i }: { suit: Suit; i: number }) {
       }}
       onPointerCancel={() => {
         start.current = null;
-        setDrag(null);
+        release();
       }}
     >
       {/* Keyed so each tap restarts the hop. */}

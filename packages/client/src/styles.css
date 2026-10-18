@@ -369,9 +369,9 @@ input[type='text'] {
 .logo-fan > span.held {
   cursor: grabbing;
   filter: drop-shadow(0 14px 0 rgba(0, 0, 0, 0.3));
-  transition:
-    rotate 0.15s,
-    scale 0.15s;
+  /* Rotation is driven by the swing spring in Title.tsx while held, around the card's middle. */
+  transform-origin: 50% 50%;
+  transition: scale 0.15s;
 }
 .fan-hop {
   display: block;
@@ -1267,9 +1267,17 @@ input[type='text'] {
   font-size: 3em;
   color: #fff;
   white-space: nowrap;
+  /* A solid dark outline, so the white letters read over card backs and bright paint. */
   text-shadow:
-    0 4px 0 rgba(0, 0, 0, 0.5),
-    0 0 3px rgba(0, 0, 0, 0.5);
+    -3px 0 0 var(--panel-d),
+    3px 0 0 var(--panel-d),
+    0 -3px 0 var(--panel-d),
+    0 3px 0 var(--panel-d),
+    -2px -2px 0 var(--panel-d),
+    2px -2px 0 var(--panel-d),
+    -2px 2px 0 var(--panel-d),
+    2px 2px 0 var(--panel-d),
+    0 7px 0 rgba(0, 0, 0, 0.45);
 }
 .callout.small .callout-text {
   font-size: 2em;
@@ -1383,6 +1391,51 @@ input[type='text'] {
     opacity: 0;
   }
 }
+/* Hover hints (ui/App.tsx Hint): a small panel with a pointer, over everything. */
+.hint {
+  position: fixed;
+  z-index: 60;
+  transform: translate(-50%, -100%);
+  max-width: min(260px, 80vw);
+  padding: 5px 10px;
+  background: var(--panel-d);
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+  font-size: 0.8em;
+  line-height: 1.25;
+  text-align: center;
+  pointer-events: none;
+  animation: hint-in 0.14s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.hint.below {
+  transform: translate(-50%, 0);
+}
+.hint::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  translate: -50% 0;
+  border: 6px solid transparent;
+  border-top-color: var(--gold);
+}
+.hint.below::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--gold);
+}
+@keyframes hint-in {
+  from {
+    opacity: 0;
+    scale: 0.8;
+  }
+}
+.reduced-motion .hint {
+  animation: none;
+}
+
 .toast {
   position: fixed;
   left: 50%;
