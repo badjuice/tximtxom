@@ -334,26 +334,19 @@ input[type='text'] {
     transform: translateY(-8px) rotate(-2deg);
   }
 }
-.logo-jokers {
+/* Four Aces fanned like a hand: each card turns around a point below the row. */
+.logo-fan {
   display: flex;
-  gap: 12px;
-  align-items: flex-end;
+  justify-content: center;
   margin-top: -6px;
+  padding-bottom: 10px;
 }
-.logo-jokers .sprite {
-  animation: sway 3s ease-in-out infinite;
+.logo-fan > span {
+  margin: 0 -9px;
+  rotate: var(--a);
+  translate: 0 var(--y);
+  transform-origin: 50% 150%;
   filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
-}
-.logo-jokers .sprite:nth-child(2) {
-  animation-delay: -1s;
-}
-.logo-jokers .sprite:nth-child(3) {
-  animation-delay: -2s;
-}
-@keyframes sway {
-  50% {
-    transform: rotate(4deg) translateY(-4px);
-  }
 }
 .title-panel {
   width: min(420px, 94vw);
@@ -369,6 +362,17 @@ input[type='text'] {
   display: flex;
   gap: 10px;
   align-items: flex-end;
+}
+/* The code box only needs room for 4 letters; Join takes the rest of the row. */
+.join-row .code-field {
+  flex: none;
+  width: 9em;
+}
+.join-row .code-field input {
+  width: 100%;
+}
+.join-row .btn {
+  flex: 1;
 }
 .code-field input {
   text-transform: uppercase;
@@ -1153,9 +1157,9 @@ input[type='text'] {
 }
 .callout-square {
   position: absolute;
-  width: 230px;
-  height: 230px;
-  margin: -115px 0 0 -115px;
+  width: 115px;
+  height: 115px;
+  margin: -57.5px 0 0 -57.5px;
   left: 0;
   top: 0;
   background: var(--c);
@@ -1166,9 +1170,9 @@ input[type='text'] {
     callout-fade 0.33s ease-in calc(var(--life) - 0.33s) forwards;
 }
 .callout.small .callout-square {
-  width: 150px;
-  height: 150px;
-  margin: -75px 0 0 -75px;
+  width: 75px;
+  height: 75px;
+  margin: -37.5px 0 0 -37.5px;
 }
 .callout-text {
   position: absolute;
@@ -1237,9 +1241,9 @@ input[type='text'] {
     font-size: 1.5em;
   }
   .callout-square {
-    width: 170px;
-    height: 170px;
-    margin: -85px 0 0 -85px;
+    width: 85px;
+    height: 85px;
+    margin: -42.5px 0 0 -42.5px;
   }
 }
 

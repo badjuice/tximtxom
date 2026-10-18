@@ -1,12 +1,17 @@
 import { useState } from 'preact/hooks';
-import { NAME_MAX, ROOM_CODE_LENGTH } from '@tximtxom/shared';
+import { makeCard, NAME_MAX, ROOM_CODE_LENGTH, type Suit } from '@tximtxom/shared';
 import { unlockAudio } from '../audio';
 import { t } from '../i18n';
 import { updateSettings, useSettings } from '../settings';
-import { createRoom, joinRoom, linkedRoom, savedName } from '../net';
+import { createRoom, joinRoom, linkedRoom, saveName, savedName } from '../net';
 import { store, useStore } from '../store';
 import { Button, Credits } from './common';
-import { JokerIcon } from './sprites';
+import { CardIcon } from './sprites';
+
+// Four Aces fanned like a hand, red and black alternating: spades, hearts, clubs, diamonds.
+const FAN: Suit[] = [3, 0, 1, 2];
+const FAN_ANGLE = [-12, -4, 4, 12];
+const FAN_DROP = [9, 1, 1, 9];
 
 export function Title() {
   const connected = useStore((s) => s.connected);
@@ -37,10 +42,12 @@ export function Title() {
           <span style={{ animationDelay: `${i * 0.12}s` }}>{ch}</span>
         ))}
       </h1>
-      <div class="logo-jokers" aria-hidden="true">
-        <JokerIcon name="superposition" scale={0.9} />
-        <JokerIcon name="joker" scale={1.1} />
-        <JokerIcon name="ride_the_bus" scale={0.9} />
+      <div class="logo-fan" aria-hidden="true">
+        {FAN.map((suit, i) => (
+          <span style={{ '--a': `${FAN_ANGLE[i]}deg`, '--y': `${FAN_DROP[i]}px` }}>
+            <CardIcon card={makeCard(1, suit)} scale={1} />
+          </span>
+        ))}
       </div>
 
       <form
@@ -58,6 +65,7 @@ export function Title() {
             autoComplete="nickname"
             placeholder={t('title.namePlaceholder')}
             onInput={(e) => setName((e.target as HTMLInputElement).value)}
+            onBlur={() => saveName(name.trim())}
           />
         </label>
 

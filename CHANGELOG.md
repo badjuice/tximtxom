@@ -5,6 +5,17 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.14.2 (2026-10-18)
+- ✨ The title screen shows four Aces fanned like a hand.
+- 🔧 A drawn card leaves the Draw Pile face down and turns over when it lands.
+- 🔧 "Take a ride!" shows before the formation lands, so it no longer covers the cards.
+- 🔧 The squares behind callouts are half the size.
+- 🔧 "No formations possible" instead of "No more formations possible".
+- 🔧 The Join button fills the rest of its row.
+- 🐛 With Auto sort on, the hand stays sorted while a discard waits for End Turn.
+- 🐛 Your name is saved when you leave the name box.
+- 🐛 Renaming yourself in the room no longer resets when someone joins while you type.
+
 ## 0.14.1 (2026-10-18)
 - 🔧 More servers to help browsers on different networks find each other; a dead relay server was removed.
 - 🐛 When the room exists but the connection is blocked, the error says so instead of "Room not found".

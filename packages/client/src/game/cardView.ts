@@ -137,6 +137,7 @@ export class CardView extends Container {
       this.delay -= dt;
       return;
     }
+    this.visible = true;
     const reduced = s.reducedMotion;
     const speed = Math.max(0.25, s.gameSpeed);
     const h = dt * speed;

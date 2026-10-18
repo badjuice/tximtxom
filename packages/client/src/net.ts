@@ -26,6 +26,10 @@ export function savedName(): string {
   return localStorage.getItem(NAME_KEY) ?? '';
 }
 
+export function saveName(name: string): void {
+  if (name) localStorage.setItem(NAME_KEY, name);
+}
+
 function saveSession(r: JoinResult, host: boolean): void {
   localStorage.setItem(SESSION_KEY, JSON.stringify({ code: r.code, token: r.token, host } satisfies Session));
   const url = new URL(location.href);

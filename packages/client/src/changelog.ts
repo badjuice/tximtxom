@@ -19,6 +19,21 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.14.2',
+    date: '2026-10-18',
+    items: [
+      n('The title screen shows four Aces fanned like a hand.', 'O ecrã inicial mostra quatro Ases em leque, como numa mão.'),
+      c('A drawn card leaves the Draw Pile face down and turns over when it lands.', 'A carta tirada sai do Monte virada para baixo e vira-se quando chega.'),
+      c('"Take a ride!" shows before the formation lands, so it no longer covers the cards.', 'O aviso Panha Boleia! aparece antes da formação, para não tapar as cartas.'),
+      c('The squares behind callouts are half the size.', 'Os quadrados atrás dos avisos têm metade do tamanho.'),
+      c('"No formations possible" instead of "No more formations possible".', '"No formations possible" em vez de "No more formations possible" (inglês).'),
+      c('The Join button fills the rest of its row.', 'O botão Entrar ocupa o resto da linha.'),
+      f('With Auto sort on, the hand stays sorted while a discard waits for End Turn.', 'Com Auto ligado, a mão continua ordenada enquanto uma carta espera por Acabar a vez.'),
+      f('Your name is saved when you leave the name box.', 'O teu nome fica guardado quando sais da caixa do nome.'),
+      f('Renaming yourself in the room no longer resets when someone joins while you type.', 'Mudar o nome na sala já não volta atrás quando alguém entra enquanto escreves.'),
+    ],
+  },
+  {
     version: '0.14.1',
     date: '2026-10-18',
     items: [

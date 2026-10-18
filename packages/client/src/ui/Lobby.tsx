@@ -9,6 +9,12 @@ import { SEAT_COLORS } from './Hud';
 import { RulesForm } from './RulesForm';
 import { JokerIcon, Wins } from './sprites';
 
+/** Focuses the rename box once, when it appears (not on every re-render). */
+const focusOnMount = (el: HTMLInputElement | null) => {
+  el?.focus();
+  el?.setSelectionRange(el.value.length, el.value.length);
+};
+
 export function Lobby() {
   const room = useStore((s) => s.room)!;
   const isHost = room.hostId === room.youId;
@@ -70,9 +76,10 @@ export function Lobby() {
                 <input
                   class="rename"
                   maxLength={NAME_MAX}
-                  value={p.name}
+                  // Uncontrolled: room updates while typing must not reset the text.
+                  defaultValue={p.name}
                   aria-label={t('lobby.renameBot', { name: p.name })}
-                  ref={(el) => el?.focus()}
+                  ref={focusOnMount}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
                     if (e.key === 'Escape') setEditing(null);

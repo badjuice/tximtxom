@@ -1,4 +1,4 @@
-import type { Card, GameView } from '@tximtxom/shared';
+import { type Card, type GameView, rankOf, suitOf } from '@tximtxom/shared';
 import type { Staged } from '../store';
 import type { CardTarget } from './cardView';
 import { CARD_H, CARD_W, fan, type Layout, type Point } from './layout';
@@ -32,6 +32,8 @@ export interface SceneInput {
   game: GameView;
   layout: Layout;
   handOrder: Card[];
+  /** Auto sort is on: keep the hand in this order, also while a move is staged. */
+  autoSortBy: 'rank' | 'suit' | null;
   selected: Card[];
   staged: Staged | null;
   /** Previously seen discard tops (for a visible pile under the top card). */
@@ -114,6 +116,12 @@ export function revealGroups(game: GameView, layout: Layout): FormationGroup[] {
     }
   }
   return groups;
+}
+
+export function sortedCards(hand: readonly Card[], by: 'rank' | 'suit'): Card[] {
+  return [...hand].sort((a, b) =>
+    by === 'rank' ? rankOf(a) - rankOf(b) || suitOf(a) - suitOf(b) : suitOf(a) - suitOf(b) || rankOf(a) - rankOf(b),
+  );
 }
 
 /** Where the top card of the draw pile sits when the pile holds `count` cards. */
@@ -214,6 +222,8 @@ export function describeScene(input: SceneInput): DesiredCard[] {
       else if (order.includes(staged.card)) {
         leaving = { card: staged.card, at: staged.type === 'endRound' ? 'end' : 'discard' };
         shownHand = order.map((c) => (c === staged.card && drawn !== null ? drawn : c)).filter((c) => c !== staged.card);
+        // The drawn card takes the leaving card's slot; with auto sort it goes where it belongs.
+        if (input.autoSortBy) shownHand = sortedCards(shownHand, input.autoSortBy);
         if (drawn !== null) drawnSpot = null;
       }
     }

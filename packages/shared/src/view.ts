@@ -40,7 +40,7 @@ export interface GameView {
   reveal: RevealState | null;
   results: RoundResult[];
   winners: Seat[];
-  /** "No more formations possible" notice, only for the player revealing, only if the rule is on. */
+  /** "No formations possible" notice, only for the player revealing, only if the rule is on. */
   noMoreFormations: boolean;
   /** The most recent events (the full log is fetched with game:history). */
   events: { id: number; e: GameEvent }[];

@@ -1,7 +1,7 @@
-import { type Action, type Card, canEndWith, canRide, type GameEvent, type GameView, rankOf, type RoomView, suitOf } from '@tximtxom/shared';
+import { type Action, type Card, canEndWith, canRide, type GameEvent, type GameView, type RoomView } from '@tximtxom/shared';
 import { play, type Sfx, vibrate } from './audio';
 import { setMood, swirl } from './background';
-import { drawPileTop, revealGroups } from './game/scene';
+import { drawPileTop, revealGroups, sortedCards } from './game/scene';
 import type { DropTarget, SpawnHints, Table } from './game/table';
 import { cardShort, cardSpoken, kindName, t, tError } from './i18n';
 import { act, fetchHistory } from './net';
@@ -30,6 +30,8 @@ function turnCallout(text: string, color: string, opts: { small?: boolean; ms?: 
 }
 let lastTximTxomAt = 0;
 
+/** How long "Take a ride!" shows; a formation that opens the ride waits for it. */
+const RIDE_CALLOUT_MS = 1250;
 const CALLOUT = { you: '#009dff', ride: '#4bc292', tximtxom: '#fda200', gameOver: '#fe5f55', nope: '#fe5f55', reveal: '#8867a5' };
 
 /** Set when it's our moment to Panha Boleia on the open formation. */
@@ -67,18 +69,12 @@ export function setHandOrder(order: Card[]): void {
   pushToTable();
 }
 
-function sorted(hand: Card[], by: 'rank' | 'suit'): Card[] {
-  return [...hand].sort((a, b) =>
-    by === 'rank' ? rankOf(a) - rankOf(b) || suitOf(a) - suitOf(b) : suitOf(a) - suitOf(b) || rankOf(a) - rankOf(b),
-  );
-}
-
 export function sortHand(by: 'rank' | 'suit'): void {
   const g = store.get().room?.game;
   if (!g || g.you === null) return;
   play('cardFan2', { volume: 0.6 });
   updateSettings({ sortBy: by });
-  handOrder = sorted(g.players[g.you].hand ?? [], by);
+  handOrder = sortedCards(g.players[g.you].hand ?? [], by);
   pushToTable();
 }
 
@@ -94,7 +90,7 @@ function applyAutoSort(): void {
   const g = store.get().room?.game;
   if (!g || g.you === null) return;
   const s = getSettings();
-  const next = sorted(g.players[g.you].hand ?? [], s.sortBy);
+  const next = sortedCards(g.players[g.you].hand ?? [], s.sortBy);
   if (next.join() !== handOrder.join()) {
     handOrder = next;
     pushToTable();
@@ -125,6 +121,8 @@ function name(g: GameView, seat: number | null): string {
 }
 
 let prevRoom: RoomView | null = null;
+/** onRoom is running: its own store updates must not redraw the table before it passes its spawn hints. */
+let inRoomUpdate = false;
 
 function onStore(): void {
   const s = store.get();
@@ -132,14 +130,20 @@ function onStore(): void {
   if (room !== prevRoom) {
     const prev = prevRoom;
     prevRoom = room;
-    onRoom(room, prev);
+    inRoomUpdate = true;
+    try {
+      onRoom(room, prev);
+    } finally {
+      inRoomUpdate = false;
+    }
   }
-  pushToTable();
+  if (!inRoomUpdate) pushToTable();
 }
 
 function pushToTable(hints?: SpawnHints): void {
   const s = store.get();
-  table.set({ game: s.room?.game ?? null, handOrder, selected: s.selected, staged: s.staged }, hints);
+  const { autoSort, sortBy } = getSettings();
+  table.set({ game: s.room?.game ?? null, handOrder, autoSortBy: autoSort ? sortBy : null, selected: s.selected, staged: s.staged }, hints);
 }
 
 function onRoom(room: RoomView | null, prev: RoomView | null): void {
@@ -201,7 +205,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   turnCallouts(g, prevG);
   if (getSettings().autoSort) {
     const hand = me !== null ? g.players[me].hand ?? [] : [];
-    handOrder = sorted(hand, getSettings().sortBy);
+    handOrder = sortedCards(hand, getSettings().sortBy);
   }
   pushToTable(hints);
 }
@@ -232,7 +236,7 @@ function turnCallouts(g: GameView, prevG: GameView | null): void {
   const rideKey = myRideKey(g);
   if (rideKey && rideKey !== lastRideKey) {
     play('highlight1');
-    callout(t('c.ride'), CALLOUT.ride);
+    callout(t('c.ride'), CALLOUT.ride, { ms: RIDE_CALLOUT_MS });
   }
   lastRideKey = rideKey;
 }
@@ -367,11 +371,15 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       break;
     }
     case 'lay': {
-      if (e.seat !== me) for (const c of e.cards) hints.set(`c${c}`, { from: seatPos(g, e.seat) });
-      sfx('card3');
-      sfx('chips1', { delay: 150 });
+      // If this formation opens a ride for us, "Take a ride!" plays first and
+      // the cards land as it fades, so the callout doesn't cover them.
+      const rideKey = myRideKey(g);
+      const wait = rideKey === `${e.formationId}` && rideKey !== lastRideKey ? RIDE_CALLOUT_MS - 330 : 0;
+      if (e.seat !== me) for (const c of e.cards) hints.set(`c${c}`, { from: seatPos(g, e.seat), hidden: wait / 1000 });
+      sfx('card3', { delay: wait });
+      sfx('chips1', { delay: wait + 150 });
       const grp = revealGroups(g, L).find((x) => x.id === e.formationId);
-      if (grp) setTimeout(() => table.particles.burst(grp.x + grp.w / 2, grp.y + 40, { count: 14, colors: [0x009dff, 0xffffff] }), 250);
+      if (grp) setTimeout(() => table.particles.burst(grp.x + grp.w / 2, grp.y + 40, { count: 14, colors: [0x009dff, 0xffffff] }), wait + 250);
       announce(t('sr.laid', { name: name(g, e.seat), kind: kindName(e.kind), cards: e.cards.map(cardSpoken).join(', ') }));
       break;
     }

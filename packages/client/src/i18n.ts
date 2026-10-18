@@ -68,7 +68,7 @@ const en = {
   'rule.autoRide': 'Auto Ride',
   'rule.autoRide.desc': 'The game places ride cards for everyone',
   'rule.notice': 'Formation notice',
-  'rule.notice.desc': 'Say "no more formations possible" while revealing',
+  'rule.notice.desc': 'Say "no formations possible" while revealing',
   'rule.doubleDown': 'Double Down',
   'rule.doubleDown.desc': 'Ender without the strictly lowest round score: points x2',
   'rule.penalty10': 'Penalty +10',
@@ -171,7 +171,7 @@ const en = {
   'st.rideOnTheirs': "Others may take a ride on {name}'s formation…",
   'st.otherPlayers': 'other players',
   'st.select': 'Select cards and drag them onto the table to show a formation',
-  'st.noMore': 'No more formations possible',
+  'st.noMore': 'No formations possible',
   'st.showing': '{name} is showing formations…',
   'st.waitingOthers': 'Waiting for the others…',
 

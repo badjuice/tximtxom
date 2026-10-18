@@ -27,12 +27,24 @@ export interface TableHandlers {
 export interface TableInput {
   game: GameView | null;
   handOrder: Card[];
+  autoSortBy: 'rank' | 'suit' | null;
   selected: Card[];
   staged: Staged | null;
 }
 
 /** Where new cards appear from, keyed by card view key. */
-export type SpawnHints = Map<string, { from: Point; delay?: number; faceDown?: boolean; /** Also restart cards already on the table (new deal). */ reset?: boolean }>;
+export type SpawnHints = Map<
+  string,
+  {
+    from: Point;
+    delay?: number;
+    faceDown?: boolean;
+    /** Also restart cards already on the table (new deal). */
+    reset?: boolean;
+    /** Seconds the card stays out of sight before it starts moving (not scaled by game speed). */
+    hidden?: number;
+  }
+>;
 
 const DRAG_THRESHOLD = 10;
 
@@ -46,7 +58,7 @@ export class Table {
   private views = new Map<string, CardView>();
   private dying: CardView[] = [];
   private tex!: CardTextures;
-  private input: TableInput = { game: null, handOrder: [], selected: [], staged: null };
+  private input: TableInput = { game: null, handOrder: [], autoSortBy: null, selected: [], staged: null };
   private discardMemory: Card[] = [];
   private drag: { card: Card; start: Point; x: number; y: number; active: boolean } | null = null;
   private time = 0;
@@ -155,6 +167,7 @@ export class Table {
       game: g,
       layout: this.layout,
       handOrder: this.input.handOrder,
+      autoSortBy: this.input.autoSortBy,
       selected: this.input.selected,
       staged: this.input.staged,
       discardMemory: this.discardMemory,
@@ -180,7 +193,8 @@ export class Table {
         if (hint) {
           v.spawnAt(hint.from.x, hint.from.y, d.target.scale, 0);
           if (hint.faceDown) v.showFaceDown(true);
-          v.delay = (hint.delay ?? 0) / Math.max(0.25, getSettings().gameSpeed);
+          v.delay = (hint.delay ?? 0) / Math.max(0.25, getSettings().gameSpeed) + (hint.hidden ?? 0);
+          if (hint.hidden) v.visible = false;
         }
         v.eventMode = 'none';
         this.cards.addChild(v);

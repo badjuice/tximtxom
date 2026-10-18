@@ -58,7 +58,7 @@ Every player holds 7 cards at the end of their turn. On your turn, choose one:
 
 ## Scoring a round
 - **-10 bonus:** only for the player who ended the round, and only if they ended with a ≤5 card **and** all 7 of their cards are in formations. Nobody can take a ride after a -10. Anyone else with a fully formed hand scores 0.
-- **Revealing hands:** the player who ended the round reveals first (after a pile-out, the player who drew the last card), then the others in turn order. Each player lays down one formation at a time and picks the cards themselves. The optional "No more formations possible" notice only says when nothing is left to form.
+- **Revealing hands:** the player who ended the round reveals first (after a pile-out, the player who drew the last card), then the others in turn order. Each player lays down one formation at a time and picks the cards themselves. The optional "No formations possible" notice only says when nothing is left to form.
 - **Take a ride** (*Panha Boleia*): allowed only when the round was ended by hand with a ≤5 card and without the -10. After each formation is shown, every other player can add cards to it:
   - **Pairs and trios:** one card per player per formation. Different players can each add one, so a pair can grow into a quad.
   - **Straights:** a player can add several cards at either end, in the straight's suit (any suit with **Smeared**).
