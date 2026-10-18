@@ -4,7 +4,7 @@ import { play } from '../audio';
 import { t } from '../i18n';
 import { addBot, cycleAvatar, kick, leaveRoom, renamePlayer, setRules, startGame } from '../net';
 import { useStore } from '../store';
-import { Button } from './common';
+import { Button, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
 import { RulesForm } from './RulesForm';
 import { JokerIcon, Wins } from './sprites';
@@ -44,7 +44,9 @@ export function Lobby() {
   return (
     <main class="lobby">
       <section class="panel lobby-room">
-        <h2>{t('lobby.room')}</h2>
+        <h2>
+          <WaveText text={t('lobby.room')} />
+        </h2>
         <button class={`room-code${copied ? ' copied' : ''}`} onClick={share} aria-label={`${t('title.code')} ${room.code.split('').join(' ')}`}>
           <span class="code-text">{room.code}</span>
           {copied > 0 && (
@@ -136,7 +138,9 @@ export function Lobby() {
       </section>
 
       <section class="panel lobby-rules">
-        <h2>{isHost ? t('lobby.rules') : t('lobby.rulesByHost')}</h2>
+        <h2>
+          <WaveText text={isHost ? t('lobby.rules') : t('lobby.rulesByHost')} max={28} />
+        </h2>
         <RulesForm rules={room.rules} readOnly={!isHost} onChange={(r) => void setRules(r)} />
       </section>
     </main>

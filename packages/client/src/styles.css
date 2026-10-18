@@ -318,7 +318,8 @@ input[type='text'] {
 }
 .logo span {
   display: inline-block;
-  animation: bob 2.4s ease-in-out infinite;
+  --amp: 12px;
+  animation: letter-wave 2.6s ease-in-out calc(var(--i) * 0.09s) infinite;
 }
 .logo span:nth-child(odd) {
   color: var(--red);
@@ -329,9 +330,20 @@ input[type='text'] {
     0 6px 0 var(--blue-d),
     0 10px 0 rgba(0, 0, 0, 0.4);
 }
-@keyframes bob {
-  50% {
-    transform: translateY(-8px) rotate(-2deg);
+/* Balatro-style floating text: each letter rises in turn, so a wave runs
+   across the word, then everything rests until the next pass. */
+.wave > [aria-hidden] > span {
+  display: inline-block;
+  animation: letter-wave 2.8s ease-in-out calc(var(--i) * 0.07s) infinite;
+}
+@keyframes letter-wave {
+  0%,
+  14%,
+  100% {
+    translate: 0 0;
+  }
+  7% {
+    translate: 0 calc(-1 * var(--amp, 3px));
   }
 }
 /* Four Aces fanned like a hand: each card turns around a point below the row. */

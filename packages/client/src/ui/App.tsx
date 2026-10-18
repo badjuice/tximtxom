@@ -3,6 +3,7 @@ import { getHandOrder, setAnnouncer, tapDrawn, tapHand } from '../controller';
 import { getSettings, updateSettings, useSettings } from '../settings';
 import { t } from '../i18n';
 import { store, useStore } from '../store';
+import { WaveText } from './common';
 import { HistoryPanel } from './History';
 import { Hud } from './Hud';
 import { Lobby } from './Lobby';
@@ -89,7 +90,9 @@ function Banner() {
     <div class={`banner tone-${b.tone ?? 'info'}`} key={b.id} aria-hidden="true">
       {b.joker && <JokerIcon name={b.joker} scale={0.8} />}
       <div>
-        <div class="banner-text">{b.text}</div>
+        <div class="banner-text">
+          <WaveText text={b.text} max={28} />
+        </div>
         {b.sub && <div class="banner-sub">{b.sub}</div>}
       </div>
     </div>

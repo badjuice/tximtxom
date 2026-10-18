@@ -1,6 +1,6 @@
-// Balatro's swirling paint background (resources/shaders/background.fs),
-// ported to plain WebGL1. It renders into a tiny canvas that CSS scales up
-// with `image-rendering: pixelated`, which gives the pixel look almost for free.
+// Swirling paint background: a slow spiral twist over warped value noise,
+// cut into three colour bands. It renders into a tiny canvas that CSS scales
+// up with `image-rendering: pixelated`, which gives the pixel look for free.
 import { getSettings, onSettings } from './settings';
 
 const VERT = `
@@ -9,42 +9,41 @@ void main() { gl_Position = vec4(aPos, 0.0, 1.0); }
 `;
 
 const FRAG = `
-precision highp float;
+precision mediump float;
 uniform vec2 uRes;
 uniform float uTime;
 uniform float uSpinTime;
-uniform vec4 uC1;
-uniform vec4 uC2;
-uniform vec4 uC3;
-uniform float uContrast;
-uniform float uSpinAmount;
-#define SPIN_EASE 0.5
+uniform vec3 uC1;
+uniform vec3 uC2;
+uniform vec3 uC3;
+
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+// Smooth value noise in 0..1.
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+}
 
 void main() {
-  vec2 screen = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y);
-  vec2 uv = (screen - 0.5 * uRes) / length(uRes) - vec2(0.12, 0.0);
-  float uv_len = length(uv);
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / length(uRes);
+  // Spiral: points nearer the centre turn further, and the whole thing turns with uSpinTime.
+  float r = length(uv);
+  float a = atan(uv.y, uv.x) + uSpinTime * 0.1 + 4.0 * (0.7 - r);
+  vec2 p = r * vec2(cos(a), sin(a)) * 5.0;
 
-  float speed = (uSpinTime * SPIN_EASE * 0.2) + 302.2;
-  float new_pixel_angle = atan(uv.y, uv.x) + speed - SPIN_EASE * 20.0 * (uSpinAmount * uv_len + (1.0 - uSpinAmount));
-  vec2 mid = (uRes / length(uRes)) / 2.0;
-  uv = (vec2(uv_len * cos(new_pixel_angle) + mid.x, uv_len * sin(new_pixel_angle) + mid.y) - mid);
+  // Warp the noise with more noise so the paint folds into itself.
+  float t = uTime * 0.12;
+  vec2 q = vec2(noise(p + vec2(t, 0.0)), noise(p + vec2(5.2, 1.3 - t)));
+  float n = 0.65 * noise(p + 2.6 * q + vec2(0.4 * t, -0.3 * t)) + 0.35 * noise(2.1 * p + 1.4 * q);
 
-  uv *= 30.0;
-  speed = uTime * 2.0;
-  vec2 uv2 = vec2(uv.x + uv.y);
-  for (int i = 0; i < 5; i++) {
-    uv2 += sin(max(uv.x, uv.y)) + uv;
-    uv += 0.5 * vec2(cos(5.1123314 + 0.353 * uv2.y + speed * 0.131121), sin(uv2.x - 0.113 * speed));
-    uv -= 1.0 * cos(uv.x + uv.y) - 1.0 * sin(uv.x * 0.711 - uv.y);
-  }
-
-  float contrast_mod = (0.25 * uContrast + 0.5 * uSpinAmount + 1.2);
-  float paint_res = min(2.0, max(0.0, length(uv) * 0.035 * contrast_mod));
-  float c1p = max(0.0, 1.0 - contrast_mod * abs(1.0 - paint_res));
-  float c2p = max(0.0, 1.0 - contrast_mod * abs(paint_res));
-  float c3p = 1.0 - min(1.0, c1p + c2p);
-  gl_FragColor = (0.3 / uContrast) * uC1 + (1.0 - 0.3 / uContrast) * (uC1 * c1p + uC2 * c2p + vec4(c3p * uC3.rgb, c3p * uC1.a));
+  vec3 col = mix(uC1, uC2, smoothstep(0.43, 0.47, n));
+  col = mix(col, uC3, smoothstep(0.56, 0.6, n));
+  gl_FragColor = vec4(col, 1.0);
 }
 `;
 
@@ -69,10 +68,13 @@ let colours = MOODS.menu.map((c) => [...c]) as [RGB, RGB, RGB];
 let spinBoost = 0;
 
 export function setMood(name: keyof typeof MOODS): void {
+  if (MOODS[name] === target) return;
   target = MOODS[name];
+  // Like moving between screens in Balatro: the paint spins up while the colours change.
+  swirl(1.2);
 }
 
-/** Briefly speeds up the swirl (Balatro does this on big plays). */
+/** Briefly speeds up the swirl, for big plays and screen changes. */
 export function swirl(amount = 1): void {
   if (!getSettings().reducedMotion) spinBoost = Math.min(3, spinBoost + amount);
 }
@@ -104,9 +106,8 @@ export function startBackground(canvas: HTMLCanvasElement): void {
   gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
   const u = (n: string) => gl.getUniformLocation(prog, n);
   const uRes = u('uRes'), uTime = u('uTime'), uSpin = u('uSpinTime'), uC1 = u('uC1'), uC2 = u('uC2'), uC3 = u('uC3');
-  const uContrast = u('uContrast'), uSpinAmount = u('uSpinAmount');
 
-  // Balatro uses ~700 "pixels" across the diagonal; we render at that size.
+  // About 520 "pixels" across the diagonal, scaled up by CSS.
   const resize = () => {
     const diag = Math.hypot(innerWidth, innerHeight);
     const k = 520 / diag;
@@ -127,8 +128,8 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     last = now;
     const s = getSettings();
     const animate = s.backgroundAnim && !s.reducedMotion;
-    // Ease colours towards the current mood.
-    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) colours[i][j] += (target[i][j] - colours[i][j]) * Math.min(1, dt * 2);
+    // Ease colours towards the current mood (mostly there in about half a second).
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) colours[i][j] += (target[i][j] - colours[i][j]) * Math.min(1, dt * 4);
     spinBoost = Math.max(0, spinBoost - dt * 1.5);
     if (animate) {
       time += dt * (1 + spinBoost * 2);
@@ -139,11 +140,9 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     gl.uniform2f(uRes, canvas.width, canvas.height);
     gl.uniform1f(uTime, time);
     gl.uniform1f(uSpin, spinTime);
-    gl.uniform4f(uC1, ...colours[0], 1);
-    gl.uniform4f(uC2, ...colours[1], 1);
-    gl.uniform4f(uC3, ...colours[2], 1);
-    gl.uniform1f(uContrast, 1.6);
-    gl.uniform1f(uSpinAmount, 0.25);
+    gl.uniform3f(uC1, ...colours[0]);
+    gl.uniform3f(uC2, ...colours[1]);
+    gl.uniform3f(uC3, ...colours[2]);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
   requestAnimationFrame(frame);

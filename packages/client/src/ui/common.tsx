@@ -7,6 +7,24 @@ import { JokerIcon } from './sprites';
 
 type Color = 'red' | 'blue' | 'orange' | 'green' | 'grey' | 'purple';
 
+/** Short labels float like Balatro's: the letters rise one after another in a slow wave. */
+const WAVE_MAX = 18;
+
+/** Text whose letters rise in a wave. Longer text than `max` stays still. */
+export function WaveText({ text, max = WAVE_MAX }: { text: string; max?: number }) {
+  if (text.length > max) return <>{text}</>;
+  return (
+    <span class="wave">
+      <span class="sr-only">{text}</span>
+      <span aria-hidden="true">
+        {[...text].map((ch, i) => (
+          <span style={{ '--i': i }}>{ch === ' ' ? ' ' : ch}</span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
 export function Button(props: {
   color?: Color;
   onClick?: () => void;
@@ -31,7 +49,7 @@ export function Button(props: {
         props.onClick?.();
       }}
     >
-      <span class="btn-label">{props.children}</span>
+      <span class="btn-label">{typeof props.children === 'string' ? <WaveText text={props.children} /> : props.children}</span>
       {props.kbd && (
         <kbd class="kbd" aria-hidden="true">
           {props.kbd}
@@ -207,7 +225,7 @@ export function Choice<T extends string | number>(props: {
               props.onChange(o.value);
             }}
           >
-            {o.label}
+            <WaveText text={o.label} />
           </button>
         ))}
       </span>
@@ -289,7 +307,7 @@ export function Tabs<T extends string>(props: { tabs: { id: T; label: string }[]
             props.onChange(tb.id);
           }}
         >
-          {tb.label}
+          <WaveText text={tb.label} />
         </button>
       ))}
     </div>
@@ -318,7 +336,9 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
     <div class="modal-backdrop" onClick={(e) => props.onClose && e.target === e.currentTarget && props.onClose()}>
       <div class={`panel modal${props.wide ? ' wide' : ''} ${props.class ?? ''}`} role="dialog" aria-modal="true" aria-label={props.title} tabIndex={-1} ref={ref}>
         <div class="modal-head">
-          <h2>{props.title}</h2>
+          <h2>
+            <WaveText text={props.title} max={28} />
+          </h2>
           {props.corner && <div class="modal-corner">{props.corner}</div>}
         </div>
         <div class="modal-body">{props.children}</div>

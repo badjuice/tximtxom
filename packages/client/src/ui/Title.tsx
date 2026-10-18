@@ -39,7 +39,7 @@ export function Title() {
       </div>
       <h1 class="logo" aria-label="TximTxom">
         {'TximTxom'.split('').map((ch, i) => (
-          <span style={{ animationDelay: `${i * 0.12}s` }}>{ch}</span>
+          <span style={{ '--i': i }}>{ch}</span>
         ))}
       </h1>
       <div class="logo-fan" aria-hidden="true">
