@@ -27,8 +27,8 @@ jobs:
       - run: npm test
       - run: npm run build:pages
         env:
-          # Metered Open Relay credentials URL (repository variable); empty = no relay.
-          VITE_TURN_CREDENTIALS_URL: ${{ vars.TURN_CREDENTIALS_URL }}
+          # TURN relay list, JSON array of RTCIceServer (repository variable); empty = no relay.
+          VITE_ICE_SERVERS: ${{ vars.ICE_SERVERS }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: packages/client/dist
