@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.15.3',
+    date: '2026-10-18',
+    items: [
+      c('New browser tab icon made from the TximTxom logo, plus a home screen icon for phones.', 'Novo ícone no separador do navegador, feito a partir do logótipo do TximTxom, e um ícone para o ecrã inicial do telemóvel.'),
+    ],
+  },
+  {
     version: '0.15.2',
     date: '2026-10-18',
     items: [

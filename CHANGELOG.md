@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.15.3 (2026-10-18)
+- 🔧 New browser tab icon made from the TximTxom logo, plus a home screen icon for phones.
+
 ## 0.15.2 (2026-10-18)
 - ✨ How to play, Formations, Settings and Changelog are now in the game room too.
 - 🔧 Cards move snappier, closer to Balatro: selecting, hovering, dealing and sorting settle in about a fifth of a second.
