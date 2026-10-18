@@ -5,6 +5,10 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.14.1 (2026-10-18)
+- 🔧 More servers to help browsers on different networks find each other; a dead relay server was removed.
+- 🐛 When the room exists but the connection is blocked, the error says so instead of "Room not found".
+
 ## 0.14.0 (2026-10-15)
 - ✨ Changelog button on the title screen.
 

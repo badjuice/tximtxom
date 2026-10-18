@@ -26,6 +26,35 @@ const SAVE_KEY = 'tximtxom.hostRoom';
 
 export const peerIdFor = (code: string) => PREFIX + code;
 
+/** Shown when the broker found the host but no direct link could be made. */
+export const UNREACHABLE = "Found the room, but couldn't connect to the host";
+
+// How browsers find a way to each other. STUN servers tell each side its
+// public address, which is enough for most home routers; when both sides are
+// behind strict NATs (often mobile data) only a TURN relay gets through.
+// There is no free public TURN any more (PeerJS's turn.peerjs.com no longer
+// resolves), so a build that has one passes the full list in
+// VITE_ICE_SERVERS (JSON array of RTCIceServer).
+const DEFAULT_ICE: RTCIceServer[] = [
+  { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+];
+
+function rtcConfig(): RTCConfiguration {
+  let iceServers = DEFAULT_ICE;
+  const custom = import.meta.env.VITE_ICE_SERVERS;
+  if (custom) {
+    try {
+      iceServers = JSON.parse(custom);
+    } catch {
+      console.warn('VITE_ICE_SERVERS is not valid JSON; using the defaults');
+    }
+  }
+  // ?relay=1 sends everything through TURN, to check that the relay works.
+  const relayOnly = new URL(location.href).searchParams.get('relay') === '1';
+  return relayOnly ? { iceServers, iceTransportPolicy: 'relay' } : { iceServers };
+}
+
 /** Broker errors worth retrying: its WebSocket failed or dropped. */
 const TRANSIENT = new Set(['network', 'server-error', 'socket-error', 'socket-closed', 'disconnected']);
 
@@ -44,7 +73,8 @@ async function openPeer(id?: string): Promise<Peer> {
 
 function openPeerOnce(id?: string): Promise<Peer> {
   return new Promise((resolve, reject) => {
-    const peer = id ? new Peer(id, { debug: 1 }) : new Peer({ debug: 1 });
+    const options = { debug: 1, config: rtcConfig() };
+    const peer = id ? new Peer(id, options) : new Peer(options);
     const onError = (err: { type?: string }) => {
       peer.off('open', onOpen);
       peer.destroy();
@@ -217,29 +247,50 @@ export class Guest {
   static async connect(code: string, events: P2PEvents): Promise<Guest> {
     const peer = await openPeer();
     const guest = new Guest(peer, code, events);
-    await guest.open();
+    try {
+      await guest.open();
+    } catch (err) {
+      peer.destroy();
+      throw err;
+    }
     return guest;
   }
 
   private open(): Promise<void> {
     return new Promise((resolve, reject) => {
       const conn = this.peer.connect(peerIdFor(this.code), { reliable: true, serialization: 'json' });
-      const fail = (err: { type?: string }) => {
-        this.peer.off('error', fail);
-        reject(err.type === 'peer-unavailable' ? new Error('Room not found (is the host online?)') : err);
-      };
-      this.peer.once('error', fail);
-      const timer = setTimeout(() => fail({ type: 'peer-unavailable' }), 15000);
-      conn.on('open', () => {
+      let settled = false;
+      const fail = (err: Error) => {
+        if (settled) return;
+        settled = true;
         clearTimeout(timer);
-        this.peer.off('error', fail);
+        this.peer.off('error', onPeerError);
+        conn.close();
+        reject(err);
+      };
+      // The broker answers peer-unavailable when no browser holds that room code.
+      const onPeerError = (err: Error & { type?: string }) =>
+        fail(err.type === 'peer-unavailable' ? new Error('Room not found (is the host online?)') : err);
+      this.peer.on('error', onPeerError);
+      // Otherwise the host exists, and a failed or stalled link means the
+      // browsers couldn't reach each other through their networks.
+      const timer = setTimeout(() => fail(new Error(UNREACHABLE)), 20000);
+      conn.on('open', () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        this.peer.off('error', onPeerError);
         this.conn = conn;
         this.events.connection(true);
         resolve();
       });
       conn.on('data', (raw) => this.onData(raw as Wire));
-      conn.on('close', () => this.onDrop(conn));
-      conn.on('error', () => this.onDrop(conn));
+      const drop = () => {
+        fail(new Error(UNREACHABLE));
+        this.onDrop(conn);
+      };
+      conn.on('close', drop);
+      conn.on('error', drop);
     });
   }
 

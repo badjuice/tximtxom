@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.14.1',
+    date: '2026-10-18',
+    items: [
+      c('More servers to help browsers on different networks find each other; a dead relay server was removed.', 'Mais servidores para ajudar browsers em redes diferentes a encontrarem-se; foi removido um relay que já não funcionava.'),
+      f('When the room exists but the connection is blocked, the error says so instead of "Room not found".', 'Quando a sala existe mas a ligação é bloqueada, o erro diz isso em vez de "Sala não encontrada".'),
+    ],
+  },
+  {
     version: '0.14.0',
     date: '2026-10-15',
     items: [n('Changelog button on the title screen.', 'Botão de alterações no ecrã inicial.')],
