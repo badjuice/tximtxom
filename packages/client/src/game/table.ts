@@ -177,7 +177,7 @@ export class Table {
     for (const [k, v] of this.views) {
       this.views.delete(k);
       const delay = (sweep * (v.x - left)) / Math.max(1, right - left) + Math.random() * 0.06;
-      v.dissolve(delay, () => this.particles.burst(v.x, v.y, { count: 6, colors: [0xd9a0ff, 0x8a5cc4, 0x3d2a52], speed: 140, size: 5, life: 0.7 }));
+      v.dissolve(delay, () => this.particles.burst(v.x, v.y, { count: 6, colors: [0xffdb59, 0xfd8c0d, 0xe63d33], speed: 140, size: 5, life: 0.7 }));
       this.dying.push(v);
     }
     this.roles.clear();

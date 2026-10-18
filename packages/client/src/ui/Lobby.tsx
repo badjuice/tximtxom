@@ -3,7 +3,7 @@ import { MAX_PLAYERS, MIN_PLAYERS, NAME_MAX } from '@tximtxom/shared';
 import { play } from '../audio';
 import { t } from '../i18n';
 import { addBot, cycleAvatar, kick, leaveRoom, renamePlayer, setRules, startGame } from '../net';
-import { useStore } from '../store';
+import { store, useStore } from '../store';
 import { Button, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
 import { RulesForm } from './RulesForm';
@@ -189,12 +189,29 @@ export function Lobby() {
         )}
       </section>
 
-      <section class="panel lobby-rules">
-        <h2>
-          <WaveText text={isHost ? t('lobby.rules') : t('lobby.rulesByHost')} max={28} />
-        </h2>
-        <RulesForm rules={room.rules} readOnly={!isHost} onChange={(r) => void setRules(r)} />
-      </section>
+      <div class="lobby-side">
+        <section class="panel lobby-rules">
+          <h2>
+            <WaveText text={isHost ? t('lobby.rules') : t('lobby.rulesByHost')} max={28} />
+          </h2>
+          <RulesForm rules={room.rules} readOnly={!isHost} onChange={(r) => void setRules(r)} />
+        </section>
+        {/* The same menus as the title screen, plus the formations reference. */}
+        <div class="lobby-links">
+          <Button color="grey" onClick={() => store.set({ overlay: 'help' })}>
+            {t('title.howToPlay')}
+          </Button>
+          <Button color="blue" onClick={() => store.set({ overlay: 'formations' })}>
+            {t('top.formations')}
+          </Button>
+          <Button color="grey" onClick={() => store.set({ overlay: 'settings' })}>
+            {t('title.settings')}
+          </Button>
+          <Button color="purple" onClick={() => store.set({ overlay: 'changelog' })}>
+            {t('title.changelog')}
+          </Button>
+        </div>
+      </div>
     </main>
   );
 }

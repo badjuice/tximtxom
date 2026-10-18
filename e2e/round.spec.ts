@@ -28,7 +28,7 @@ async function holdTxiJog(page: Page): Promise<boolean> {
 /** One step of a simple strategy: draw; Txi jog when allowed, else throw the drawn card away; pass on rides; reveal nothing. */
 async function step(page: Page): Promise<'done' | 'acted' | 'idle'> {
   if ((await page.locator('.summary-modal').count()) > 0) return 'done';
-  for (const label of ['Pass', 'Done', 'Draw']) {
+  for (const label of ['Pass', 'Done', 'Finish', 'Draw']) {
     const b = bar(page, label).first();
     if (await b.count()) {
       await b.click({ timeout: 3000 }).catch(() => {});

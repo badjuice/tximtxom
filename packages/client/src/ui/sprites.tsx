@@ -1,5 +1,5 @@
 import { type Card, cardCode } from '@tximtxom/shared';
-import { cardSpoken, cardShort } from '../i18n';
+import { cardSpoken } from '../i18n';
 import { useSettings } from '../settings';
 
 interface Frame {
@@ -101,7 +101,7 @@ export function Wins({ n, scale = 0.6 }: { n: number; scale?: number }) {
 export function CardIcon({ card, scale = 0.5, dim }: { card: Card; scale?: number; dim?: boolean }) {
   const s = useSettings();
   return (
-    <span class={`sprite card tilt${dim ? ' dim' : ''}`} style={spriteStyle('cards', 'base', scale)} role="img" aria-label={cardSpoken(card)} title={cardShort(card)} {...tilt}>
+    <span class={`sprite card tilt${dim ? ' dim' : ''}`} style={spriteStyle('cards', 'base', scale)} role="img" aria-label={cardSpoken(card)} {...tilt}>
       <span class="sprite" style={spriteStyle('cards', `${s.highContrast ? 'hc' : 'n'}_${cardCode(card)}`, scale)} />
     </span>
   );

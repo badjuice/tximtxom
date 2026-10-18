@@ -523,6 +523,24 @@ input[type='text'] {
 .x:hover {
   color: #ff8a82;
 }
+.lobby-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* Under the rules on wide screens; on phones (one column) right after the room panel. */
+.lobby-links {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+/* The two lobby columns stop fitting side by side below ~990px. */
+@media (max-width: 989px) {
+  .lobby-links {
+    order: -1;
+    grid-template-columns: 1fr 1fr;
+  }
+}
 .bot-row {
   display: flex;
   gap: 8px;

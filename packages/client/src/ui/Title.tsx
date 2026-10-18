@@ -35,8 +35,8 @@ function FanCard({ suit, i }: { suit: Suit; i: number }) {
     Object.assign(w, { rot: FAN_ANGLE[i], vel: 0, vx: 0, lastX: x, lastT: performance.now() });
     const tick = () => {
       // Lean into the movement (capped), then spring there with a bit of overshoot.
-      const target = Math.max(-30, Math.min(30, w.vx * 26));
-      w.vel = (w.vel + (target - w.rot) * 0.18) * 0.85;
+      const target = Math.max(-20, Math.min(20, w.vx * 16));
+      w.vel = (w.vel + (target - w.rot) * 0.15) * 0.7;
       w.rot += w.vel;
       w.vx *= 0.93; // stopped moving: settle back upright
       if (el.current) el.current.style.rotate = `${w.rot.toFixed(2)}deg`;

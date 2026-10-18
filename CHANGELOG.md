@@ -5,6 +5,13 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.15.2 (2026-10-18)
+- ✨ How to play, Formations, Settings and Changelog are now in the game room too.
+- 🔧 Cards move snappier, closer to Balatro: selecting, hovering, dealing and sorting settle in about a fifth of a second.
+- 🗑️ Small card pictures (history, Formations) no longer show a hint on hover.
+- 🔧 A dragged card follows the pointer without bouncing, and the title Aces swing more gently.
+- 🔧 Burning cards glow gold, orange and red instead of purple.
+
 ## 0.15.1 (2026-10-18)
 - ✨ Before a new deal, the cards left on the table burn away like the Hanged Man in Balatro, and a fresh deck is placed in the middle.
 - 🔧 The title Aces swing while you drag them: they lean into the movement and wobble when shaken.

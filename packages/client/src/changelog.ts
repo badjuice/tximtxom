@@ -19,6 +19,17 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.15.2',
+    date: '2026-10-18',
+    items: [
+      n('How to play, Formations, Settings and Changelog are now in the game room too.', 'Como jogar, Formações, Definições e Alterações agora também estão na sala.'),
+      c('Cards move snappier, closer to Balatro: selecting, hovering, dealing and sorting settle in about a fifth of a second.', 'As cartas mexem-se com mais rapidez, mais perto do Balatro: selecionar, passar o rato, distribuir e ordenar assentam em cerca de um quinto de segundo.'),
+      r('Small card pictures (history, Formations) no longer show a hint on hover.', 'As cartas pequenas (histórico, Formações) já não mostram uma dica ao passar o rato.'),
+      c('A dragged card follows the pointer without bouncing, and the title Aces swing more gently.', 'Uma carta arrastada segue o ponteiro sem saltitar, e os Ases do ecrã inicial balançam com mais calma.'),
+      c('Burning cards glow gold, orange and red instead of purple.', 'As cartas a desfazer-se brilham em dourado, laranja e vermelho em vez de roxo.'),
+    ],
+  },
+  {
     version: '0.15.1',
     date: '2026-10-18',
     items: [

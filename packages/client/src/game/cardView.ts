@@ -31,8 +31,12 @@ export interface CardTarget {
   dragged?: boolean;
 }
 
-const STIFF = 170;
-const DAMP = 20;
+// Card spring, Balatro-quick: settles in about a fifth of a second with a small overshoot.
+const STIFF = 600;
+const DAMP = 39;
+// A held card follows the pointer tightly and critically damped: no bounce.
+const DRAG_STIFF = 700;
+const DRAG_DAMP = 2 * Math.sqrt(DRAG_STIFF);
 /** Longest spring integration step (s); stable for these constants. */
 const MAX_STEP = 1 / 120;
 
@@ -212,7 +216,7 @@ export class CardView extends Container {
     let ty = t.y + (t.raised ? -22 : 0);
     let tr = t.rot;
     const hoverTarget = this.hovered ? 1 : 0;
-    this.hoverAmt += (hoverTarget - this.hoverAmt) * Math.min(1, h * 14);
+    this.hoverAmt += (hoverTarget - this.hoverAmt) * Math.min(1, h * 24);
     let ts = t.scale * (1 + 0.07 * this.hoverAmt);
 
     if (t.wobble && !reduced) {
@@ -234,9 +238,10 @@ export class CardView extends Container {
       // every frame, fly off and only come back once frames are fast again.
       const n = Math.max(1, Math.ceil(h / MAX_STEP));
       const sh = h / n;
+      const [k, c] = t.dragged ? [DRAG_STIFF, DRAG_DAMP] : [STIFF, DAMP];
       const step = (pos: number, vel: number, goal: number) => {
         for (let i = 0; i < n; i++) {
-          vel += (STIFF * (goal - pos) - DAMP * vel) * sh;
+          vel += (k * (goal - pos) - c * vel) * sh;
           pos += vel * sh;
         }
         return [pos, vel];

@@ -1,5 +1,6 @@
 // Card dissolve, after Balatro's Hanged Man: the card is eaten away in blocky
-// noise, with a purple burning edge just ahead of the holes.
+// noise, burning from the holes outward in gold, orange and red, with a
+// charred rim before the untouched card.
 import { Filter, GlProgram } from 'pixi.js';
 
 const VERT = `
@@ -46,10 +47,15 @@ void main(void) {
   float n = 0.7 * noise(block * 0.18) + 0.3 * hash(block);
   float cut = uAmount * 1.15;
   if (n < cut) { finalColor = vec4(0.0); return; }
-  // Burning edge: bright purple at the hole, dark violet a little further in.
+  // Burning edge, hottest at the hole.
   float edge = n - cut;
-  vec3 burn = edge < 0.05 ? vec3(0.85, 0.6, 1.0) : vec3(0.36, 0.2, 0.55);
-  if (edge < 0.11 && uAmount > 0.0) c.rgb = mix(burn * c.a, c.rgb, 0.15);
+  if (uAmount > 0.0 && edge < 0.15) {
+    vec3 fire = edge < 0.03 ? vec3(1.0, 0.86, 0.35)   // gold
+              : edge < 0.07 ? vec3(0.99, 0.55, 0.05)  // orange
+              : edge < 0.11 ? vec3(0.9, 0.24, 0.2)    // red
+              : mix(vec3(0.16, 0.08, 0.06), c.rgb, 0.45); // charred
+    c.rgb = fire * c.a;
+  }
   finalColor = c;
 }
 `;
