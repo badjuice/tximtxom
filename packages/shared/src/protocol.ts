@@ -34,8 +34,8 @@ export interface JoinResult {
 }
 
 export interface ClientToServer {
-  'room:create': (msg: { name: string; rules?: Partial<Rules> }, ack: Ack<JoinResult>) => void;
-  'room:join': (msg: { code: string; name: string; token?: string }, ack: Ack<JoinResult>) => void;
+  'room:create': (msg: { name: string; rules?: Partial<Rules>; avatar?: string }, ack: Ack<JoinResult>) => void;
+  'room:join': (msg: { code: string; name: string; token?: string; avatar?: string }, ack: Ack<JoinResult>) => void;
   'room:rules': (msg: { rules: Partial<Rules> }, ack: Ack) => void;
   'room:addBot': (ack: Ack) => void;
   'room:kick': (msg: { playerId: string }, ack: Ack) => void;

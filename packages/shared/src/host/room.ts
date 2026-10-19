@@ -133,13 +133,16 @@ export class Room {
     return this.nextFree(BOT_PERSONAS, (p) => p.avatar, current);
   }
 
-  /** Humans pick from their own set of Jokers. */
+  /** Humans pick from their own set of characters. */
   private freeHumanArt(current = ''): string | null {
     return this.nextFree(HUMAN_JOKERS, (a) => a, current);
   }
 
-  addHuman(name: string, clientId: string): Member {
-    const art = this.freeHumanArt() ?? 'villager';
+  /** `preferred` is the character this player used last time; they get it back if nobody has it. */
+  addHuman(name: string, clientId: string, preferred?: string): Member {
+    const known = (HUMAN_JOKERS as readonly string[]).includes(preferred ?? '');
+    const taken = this.members.some((x) => x.avatar === preferred);
+    const art = known && !taken ? preferred! : (this.freeHumanArt() ?? 'villager');
     const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: art, clientId };
     this.members.push(m);
     if (!this.hostId) this.hostId = m.id;
@@ -147,7 +150,7 @@ export class Room {
   }
 
   addBot(): Member {
-    // The next Joker not already at the table.
+    // The next bot character not already at the table.
     const persona = this.freePersona() ?? BOT_PERSONAS[0];
     const m: Member = { id: randomId(8), token: '', name: persona.name, isBot: true, avatar: persona.avatar, clientId: null };
     this.members.push(m);
@@ -162,7 +165,7 @@ export class Room {
     return true;
   }
 
-  /** Moves a member to the next Joker nobody else has. Bots take that Joker's name too. */
+  /** Moves a member to the next character nobody else has. Bots take that character's name too. */
   cycleAvatar(id: string): boolean {
     const m = this.members.find((x) => x.id === id);
     if (!m) return false;

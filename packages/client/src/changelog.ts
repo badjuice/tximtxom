@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.17.0',
+    date: '2026-10-19',
+    items: [
+      f('Auto-sort no longer turns itself off when a dragged card goes back to your hand without moving, or is dropped somewhere it cannot go.', 'A ordenação automática já não se desliga quando uma carta arrastada volta à mão sem mudar de sítio, ou é largada onde não pode ir.'),
+      n('Your character is remembered: new rooms give it back to you if nobody else has it.', 'A tua personagem fica guardada: as salas novas devolvem-ta se ninguém a tiver.'),
+      n('New rooms start with the rules you used last as host. A "Reset to default rules" button puts them back.', 'As salas novas começam com as regras que usaste da última vez como anfitrião. O botão "Repor as regras predefinidas" volta ao normal.'),
+      n('Settings has a Controls tab: hand sorting, Confirm moves, the keyboard shortcuts, and a Left-handed option that swaps the sides of the buttons at the bottom.', 'As Definições têm um separador Controlos: ordenação da mão, Confirmar jogadas, os atalhos de teclado e uma opção Canhoto que troca os lados dos botões no fundo.'),
+    ],
+  },
+  {
     version: '0.16.0',
     date: '2026-10-19',
     items: [

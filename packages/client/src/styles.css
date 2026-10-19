@@ -1778,8 +1778,53 @@ input[type='text'] {
   gap: 6px;
   min-height: 300px;
 }
-.keys {
-  line-height: 1.4;
+/* Controls tab: keyboard shortcuts as rows of keycap + action. */
+.keys-title {
+  margin: 0.6em 0 0.2em;
+}
+.keys-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 14px;
+  align-items: center;
+  margin: 0;
+}
+.keys-list dt {
+  text-align: right;
+}
+.keys-list .kbd {
+  font-size: 0.8em;
+  margin-left: 0;
+}
+.keys-list dd {
+  margin: 0;
+}
+@media (min-width: 700px) {
+  .keys-list {
+    grid-template-columns: max-content 1fr max-content 1fr;
+  }
+}
+/* No keyboard on touch-only screens. */
+@media (hover: none) {
+  .keys-title,
+  .keys-list {
+    display: none;
+  }
+}
+.rules-reset {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+/* Left-handed: the bottom bar mirrors, so the risky corner buttons and the
+   main buttons swap sides. Text inside the buttons still reads left to right. */
+.lefty .action-bar,
+.lefty .main-actions {
+  direction: rtl;
+}
+.lefty .action-bar .btn {
+  direction: ltr;
 }
 
 /* --- Balatro slider */

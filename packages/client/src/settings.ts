@@ -27,6 +27,8 @@ export interface Settings {
   // Input
   confirmMoves: boolean;
   announce: boolean;
+  /** Mirrors the bottom button bar for left-handed players. */
+  leftHanded: boolean;
   // Panels
   historyOpen: boolean;
   // Language and hand sorting
@@ -60,6 +62,7 @@ export const DEFAULT_SETTINGS: Settings = {
   haptics: true,
   confirmMoves: true,
   announce: true,
+  leftHanded: false,
   historyOpen: false,
   lang: 'pt',
   sortBy: 'rank',
@@ -130,5 +133,6 @@ export function applyCssSettings(): void {
   root.classList.toggle('high-contrast', current.highContrast);
   root.classList.toggle('crt-on', current.crt);
   root.classList.toggle('history-open', current.historyOpen);
+  root.classList.toggle('lefty', current.leftHanded);
   root.lang = current.lang === 'pt' ? 'pt-PT' : 'en';
 }

@@ -12,14 +12,14 @@ function setup() {
 }
 
 describe('lobby art and names', () => {
-  it('gives humans Joker art too, never shared', () => {
+  it('gives humans character art too, never shared', () => {
     const { room } = setup();
     const arts = room.members.map((m) => m.avatar);
     expect(arts.every(Boolean)).toBe(true);
     expect(new Set(arts).size).toBe(arts.length);
   });
 
-  it('cycles through free Jokers only; bots take the Joker name', () => {
+  it('cycles through free characters only; bots take the character name', () => {
     const { server, room, bot } = setup();
     server.handle('host', { event: 'room:addBot' });
     for (let i = 0; i < BOT_PERSONAS.length * 2; i++) {
@@ -32,7 +32,7 @@ describe('lobby art and names', () => {
     }
   });
 
-  it('humans cycle through the human Jokers only', () => {
+  it('humans cycle through the player characters only', () => {
     const { server, room, guest } = setup();
     for (let i = 0; i < HUMAN_JOKERS.length * 2; i++) {
       server.handle('guest', { event: 'room:avatar', msg: { playerId: guest.id } });
@@ -40,6 +40,18 @@ describe('lobby art and names', () => {
       const arts = room.members.map((m) => m.avatar);
       expect(new Set(arts).size).toBe(arts.length);
     }
+  });
+
+  it('gives players their last character back when it is free', () => {
+    const server = new RoomServer({ send: () => {}, closed: () => {} });
+    const { code } = server.handle('host', { event: 'room:create', msg: { name: 'Nox', avatar: 'crab' } }) as { ok: true; code: string };
+    server.handle('a', { event: 'room:join', msg: { code, name: 'Ana', avatar: 'crab' } }); // taken: gets another
+    server.handle('b', { event: 'room:join', msg: { code, name: 'Rui', avatar: 'canio' } }); // not a player character
+    const [host, ana, rui] = server.rooms.get(code)!.members;
+    expect(host.avatar).toBe('crab');
+    expect(ana.avatar).not.toBe('crab');
+    expect(HUMAN_JOKERS).toContain(ana.avatar);
+    expect(HUMAN_JOKERS).toContain(rui.avatar);
   });
 
   it('players rename and re-art themselves; only the host edits bots', () => {

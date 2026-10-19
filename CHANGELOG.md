@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.17.0 (2026-10-19)
+- 🐛 Auto-sort no longer turns itself off when a dragged card goes back to your hand without moving, or is dropped somewhere it cannot go.
+- ✨ Your character is remembered: new rooms give it back to you if nobody else has it.
+- ✨ New rooms start with the rules you used last as host. A "Reset to default rules" button puts them back.
+- ✨ Settings has a Controls tab: hand sorting, Confirm moves, the keyboard shortcuts, and a Left-handed option that swaps the sides of the buttons at the bottom.
+
 ## 0.16.0 (2026-10-19)
 - 🔧 New look: cards, card backs, characters, rule pictures and badges now come from Kenney's free art packs instead of Balatro.
 - 🔧 Bots are dungeon characters with new names: Mágiku, Kabaleru, Bikingu, Fantasma, Ziku and Frei. Players pick from 14 characters.

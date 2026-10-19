@@ -63,6 +63,11 @@ export function getHandOrder(): Card[] {
 }
 
 export function setHandOrder(order: Card[]): void {
+  // Dropping a card back where it was is not a move.
+  if (order.join() === handOrder.join()) {
+    pushToTable();
+    return;
+  }
   handOrder = order;
   // Moving cards by hand turns auto-sort off; it would undo the move.
   if (getSettings().autoSort) updateSettings({ autoSort: false });

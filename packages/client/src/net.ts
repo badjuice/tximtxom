@@ -4,7 +4,7 @@
 // - server: a Socket.IO server hosts rooms. Used when the build sets
 //   VITE_SERVER_URL ("/" means the same origin, as in `npm run dev:server`).
 import type { Socket } from 'socket.io-client';
-import { type Action, type ClientToServer, type GameEvent, IDLE_REASON, type JoinResult, randomCode, type Request, type Rules, type ServerToClient } from '@tximtxom/shared';
+import { type Action, type ClientToServer, type GameEvent, IDLE_REASON, type JoinResult, randomCode, type Request, type Rules, sanitizeRules, type ServerToClient } from '@tximtxom/shared';
 import { Guest, hasSavedHostRoom, Host, type P2PEvents, type Result } from './p2p';
 import { t, tError } from './i18n';
 import { store, toast } from './store';
@@ -14,6 +14,9 @@ export const MODE: 'p2p' | 'server' = SERVER_URL ? 'server' : 'p2p';
 
 const SESSION_KEY = 'tximtxom.session';
 const NAME_KEY = 'tximtxom.name';
+// The character you used last, and (as host) the rules you set last.
+const AVATAR_KEY = 'tximtxom.avatar';
+const RULES_KEY = 'tximtxom.rules';
 
 interface Session {
   code: string;
@@ -28,6 +31,33 @@ export function savedName(): string {
 
 export function saveName(name: string): void {
   if (name) localStorage.setItem(NAME_KEY, name);
+}
+
+function savedAvatar(): string | undefined {
+  return localStorage.getItem(AVATAR_KEY) ?? undefined;
+}
+
+/** The rules this player last used as host; a new room starts with them. */
+export function savedRules(): Partial<Rules> | undefined {
+  try {
+    const r = JSON.parse(localStorage.getItem(RULES_KEY) ?? 'null');
+    return r ? sanitizeRules(r) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Remembers your character, and the rules while you are the host. */
+function rememberPreferences(): void {
+  const room = store.get().room;
+  const me = room?.players.find((p) => p.id === room.youId);
+  if (!room || !me) return;
+  // The store changes often; only write when the value did.
+  const keep = (key: string, value: string) => {
+    if (localStorage.getItem(key) !== value) localStorage.setItem(key, value);
+  };
+  if (me.avatar) keep(AVATAR_KEY, me.avatar);
+  if (room.hostId === room.youId) keep(RULES_KEY, JSON.stringify(room.rules));
 }
 
 function saveSession(r: JoinResult, host: boolean): void {
@@ -122,7 +152,7 @@ async function initP2PMode(): Promise<void> {
   }
 }
 
-async function connectGuest(code: string, join: { code: string; name: string; token?: string }): Promise<Result> {
+async function connectGuest(code: string, join: { code: string; name: string; token?: string; avatar?: string }): Promise<Result> {
   guest?.stop();
   const g = await Guest.connect(code, p2pEvents);
   guest = g;
@@ -138,6 +168,7 @@ async function connectGuest(code: string, join: { code: string; name: string; to
 }
 
 export function initNet(): void {
+  store.subscribe(rememberPreferences);
   void (MODE === 'server' ? initServerMode() : initP2PMode());
   // Closing the host's tab pauses the game for everyone: ask first.
   addEventListener('beforeunload', (e) => {
@@ -183,7 +214,7 @@ async function call<T extends object = object>(req: Request): Promise<({ ok: tru
 
 // ------------------------------------------------------------------ API
 
-export async function createRoom(name: string, rules?: Partial<Rules>) {
+export async function createRoom(name: string, rules: Partial<Rules> | undefined = savedRules()) {
   localStorage.setItem(NAME_KEY, name);
   if (MODE === 'p2p') {
     try {
@@ -194,7 +225,7 @@ export async function createRoom(name: string, rules?: Partial<Rules>) {
       return { ok: false as const, error: 'offline' };
     }
   }
-  const r = await call<JoinResult>({ event: 'room:create', msg: { name, rules } });
+  const r = await call<JoinResult>({ event: 'room:create', msg: { name, rules, avatar: savedAvatar() } });
   if (r.ok) saveSession(r, MODE === 'p2p');
   return r;
 }
@@ -203,7 +234,7 @@ export async function joinRoom(code: string, name: string) {
   localStorage.setItem(NAME_KEY, name);
   if (MODE === 'p2p') {
     try {
-      const r = await connectGuest(code, { code, name });
+      const r = await connectGuest(code, { code, name, avatar: savedAvatar() });
       if (!r.ok) {
         toast(tError(r.error), 'error');
         return r;
@@ -215,7 +246,7 @@ export async function joinRoom(code: string, name: string) {
       return { ok: false as const, error: 'not found' };
     }
   }
-  const r = await call<JoinResult>({ event: 'room:join', msg: { code, name } });
+  const r = await call<JoinResult>({ event: 'room:join', msg: { code, name, avatar: savedAvatar() } });
   if (r.ok) saveSession(r, false);
   return r;
 }

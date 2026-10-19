@@ -423,7 +423,8 @@ export class Table {
       this.handlers.onDrop(drag.card, target);
     } else if (target?.kind === 'formation') {
       this.handlers.onBadDrop(drag.card, target);
-    } else if (role === 'hand') {
+    } else if (role === 'hand' && p.y >= handTop) {
+      // Only a drop back on the hand reorders it; anywhere else the card snaps back.
       this.reorder(drag.card, p.x);
     }
     this.sync();

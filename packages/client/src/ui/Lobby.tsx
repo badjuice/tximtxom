@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { MAX_PLAYERS, MIN_PLAYERS, NAME_MAX } from '@tximtxom/shared';
+import { DEFAULT_RULES, MAX_PLAYERS, MIN_PLAYERS, NAME_MAX, type Rules } from '@tximtxom/shared';
 import { play } from '../audio';
 import { t } from '../i18n';
 import { addBot, cycleAvatar, kick, leaveRoom, renamePlayer, setRules, startGame } from '../net';
@@ -31,6 +31,9 @@ async function fillWithBots(missing: number) {
 async function removeBots(ids: string[]) {
   for (const id of ids) await kick(id);
 }
+
+/** True when every rule is at its default (the reset button has nothing to do). */
+const isDefault = (r: Rules) => (Object.keys(DEFAULT_RULES) as (keyof Rules)[]).every((k) => r[k] === DEFAULT_RULES[k]);
 
 /** Focuses the rename box once, when it appears (not on every re-render). */
 const focusOnMount = (el: HTMLInputElement | null) => {
@@ -195,6 +198,13 @@ export function Lobby() {
             <WaveText text={isHost ? t('lobby.rules') : t('lobby.rulesByHost')} max={28} />
           </h2>
           <RulesForm rules={room.rules} readOnly={!isHost} onChange={(r) => void setRules(r)} />
+          {isHost && (
+            <div class="rules-reset">
+              <Button color="grey" disabled={isDefault(room.rules)} onClick={() => void setRules(DEFAULT_RULES)}>
+                {t('lobby.resetRules')}
+              </Button>
+            </div>
+          )}
         </section>
         {/* The same menus as the title screen, plus the formations reference. */}
         <div class="lobby-links">

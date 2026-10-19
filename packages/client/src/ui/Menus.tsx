@@ -242,7 +242,22 @@ function Formations({ onClose }: { onClose: () => void }) {
 
 // ------------------------------------------------------------------ settings
 
-type SetTab = 'general' | 'cards' | 'motion' | 'sound';
+type SetTab = 'general' | 'controls' | 'cards' | 'motion' | 'sound';
+
+/** Keyboard shortcuts shown in the Controls tab. `hold` keys need a press and hold. */
+const KEYS: { keys: string; label: Key; hold?: boolean }[] = [
+  { keys: '1–8', label: 'key.select' },
+  { keys: 'D', label: 'key.draw' },
+  { keys: 'P', label: 'key.take' },
+  { keys: 'Enter', label: 'key.main' },
+  { keys: 'E', label: 'key.end' },
+  { keys: 'Backspace', label: 'key.undo' },
+  { keys: 'R', label: 'key.endRound', hold: true },
+  { keys: 'T', label: 'key.tximtxom', hold: true },
+  { keys: 'S', label: 'key.scores' },
+  { keys: 'F', label: 'key.formations' },
+  { keys: 'H', label: 'key.history' },
+];
 
 function SettingsMenu({ onClose }: { onClose: () => void }) {
   const s = useSettings();
@@ -256,6 +271,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
       <Tabs
         tabs={[
           { id: 'general', label: t('set.tab.general') },
+          { id: 'controls', label: t('set.tab.controls') },
           { id: 'cards', label: t('set.tab.cards') },
           { id: 'motion', label: t('set.tab.motion') },
           { id: 'sound', label: t('set.tab.sound') },
@@ -284,9 +300,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
               ]}
               onChange={(v) => set({ clockwise: v === 'cw' })}
             />
-            <Toggle label={t('set.confirm')} desc={t('set.confirm.desc')} checked={s.confirmMoves} onChange={(v) => set({ confirmMoves: v })} />
             <Toggle label={t('set.announce')} desc={t('set.announce.desc')} checked={s.announce} onChange={(v) => set({ announce: v })} />
-            <p class="muted small keys">{t('set.keys')}</p>
             <div class="settings-actions">
               <Button color="grey" onClick={resetSettings}>
                 {t('set.reset')}
@@ -303,6 +317,33 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
                 </Button>
               )}
             </div>
+        </div>
+        <div class={`tab-panel${tab === 'controls' ? '' : ' hidden'}`} inert={tab !== 'controls'}>
+            <Choice
+              label={t('set.sortBy')}
+              desc={t('set.sortBy.desc')}
+              value={s.sortBy}
+              options={[
+                { value: 'rank', label: t('sort.rank') },
+                { value: 'suit', label: t('sort.suit') },
+              ]}
+              onChange={(sortBy) => set({ sortBy })}
+            />
+            <Toggle label={t('set.autoSort')} desc={t('sort.autoTitle')} checked={s.autoSort} onChange={(v) => set({ autoSort: v })} />
+            <Toggle label={t('set.confirm')} desc={t('set.confirm.desc')} checked={s.confirmMoves} onChange={(v) => set({ confirmMoves: v })} />
+            <Toggle label={t('set.lefty')} desc={t('set.lefty.desc')} checked={s.leftHanded} onChange={(v) => set({ leftHanded: v })} />
+            <h3 class="keys-title">{t('set.keyboard')}</h3>
+            <dl class="keys-list">
+              {KEYS.map((k) => (
+                <>
+                  <dt>
+                    <kbd class="kbd">{k.keys}</kbd>
+                    {k.hold && <span class="muted small"> {t('set.hold')}</span>}
+                  </dt>
+                  <dd>{t(k.label)}</dd>
+                </>
+              ))}
+            </dl>
         </div>
         <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
             <Toggle label={t('set.highContrast')} desc={t('set.highContrast.desc')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />
