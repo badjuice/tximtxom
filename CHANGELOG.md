@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.18.2 (2026-10-19)
+- 🔧 The title-screen Aces drag like cards in your hand: drop one on the fan to move it to a new spot, anywhere else and it goes back. The fan starts over when you return to the title screen.
+
 ## 0.18.1 (2026-10-19)
 - 🔧 The Aces on the title screen stay where you drop them. They go back into the fan when you return to the title screen.
 

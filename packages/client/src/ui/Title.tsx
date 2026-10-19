@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { makeCard, NAME_MAX, ROOM_CODE_LENGTH, type Suit } from '@tximtxom/shared';
 import { play, unlockAudio } from '../audio';
 import { t } from '../i18n';
-import { getSettings, updateSettings, useSettings } from '../settings';
+import { updateSettings, useSettings } from '../settings';
 import { createRoom, joinRoom, linkedRoom, saveName, savedName } from '../net';
 import { store, useStore } from '../store';
 import { Button, Credits, WaveText } from './common';
@@ -12,72 +12,26 @@ import { CardIcon } from './sprites';
 const FAN: Suit[] = [3, 0, 1, 2];
 const FAN_ANGLE = [-12, -4, 4, 12];
 const FAN_DROP = [9, 1, 1, 9];
+const FAN_STEP = 48; // px between card centres
+const DRAG_THRESHOLD = 10;
+const slotX = (i: number) => (i - (FAN.length - 1) / 2) * FAN_STEP;
 
-type Spot = { x: number; y: number; z: number };
-// Where each Ace was dropped. Kept through overlays and language changes, cleared on leaving the title screen.
-const placed: (Spot | null)[] = FAN.map(() => null);
-let topZ = 5;
+// The fan's order, rearranged by dragging like a hand. Kept through overlays and
+// language changes, back to the start on leaving the title screen.
+let fanOrder = [...FAN];
 
-/** A title-screen Ace you can pick up. While held it swings on a spring:
- *  it tilts into sideways movement and wobbles when shaken. Let go, it
- *  stays where it was dropped. A tap makes it hop. */
-function FanCard({ suit, i }: { suit: Suit; i: number }) {
+/** A title-screen Ace that drags like a hand card: it follows the pointer
+ *  upright, and dropped back on the fan it takes the slot nearest to where
+ *  it lands; anywhere else it snaps back. A tap makes it hop. */
+function FanCard({ suit, slot, onMove }: { suit: Suit; slot: number; onMove: (suit: Suit, x: number) => void }) {
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
-  const [spot, setSpot] = useState(placed[i]);
   const [hops, setHops] = useState(0);
-  const el = useRef<HTMLSpanElement>(null);
   const start = useRef<{ x: number; y: number; moved: boolean } | null>(null);
-  // Swing state: angle (deg), angular speed, and a smoothed sideways pointer speed (px/ms).
-  const swing = useRef({ rot: 0, vel: 0, vx: 0, lastX: 0, lastT: 0, frame: 0 });
 
-  const stopSwing = () => {
-    cancelAnimationFrame(swing.current.frame);
-    if (el.current) el.current.style.rotate = '';
-  };
-  useEffect(() => stopSwing, []);
-
-  const startSwing = (x: number) => {
-    const w = swing.current;
-    Object.assign(w, { rot: FAN_ANGLE[i], vel: 0, vx: 0, lastX: x, lastT: performance.now() });
-    const tick = () => {
-      // Lean into the movement (capped), then spring there with a bit of overshoot.
-      const target = Math.max(-20, Math.min(20, w.vx * 16));
-      w.vel = (w.vel + (target - w.rot) * 0.15) * 0.7;
-      w.rot += w.vel;
-      w.vx *= 0.93; // stopped moving: settle back upright
-      if (el.current) el.current.style.rotate = `${w.rot.toFixed(2)}deg`;
-      w.frame = requestAnimationFrame(tick);
-    };
-    if (!getSettings().reducedMotion) w.frame = requestAnimationFrame(tick);
-  };
-
-  const base = spot ?? { x: 0, y: 0, z: 0 };
-  const style: Record<string, string> = { '--a': `${FAN_ANGLE[i]}deg`, '--y': `${FAN_DROP[i]}px` };
-  if (spot) Object.assign(style, { translate: `${spot.x}px ${spot.y + FAN_DROP[i]}px`, zIndex: `${spot.z}` });
-  if (drag) {
-    const at = `${base.x + drag.x}px ${base.y + drag.y + FAN_DROP[i]}px`;
-    Object.assign(style, { translate: at, scale: '1.1', zIndex: '1000' });
-  }
-  const release = () => {
-    stopSwing();
-    setDrag(null);
-  };
-  /** Leave the card where it is, nudged back on screen if dropped past an edge. */
-  const drop = () => {
-    if (!drag || !el.current) return;
-    const r = el.current.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const m = 24;
-    const dx = Math.max(m, Math.min(innerWidth - m, cx)) - cx;
-    const dy = Math.max(m, Math.min(innerHeight - m, cy)) - cy;
-    const next = { x: base.x + drag.x + dx, y: base.y + drag.y + dy, z: ++topZ };
-    placed[i] = next;
-    setSpot(next);
-  };
+  const style: Record<string, string> = { '--x': `${slotX(slot)}px`, '--a': `${FAN_ANGLE[slot]}deg`, '--y': `${FAN_DROP[slot]}px`, zIndex: `${slot + 1}` };
+  if (drag) Object.assign(style, { '--x': `${slotX(slot) + drag.x}px`, '--a': '0deg', '--y': `${FAN_DROP[slot] + drag.y}px`, zIndex: '10' });
   return (
     <span
-      ref={el}
       class={`fan-card${drag ? ' held' : ''}`}
       style={style}
       onPointerDown={(e) => {
@@ -90,35 +44,28 @@ function FanCard({ suit, i }: { suit: Suit; i: number }) {
         if (!s) return;
         const x = e.clientX - s.x;
         const y = e.clientY - s.y;
-        if (!s.moved && Math.hypot(x, y) < 5) return;
-        if (!s.moved) {
-          play('cardSlide1', { volume: 0.5 });
-          startSwing(e.clientX);
-        }
+        if (!s.moved && Math.hypot(x, y) <= DRAG_THRESHOLD) return;
+        if (!s.moved) play('cardSlide1', { volume: 0.5 });
         s.moved = true;
-        const w = swing.current;
-        const now = performance.now();
-        const dt = Math.max(1, now - w.lastT);
-        w.vx = w.vx * 0.6 + ((e.clientX - w.lastX) / dt) * 0.4;
-        w.lastX = e.clientX;
-        w.lastT = now;
         setDrag({ x, y });
       }}
-      onPointerUp={() => {
+      onPointerUp={(e) => {
         const s = start.current;
         start.current = null;
-        if (s?.moved) {
+        setDrag(null);
+        if (!s) return;
+        if (s.moved) {
           play('cardSlide2', { volume: 0.4 });
-          drop();
-          release();
+          // Only a drop back on the fan reorders it.
+          if (Math.abs(e.clientY - s.y) < 95) onMove(suit, slotX(slot) + e.clientX - s.x);
         } else {
-          play('card1', { volume: 0.5, rate: 0.9 + i * 0.08 });
+          play('card1', { volume: 0.5, rate: 0.9 + slot * 0.08 });
           setHops((n) => n + 1);
         }
       }}
       onPointerCancel={() => {
         start.current = null;
-        release();
+        setDrag(null);
       }}
     >
       {/* Keyed so each tap restarts the hop. */}
@@ -136,13 +83,23 @@ export function Title() {
   const [code, setCode] = useState(linkedRoom());
   const [busy, setBusy] = useState(false);
   const cleanName = name.trim() || t('title.namePlaceholder');
-  // Entering a room unmounts the title screen: the Aces go back into the fan for next time.
+  const [order, setOrder] = useState(fanOrder);
+  // Entering a room unmounts the title screen: the fan starts over next time.
   useEffect(
     () => () => {
-      if (store.get().room) placed.fill(null);
+      if (store.get().room) fanOrder = [...FAN];
     },
     [],
   );
+  /** Moves an Ace to the slot nearest to x, as reordering the hand does. */
+  const moveAce = (suit: Suit, x: number) => {
+    const without = order.filter((s) => s !== suit);
+    let idx = FAN.findIndex((_, i) => x < slotX(i));
+    if (idx < 0) idx = FAN.length - 1;
+    without.splice(Math.min(idx, without.length), 0, suit);
+    fanOrder = without;
+    setOrder(without);
+  };
 
   const go = async (fn: () => Promise<unknown>) => {
     unlockAudio();
@@ -164,8 +121,9 @@ export function Title() {
         <WaveText text="TximTxom" amp={12} />
       </h1>
       <div class="logo-fan" aria-hidden="true">
-        {FAN.map((suit, i) => (
-          <FanCard suit={suit} i={i} />
+        {/* Fixed DOM order; each Ace slides to its slot, so a reorder animates. */}
+        {FAN.map((suit) => (
+          <FanCard key={suit} suit={suit} slot={order.indexOf(suit)} onMove={moveAce} />
         ))}
       </div>
 

@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.18.2',
+    date: '2026-10-19',
+    items: [
+      c('The title-screen Aces drag like cards in your hand: drop one on the fan to move it to a new spot, anywhere else and it goes back. The fan starts over when you return to the title screen.', 'Os Ases do ecrã inicial arrastam-se como as cartas da mão: larga um no leque para o mudar de lugar; noutro sítio qualquer, ele volta. O leque recomeça quando regressas ao ecrã inicial.'),
+    ],
+  },
+  {
     version: '0.18.1',
     date: '2026-10-19',
     items: [

@@ -346,21 +346,23 @@ input[type='text'] {
 .logo-fan {
   position: relative;
   z-index: 3; /* a held Ace passes over the panel */
-  display: flex;
-  justify-content: center;
+  width: 100%;
+  height: 95px;
   margin-top: -6px;
   padding-bottom: 10px;
 }
+/* Each Ace sits in its slot (--x, set in Title.tsx), so a reorder slides it there. */
 .logo-fan > span {
-  margin: 0 -9px;
+  position: absolute;
+  left: 50%;
+  top: 0;
   rotate: var(--a);
-  translate: 0 var(--y);
+  translate: calc(var(--x) - 50%) var(--y);
   transform-origin: 50% 150%;
   filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
-  position: relative;
   cursor: grab;
   touch-action: none;
-  /* Let go: settle back to the fan angle with a little overshoot. */
+  /* Let go: settle into the slot with a little overshoot. */
   transition:
     translate 0.45s cubic-bezier(0.3, 1.6, 0.5, 1),
     rotate 0.45s cubic-bezier(0.3, 1.6, 0.5, 1),
@@ -369,12 +371,15 @@ input[type='text'] {
 .logo-fan > span:hover {
   scale: 1.05;
 }
+/* Held like a hand card: upright, following the pointer. */
 .logo-fan > span.held {
   cursor: grabbing;
+  scale: 1.1;
   filter: drop-shadow(0 14px 0 rgba(0, 0, 0, 0.3));
-  /* Rotation is driven by the swing spring in Title.tsx while held, around the card's middle. */
   transform-origin: 50% 50%;
-  transition: scale 0.15s;
+  transition:
+    rotate 0.15s,
+    scale 0.15s;
 }
 .fan-hop {
   display: block;
