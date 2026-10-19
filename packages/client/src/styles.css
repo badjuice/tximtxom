@@ -360,7 +360,7 @@ input[type='text'] {
   position: relative;
   cursor: grab;
   touch-action: none;
-  /* Let go: spring back into the fan with a little overshoot. */
+  /* Let go: settle back to the fan angle with a little overshoot. */
   transition:
     translate 0.45s cubic-bezier(0.3, 1.6, 0.5, 1),
     rotate 0.45s cubic-bezier(0.3, 1.6, 0.5, 1),

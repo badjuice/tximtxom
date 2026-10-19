@@ -13,11 +13,17 @@ const FAN: Suit[] = [3, 0, 1, 2];
 const FAN_ANGLE = [-12, -4, 4, 12];
 const FAN_DROP = [9, 1, 1, 9];
 
+type Spot = { x: number; y: number; z: number };
+// Where each Ace was dropped. Kept through overlays and language changes, cleared on leaving the title screen.
+const placed: (Spot | null)[] = FAN.map(() => null);
+let topZ = 5;
+
 /** A title-screen Ace you can pick up. While held it swings on a spring:
  *  it tilts into sideways movement and wobbles when shaken. Let go, it
- *  bounces back into the fan. A tap makes it hop. */
+ *  stays where it was dropped. A tap makes it hop. */
 function FanCard({ suit, i }: { suit: Suit; i: number }) {
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
+  const [spot, setSpot] = useState(placed[i]);
   const [hops, setHops] = useState(0);
   const el = useRef<HTMLSpanElement>(null);
   const start = useRef<{ x: number; y: number; moved: boolean } | null>(null);
@@ -45,11 +51,29 @@ function FanCard({ suit, i }: { suit: Suit; i: number }) {
     if (!getSettings().reducedMotion) w.frame = requestAnimationFrame(tick);
   };
 
+  const base = spot ?? { x: 0, y: 0, z: 0 };
   const style: Record<string, string> = { '--a': `${FAN_ANGLE[i]}deg`, '--y': `${FAN_DROP[i]}px` };
-  if (drag) Object.assign(style, { translate: `${drag.x}px ${drag.y + FAN_DROP[i]}px`, scale: '1.1', zIndex: '5' });
+  if (spot) Object.assign(style, { translate: `${spot.x}px ${spot.y + FAN_DROP[i]}px`, zIndex: `${spot.z}` });
+  if (drag) {
+    const at = `${base.x + drag.x}px ${base.y + drag.y + FAN_DROP[i]}px`;
+    Object.assign(style, { translate: at, scale: '1.1', zIndex: '1000' });
+  }
   const release = () => {
     stopSwing();
     setDrag(null);
+  };
+  /** Leave the card where it is, nudged back on screen if dropped past an edge. */
+  const drop = () => {
+    if (!drag || !el.current) return;
+    const r = el.current.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const m = 24;
+    const dx = Math.max(m, Math.min(innerWidth - m, cx)) - cx;
+    const dy = Math.max(m, Math.min(innerHeight - m, cy)) - cy;
+    const next = { x: base.x + drag.x + dx, y: base.y + drag.y + dy, z: ++topZ };
+    placed[i] = next;
+    setSpot(next);
   };
   return (
     <span
@@ -85,6 +109,7 @@ function FanCard({ suit, i }: { suit: Suit; i: number }) {
         start.current = null;
         if (s?.moved) {
           play('cardSlide2', { volume: 0.4 });
+          drop();
           release();
         } else {
           play('card1', { volume: 0.5, rate: 0.9 + i * 0.08 });
@@ -111,6 +136,13 @@ export function Title() {
   const [code, setCode] = useState(linkedRoom());
   const [busy, setBusy] = useState(false);
   const cleanName = name.trim() || t('title.namePlaceholder');
+  // Entering a room unmounts the title screen: the Aces go back into the fan for next time.
+  useEffect(
+    () => () => {
+      if (store.get().room) placed.fill(null);
+    },
+    [],
+  );
 
   const go = async (fn: () => Promise<unknown>) => {
     unlockAudio();

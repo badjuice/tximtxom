@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.18.1 (2026-10-19)
+- 🔧 The Aces on the title screen stay where you drop them. They go back into the fan when you return to the title screen.
+
 ## 0.18.0 (2026-10-19)
 - 🐛 A card can be dragged onto an empty discard pile.
 - 🐛 While you drag a card, the buttons at the bottom are locked, so "End with" can no longer fire mid-drag.
