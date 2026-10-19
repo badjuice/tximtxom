@@ -354,7 +354,18 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       break;
     case 'discard':
       sfx('cardSlide2');
-      if (e.seat !== me) hints.set(`c${e.card}`, { from: seatPos(g, e.seat) });
+      if (e.seat !== me) {
+        // Their drawn card was hovering beside their hand (o{seat}_x).
+        const held = table.cardPos(`o${e.seat}_x`) ?? drawPileTop(L, g.drawCount);
+        if (e.fromDraw) {
+          // Returned: the card they drew turns over on its way to the discard pile.
+          hints.set(`c${e.card}`, { from: held, faceDown: true });
+        } else {
+          // Kept: the drawn card tucks into their hand while another card leaves it.
+          hints.set(`c${e.card}`, { from: seatPos(g, e.seat) });
+          hints.set(`o${e.seat}_${g.players[e.seat].handCount - 1}`, { from: held, reset: true });
+        }
+      }
       announce(t('sr.discarded', { name: name(g, e.seat), card: cardSpoken(e.card) }));
       break;
     case 'reshuffle':
@@ -520,7 +531,7 @@ export function drop(card: Card, target: DropTarget): void {
   } else void send({ type: 'ride', card });
 }
 
-/** Balatro's "Nope!": a ride card that doesn't fit. */
+/** Balatro's "Nope!": a ride card that doesn't fit, or cards that aren't a formation. */
 function nope(): void {
   play('cancel');
   vibrate([30, 40, 30]);
@@ -554,6 +565,12 @@ export async function send(action: Action): Promise<boolean> {
   const r = await act(action);
   if (!r.ok && action.type === 'ride') {
     nope();
+    return false;
+  }
+  // "That is not a valid formation": the same Nope! as a ride that doesn't fit, plus the bar shake.
+  if (!r.ok && action.type === 'lay') {
+    nope();
+    store.set((s) => ({ shake: s.shake + 1 }));
     return false;
   }
   if (!r.ok) {
@@ -598,6 +615,8 @@ export interface BarButton {
   onClick: () => void;
   key?: string;
   title?: string;
+  /** Press and hold to confirm (moves that are easy to hit by mistake). */
+  hold?: boolean;
 }
 
 export interface Bar {
@@ -755,7 +774,7 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
         ...EMPTY,
         main: [
           { label: t('act.lay'), color: 'blue', enabled: selected.length >= 2, onClick: () => void send({ type: 'lay', cards: selected }), key: 'Enter' },
-          { label: t('act.done'), color: 'red', enabled: true, onClick: () => void send({ type: 'doneLaying' }), key: 'E', title: t('act.doneTitle') },
+          { label: t('act.done'), color: 'red', enabled: true, onClick: () => void send({ type: 'doneLaying' }), key: 'E', title: t('act.doneTitle'), hold: true },
         ],
         status: g.noMoreFormations ? t('st.noMore') : t('st.select'),
       };

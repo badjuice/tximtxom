@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { type GameView, handPoints, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
-import { cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort } from '../controller';
+import { type BarButton, cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { revealGroups } from '../game/scene';
 import { kindName, t } from '../i18n';
@@ -318,14 +318,17 @@ export function ActionBar() {
     return () => clearTimeout(tm);
   }, [shake]);
   const bar = computeBar(room, selected, staged);
+  // While a card is held in a drag, no button may fire (a drop is coming).
+  const dragging = useStore((s) => s.dragging);
+  const on = (b: BarButton) => b.enabled && !dragging;
 
   // Keyboard shortcuts for the everyday buttons (the hold buttons handle their own keys).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (store.get().overlay || (e.target as HTMLElement)?.tagName === 'INPUT' || e.repeat) return;
+      if (store.get().overlay || store.get().dragging || (e.target as HTMLElement)?.tagName === 'INPUT' || e.repeat) return;
       const k = e.key.length === 1 ? e.key.toUpperCase() : e.key;
       for (const b of bar.main) {
-        if (b.enabled && b.key === k) {
+        if (b.enabled && !b.hold && b.key === k) {
           e.preventDefault();
           b.onClick();
           return;
@@ -347,18 +350,22 @@ export function ActionBar() {
       <div class={`action-bar${shaking ? ' shake' : ''}`}>
         <div class="corner left">
           {bar.tximtxom && (
-            <HoldButton color="orange" label={bar.tximtxom.label} enabled={bar.tximtxom.enabled} onConfirm={bar.tximtxom.onClick} hotkey="T" title={bar.tximtxom.title} class="special" />
+            <HoldButton color="orange" label={bar.tximtxom.label} enabled={on(bar.tximtxom)} onConfirm={bar.tximtxom.onClick} hotkey="T" title={bar.tximtxom.title} class="special" />
           )}
         </div>
         <div class="main-actions">
-          {bar.main.map((b) => (
-            <Button color={b.color} disabled={!b.enabled} onClick={b.onClick} kbd={b.key === 'Enter' ? '⏎' : b.key === 'Backspace' ? '⌫' : b.key} title={b.title} big>
-              <CardText text={b.label} />
-            </Button>
-          ))}
+          {bar.main.map((b) =>
+            b.hold ? (
+              <HoldButton color={b.color} label={b.label} enabled={on(b)} onConfirm={b.onClick} hotkey={b.key} title={b.title} />
+            ) : (
+              <Button color={b.color} disabled={!on(b)} onClick={b.onClick} kbd={b.key === 'Enter' ? '⏎' : b.key === 'Backspace' ? '⌫' : b.key} title={b.title} big>
+                <CardText text={b.label} />
+              </Button>
+            ),
+          )}
         </div>
         <div class="corner right">
-          {bar.txiJog && <HoldButton color="red" label={bar.txiJog.label} enabled={bar.txiJog.enabled} onConfirm={bar.txiJog.onClick} hotkey="R" title={bar.txiJog.title} class="special" />}
+          {bar.txiJog && <HoldButton color="red" label={bar.txiJog.label} enabled={on(bar.txiJog)} onConfirm={bar.txiJog.onClick} hotkey="R" title={bar.txiJog.title} class="special" />}
         </div>
       </div>
     </div>

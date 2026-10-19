@@ -5,6 +5,13 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.18.0 (2026-10-19)
+- 🐛 A card can be dragged onto an empty discard pile.
+- 🐛 While you drag a card, the buttons at the bottom are locked, so "End with" can no longer fire mid-drag.
+- 🔧 "That is not a valid formation" now gets the Nope! too.
+- 🔧 Another player's draw shows what they did: a returned card turns face up on its way to the discard pile, a kept one tucks into their hand while another card leaves it.
+- 🔧 "Já está" is now "Acabar de mostrar" ("Finish showing") and must be held to confirm, so it is no longer pressed by mistake.
+
 ## 0.17.0 (2026-10-19)
 - 🐛 Auto-sort no longer turns itself off when a dragged card goes back to your hand without moving, or is dropped somewhere it cannot go.
 - ✨ Your character is remembered: new rooms give it back to you if nobody else has it.

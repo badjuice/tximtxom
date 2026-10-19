@@ -19,6 +19,17 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.18.0',
+    date: '2026-10-19',
+    items: [
+      f('A card can be dragged onto an empty discard pile.', 'Já se pode arrastar uma carta para o Descarte vazio.'),
+      f('While you drag a card, the buttons at the bottom are locked, so "End with" can no longer fire mid-drag.', 'Enquanto arrastas uma carta, os botões do fundo ficam bloqueados, por isso o "Txi jog" já não dispara a meio do arrasto.'),
+      c('"That is not a valid formation" now gets the Nope! too.', '"Isso não é uma formação válida" agora também leva o Nope!.'),
+      c("Another player's draw shows what they did: a returned card turns face up on its way to the discard pile, a kept one tucks into their hand while another card leaves it.", 'O tirar de outro jogador mostra o que fez: uma carta devolvida vira-se a caminho do Descarte, uma carta guardada entra na mão enquanto sai outra.'),
+      c('"Já está" is now "Acabar de mostrar" ("Finish showing") and must be held to confirm, so it is no longer pressed by mistake.', '"Já está" passa a "Acabar de mostrar" e tem de ser mantido premido para confirmar, para não ser carregado por engano.'),
+    ],
+  },
+  {
     version: '0.17.0',
     date: '2026-10-19',
     items: [

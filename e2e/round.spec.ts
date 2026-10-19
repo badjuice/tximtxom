@@ -12,9 +12,9 @@ async function open(page: Page) {
 
 const bar = (page: Page, label: string) => page.locator(`.main-actions button:has-text("${label}"):not([disabled])`);
 
-/** Txi jog is a press-and-hold button. */
-async function holdTxiJog(page: Page): Promise<boolean> {
-  const b = page.locator('.corner.right .hold:not([disabled])');
+/** Txi jog and "Finish showing" are press-and-hold buttons. */
+async function holdTxiJog(page: Page, where = '.corner.right'): Promise<boolean> {
+  const b = page.locator(`${where} .hold:not([disabled])`).first();
   if (!(await b.count())) return false;
   const box = await b.boundingBox();
   if (!box) return false;
@@ -28,7 +28,8 @@ async function holdTxiJog(page: Page): Promise<boolean> {
 /** One step of a simple strategy: draw; Txi jog when allowed, else throw the drawn card away; pass on rides; reveal nothing. */
 async function step(page: Page): Promise<'done' | 'acted' | 'idle'> {
   if ((await page.locator('.summary-modal').count()) > 0) return 'done';
-  for (const label of ['Pass', 'Done', 'Finish', 'Draw']) {
+  if (await holdTxiJog(page, '.main-actions')) return 'acted'; // Finish showing
+  for (const label of ['Pass', 'Finish', 'Draw']) {
     const b = bar(page, label).first();
     if (await b.count()) {
       await b.click({ timeout: 3000 }).catch(() => {});

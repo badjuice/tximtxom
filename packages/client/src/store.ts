@@ -26,6 +26,8 @@ export interface ClientState {
   callout: { id: number; text: string; color: string; small?: boolean; ms: number } | null;
   /** Bumped to trigger a "nope" shake on the action bar. */
   shake: number;
+  /** A card is being dragged on the table: the action bar is locked meanwhile. */
+  dragging: boolean;
   layout: Layout | null;
   /** Full move log of the current game, oldest first. */
   history: { id: number; e: GameEvent }[];
@@ -62,6 +64,7 @@ export const store = createStore<ClientState>({
   banner: null,
   callout: null,
   shake: 0,
+  dragging: false,
   layout: null,
   history: [],
   myDraws: {},

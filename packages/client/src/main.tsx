@@ -27,6 +27,7 @@ async function boot() {
     onDrop: drop,
     onBadDrop: badDrop,
     blocked: () => store.get().overlay !== null,
+    onDragChange: (dragging) => store.set({ dragging }),
   });
   table.onLayout = (layout) => store.set({ layout });
   await table.init(document.getElementById('stage')!);

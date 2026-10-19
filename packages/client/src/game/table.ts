@@ -22,6 +22,8 @@ export interface TableHandlers {
   onBadDrop(card: Card, target: DropTarget): void;
   /** True while something (modal, panel) blocks the table. */
   blocked(): boolean;
+  /** A card drag started (true) or ended (false). */
+  onDragChange(active: boolean): void;
 }
 
 export interface TableInput {
@@ -102,6 +104,7 @@ export class Table {
     canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
     addEventListener('pointerup', (e) => this.onPointerUp(e));
     addEventListener('pointercancel', () => {
+      if (this.drag?.active) this.handlers.onDragChange(false);
       this.drag = null;
       this.sync();
     });
@@ -373,6 +376,7 @@ export class Table {
       this.drag.y = p.y;
       if (!this.drag.active && Math.hypot(p.x - this.drag.start.x, p.y - this.drag.start.y) > DRAG_THRESHOLD) {
         this.drag.active = true;
+        this.handlers.onDragChange(true);
       }
       if (this.drag.active) this.sync();
     }
@@ -406,11 +410,12 @@ export class Table {
       this.views.get(`c${drag.card}`)?.pop(0.12);
       return;
     }
+    this.handlers.onDragChange(false);
     const p = this.toVirtual(e);
     // Dropped on something that takes it?
     const under = this.hit(p, (d) => d.card !== drag.card && (d.role === 'discardTop' || d.role === 'hand' || d.role === 'formation'));
     let target: DropTarget | null = null;
-    if (under?.role === 'discardTop') target = { kind: 'discard' };
+    if (under?.role === 'discardTop' || (!under && this.overEmptyDiscard(p))) target = { kind: 'discard' };
     else if (under?.role === 'hand' && under.card !== null) target = { kind: 'handCard', card: under.card };
     else if (under?.role === 'formation' && under.card !== null) {
       const id = this.formationAtCard(under.card);
@@ -428,6 +433,14 @@ export class Table {
       this.reorder(drag.card, p.x);
     }
     this.sync();
+  }
+
+  /** An empty discard pile has no card to hit, but still takes drops on its spot. */
+  private overEmptyDiscard(p: Point): boolean {
+    const g = this.input.game;
+    if (!g || g.discardTop !== null) return false;
+    const L = this.layout;
+    return Math.abs(p.x - L.discard.x) <= (CARD_W * L.pileScale) / 2 && Math.abs(p.y - L.discard.y) <= (CARD_H * L.pileScale) / 2;
   }
 
   /** Moves a hand card to the slot nearest to x. */
