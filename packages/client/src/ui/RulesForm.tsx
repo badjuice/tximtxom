@@ -15,7 +15,7 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
       <Choice
         label={t('rule.bust')}
         desc={t('rule.bust.desc')}
-        joker="mr_bones"
+        joker="bust"
         value={rules.threshold}
         options={[
           { value: 40, label: '40' },
@@ -24,20 +24,20 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         onChange={(threshold) => onChange({ threshold })}
         disabled={readOnly}
       />
-      <Toggle label={t('rule.hardcore')} desc={t('rule.hardcore.desc')} joker="trio" tone="punish" checked={rules.hardcore} onChange={(hardcore) => onChange({ hardcore })} disabled={readOnly} />
+      <Toggle label={t('rule.hardcore')} desc={t('rule.hardcore.desc')} joker="hardcore" tone="punish" checked={rules.hardcore} onChange={(hardcore) => onChange({ hardcore })} disabled={readOnly} />
       <Toggle
         label={t('rule.superposition')}
         desc={t('rule.superposition.desc')}
-        joker="superposition" tone="support"
+        joker="ace" tone="support"
         checked={rules.superposition}
         onChange={(superposition) => onChange({ superposition })}
         disabled={readOnly}
       />
-      <Toggle label={t('rule.smeared')} desc={t('rule.smeared.desc')} joker="smeared" tone="support" checked={rules.smeared} onChange={(smeared) => onChange({ smeared })} disabled={readOnly} />
+      <Toggle label={t('rule.smeared')} desc={t('rule.smeared.desc')} joker="mixed" tone="support" checked={rules.smeared} onChange={(smeared) => onChange({ smeared })} disabled={readOnly} />
       <Choice
         label={t('rule.rideOrder')}
         desc={t('rule.rideOrder.desc')}
-        joker="ride_the_bus"
+        joker="ride"
         value={rules.rideOrder}
         options={[
           { value: 'simultaneous', label: t('rule.together') },
@@ -46,11 +46,11 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         onChange={(rideOrder) => onChange({ rideOrder })}
         disabled={readOnly}
       />
-      <Toggle label={t('rule.autoRide')} desc={t('rule.autoRide.desc')} joker="chaos" tone="support" checked={rules.autoRide} onChange={(autoRide) => onChange({ autoRide })} disabled={readOnly} />
+      <Toggle label={t('rule.autoRide')} desc={t('rule.autoRide.desc')} joker="autoride" tone="support" checked={rules.autoRide} onChange={(autoRide) => onChange({ autoRide })} disabled={readOnly} />
       <Toggle
         label={t('rule.sixthSense')}
         desc={t('rule.sixthSense.desc')}
-        joker="sixth_sense" tone="info"
+        joker="peek" tone="info"
         checked={rules.sixthSense}
         onChange={(sixthSense) => onChange({ sixthSense })}
         disabled={readOnly}
@@ -58,17 +58,17 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
       <Toggle
         label={t('rule.notice')}
         desc={t('rule.notice.desc')}
-        joker="blueprint" tone="info"
+        joker="notice" tone="info"
         checked={rules.noMoreFormationsNotice}
         onChange={(noMoreFormationsNotice) => onChange({ noMoreFormationsNotice })}
         disabled={readOnly}
       />
-      <Toggle label={t('rule.doubleDown')} desc={t('rule.doubleDown.desc')} joker="duo" tone="punish" checked={rules.doubleDown} onChange={(doubleDown) => onChange({ doubleDown })} disabled={readOnly} />
-      <Toggle label={t('rule.penalty10')} desc={t('rule.penalty10.desc')} joker="credit_card" tone="punish" checked={rules.penalty10} onChange={(penalty10) => onChange({ penalty10 })} disabled={readOnly} />
+      <Toggle label={t('rule.doubleDown')} desc={t('rule.doubleDown.desc')} joker="double" tone="punish" checked={rules.doubleDown} onChange={(doubleDown) => onChange({ doubleDown })} disabled={readOnly} />
+      <Toggle label={t('rule.penalty10')} desc={t('rule.penalty10.desc')} joker="penalty" tone="punish" checked={rules.penalty10} onChange={(penalty10) => onChange({ penalty10 })} disabled={readOnly} />
       <Choice
         label={t('rule.timer')}
         desc={t('rule.timer.desc')}
-        joker="hourglass"
+        joker="timer"
         value={rules.turnTimer}
         options={[
           { value: 0, label: t('rule.off') },

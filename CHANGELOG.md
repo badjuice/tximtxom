@@ -5,6 +5,14 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.16.0 (2026-10-19)
+- 🔧 New look: cards, card backs, characters, rule pictures and badges now come from Kenney's free art packs instead of Balatro.
+- 🔧 Bots are dungeon characters with new names: Mágiku, Kabaleru, Bikingu, Fantasma, Ziku and Frei. Players pick from 14 characters.
+- 🔧 New sound effects from Kenney. The music stays for now.
+- 🔧 Rules renamed: Superposition is now Ace High, Smeared is Mixed Suits, and Sixth Sense is Peek.
+- 🔧 Portuguese text translates every game term except Rabenta, TximTxom, Txi jog and the Panha Boleia! and Jog txid! callouts.
+- 🐛 Banners no longer break words in the middle on phones.
+
 ## 0.15.3 (2026-10-18)
 - 🔧 New browser tab icon made from the TximTxom logo, plus a home screen icon for phones.
 

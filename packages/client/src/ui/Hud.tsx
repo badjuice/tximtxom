@@ -9,7 +9,7 @@ import { updateSettings, useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, useStore } from '../store';
 import { Button, CardText, HoldButton, Modal } from './common';
-import { CardIcon, Icon, JokerIcon, Wins } from './sprites';
+import { CardIcon, Icon, ArtIcon, Wins } from './sprites';
 
 function toScreen(L: Layout, p: Point) {
   return { left: `${L.offsetX + p.x * L.scale}px`, top: `${L.offsetY + p.y * L.scale}px` };
@@ -54,10 +54,10 @@ function TopBar({ g, onLeave }: { g: GameView; onLeave: () => void }) {
       <div class="round-chip">
         <span>{t('top.round', { n: g.round })}</span>
         <span class="bust-chip">{t('top.bust', { n: g.rules.threshold })}</span>
-        {g.rules.hardcore && <JokerIcon name="trio" scale={0.26} title={t('rule.hardcore')} />}
-        {g.rules.superposition && <JokerIcon name="superposition" scale={0.26} title={t('rule.superposition')} />}
-        {g.rules.smeared && <JokerIcon name="smeared" scale={0.26} title={t('rule.smeared')} />}
-        {g.rules.sixthSense && <JokerIcon name="sixth_sense" scale={0.26} title={t('rule.sixthSense')} />}
+        {g.rules.hardcore && <ArtIcon name="hardcore" scale={0.26} title={t('rule.hardcore')} />}
+        {g.rules.superposition && <ArtIcon name="ace" scale={0.26} title={t('rule.superposition')} />}
+        {g.rules.smeared && <ArtIcon name="mixed" scale={0.26} title={t('rule.smeared')} />}
+        {g.rules.sixthSense && <ArtIcon name="peek" scale={0.26} title={t('rule.sixthSense')} />}
         <button class="rules-btn" onClick={() => open('rules')}>
           {t('top.rules')}
         </button>
@@ -137,7 +137,7 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
       {p.avatar && (
         // The Joker shakes like a Balatro trigger when this player's turn starts.
         <span class={`plate-art${active ? ' juice' : ''}`} key={active ? 'on' : 'off'}>
-          <JokerIcon name={p.avatar} scale={0.42} title={p.isBot ? t('plate.bot') : p.botControlled ? t('plate.botFor') : undefined} />
+          <ArtIcon name={p.avatar} scale={0.42} title={p.isBot ? t('plate.bot') : p.botControlled ? t('plate.botFor') : undefined} />
         </span>
       )}
       <div class="plate-name">
@@ -160,8 +160,8 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
         )}
       </div>
       {/* Balatro's Handy Tag marks the player whose turn it is; the Rare Tag marks the host. */}
-      {active && <Icon name="tag_handy" scale={0.9} class="turn-tag" title={me ? t('b.yourTurn') : t('plate.theirTurn')} />}
-      {p.id === room.hostId && <Icon name="tag_rare" scale={0.7} class="host-tag" title={t('lobby.hostTitle')} />}
+      {active && <Icon name="turn" scale={0.9} class="turn-tag" title={me ? t('b.yourTurn') : t('plate.theirTurn')} />}
+      {p.id === room.hostId && <Icon name="host" scale={0.7} class="host-tag" title={t('lobby.hostTitle')} />}
       {offline && <div class="plate-chip bad">{t('plate.reconnecting')}</div>}
       {chip && <div class="plate-chip">{chip}</div>}
       {active && room.turnDeadline && <TimerBar deadline={room.turnDeadline} total={g.rules.turnTimer} />}
@@ -217,7 +217,7 @@ function SixthSense({ g, L }: { g: GameView; L: Layout }) {
   return (
     <div class="peek" style={toScreen(L, mid)} onPointerEnter={() => setOpen(true)} onPointerLeave={() => setOpen(false)}>
       <button class="peek-btn" type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <JokerIcon name="sixth_sense" scale={0.34} />
+        <ArtIcon name="peek" scale={0.34} />
         <span>{t('ss.peek')}</span>
       </button>
       {open && (
@@ -421,8 +421,8 @@ function RoundSummary({ g }: { g: GameView }) {
                   {r.points[i]}
                   {pen && (
                     <span class="pen">
-                      {pen.doubled && <JokerIcon name="duo" scale={0.22} title={t('sum.doubled')} />}
-                      {pen.plus10 && <JokerIcon name="credit_card" scale={0.22} title={t('sum.plus10')} />}
+                      {pen.doubled && <ArtIcon name="double" scale={0.22} title={t('sum.doubled')} />}
+                      {pen.plus10 && <ArtIcon name="penalty" scale={0.22} title={t('sum.plus10')} />}
                     </span>
                   )}
                 </td>
@@ -488,7 +488,7 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
     >
       {tximtxom && (
         <p class="good center">
-          <JokerIcon name="superposition" scale={0.32} /> {t('go.tximtxom')}
+          <ArtIcon name="tximtxom" scale={0.32} /> {t('go.tximtxom')}
         </p>
       )}
       <table class="score-table">

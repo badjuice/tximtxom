@@ -128,7 +128,7 @@ export class Room {
     return null;
   }
 
-  /** Bots are the legendary Jokers (and Jimbo). */
+  /** Bots are the dungeon characters from BOT_PERSONAS. */
   private freePersona(current = '') {
     return this.nextFree(BOT_PERSONAS, (p) => p.avatar, current);
   }
@@ -139,7 +139,7 @@ export class Room {
   }
 
   addHuman(name: string, clientId: string): Member {
-    const art = this.freeHumanArt() ?? 'joker';
+    const art = this.freeHumanArt() ?? 'villager';
     const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: art, clientId };
     this.members.push(m);
     if (!this.hostId) this.hostId = m.id;

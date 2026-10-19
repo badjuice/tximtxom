@@ -8,7 +8,7 @@ import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle, WaveText } 
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { RulesForm } from './RulesForm';
-import { CardBackIcon, CardIcon, JokerIcon, Wins } from './sprites';
+import { CardBackIcon, CardIcon, ArtIcon, Wins } from './sprites';
 
 export function Overlays() {
   const overlay = useStore((s) => s.overlay);
@@ -100,7 +100,7 @@ function Scoreboard({ onClose }: { onClose: () => void }) {
             <div class={`sb-row${rank === 0 ? ' lead' : ''}`} style={{ '--seat': SEAT_COLORS[i] }}>
               <span class="sb-rank">{rank + 1}</span>
               <span class="sb-name">
-                {p.avatar ? <JokerIcon name={p.avatar} scale={0.3} /> : <span class="seat-dot" />}
+                {p.avatar ? <ArtIcon name={p.avatar} scale={0.3} /> : <span class="seat-dot" />}
                 {who(i)}
                 <Wins n={lobby.find((x) => x.id === p.id)?.wins ?? 0} scale={0.5} />
                 {g.dealer === i && <span class="dealer-chip">D</span>}
@@ -201,7 +201,7 @@ function Formations({ onClose }: { onClose: () => void }) {
         ))}
       </span>
       <span class="f-desc">
-        {opts.joker && <JokerIcon name={opts.joker} scale={0.3} />}
+        {opts.joker && <ArtIcon name={opts.joker} scale={0.3} />}
         {desc}
       </span>
     </div>
@@ -210,13 +210,13 @@ function Formations({ onClose }: { onClose: () => void }) {
     <Modal title={t('f.title')} onClose={onClose} wide>
       <p class="center muted f-lead">{t('f.lead')}</p>
       <div class="f-grid">
-        {row(t('pair'), 'blue', EX.pair, hardcore ? t('f.pairOff') : t('f.pair'), { off: hardcore, joker: hardcore ? 'trio' : undefined })}
+        {row(t('pair'), 'blue', EX.pair, hardcore ? t('f.pairOff') : t('f.pair'), { off: hardcore, joker: hardcore ? 'hardcore' : undefined })}
         {row(t('trio'), 'blue', EX.trio, t('f.trio'))}
         {row(t('quad'), 'blue', EX.quad, t('f.quad'))}
         {row(t('straight'), 'red', EX.straight, t('f.straight'))}
-        {row(t('f.mixed'), 'red', EX.mixed, smeared ? t('f.mixedOn') : t('f.mixedOff'), { off: !smeared, joker: 'smeared' })}
+        {row(t('f.mixed'), 'red', EX.mixed, smeared ? t('f.mixedOn') : t('f.mixedOff'), { off: !smeared, joker: 'mixed' })}
         {row(t('f.aceLow'), 'red', EX.aceLow, t('f.aceLowDesc'))}
-        {row(t('f.aceHigh'), 'red', EX.aceHigh, superposition ? t('f.aceHighOn') : t('f.aceHighOff'), { off: !superposition, joker: 'superposition' })}
+        {row(t('f.aceHigh'), 'red', EX.aceHigh, superposition ? t('f.aceHighOn') : t('f.aceHighOff'), { off: !superposition, joker: 'ace' })}
         {row(t('f.noWrap'), 'grey', EX.bad, t('f.noWrapDesc'), { off: true })}
       </div>
       <div class="f-row f-tximtxom">
@@ -231,7 +231,7 @@ function Formations({ onClose }: { onClose: () => void }) {
         <span class="f-desc">{smeared ? t('f.tximtxomSmeared') : t('f.tximtxomDesc')}</span>
       </div>
       <p class="f-ride">
-        <JokerIcon name="ride_the_bus" scale={0.34} />
+        <ArtIcon name="ride" scale={0.34} />
         <span>
           <b class="hl hl-g">{t('f.ride')}</b> {smeared ? t('f.rideDescSmeared') : t('f.rideDesc')}
         </span>
@@ -346,7 +346,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
 // ------------------------------------------------------------------ help
 
 type HelpTab = 'goal' | 'turn' | 'end' | 'ride' | 'more';
-const HELP_ART: Record<HelpTab, string> = { goal: 'joker', turn: 'blueprint', end: 'mr_bones', ride: 'ride_the_bus', more: 'superposition' };
+const HELP_ART: Record<HelpTab, string> = { goal: 'help', turn: 'turn', end: 'bust', ride: 'ride', more: 'tximtxom' };
 
 function Help({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<HelpTab>('goal');
@@ -355,7 +355,7 @@ function Help({ onClose }: { onClose: () => void }) {
     <Modal title={t('help.title')} onClose={onClose} wide>
       <Tabs tabs={tabs.map((id) => ({ id, label: t(`help.tab.${id}` as Key) }))} active={tab} onChange={setTab} />
       <div class="help-page">
-        <JokerIcon name={HELP_ART[tab]} scale={1} />
+        <ArtIcon name={HELP_ART[tab]} scale={1} />
         <p class="help-text">
           <Rich text={t(`help.${tab}` as Key)} />
         </p>

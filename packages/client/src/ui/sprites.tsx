@@ -18,16 +18,12 @@ interface Atlas {
 const atlases: Record<string, Atlas> = {};
 
 export async function loadSpriteAtlases(): Promise<void> {
-  for (const name of ['cards', 'jokers', 'icons']) {
+  for (const name of ['cards', 'art', 'icons']) {
     const json = await (await fetch(`${import.meta.env.BASE_URL}assets/${name}.json`)).json();
     const frames: Record<string, Frame> = {};
     for (const [k, v] of Object.entries<{ frame: Frame }>(json.frames)) frames[k] = v.frame;
     atlases[name] = { url: `${import.meta.env.BASE_URL}assets/${json.meta.image}`, w: json.meta.size.w, h: json.meta.size.h, frames };
   }
-}
-
-function hasFrame(atlas: string, frame: string): boolean {
-  return !!atlases[atlas]?.frames[frame];
 }
 
 function spriteStyle(atlas: string, frame: string, scale: number): Record<string, string> {
@@ -64,42 +60,45 @@ const tilt = {
   },
 };
 
-/** A Joker card. Legendary Jokers get their "soul" floating on top, like in Balatro. */
-export function JokerIcon({ name, scale = 0.5, title }: { name: string; scale?: number; title?: string }) {
-  const soul = `${name}_soul`;
+/** Card and art scales are relative to a 95 px tall card, whatever size the art is. */
+const fit = (atlas: string, scale: number) => (scale * 95) / (atlases[atlas]?.frames.base?.h ?? atlases[atlas]?.frames.help?.h ?? 95);
+
+/** Art on a card: a player's character or a rule's picture. Unknown names (old saves) show the default character. */
+export function ArtIcon({ name, scale = 0.5, title }: { name: string; scale?: number; title?: string }) {
+  const frame = atlases.art?.frames[name] ? name : 'villager';
   return (
     <span
       class="sprite joker tilt"
-      style={spriteStyle('jokers', name, scale)}
+      style={spriteStyle('art', frame, fit('art', scale))}
       title={title}
       aria-hidden={title ? undefined : 'true'}
       role={title ? 'img' : undefined}
       aria-label={title}
       {...tilt}
-    >
-      {hasFrame('jokers', soul) && <span class="sprite soul" style={spriteStyle('jokers', soul, scale)} />}
-    </span>
+    />
   );
 }
 
-/** A small icon from the icons atlas (tags, stake chips). */
+/** A small badge from the icons atlas (turn, host, bot, wins). */
 export function Icon({ name, scale = 1, title, class: cls }: { name: string; scale?: number; title?: string; class?: string }) {
   return <span class={`sprite icon ${cls ?? ''}`} style={spriteStyle('icons', name, scale)} title={title} role={title ? 'img' : undefined} aria-label={title} aria-hidden={title ? undefined : 'true'} />;
 }
 
-/** Games won, as Balatro's Gold Stake chip with a count ("x2"). Nothing before the first win. */
+/** Games won, as a laurel badge with a count ("x2"). Nothing before the first win. */
 export function Wins({ n, scale = 0.6 }: { n: number; scale?: number }) {
   if (!n) return null;
   return (
     <span class="wins" title={`${n}`}>
-      <Icon name="stake_gold" scale={scale} />
+      <Icon name="win" scale={scale} />
       {n > 1 && <b>x{n}</b>}
     </span>
   );
 }
 
-export function CardIcon({ card, scale = 0.5, dim }: { card: Card; scale?: number; dim?: boolean }) {
+
+export function CardIcon({ card, scale: sc = 0.5, dim }: { card: Card; scale?: number; dim?: boolean }) {
   const s = useSettings();
+  const scale = fit('cards', sc);
   return (
     <span class={`sprite card tilt${dim ? ' dim' : ''}`} style={spriteStyle('cards', 'base', scale)} role="img" aria-label={cardSpoken(card)} {...tilt}>
       <span class="sprite" style={spriteStyle('cards', `${s.highContrast ? 'hc' : 'n'}_${cardCode(card)}`, scale)} />
@@ -108,5 +107,5 @@ export function CardIcon({ card, scale = 0.5, dim }: { card: Card; scale?: numbe
 }
 
 export function CardBackIcon({ back, scale = 0.5 }: { back: string; scale?: number }) {
-  return <span class="sprite card tilt" style={spriteStyle('cards', back, scale)} aria-hidden="true" {...tilt} />;
+  return <span class="sprite card tilt" style={spriteStyle('cards', back, fit('cards', scale))} aria-hidden="true" {...tilt} />;
 }

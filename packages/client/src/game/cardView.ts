@@ -2,7 +2,7 @@ import { Container, type Filter, Graphics, Sprite, type Texture } from 'pixi.js'
 import { type Card, cardCode } from '@tximtxom/shared';
 import { getSettings } from '../settings';
 import { dissolveFilter, setDissolve } from './dissolve';
-import { CARD_H, CARD_W } from './layout';
+import { ART_SCALE, CARD_H, CARD_W } from './layout';
 
 export interface CardTextures {
   get(name: string): Texture;
@@ -86,6 +86,8 @@ export class CardView extends Container {
     this.base.anchor.set(0.5);
     this.face = new Sprite(tex.get('base'));
     this.face.anchor.set(0.5);
+    // The atlas art is smaller than the card; scale it up to CARD_W x CARD_H.
+    for (const s of [this.shadow, this.base, this.face]) s.scale.set(ART_SCALE);
     this.outline = new Graphics();
     this.body.addChild(this.base, this.face, this.outline);
     this.addChild(this.shadow, this.body);
@@ -265,7 +267,7 @@ export class CardView extends Container {
     // Shadow drops further when lifted/hovered.
     const lift = (t.raised ? 1 : 0) + this.hoverAmt * 0.6;
     this.shadow.position.set(3 + lift * 3, 5 + lift * 5);
-    this.shadow.scale.x = this.body.scale.x;
+    this.shadow.scale.x = this.body.scale.x * ART_SCALE;
     this.shadow.alpha = t.alpha === 0 ? 0 : 0.28;
 
     const alpha = t.alpha ?? 1;

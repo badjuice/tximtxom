@@ -8,7 +8,7 @@ import { HistoryPanel } from './History';
 import { Hud } from './Hud';
 import { Lobby } from './Lobby';
 import { Overlays } from './Menus';
-import { JokerIcon } from './sprites';
+import { ArtIcon } from './sprites';
 import { Title } from './Title';
 
 export function App() {
@@ -89,7 +89,7 @@ function Banner() {
   if (!b) return null;
   return (
     <div class={`banner tone-${b.tone ?? 'info'}`} key={b.id} aria-hidden="true">
-      {b.joker && <JokerIcon name={b.joker} scale={0.8} />}
+      {b.joker && <ArtIcon name={b.joker} scale={0.8} />}
       <div>
         <div class="banner-text">
           <WaveText text={b.text} max={28} />

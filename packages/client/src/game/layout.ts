@@ -2,8 +2,13 @@
 // The short side of the screen is always 720 units; the long side stretches
 // to fill the screen (within limits), so phones don't get black bars.
 
-export const CARD_W = 71;
+/** Size of the card art in the atlas (Kenney's pixel cards). */
+export const ART_W = 42;
+export const ART_H = 60;
+/** Card size in layout units; the art is scaled to fit. */
 export const CARD_H = 95;
+export const CARD_W = (CARD_H * ART_W) / ART_H;
+export const ART_SCALE = CARD_H / ART_H;
 
 export interface Point {
   x: number;

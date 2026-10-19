@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { play } from '../audio';
 import { t } from '../i18n';
 import { AUTHOR_URL, VERSION } from '../version';
-import { JokerIcon } from './sprites';
+import { ArtIcon } from './sprites';
 
 type Color = 'red' | 'blue' | 'orange' | 'green' | 'grey' | 'purple';
 
@@ -22,7 +22,7 @@ let waveTimer: ReturnType<typeof setInterval> | null = null;
 function waveTick(): void {
   if (document.hidden || document.documentElement.classList.contains('reduced-motion')) return;
   for (const [el, w] of waves) {
-    const letters = el.children;
+    const letters = el.querySelectorAll('.w > span');
     // Positions 0..n-1 hop a letter; position n is the quiet beat before starting over.
     w.pos = (w.pos + 1) % (letters.length + 1);
     const letter = letters[w.pos] as HTMLElement | undefined;
@@ -48,6 +48,17 @@ function useWave(amp: number, on: boolean) {
   return ref;
 }
 
+/** Splits text into words, keeping each word's starting letter index. */
+function words(text: string): { text: string; start: number }[] {
+  const out: { text: string; start: number }[] = [];
+  let i = 0;
+  for (const w of text.split(' ')) {
+    if (w) out.push({ text: w, start: i });
+    i += [...w].length + 1;
+  }
+  return out;
+}
+
 /** Text whose letters wobble and hop in turn. Longer text than `max` stays still. */
 export function WaveText({ text, max = WAVE_MAX, amp = 3 }: { text: string; max?: number; amp?: number }) {
   const on = text.length <= max;
@@ -57,8 +68,16 @@ export function WaveText({ text, max = WAVE_MAX, amp = 3 }: { text: string; max?
     <span class="wave">
       <span class="sr-only">{text}</span>
       <span aria-hidden="true" ref={ref}>
-        {[...text].map((ch, i) => (
-          <span style={{ '--i': i }}>{ch === ' ' ? ' ' : ch}</span>
+        {/* Each word's letters stay together, so lines only break between words. */}
+        {words(text).map((w, wi) => (
+          <>
+            {wi > 0 && ' '}
+            <span class="w">
+              {[...w.text].map((ch, j) => (
+                <span style={{ '--i': w.start + j }}>{ch}</span>
+              ))}
+            </span>
+          </>
         ))}
       </span>
     </span>
@@ -216,7 +235,7 @@ export type Tone = 'punish' | 'info' | 'support';
 export function Toggle(props: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void; joker?: string; disabled?: boolean; tone?: Tone }) {
   return (
     <label class={`toggle${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`}>
-      {props.joker && <JokerIcon name={props.joker} scale={0.55} />}
+      {props.joker && <ArtIcon name={props.joker} scale={0.55} />}
       <span class="toggle-text">
         <span class="toggle-label">{props.joker ? <WaveText text={props.label} max={28} /> : props.label}</span>
         {props.desc && <span class="toggle-desc">{props.desc}</span>}
@@ -248,7 +267,7 @@ export function Choice<T extends string | number>(props: {
 }) {
   return (
     <div class={`toggle choice${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`} role="group" aria-label={props.label}>
-      {props.joker && <JokerIcon name={props.joker} scale={0.55} />}
+      {props.joker && <ArtIcon name={props.joker} scale={0.55} />}
       <span class="toggle-text">
         <span class="toggle-label">{props.joker ? <WaveText text={props.label} max={28} /> : props.label}</span>
         {props.desc && <span class="toggle-desc">{props.desc}</span>}

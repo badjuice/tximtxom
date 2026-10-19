@@ -7,7 +7,7 @@ import { store, useStore } from '../store';
 import { Button, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
 import { RulesForm } from './RulesForm';
-import { Icon, JokerIcon, Wins } from './sprites';
+import { Icon, ArtIcon, Wins } from './sprites';
 
 const PencilIcon = () => (
   <svg viewBox="0 0 16 16" width="18" height="18" shape-rendering="crispEdges" aria-hidden="true">
@@ -111,10 +111,10 @@ export function Lobby() {
             <li class={p.connected ? '' : 'offline'} style={{ '--seat': SEAT_COLORS[i] }}>
               {editable ? (
                 <button class="art-btn" title={t('lobby.cycleArt')} aria-label={t('lobby.cycleArtFor', { name: p.name })} onClick={() => void cycleAvatar(p.id)}>
-                  <JokerIcon name={p.avatar || 'joker'} scale={0.42} />
+                  <ArtIcon name={p.avatar || 'villager'} scale={0.42} />
                 </button>
               ) : (
-                <JokerIcon name={p.avatar || 'joker'} scale={0.42} />
+                <ArtIcon name={p.avatar || 'villager'} scale={0.42} />
               )}
               {editing === p.id ? (
                 <input
@@ -143,8 +143,8 @@ export function Lobby() {
               )}
               {/* Fixed slots (tag, rename, remove) keep every row's icons in the same columns. */}
               <span class="slot">
-                {p.id === room.hostId && <Icon name="tag_rare" scale={0.7} title={t('lobby.hostTitle')} />}
-                {p.isBot && <Icon name="tag_uncommon" scale={0.7} title={t('lobby.botTitle')} />}
+                {p.id === room.hostId && <Icon name="host" scale={0.7} title={t('lobby.hostTitle')} />}
+                {p.isBot && <Icon name="bot" scale={0.7} title={t('lobby.botTitle')} />}
               </span>
               <span class="slot">
                 {editable && editing !== p.id && (

@@ -59,18 +59,21 @@ export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
   };
 }
 
-/** Bots are Balatro's Jokers: a default name and the art that goes with it. */
+/** Bots are dungeon characters with Kriolu nicknames: a default name and the art that goes with it. */
 export const BOT_PERSONAS = [
-  { name: 'Jimbo', avatar: 'joker' },
-  { name: 'Perkeo', avatar: 'perkeo' },
-  { name: 'Triboulet', avatar: 'triboulet' },
-  { name: 'Chicot', avatar: 'chicot' },
-  { name: 'Canio', avatar: 'canio' },
-  { name: 'Yorick', avatar: 'yorick' },
+  { name: 'Mágiku', avatar: 'magiku' },
+  { name: 'Kabaleru', avatar: 'kabaleru' },
+  { name: 'Bikingu', avatar: 'bikingu' },
+  { name: 'Fantasma', avatar: 'fantasma' },
+  { name: 'Ziku', avatar: 'ziku' },
+  { name: 'Frei', avatar: 'frei' },
 ] as const;
 
-/** Joker art human players cycle through in the room. */
-export const HUMAN_JOKERS = ['joker', 'greedy', 'lusty', 'wrathful', 'gluttonous', 'even_steven', 'odd_todd', 'green_joker', 'blue_joker', 'golden'] as const;
+/** Character art human players cycle through in the room. */
+export const HUMAN_JOKERS = [
+  'villager', 'bearded', 'barbarian', 'guard', 'squire', 'princess', 'elder',
+  'slime', 'crab', 'ranger', 'bat', 'spider', 'snail', 'boar',
+] as const;
 
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;

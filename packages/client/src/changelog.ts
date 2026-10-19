@@ -19,6 +19,18 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.16.0',
+    date: '2026-10-19',
+    items: [
+      c("New look: cards, card backs, characters, rule pictures and badges now come from Kenney's free art packs instead of Balatro.", 'Visual novo: as cartas, os versos, as personagens, as imagens das regras e os emblemas vêm agora dos pacotes de arte gratuitos da Kenney em vez do Balatro.'),
+      c('Bots are dungeon characters with new names: Mágiku, Kabaleru, Bikingu, Fantasma, Ziku and Frei. Players pick from 14 characters.', 'Os bots são personagens de masmorra com nomes novos: Mágiku, Kabaleru, Bikingu, Fantasma, Ziku e Frei. Os jogadores escolhem entre 14 personagens.'),
+      c('New sound effects from Kenney. The music stays for now.', 'Efeitos sonoros novos da Kenney. A música fica, por agora.'),
+      c('Rules renamed: Superposition is now Ace High, Smeared is Mixed Suits, and Sixth Sense is Peek.', 'Regras com nomes novos: Superposição passa a Ás Alto, Borrod passa a Naipes Misturados e Sexto Sentido passa a Espreitar.'),
+      c('Portuguese text translates every game term except Rabenta, TximTxom, Txi jog and the Panha Boleia! and Jog txid! callouts.', 'O texto em português traduz todos os termos do jogo exceto Rabenta, TximTxom, Txi jog e os avisos Panha Boleia! e Jog txid!.'),
+      f('Banners no longer break words in the middle on phones.', 'Os avisos já não partem palavras a meio nos telemóveis.'),
+    ],
+  },
+  {
     version: '0.15.3',
     date: '2026-10-18',
     items: [

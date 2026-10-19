@@ -44,7 +44,7 @@ export interface SceneInput {
 
 /** Lays out formations in rows inside the reveal area. */
 /** Card overlap in a formation, as a share of card width. Formations whose
- *  Panha Boleia is over close up to save room (tunable). */
+ *  ride is over close up to save room (tunable). */
 export const FORMATION_STEP = 0.55;
 export const FORMATION_STEP_DONE = 0.3;
 

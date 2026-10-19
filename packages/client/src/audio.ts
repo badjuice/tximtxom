@@ -5,9 +5,8 @@ const A = `${import.meta.env.BASE_URL}assets/`;
 
 export type Sfx =
   | 'button' | 'cancel' | 'highlight1' | 'highlight2' | 'card1' | 'card3' | 'cardSlide1' | 'cardSlide2'
-  | 'cardFan2' | 'paper1' | 'chips1' | 'chips2' | 'coin1' | 'coin2' | 'coin3' | 'multhit1' | 'multhit2'
-  | 'whoosh1' | 'whoosh2' | 'gong' | 'win' | 'glass1' | 'crumple1' | 'tarot1' | 'timpani' | 'foil1'
-  | 'negative' | 'generic1' | 'explosion1';
+  | 'cardFan2' | 'chips1' | 'coin1' | 'coin2' | 'multhit1' | 'multhit2' | 'whoosh1' | 'win' | 'tarot1'
+  | 'foil1' | 'negative' | 'explosion1';
 
 let sfx: Howl | null = null;
 let music: Howl | null = null;

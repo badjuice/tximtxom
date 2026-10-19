@@ -18,25 +18,27 @@ Future work, in the order we plan to tackle it. Each item gets its own plan befo
 9. The draw animation shows clearly whether another player kept the drawn card or returned it to the discard pile.
 10. "Já está" confusion: players press it thinking it ends their ride, and finish showing formations, often with none shown. Make the state clear and prevent the misclick. A long press is one option; to be discussed.
 11. Show hand points excluding possible formations, as a min–max range that depends on the active rules.
+12. Phone layout is too sparse: use the free space to make plates, piles, buttons and labels bigger and cozier. In Portuguese the longer top-bar labels wrap to three rows and the name plates cover the ? and Settings buttons.
+13. Sound effects: the 0.16.0 Kenney sounds need another pass. Several feel too short, too long or too high-pitched next to the old ones. Pick replacements by ear (sound-check page with old and new side by side).
 
 ## Logging
 
-12. A log of actions and game states that can reproduce a match. It is never shown mid-game, so nobody can see the starting hands. When a match ends, the log is dumped to the console, with a copy button per match and one for the full history.
+14. A log of actions and game states that can reproduce a match. It is never shown mid-game, so nobody can see the starting hands. When a match ends, the log is dumped to the console, with a copy button per match and one for the full history.
 
 ## Features
 
-13. Chances of an instant loss or instant win, calculated or simulated.
-14. In-game chat and emotes.
-15. Gold: a currency earned for formations and for rounds and games won. To be expanded.
-16. Player stats, round stats and game stats. To be expanded.
-17. Achievements (open question).
-18. A hand-drawn cursor that changes image and animates with context: an open hand over a card you can pick up, closing into a fist while grabbing it, and a pointing finger with the thumb out over buttons. Other states to be defined.
-19. A browser easter egg.
+15. Chances of an instant loss or instant win, calculated or simulated.
+16. In-game chat and emotes.
+17. Gold: a currency earned for formations and for rounds and games won. To be expanded.
+18. Player stats, round stats and game stats. To be expanded.
+19. Achievements (open question).
+20. A hand-drawn cursor that changes image and animates with context: an open hand over a card you can pick up, closing into a fist while grabbing it, and a pointing finger with the thumb out over buttons. Other states to be defined.
+21. A browser easter egg.
 
 ## New rules
 
-20. No rides at all (art idea: Hit the Road).
-21. One more deck in the pool (art idea: Juggler).
-22. Bigger hand size (art idea: the Bean).
+22. No rides at all (art idea: Hit the Road).
+23. One more deck in the pool (art idea: Juggler).
+24. Bigger hand size (art idea: the Bean).
 
-The art ideas are Balatro Joker names. The 0.16.0 asset swap removes Balatro art, so each rule's art will be picked from the Kenney set when its turn comes.
+The art ideas are Balatro Joker names, kept only as a hint of the mood. The art itself comes from Kenney's Board Game Icons (`RULE_ART` in `tools/build-assets.mjs`).

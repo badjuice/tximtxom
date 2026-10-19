@@ -34,7 +34,7 @@ let lastTximTxomAt = 0;
 const RIDE_CALLOUT_MS = 1250;
 const CALLOUT = { you: '#009dff', ride: '#4bc292', tximtxom: '#fda200', gameOver: '#fe5f55', nope: '#fe5f55', reveal: '#8867a5' };
 
-/** Set when it's our moment to Panha Boleia on the open formation. */
+/** Set when it's our moment to ride on the open formation. */
 function myRideKey(g: GameView): string {
   const me = g.you;
   const w = g.reveal?.ride;
@@ -212,7 +212,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   pushToTable(hints);
 }
 
-/** "Your turn!", "Chicot's turn", "Panha Boleia!": announced when they start. */
+/** "Your turn!", "Chicot's turn", "Take a Ride!": announced when they start. */
 function turnCallouts(g: GameView, prevG: GameView | null): void {
   const me = g.you;
   const myTurn = me !== null && g.phase === 'playing' && g.turn === me;
@@ -372,10 +372,10 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
           sfx('foil1');
           sfx('multhit2', { delay: 200 });
           table.particles.sparkle(L.hand.x, L.h / 2, L.w * 0.6, 200, 50);
-          banner(t('b.fullHand'), { sub: t('b.fullHandSub', { name: who }), joker: 'ride_the_bus', tone: 'good', ms: 2600 });
+          banner(t('b.fullHand'), { sub: t('b.fullHandSub', { name: who }), joker: 'ride', tone: 'good', ms: 2600 });
         }, 900);
       } else if (e.kind !== 'manual') {
-        setTimeout(() => banner(t('b.noRides'), { sub: t('b.noRidesSub'), joker: 'ride_the_bus', tone: 'bad', ms: 2200 }), 1300);
+        setTimeout(() => banner(t('b.noRides'), { sub: t('b.noRidesSub'), joker: 'ride', tone: 'bad', ms: 2200 }), 1300);
       }
       banner(how, { sub: e.card !== null ? t('b.endingCard', { card: cardShort(e.card) }) : undefined, tone: 'bad' });
       announce(
@@ -515,7 +515,7 @@ export function drop(card: Card, target: DropTarget): void {
   } else void send({ type: 'ride', card });
 }
 
-/** Balatro's "Nope!": a Panha Boleia card that doesn't fit. */
+/** Balatro's "Nope!": a ride card that doesn't fit. */
 function nope(): void {
   play('cancel');
   vibrate([30, 40, 30]);

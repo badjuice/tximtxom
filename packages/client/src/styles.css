@@ -316,10 +316,10 @@ input[type='text'] {
     0 6px 0 var(--red-d),
     0 10px 0 rgba(0, 0, 0, 0.4);
 }
-.logo .wave [aria-hidden] > span:nth-child(odd) {
+.logo .wave .w > span:nth-child(odd) {
   color: var(--red);
 }
-.logo .wave [aria-hidden] > span:nth-child(even) {
+.logo .wave .w > span:nth-child(even) {
   color: var(--blue);
   text-shadow:
     0 6px 0 var(--blue-d),
@@ -327,7 +327,10 @@ input[type='text'] {
 }
 /* Balatro-style text: every letter wobbles gently on its own phase; the
    hops on top are driven from WaveText (they animate translate, this rotate). */
-.wave > [aria-hidden] > span {
+.wave .w {
+  white-space: nowrap;
+}
+.wave .w > span {
   display: inline-block;
   animation: letter-idle 1.3s ease-in-out calc(var(--i) * -0.37s) infinite alternate;
 }
@@ -1375,6 +1378,8 @@ input[type='text'] {
     0 14px 40px rgba(0, 0, 0, 0.5);
   animation: banner-in 0.35s cubic-bezier(0.2, 1.8, 0.4, 1);
   pointer-events: none;
+  /* Pinned at left: 50%, it would otherwise only grow to half the screen. */
+  width: max-content;
   max-width: 94vw;
 }
 .banner.tone-good {

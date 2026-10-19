@@ -5,7 +5,7 @@ import { cardShort, cardSpoken, type Key, kindName, lang, t } from '../i18n';
 import { updateSettings, useSettings } from '../settings';
 import { useStore } from '../store';
 import { SEAT_COLORS } from './Hud';
-import { JokerIcon } from './sprites';
+import { ArtIcon } from './sprites';
 
 const SUIT_CLASS = ['suit-h', 'suit-c', 'suit-d', 'suit-s'];
 
@@ -111,7 +111,7 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
           seat: e.seat,
           body: (
             <>
-              <JokerIcon name="ride_the_bus" scale={0.16} /> {tj('h.rode', { name: N(e.seat), card: <C card={e.card} /> })}
+              <ArtIcon name="ride" scale={0.16} /> {tj('h.rode', { name: N(e.seat), card: <C card={e.card} /> })}
             </>
           ),
         });
@@ -150,7 +150,7 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
           seat: e.seat,
           body: (
             <>
-              <JokerIcon name="superposition" scale={0.16} /> {tj('h.tximtxom', { name: N(e.seat) })}
+              <ArtIcon name="tximtxom" scale={0.16} /> {tj('h.tximtxom', { name: N(e.seat) })}
             </>
           ),
         });
