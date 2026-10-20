@@ -12,7 +12,7 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace
 const KENNEY = path.join(ROOT, '.cache/kenney');
 const OUT = path.join(ROOT, 'packages/client/public/assets');
 
-const PACKS = ['playing-cards-pack', 'tiny-dungeon', 'board-game-icons', 'casino-audio', 'interface-sounds', 'impact-sounds', 'music-jingles', 'rpg-audio', 'ui-pack'];
+const PACKS = ['playing-cards-pack', 'tiny-dungeon', 'board-game-icons', 'casino-audio', 'interface-sounds', 'impact-sounds', 'music-jingles', 'rpg-audio', 'ui-pack', 'game-icons'];
 for (const p of PACKS) {
   if (!fs.existsSync(path.join(KENNEY, p))) {
     console.error(`Missing ${path.join(KENNEY, p)}. Download it from https://kenney.nl/assets/${p} and unzip it there.`);
@@ -210,6 +210,22 @@ async function icons() {
   console.log(`atlas icons: ${Object.keys(BADGES).length} frames`);
 }
 
+// ---------------------------------------------------------------- menu button icons
+
+// Plain white shapes, used as CSS masks so the buttons can colour them.
+const UI_ICONS = { help: 'question', settings: 'gear', leave: 'exitLeft' };
+
+async function uiIcons() {
+  fs.mkdirSync(path.join(OUT, 'ui'), { recursive: true });
+  for (const [key, file] of Object.entries(UI_ICONS)) {
+    await sharp(path.join(KENNEY, 'game-icons/PNG/White/2x', `${file}.png`))
+      .resize(64, 64)
+      .png({ compressionLevel: 9 })
+      .toFile(path.join(OUT, 'ui', `${key}.png`));
+  }
+  console.log(`ui icons: ${Object.keys(UI_ICONS).length}`);
+}
+
 // ---------------------------------------------------------------- audio
 
 // Game sound name (audio.ts Sfx) -> Kenney file, by what the sound does in the game.
@@ -313,4 +329,5 @@ const only = process.argv[2]; // e.g. `node tools/build-assets.mjs cards`
 if (!only || only === 'cards') await cards();
 if (!only || only === 'art') await art();
 if (!only || only === 'icons') await icons();
+if (!only || only === 'ui') await uiIcons();
 if (!only || only === 'audio') await audio();

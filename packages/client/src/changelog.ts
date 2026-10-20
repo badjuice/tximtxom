@@ -19,6 +19,24 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.19.0',
+    date: '2026-10-19',
+    items: [
+      n('While you drag a card over your hand, the other cards open a gap where it would land, like in Balatro. The title-screen Aces do the same.', 'Enquanto arrastas uma carta sobre a mão, as outras abrem espaço onde ela vai cair, como no Balatro. Os Ases do ecrã inicial fazem o mesmo.'),
+      n('Anti-aliasing setting (Cards tab): off, card edges (default) or everything.', 'Opção de suavização (separador Cartas): desligada, margens das cartas (por defeito) ou tudo.'),
+      n('Esc opens Settings during a game.', 'Esc abre as Definições durante um jogo.'),
+      n('Leaving the room asks first.', 'Sair da sala pede confirmação.'),
+      c('Settings sits in the top corner next to the language switch, on the title screen and in the room. The room no longer has a Changelog button.', 'As Definições ficam no canto de cima, ao lado da língua, no ecrã inicial e na sala. A sala já não tem o botão do Registo de alterações.'),
+      c('In a game, Help, Settings and Leave are small buttons with clearer icons. Leave is now "Leave game" or "Leave room".', 'Num jogo, Ajuda, Definições e Sair são botões pequenos com ícones mais claros. Sair passa a "Sair do jogo" ou "Sair da sala".'),
+      c('The room is centred on the screen.', 'A sala fica ao centro do ecrã.'),
+      c('The title is bigger on big screens.', 'O título é maior em ecrãs grandes.'),
+      c('Settings: "Reset to defaults" shows on every tab. Muted sound and CRT off grey out their sliders instead of hiding them. Slider values sit in the middle of the bar.', 'Definições: "Repor tudo" aparece em todos os separadores. Com o som silenciado ou o CRT desligado, as barras ficam cinzentas em vez de desaparecer. Os valores ficam no meio da barra.'),
+      c('Keyboard list: "Hold R" instead of "R hold", centred on the screen.', 'Lista de teclas: "Manter R" em vez de "R manter", ao centro do ecrã.'),
+      f('Name plates no longer overflow at 160% text size.', 'As placas com os nomes já não transbordam com o texto a 160%.'),
+      f('Scoreboard: more space between names and the coloured circles.', 'Pontuação: mais espaço entre os nomes e os círculos de cor.'),
+    ],
+  },
+  {
     version: '0.18.2',
     date: '2026-10-19',
     items: [

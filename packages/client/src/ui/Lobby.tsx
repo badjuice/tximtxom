@@ -2,9 +2,9 @@ import { useEffect, useState } from 'preact/hooks';
 import { DEFAULT_RULES, MAX_PLAYERS, MIN_PLAYERS, NAME_MAX, type Rules } from '@tximtxom/shared';
 import { play } from '../audio';
 import { t } from '../i18n';
-import { addBot, cycleAvatar, kick, leaveRoom, renamePlayer, setRules, startGame } from '../net';
+import { addBot, cycleAvatar, kick, renamePlayer, setRules, startGame } from '../net';
 import { store, useStore } from '../store';
-import { Button, WaveText } from './common';
+import { Button, TopMenu, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
 import { RulesForm } from './RulesForm';
 import { Icon, ArtIcon, Wins } from './sprites';
@@ -172,7 +172,7 @@ export function Lobby() {
           ))}
         </ul>
         <div class="lobby-actions">
-          <Button color="orange" onClick={leaveRoom}>
+          <Button color="orange" onClick={() => store.set({ overlay: 'leave' })}>
             {t('lobby.leave')}
           </Button>
           {isHost ? (
@@ -193,6 +193,19 @@ export function Lobby() {
       </section>
 
       <div class="lobby-side">
+        {/* One row above the rules on wide screens: the menus, then language and Settings.
+            On phones the links follow the room panel and the corner holds language and Settings. */}
+        <div class="lobby-top">
+          <div class="lobby-links">
+            <Button color="grey" onClick={() => store.set({ overlay: 'help' })}>
+              {t('title.howToPlay')}
+            </Button>
+            <Button color="blue" onClick={() => store.set({ overlay: 'formations' })}>
+              {t('top.formations')}
+            </Button>
+          </div>
+          <TopMenu />
+        </div>
         <section class="panel lobby-rules">
           <h2>
             <WaveText text={isHost ? t('lobby.rules') : t('lobby.rulesByHost')} max={28} />
@@ -206,21 +219,6 @@ export function Lobby() {
             </div>
           )}
         </section>
-        {/* The same menus as the title screen, plus the formations reference. */}
-        <div class="lobby-links">
-          <Button color="grey" onClick={() => store.set({ overlay: 'help' })}>
-            {t('title.howToPlay')}
-          </Button>
-          <Button color="blue" onClick={() => store.set({ overlay: 'formations' })}>
-            {t('top.formations')}
-          </Button>
-          <Button color="grey" onClick={() => store.set({ overlay: 'settings' })}>
-            {t('title.settings')}
-          </Button>
-          <Button color="purple" onClick={() => store.set({ overlay: 'changelog' })}>
-            {t('title.changelog')}
-          </Button>
-        </div>
       </div>
     </main>
   );

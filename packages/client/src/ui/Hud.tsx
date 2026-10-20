@@ -4,11 +4,11 @@ import { type BarButton, cardsSeenOut, computeBar, readyForNextRound, sortHand, 
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { revealGroups } from '../game/scene';
 import { kindName, t } from '../i18n';
-import { leaveRoom, MODE, playAgain, startGame } from '../net';
+import { leaveRoom, playAgain, startGame } from '../net';
 import { updateSettings, useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, useStore } from '../store';
-import { Button, CardText, HoldButton, Modal } from './common';
+import { Button, CardText, HoldButton, Modal, UiIcon } from './common';
 import { CardIcon, Icon, ArtIcon, Wins } from './sprites';
 
 function toScreen(L: Layout, p: Point) {
@@ -27,11 +27,10 @@ export function Hud() {
   const room = useStore((s) => s.room)!;
   const L = useStore((s) => s.layout);
   const g = room.game!;
-  const [leaving, setLeaving] = useState(false);
   if (!L) return null;
   return (
     <div class="hud">
-      <TopBar g={g} onLeave={() => setLeaving(true)} />
+      <TopBar g={g} />
       {g.players.map((_, seat) => (
         <Plate g={g} room={room} seat={seat} L={L} />
       ))}
@@ -41,12 +40,11 @@ export function Hud() {
       <ActionBar />
       {g.phase === 'roundOver' && <RoundSummary g={g} />}
       {g.phase === 'gameOver' && <GameOver g={g} room={room} />}
-      {leaving && <LeaveConfirm room={room} onClose={() => setLeaving(false)} />}
     </div>
   );
 }
 
-function TopBar({ g, onLeave }: { g: GameView; onLeave: () => void }) {
+function TopBar({ g }: { g: GameView }) {
   const open = (overlay: NonNullable<Overlay>) => store.set({ overlay });
   const { historyOpen } = useSettings();
   return (
@@ -72,40 +70,21 @@ function TopBar({ g, onLeave }: { g: GameView; onLeave: () => void }) {
         <Button color="purple" onClick={() => updateSettings({ historyOpen: !historyOpen })} kbd="H" class={historyOpen ? 'pressed' : ''}>
           {t('top.history')}
         </Button>
-        <Button color="grey" onClick={() => open('help')} title={t('top.help')} label={t('top.help')}>
-          ?
-        </Button>
-        <Button color="orange" onClick={() => open('settings')} title={t('top.settings')} label={t('top.settings')}>
-          ⚙
-        </Button>
-        <Button color="grey" class="leave-btn" onClick={onLeave} title={t('top.leave')}>
-          ⎋ {t('top.leave')}
-        </Button>
+      </div>
+      {/* Small, like the Rules button: menus you need now and then. */}
+      <div class="topbar-mini">
+        <button class="mini-btn" onClick={() => open('help')} title={t('top.help')} aria-label={t('top.help')}>
+          <UiIcon name="help" />
+        </button>
+        <button class="mini-btn mini-orange" onClick={() => open('settings')} title={t('top.settings')} aria-label={t('top.settings')}>
+          <UiIcon name="settings" />
+        </button>
+        <button class="mini-btn mini-leave" onClick={() => open('leave')} title={t('top.leave')} aria-label={t('top.leave')}>
+          <UiIcon name="leave" />
+          <span class="mini-text">{t('top.leave')}</span>
+        </button>
       </div>
     </nav>
-  );
-}
-
-function LeaveConfirm({ room, onClose }: { room: RoomView; onClose: () => void }) {
-  const hosting = MODE === 'p2p' && room.hostId === room.youId;
-  return (
-    <Modal
-      title={t('leave.title')}
-      onClose={onClose}
-      footer={
-        <Button
-          color="red"
-          onClick={() => {
-            onClose();
-            leaveRoom();
-          }}
-        >
-          {t('leave.confirm')}
-        </Button>
-      }
-    >
-      <p>{hosting ? t('leave.hostBody') : t('leave.body')}</p>
-    </Modal>
   );
 }
 

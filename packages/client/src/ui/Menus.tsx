@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { makeCard, parseCards, type Suit } from '@tximtxom/shared';
 import { type Key, t } from '../i18n';
-import { leaveRoom } from '../net';
+import { leaveRoom, MODE } from '../net';
 import { resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle, WaveText } from './common';
@@ -26,9 +26,39 @@ export function Overlays() {
       return <ActiveRules onClose={close} />;
     case 'changelog':
       return <Changelog onClose={close} />;
+    case 'leave':
+      return <LeaveConfirm onClose={close} />;
     default:
       return null;
   }
+}
+
+/** "Are you sure?" before leaving a game or a room. */
+function LeaveConfirm({ onClose }: { onClose: () => void }) {
+  const room = useStore((s) => s.room);
+  if (!room) return null;
+  const hosting = MODE === 'p2p' && room.hostId === room.youId;
+  const game = !!room.game;
+  const body = game ? (hosting ? t('leave.hostBody') : t('leave.body')) : hosting ? t('leaveRoom.hostBody') : t('leaveRoom.body');
+  return (
+    <Modal
+      title={game ? t('leave.title') : t('leaveRoom.title')}
+      onClose={onClose}
+      footer={
+        <Button
+          color="red"
+          onClick={() => {
+            onClose();
+            leaveRoom();
+          }}
+        >
+          {t('leave.confirm')}
+        </Button>
+      }
+    >
+      <p>{body}</p>
+    </Modal>
+  );
 }
 
 /** Every change to the game, newest first, marked new / changed / fixed / removed. */
@@ -257,17 +287,36 @@ const KEYS: { keys: string; label: Key; hold?: boolean }[] = [
   { keys: 'S', label: 'key.scores' },
   { keys: 'F', label: 'key.formations' },
   { keys: 'H', label: 'key.history' },
+  { keys: 'Esc', label: 'key.settings' },
 ];
 
 function SettingsMenu({ onClose }: { onClose: () => void }) {
   const s = useSettings();
-  const inRoom = useStore((st) => !!st.room);
+  const room = useStore((st) => st.room);
   const [tab, setTab] = useState<SetTab>('general');
   const set = (p: Partial<Settings>) => updateSettings(p);
   const backs: Settings['cardBack'][] = ['back_red', 'back_blue', 'back_yellow', 'back_green', 'back_black', 'back_purple'];
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   return (
-    <Modal title={t('set.title')} onClose={onClose} wide class="settings-modal">
+    <Modal
+      title={t('set.title')}
+      onClose={onClose}
+      wide
+      class="settings-modal"
+      footer={
+        // Next to Back, so they can be reached from every tab.
+        <>
+          <Button color="grey" onClick={resetSettings}>
+            {t('set.reset')}
+          </Button>
+          {room && (
+            <Button color="red" onClick={() => store.set({ overlay: 'leave' })}>
+              {room.game ? t('top.leave') : t('lobby.leave')}
+            </Button>
+          )}
+        </>
+      }
+    >
       <Tabs
         tabs={[
           { id: 'general', label: t('set.tab.general') },
@@ -301,22 +350,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
               onChange={(v) => set({ clockwise: v === 'cw' })}
             />
             <Toggle label={t('set.announce')} desc={t('set.announce.desc')} checked={s.announce} onChange={(v) => set({ announce: v })} />
-            <div class="settings-actions">
-              <Button color="grey" onClick={resetSettings}>
-                {t('set.reset')}
-              </Button>
-              {inRoom && (
-                <Button
-                  color="red"
-                  onClick={() => {
-                    onClose();
-                    leaveRoom();
-                  }}
-                >
-                  {t('top.leave')}
-                </Button>
-              )}
-            </div>
         </div>
         <div class={`tab-panel${tab === 'controls' ? '' : ' hidden'}`} inert={tab !== 'controls'}>
             <Choice
@@ -337,8 +370,8 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
               {KEYS.map((k) => (
                 <>
                   <dt>
+                    {k.hold && <span class="muted small">{t('set.hold')} </span>}
                     <kbd class="kbd">{k.keys}</kbd>
-                    {k.hold && <span class="muted small"> {t('set.hold')}</span>}
                   </dt>
                   <dd>{t(k.label)}</dd>
                 </>
@@ -359,6 +392,17 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
                 ))}
               </span>
             </div>
+            <Choice
+              label={t('set.smoothing')}
+              desc={t('set.smoothing.desc')}
+              value={s.smoothing}
+              options={[
+                { value: 'off', label: t('set.smooth.off') },
+                { value: 'edges', label: t('set.smooth.edges') },
+                { value: 'all', label: t('set.smooth.all') },
+              ]}
+              onChange={(smoothing) => set({ smoothing })}
+            />
             <Slider label={t('set.size')} value={s.uiScale} min={0.8} max={1.2} step={0.05} onChange={(v) => set({ uiScale: v })} format={pct} />
             <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />
         </div>
@@ -367,15 +411,15 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             <Toggle label={t('set.shake')} checked={s.screenShake} onChange={(v) => set({ screenShake: v })} disabled={s.reducedMotion} />
             <Toggle label={t('set.bg')} checked={s.backgroundAnim} onChange={(v) => set({ backgroundAnim: v })} disabled={s.reducedMotion} />
             <Toggle label={t('set.crt')} desc={t('set.crt.desc')} checked={s.crt} onChange={(v) => set({ crt: v })} />
-            {s.crt && <Slider label={t('set.crtStrength')} value={s.crtIntensity} min={0.1} max={1} step={0.05} onChange={(v) => set({ crtIntensity: v })} format={pct} />}
+            <Slider label={t('set.crtStrength')} value={s.crtIntensity} min={0.1} max={1} step={0.05} onChange={(v) => set({ crtIntensity: v })} format={pct} disabled={!s.crt} />
             <Toggle label={t('set.flash')} desc={t('set.flash.desc')} checked={s.safeFlash} onChange={(v) => set({ safeFlash: v })} />
             <Slider label={t('set.speed')} value={s.gameSpeed} min={0.5} max={4} step={0.5} onChange={(v) => set({ gameSpeed: v })} format={(v) => `${v}x`} />
         </div>
         <div class={`tab-panel${tab === 'sound' ? '' : ' hidden'}`} inert={tab !== 'sound'}>
             <Toggle label={t('set.mute')} checked={s.muted} onChange={(v) => set({ muted: v })} />
-            <Slider label={t('set.master')} value={s.masterVolume} min={0} max={1} step={0.05} onChange={(v) => set({ masterVolume: v })} format={pct} />
-            <Slider label={t('set.sfx')} value={s.sfxVolume} min={0} max={1} step={0.05} onChange={(v) => set({ sfxVolume: v })} format={pct} />
-            <Slider label={t('set.music')} value={s.musicVolume} min={0} max={1} step={0.05} onChange={(v) => set({ musicVolume: v })} format={pct} />
+            <Slider label={t('set.master')} value={s.masterVolume} min={0} max={1} step={0.05} onChange={(v) => set({ masterVolume: v })} format={pct} disabled={s.muted} />
+            <Slider label={t('set.sfx')} value={s.sfxVolume} min={0} max={1} step={0.05} onChange={(v) => set({ sfxVolume: v })} format={pct} disabled={s.muted} />
+            <Slider label={t('set.music')} value={s.musicVolume} min={0} max={1} step={0.05} onChange={(v) => set({ musicVolume: v })} format={pct} disabled={s.muted} />
             <Toggle label={t('set.vibration')} desc={t('set.vibration.desc')} checked={s.haptics} onChange={(v) => set({ haptics: v })} />
         </div>
       </div>

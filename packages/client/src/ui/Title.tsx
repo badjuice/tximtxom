@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { makeCard, NAME_MAX, ROOM_CODE_LENGTH, type Suit } from '@tximtxom/shared';
 import { play, unlockAudio } from '../audio';
 import { t } from '../i18n';
-import { updateSettings, useSettings } from '../settings';
 import { createRoom, joinRoom, linkedRoom, saveName, savedName } from '../net';
 import { store, useStore } from '../store';
-import { Button, Credits, WaveText } from './common';
+import { Button, Credits, TopMenu, WaveText } from './common';
 import { CardIcon } from './sprites';
 
 // Four Aces fanned like a hand, red and black alternating: spades, hearts, clubs, diamonds.
@@ -16,27 +15,43 @@ const FAN_STEP = 48; // px between card centres
 const DRAG_THRESHOLD = 10;
 const slotX = (i: number) => (i - (FAN.length - 1) / 2) * FAN_STEP;
 
+/** `order` with `suit` moved to the slot nearest to x, as reordering the hand does. */
+function reordered(order: Suit[], suit: Suit, x: number): Suit[] {
+  const without = order.filter((s) => s !== suit);
+  let idx = FAN.findIndex((_, i) => x < slotX(i));
+  if (idx < 0) idx = FAN.length - 1;
+  without.splice(Math.min(idx, without.length), 0, suit);
+  return without;
+}
+
 // The fan's order, rearranged by dragging like a hand. Kept through overlays and
 // language changes, back to the start on leaving the title screen.
 let fanOrder = [...FAN];
 
 /** A title-screen Ace that drags like a hand card: it follows the pointer
- *  upright, and dropped back on the fan it takes the slot nearest to where
- *  it lands; anywhere else it snaps back. A tap makes it hop. */
-function FanCard({ suit, slot, onMove }: { suit: Suit; slot: number; onMove: (suit: Suit, x: number) => void }) {
+ *  upright, and while it is over the fan the others open a gap where it
+ *  would land. Let go there, it takes that slot; anywhere else it snaps
+ *  back. A tap makes it hop. `x` is the card's centre on the fan, or null
+ *  when it is away from it. */
+function FanCard(props: { suit: Suit; slot: number; onDrag: (suit: Suit, x: number | null) => void; onDrop: (suit: Suit, x: number | null) => void }) {
+  const { suit, slot } = props;
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const [hops, setHops] = useState(0);
-  const start = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const start = useRef<{ x: number; y: number; slot: number; moved: boolean } | null>(null);
+  const onFan = (s: { x: number; slot: number }, e: PointerEvent, y: number) => (Math.abs(y) < 95 ? slotX(s.slot) + e.clientX - s.x : null);
 
   const style: Record<string, string> = { '--x': `${slotX(slot)}px`, '--a': `${FAN_ANGLE[slot]}deg`, '--y': `${FAN_DROP[slot]}px`, zIndex: `${slot + 1}` };
-  if (drag) Object.assign(style, { '--x': `${slotX(slot) + drag.x}px`, '--a': '0deg', '--y': `${FAN_DROP[slot] + drag.y}px`, zIndex: '10' });
+  if (drag && start.current) {
+    const from = start.current.slot;
+    Object.assign(style, { '--x': `${slotX(from) + drag.x}px`, '--a': '0deg', '--y': `${FAN_DROP[from] + drag.y}px`, zIndex: '10' });
+  }
   return (
     <span
       class={`fan-card${drag ? ' held' : ''}`}
       style={style}
       onPointerDown={(e) => {
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-        start.current = { x: e.clientX, y: e.clientY, moved: false };
+        start.current = { x: e.clientX, y: e.clientY, slot, moved: false };
         unlockAudio();
       }}
       onPointerMove={(e) => {
@@ -48,6 +63,7 @@ function FanCard({ suit, slot, onMove }: { suit: Suit; slot: number; onMove: (su
         if (!s.moved) play('cardSlide1', { volume: 0.5 });
         s.moved = true;
         setDrag({ x, y });
+        props.onDrag(suit, onFan(s, e, y));
       }}
       onPointerUp={(e) => {
         const s = start.current;
@@ -56,8 +72,7 @@ function FanCard({ suit, slot, onMove }: { suit: Suit; slot: number; onMove: (su
         if (!s) return;
         if (s.moved) {
           play('cardSlide2', { volume: 0.4 });
-          // Only a drop back on the fan reorders it.
-          if (Math.abs(e.clientY - s.y) < 95) onMove(suit, slotX(slot) + e.clientX - s.x);
+          props.onDrop(suit, onFan(s, e, e.clientY - s.y));
         } else {
           play('card1', { volume: 0.5, rate: 0.9 + slot * 0.08 });
           setHops((n) => n + 1);
@@ -66,6 +81,7 @@ function FanCard({ suit, slot, onMove }: { suit: Suit; slot: number; onMove: (su
       onPointerCancel={() => {
         start.current = null;
         setDrag(null);
+        props.onDrop(suit, null);
       }}
     >
       {/* Keyed so each tap restarts the hop. */}
@@ -78,7 +94,6 @@ function FanCard({ suit, slot, onMove }: { suit: Suit; slot: number; onMove: (su
 
 export function Title() {
   const connected = useStore((s) => s.connected);
-  const { lang } = useSettings();
   const [name, setName] = useState(savedName());
   const [code, setCode] = useState(linkedRoom());
   const [busy, setBusy] = useState(false);
@@ -91,14 +106,15 @@ export function Title() {
     },
     [],
   );
-  /** Moves an Ace to the slot nearest to x, as reordering the hand does. */
-  const moveAce = (suit: Suit, x: number) => {
-    const without = order.filter((s) => s !== suit);
-    let idx = FAN.findIndex((_, i) => x < slotX(i));
-    if (idx < 0) idx = FAN.length - 1;
-    without.splice(Math.min(idx, without.length), 0, suit);
-    fanOrder = without;
-    setOrder(without);
+  // The Ace being dragged over the fan, and where: the others make room for it.
+  const [over, setOver] = useState<{ suit: Suit; x: number } | null>(null);
+  const shown = over ? reordered(order, over.suit, over.x) : order;
+  const drag = (suit: Suit, x: number | null) => setOver(x === null ? null : { suit, x });
+  const drop = (suit: Suit, x: number | null) => {
+    setOver(null);
+    if (x === null) return;
+    fanOrder = reordered(order, suit, x);
+    setOrder(fanOrder);
   };
 
   const go = async (fn: () => Promise<unknown>) => {
@@ -110,20 +126,14 @@ export function Title() {
 
   return (
     <main class="title-screen">
-      <div class="lang-switch" role="group" aria-label={t('language')}>
-        {(['pt', 'en'] as const).map((l) => (
-          <button class={lang === l ? 'on' : ''} aria-pressed={lang === l} onClick={() => updateSettings({ lang: l })}>
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
+      <TopMenu />
       <h1 class="logo">
         <WaveText text="TximTxom" amp={12} />
       </h1>
       <div class="logo-fan" aria-hidden="true">
         {/* Fixed DOM order; each Ace slides to its slot, so a reorder animates. */}
         {FAN.map((suit) => (
-          <FanCard key={suit} suit={suit} slot={order.indexOf(suit)} onMove={moveAce} />
+          <FanCard key={suit} suit={suit} slot={shown.indexOf(suit)} onDrag={drag} onDrop={drop} />
         ))}
       </div>
 
@@ -179,9 +189,6 @@ export function Title() {
       <div class="title-links">
         <Button color="grey" onClick={() => store.set({ overlay: 'help' })}>
           {t('title.howToPlay')}
-        </Button>
-        <Button color="grey" onClick={() => store.set({ overlay: 'settings' })}>
-          {t('title.settings')}
         </Button>
         <Button color="purple" onClick={() => store.set({ overlay: 'changelog' })}>
           {t('title.changelog')}

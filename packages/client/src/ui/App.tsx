@@ -21,6 +21,12 @@ export function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const s = store.get();
+      // Esc in a game opens Settings, unless it just closed a window or a card is held.
+      if (e.key === 'Escape') {
+        const free = !e.defaultPrevented && !s.overlay && !s.dragging && !document.querySelector('.modal-backdrop');
+        if (free && s.room?.game) store.set({ overlay: 'settings' });
+        return;
+      }
       if (s.overlay || (e.target as HTMLElement)?.tagName === 'INPUT') return;
       const g = s.room?.game;
       if (!g || g.you === null) return;

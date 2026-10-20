@@ -1,11 +1,11 @@
 import { Application, Assets, Container, type Spritesheet, type Texture } from 'pixi.js';
 import type { Card, GameView } from '@tximtxom/shared';
-import { getSettings, historyInset } from '../settings';
+import { getSettings, historyInset, onSettings } from '../settings';
 import type { Staged } from '../store';
 import { type CardTarget, type CardTextures, CardView } from './cardView';
 import { CARD_H, CARD_W, computeLayout, type Layout, type Point } from './layout';
 import { Particles, Shake } from './particles';
-import { type DesiredCard, describeScene, GREEN, handSlots } from './scene';
+import { type DesiredCard, describeScene, GREEN, handDropTop, reorderedHand } from './scene';
 
 export type DropTarget = { kind: 'discard' } | { kind: 'handCard'; card: Card } | { kind: 'formation'; id: number } | { kind: 'table' };
 
@@ -78,7 +78,8 @@ export class Table {
   async init(host: HTMLElement): Promise<void> {
     await this.app.init({
       backgroundAlpha: 0,
-      antialias: false,
+      // Smooths the edges of tilted cards. Fixed when the canvas is made, so a change applies on reload.
+      antialias: getSettings().smoothing !== 'off',
       // The card dissolve is a GLSL filter.
       preference: 'webgl',
       resizeTo: window,
@@ -90,7 +91,10 @@ export class Table {
     host.appendChild(this.app.canvas);
 
     const sheet = (await Assets.load(`${import.meta.env.BASE_URL}assets/cards.json`)) as Spritesheet;
-    sheet.textureSource.scaleMode = 'nearest';
+    // Crisp pixel art, unless the player asked to smooth everything.
+    const filter = () => (sheet.textureSource.scaleMode = getSettings().smoothing === 'all' ? 'linear' : 'nearest');
+    filter();
+    onSettings(filter);
     this.tex = { get: (name: string) => sheet.textures[name] as Texture };
 
     this.cards.sortableChildren = true;
@@ -422,7 +426,7 @@ export class Table {
       if (id !== null) target = { kind: 'formation', id };
     }
     // Dropped on the open table (above the hand): lay a formation.
-    const handTop = this.layout.hand.y - (CARD_H * this.layout.hand.cardScale) / 2 - 20;
+    const handTop = handDropTop(this.layout);
     if (!target && p.y < handTop) target = { kind: 'table' };
     if (target && this.handlers.canDrop(drag.card, target)) {
       this.handlers.onDrop(drag.card, target);
@@ -451,12 +455,7 @@ export class Table {
     const hand = g.players[me].hand ?? [];
     const order = this.input.handOrder.filter((c) => hand.includes(c));
     for (const c of hand) if (!order.includes(c)) order.push(c);
-    const slots = handSlots(this.layout, order.length);
-    const without = order.filter((c) => c !== card);
-    let idx = slots.findIndex((s) => x < s.x);
-    if (idx < 0) idx = order.length - 1;
-    without.splice(Math.min(idx, without.length), 0, card);
-    this.handlers.onReorder(without);
+    this.handlers.onReorder(reorderedHand(this.layout, order, card, x));
   }
 
   /** Centre of a card view in virtual coordinates, if it exists. */

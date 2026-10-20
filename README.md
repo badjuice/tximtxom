@@ -9,7 +9,7 @@ The room creator's browser hosts the game; other players connect to it over WebR
 
 ## Credits
 
-- Cards, characters, icons and sound effects: [Kenney](https://kenney.nl) (CC0): Playing Cards Pack, Tiny Dungeon, Board Game Icons, Casino Audio, Interface Sounds, Impact Sounds, Music Jingles, RPG Audio and UI Pack. `npm run assets` rebuilds them from the packs unzipped in `.cache/kenney/<pack>/`.
+- Cards, characters, icons and sound effects: [Kenney](https://kenney.nl) (CC0): Playing Cards Pack, Tiny Dungeon, Board Game Icons, Casino Audio, Interface Sounds, Impact Sounds, Music Jingles, RPG Audio, UI Pack and Game Icons. `npm run assets` rebuilds them from the packs unzipped in `.cache/kenney/<pack>/`.
 - Font: m6x11plus by [Daniel Linssen](https://managore.itch.io/m6x11).
 - Music: from [Balatro](https://www.playbalatro.com/) by LocalThunk, published by Playstack, until it is replaced. TximTxom is a non-commercial fan project and claims no rights to it.
 

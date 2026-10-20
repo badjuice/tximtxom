@@ -136,6 +136,21 @@ export function handSlots(layout: Layout, count: number): { x: number; y: number
   return fan(layout.hand, count, spacing, 0.035);
 }
 
+/** Top edge of the zone where a dragged hand card, let go, reorders the hand. */
+export function handDropTop(layout: Layout): number {
+  return layout.hand.y - (CARD_H * layout.hand.cardScale) / 2 - 20;
+}
+
+/** `order` with `card` moved to the slot nearest to x: where dropping it would put it. */
+export function reorderedHand(layout: Layout, order: Card[], card: Card, x: number): Card[] {
+  const slots = handSlots(layout, order.length);
+  const without = order.filter((c) => c !== card);
+  let idx = slots.findIndex((s) => x < s.x);
+  if (idx < 0) idx = order.length - 1;
+  without.splice(Math.min(idx, without.length), 0, card);
+  return without;
+}
+
 export function describeScene(input: SceneInput): DesiredCard[] {
   const { game: g, layout: L, selected, staged, drag } = input;
   const out: DesiredCard[] = [];
@@ -236,6 +251,9 @@ export function describeScene(input: SceneInput): DesiredCard[] {
         if (drawn !== null) drawnSpot = null;
       }
     }
+
+    // A card held over the hand opens a gap where it would land, like Balatro.
+    if (drag && !staged && shownHand.includes(drag.card) && drag.y >= handDropTop(L)) shownHand = reorderedHand(L, shownHand, drag.card, drag.x);
 
     const slots = handSlots(L, shownHand.length);
     shownHand.forEach((c, i) => {

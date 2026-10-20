@@ -5,6 +5,20 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.19.0 (2026-10-19)
+- ✨ While you drag a card over your hand, the other cards open a gap where it would land, like in Balatro. The title-screen Aces do the same.
+- ✨ Anti-aliasing setting (Cards tab): off, card edges (default) or everything.
+- ✨ Esc opens Settings during a game.
+- ✨ Leaving the room asks first.
+- 🔧 Settings sits in the top corner next to the language switch, on the title screen and in the room. The room no longer has a Changelog button.
+- 🔧 In a game, Help, Settings and Leave are small buttons with clearer icons. Leave is now "Leave game" or "Leave room".
+- 🔧 The room is centred on the screen.
+- 🔧 The title is bigger on big screens.
+- 🔧 Settings: "Reset to defaults" shows on every tab. Muted sound and CRT off grey out their sliders instead of hiding them. Slider values sit in the middle of the bar.
+- 🔧 Keyboard list: "Hold R" instead of "R hold", centred on the screen.
+- 🐛 Name plates no longer overflow at 160% text size.
+- 🐛 Scoreboard: more space between names and the coloured circles.
+
 ## 0.18.2 (2026-10-19)
 - 🔧 The title-screen Aces drag like cards in your hand: drop one on the fan to move it to a new spot, anywhere else and it goes back. The fan starts over when you return to the title screen.
 

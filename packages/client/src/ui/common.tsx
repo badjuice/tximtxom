@@ -2,6 +2,8 @@ import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { play } from '../audio';
 import { t } from '../i18n';
+import { updateSettings, useSettings } from '../settings';
+import { store } from '../store';
 import { AUTHOR_URL, VERSION } from '../version';
 import { ArtIcon } from './sprites';
 
@@ -293,7 +295,7 @@ export function Choice<T extends string | number>(props: {
 }
 
 /** Balatro-style slider: a red bar on a dark track with the value written inside. */
-export function Slider(props: { label: string; value: number; min: number; max: number; step: number; onChange: (v: number) => void; format?: (v: number) => string }) {
+export function Slider(props: { label: string; value: number; min: number; max: number; step: number; onChange: (v: number) => void; format?: (v: number) => string; disabled?: boolean }) {
   const track = useRef<HTMLDivElement>(null);
   const frac = (props.value - props.min) / (props.max - props.min);
   const text = props.format ? props.format(props.value) : String(props.value);
@@ -313,7 +315,7 @@ export function Slider(props: { label: string; value: number; min: number; max: 
     }
   };
   return (
-    <div class="toggle bslider">
+    <div class={`toggle bslider${props.disabled ? ' disabled' : ''}`}>
       <span class="toggle-text">
         <span class="toggle-label">{props.label}</span>
       </span>
@@ -321,7 +323,8 @@ export function Slider(props: { label: string; value: number; min: number; max: 
         class="bslider-track"
         ref={track}
         role="slider"
-        tabIndex={0}
+        tabIndex={props.disabled ? -1 : 0}
+        aria-disabled={props.disabled}
         aria-label={props.label}
         aria-valuemin={props.min}
         aria-valuemax={props.max}
@@ -329,12 +332,14 @@ export function Slider(props: { label: string; value: number; min: number; max: 
         aria-valuetext={text}
         onPointerDown={(e) => {
           e.preventDefault(); // dragging must not select the text around it
+          if (props.disabled) return;
           (e.currentTarget as HTMLElement).focus();
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
           setFrom(e.clientX);
         }}
-        onPointerMove={(e) => e.buttons && setFrom(e.clientX)}
+        onPointerMove={(e) => !props.disabled && e.buttons && setFrom(e.clientX)}
         onKeyDown={(e) => {
+          if (props.disabled) return;
           if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
             e.preventDefault();
             nudge(-1);
@@ -344,9 +349,9 @@ export function Slider(props: { label: string; value: number; min: number; max: 
           }
         }}
       >
-        <div class="bslider-fill" style={{ width: `${Math.max(frac, 0.06) * 100}%` }}>
-          <span class="bslider-val">{text}</span>
-        </div>
+        <div class="bslider-fill" style={{ width: `${Math.max(frac, 0.06) * 100}%` }} />
+        {/* In the middle of the track, so it never runs past the fill's edge. */}
+        <span class="bslider-val">{text}</span>
       </div>
     </div>
   );
@@ -382,6 +387,7 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && props.onClose) {
         e.stopPropagation();
+        e.preventDefault(); // already handled: the in-game Esc must not reopen Settings
         props.onClose();
       }
     };
@@ -410,6 +416,30 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** A white Kenney Game Icon, drawn in the text colour of its button. */
+export function UiIcon({ name }: { name: 'help' | 'settings' | 'leave' }) {
+  return <span class="ui-icon" style={{ '--icon': `url(${import.meta.env.BASE_URL}assets/ui/${name}.png)` }} aria-hidden="true" />;
+}
+
+/** Top-right corner of the title screen and the room: language and Settings. */
+export function TopMenu() {
+  const { lang } = useSettings();
+  return (
+    <div class="top-menu">
+      <div class="lang-switch" role="group" aria-label={t('language')}>
+        {(['pt', 'en'] as const).map((l) => (
+          <button class={lang === l ? 'on' : ''} aria-pressed={lang === l} onClick={() => updateSettings({ lang: l })}>
+            {l.toUpperCase()}
+          </button>
+        ))}
+      </div>
+      <button class="mini-btn" title={t('title.settings')} aria-label={t('title.settings')} onClick={() => store.set({ overlay: 'settings' })}>
+        <UiIcon name="settings" />
+      </button>
     </div>
   );
 }

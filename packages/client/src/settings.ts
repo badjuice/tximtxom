@@ -6,6 +6,8 @@ export interface Settings {
   highContrast: boolean;
   bigLabels: boolean;
   cardBack: 'back_red' | 'back_blue' | 'back_yellow' | 'back_green' | 'back_black' | 'back_purple';
+  /** Anti-aliasing: none, the edges of tilted table cards, or all the pixel art too. */
+  smoothing: 'off' | 'edges' | 'all';
   // Layout
   clockwise: boolean;
   uiScale: number;
@@ -45,6 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
   highContrast: prefersContrast,
   bigLabels: false,
   cardBack: 'back_red',
+  smoothing: 'edges',
   clockwise: false,
   uiScale: 1,
   textScale: 1,
@@ -134,5 +137,6 @@ export function applyCssSettings(): void {
   root.classList.toggle('crt-on', current.crt);
   root.classList.toggle('history-open', current.historyOpen);
   root.classList.toggle('lefty', current.leftHanded);
+  root.classList.toggle('smooth-all', current.smoothing === 'all');
   root.lang = current.lang === 'pt' ? 'pt-PT' : 'en';
 }

@@ -261,6 +261,11 @@ input:focus-visible {
 .sprite {
   display: inline-block;
   image-rendering: pixelated;
+}
+.smooth-all .sprite {
+  image-rendering: auto;
+}
+.sprite {
   background-repeat: no-repeat;
   vertical-align: middle;
   position: relative;
@@ -308,7 +313,7 @@ input[type='text'] {
   overflow-y: auto;
 }
 .logo {
-  font-size: clamp(56px, 13vw, 128px);
+  font-size: clamp(56px, min(13vw, 22vh), 220px);
   letter-spacing: 2px;
   margin: 0;
   color: #fff;
@@ -445,7 +450,9 @@ input[type='text'] {
   display: flex;
   gap: 18px;
   justify-content: center;
-  align-items: flex-start;
+  /* In the middle of the screen, like the title panel; from the top once it no longer fits. */
+  align-items: safe center;
+  align-content: safe center;
   padding: calc(18px + var(--safe-top)) 16px calc(18px + var(--safe-bottom));
   overflow-y: auto;
   flex-wrap: wrap;
@@ -536,14 +543,31 @@ input[type='text'] {
   flex-direction: column;
   gap: 12px;
 }
-/* Under the rules on wide screens; on phones (one column) right after the room panel. */
+.lobby-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
 .lobby-links {
+  flex: 1;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+.lobby .top-menu {
+  position: static;
 }
 /* The two lobby columns stop fitting side by side below ~990px. */
 @media (max-width: 989px) {
+  .lobby {
+    padding-top: calc(64px + var(--safe-top));
+  }
+  .lobby .top-menu {
+    position: absolute;
+  }
+  .lobby-top {
+    display: contents;
+  }
   .lobby-links {
     order: -1;
     grid-template-columns: 1fr 1fr;
@@ -735,11 +759,7 @@ input[type='text'] {
   flex-direction: column;
   gap: 6px;
 }
-.settings-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+
 .backs {
   display: flex;
   gap: 4px;
@@ -969,7 +989,7 @@ input[type='text'] {
 /* Nothing on a plate changes its size: fixed width, names cut with "…",
    and status chips / the timer hang below instead of growing the plate. */
 .plate {
-  --pw: 172px;
+  --pw: calc(172px * max(1, var(--text-scale)));
   width: var(--pw);
   min-width: 0;
 }
@@ -1786,8 +1806,12 @@ input[type='text'] {
 /* Controls tab: keyboard shortcuts as rows of keycap + action. */
 .keys-title {
   margin: 0.6em 0 0.2em;
+  text-align: center;
 }
 .keys-list {
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto !important;
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 6px 14px;
@@ -1849,17 +1873,35 @@ input[type='text'] {
   background: var(--red);
   border-radius: 8px;
   box-shadow: 0 3px 0 var(--red-d);
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
   transition: width 0.08s;
-  min-width: 34px;
+  min-width: 12px;
 }
+/* Over the middle of the track; the outline keeps it readable on the fill and on the dark track. */
 .bslider-val {
-  padding: 0 8px;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
   color: #fff;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
   white-space: nowrap;
+  pointer-events: none;
+  text-shadow:
+    -2px 0 0 var(--panel-d),
+    2px 0 0 var(--panel-d),
+    0 -2px 0 var(--panel-d),
+    0 2px 0 var(--panel-d);
+}
+/* Locked (muted sound, CRT off): greyed out but still in place, so nothing moves. */
+.bslider.disabled .bslider-track {
+  cursor: not-allowed;
+}
+.bslider.disabled .bslider-fill {
+  background: var(--grey);
+  box-shadow: 0 3px 0 var(--grey-d);
+}
+.bslider.disabled .toggle-label,
+.bslider.disabled .bslider-val {
+  opacity: 0.55;
 }
 .bslider-track:focus-visible {
   outline: 3px solid var(--gold);
@@ -1875,11 +1917,6 @@ input[type='text'] {
   border-radius: 6px;
   padding: 0 6px;
   box-shadow: 0 2px 0 var(--red-d);
-}
-.leave-btn {
-  margin-left: 10px;
-  background: #5a2f33;
-  --shadow: #3a1c1f;
 }
 
 /* --- seat colours */
@@ -2208,7 +2245,13 @@ input[type='text'] {
 .sb-name {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+}
+.sb-name .wins {
+  margin-left: 0;
+}
+.sb-grid .pname .seat-dot {
+  margin-right: 8px;
 }
 .sb-total {
   font-size: 1.8em;
@@ -2388,10 +2431,23 @@ input[type='text'] {
 }
 
 /* --- title & lobby */
-.lang-switch {
+/* Language and Settings in the top-right corner of the title screen and the room. */
+.top-menu {
   position: absolute;
   top: calc(12px + var(--safe-top));
   right: 12px;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+}
+.top-menu .mini-btn {
+  min-height: 40px;
+  width: 40px;
+  font-size: 1.2em;
+  border-radius: 8px;
+  box-shadow: 0 3px 0 var(--panel-d);
+}
+.lang-switch {
   display: flex;
   border-radius: 8px;
   overflow: hidden;
@@ -2574,9 +2630,6 @@ input.rename {
   .sb-delta {
     grid-column: 2 / span 2;
   }
-  .leave-btn {
-    margin-left: 0;
-  }
   .help-page .sprite.joker {
     display: none;
   }
@@ -2644,7 +2697,7 @@ input.rename {
     padding: 0.35em 0.5em;
   }
   .plate {
-    --pw: 124px;
+    --pw: calc(124px * max(1, var(--text-scale)));
     padding: 2px 6px;
   }
   .turn-tag,
@@ -2700,6 +2753,70 @@ input.rename {
 }
 .rules-btn:hover {
   filter: brightness(1.15);
+}
+/* Help, Settings and Leave: as small as the Rules button, with a Kenney icon. */
+.topbar-mini {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  align-self: center;
+  flex: none;
+}
+.mini-btn {
+  font: inherit;
+  font-size: 0.85em;
+  color: #fff;
+  background: var(--grey);
+  box-shadow: 0 2px 0 var(--grey-d);
+  border: none;
+  border-radius: 6px;
+  padding: 1px 8px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mini-btn:hover {
+  filter: brightness(1.15);
+}
+.mini-btn.mini-orange,
+.top-menu .mini-btn {
+  background: var(--orange);
+  box-shadow: 0 2px 0 var(--orange-d);
+}
+.mini-btn.mini-leave {
+  background: #7a3a3f;
+  box-shadow: 0 2px 0 #3a1c1f;
+}
+/* Phones: the small buttons share the first row with the round chip, the rest go below. */
+@media (max-width: 700px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+  .topbar-mini {
+    order: 1;
+    margin-left: auto;
+    align-self: auto;
+  }
+  .topbar-buttons {
+    order: 2;
+    width: 100%;
+  }
+  .mini-leave .mini-text {
+    display: none;
+  }
+}
+.ui-icon {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  background-color: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
 }
 .rules-view .toggle.disabled {
   opacity: 1;
