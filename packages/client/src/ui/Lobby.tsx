@@ -70,6 +70,8 @@ export function Lobby() {
 
   return (
     <main class="lobby">
+      {/* Language and Settings in the screen's top corner, as on the title screen. */}
+      <TopMenu />
       <section class="panel lobby-room">
         <h2>
           <WaveText text={t('lobby.room')} />
@@ -193,8 +195,7 @@ export function Lobby() {
       </section>
 
       <div class="lobby-side">
-        {/* One row above the rules on wide screens: the menus, then language and Settings.
-            On phones the links follow the room panel and the corner holds language and Settings. */}
+        {/* Above the rules on wide screens; on phones right after the room panel. */}
         <div class="lobby-top">
           <div class="lobby-links">
             <Button color="grey" onClick={() => store.set({ overlay: 'help' })}>
@@ -204,7 +205,6 @@ export function Lobby() {
               {t('top.formations')}
             </Button>
           </div>
-          <TopMenu />
         </div>
         <section class="panel lobby-rules">
           <h2>

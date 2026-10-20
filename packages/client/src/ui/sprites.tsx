@@ -1,3 +1,4 @@
+import type { ComponentChildren } from 'preact';
 import { type Card, cardCode } from '@tximtxom/shared';
 import { cardSpoken } from '../i18n';
 import { useSettings } from '../settings';
@@ -24,6 +25,13 @@ export async function loadSpriteAtlases(): Promise<void> {
     for (const [k, v] of Object.entries<{ frame: Frame }>(json.frames)) frames[k] = v.frame;
     atlases[name] = { url: `${import.meta.env.BASE_URL}assets/${json.meta.image}`, w: json.meta.size.w, h: json.meta.size.h, frames };
   }
+}
+
+/** Where a frame sits in an atlas image (for drawing it outside CSS, e.g. into a canvas). */
+export function atlasFrame(atlas: string, frame: string): { url: string; frame: Frame } | null {
+  const a = atlases[atlas];
+  const f = a?.frames[frame];
+  return a && f ? { url: a.url, frame: f } : null;
 }
 
 function spriteStyle(atlas: string, frame: string, scale: number): Record<string, string> {
@@ -96,12 +104,25 @@ export function Wins({ n, scale = 0.6 }: { n: number; scale?: number }) {
 }
 
 
-export function CardIcon({ card, scale: sc = 0.5, dim }: { card: Card; scale?: number; dim?: boolean }) {
+/** Card size in CSS pixels at a given scale (the same scale CardIcon takes). */
+export function cardSize(sc: number): { w: number; h: number } {
+  const f = atlases.cards?.frames.base;
+  const k = fit('cards', sc);
+  return { w: (f?.w ?? 42) * k, h: (f?.h ?? 60) * k };
+}
+
+/** The atlas frame name of a card's face, in the current colour mode. */
+export function faceFrame(card: Card, highContrast: boolean): string {
+  return `${highContrast ? 'hc' : 'n'}_${cardCode(card)}`;
+}
+
+export function CardIcon({ card, scale: sc = 0.5, dim, children }: { card: Card; scale?: number; dim?: boolean; children?: ComponentChildren }) {
   const s = useSettings();
   const scale = fit('cards', sc);
   return (
     <span class={`sprite card tilt${dim ? ' dim' : ''}`} style={spriteStyle('cards', 'base', scale)} role="img" aria-label={cardSpoken(card)} {...tilt}>
-      <span class="sprite" style={spriteStyle('cards', `${s.highContrast ? 'hc' : 'n'}_${cardCode(card)}`, scale)} />
+      <span class="sprite" style={spriteStyle('cards', faceFrame(card, s.highContrast), scale)} />
+      {children}
     </span>
   );
 }

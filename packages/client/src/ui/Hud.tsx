@@ -75,9 +75,11 @@ function TopBar({ g }: { g: GameView }) {
       <div class="topbar-mini">
         <MiniButton onClick={() => open('help')} label={t('top.help')}>
           <UiIcon name="help" />
+          <span class="mini-text">{t('top.help')}</span>
         </MiniButton>
         <MiniButton color="orange" onClick={() => open('settings')} label={t('top.settings')}>
           <UiIcon name="settings" />
+          <span class="mini-text">{t('top.settings')}</span>
         </MiniButton>
         <MiniButton color="leave" onClick={() => open('leave')} label={t('top.leave')}>
           <UiIcon name="leave" />

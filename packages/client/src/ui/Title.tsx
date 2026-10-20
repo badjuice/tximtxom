@@ -5,7 +5,8 @@ import { t } from '../i18n';
 import { createRoom, joinRoom, linkedRoom, saveName, savedName } from '../net';
 import { store, useStore } from '../store';
 import { Button, Credits, TopMenu, WaveText } from './common';
-import { CardIcon } from './sprites';
+import { EditionCard } from './EditionCard';
+import { EDITIONS, type Edition } from './editions';
 
 // Four Aces fanned like a hand, red and black alternating: spades, hearts, clubs, diamonds.
 const FAN: Suit[] = [3, 0, 1, 2];
@@ -28,13 +29,34 @@ function reordered(order: Suit[], suit: Suit, x: number): Suit[] {
 // language changes, back to the start on leaving the title screen.
 let fanOrder = [...FAN];
 
+// Each Ace gets one of the four editions, in a new shuffle on every visit; they land one by one.
+const EDITION_SOUND = { foil: 'editionFoil', holo: 'editionHolo', poly: 'editionPoly', negative: 'editionNegative' } as const;
+let fanEditions: Partial<Record<Suit, Edition>> = {};
+const shuffled = <T,>(a: T[]) => a.map((v) => [Math.random(), v] as const).sort((x, y) => x[0] - y[0]).map(([, v]) => v);
+
 /** A title-screen Ace that drags like a hand card: it follows the pointer
  *  upright, and while it is over the fan the others open a gap where it
  *  would land. Let go there, it takes that slot; anywhere else it snaps
  *  back. A tap makes it hop. `x` is the card's centre on the fan, or null
  *  when it is away from it. */
-function FanCard(props: { suit: Suit; slot: number; onDrag: (suit: Suit, x: number | null) => void; onDrop: (suit: Suit, x: number | null) => void }) {
+function FanCard(props: {
+  suit: Suit;
+  slot: number;
+  edition: Edition | null;
+  onDrag: (suit: Suit, x: number | null) => void;
+  onDrop: (suit: Suit, x: number | null) => void;
+}) {
   const { suit, slot } = props;
+  // When an edition lands the card juices up, as in Balatro: a quick swell and wobble.
+  const juice = useRef<HTMLSpanElement>(null);
+  const firstEdition = useRef(props.edition);
+  useEffect(() => {
+    const el = juice.current;
+    if (!el || !props.edition || props.edition === firstEdition.current) return;
+    el.classList.remove('edition-land');
+    void el.offsetWidth; // restart the animation
+    el.classList.add('edition-land');
+  }, [props.edition]);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const [hops, setHops] = useState(0);
   const start = useRef<{ x: number; y: number; slot: number; moved: boolean } | null>(null);
@@ -86,7 +108,9 @@ function FanCard(props: { suit: Suit; slot: number; onDrag: (suit: Suit, x: numb
     >
       {/* Keyed so each tap restarts the hop. */}
       <span class={hops ? 'fan-hop' : ''} key={hops}>
-        <CardIcon card={makeCard(1, suit)} scale={1} />
+        <span class="edition-juice" ref={juice}>
+          <EditionCard card={makeCard(1, suit)} edition={props.edition} />
+        </span>
       </span>
     </span>
   );
@@ -99,10 +123,26 @@ export function Title() {
   const [busy, setBusy] = useState(false);
   const cleanName = name.trim() || t('title.namePlaceholder');
   const [order, setOrder] = useState(fanOrder);
+  const [editions, setEditions] = useState(fanEditions);
+  // Land the editions left to right, each with its sound, unless they already landed this visit.
+  useEffect(() => {
+    if (Object.keys(fanEditions).length) return;
+    const picks = shuffled(EDITIONS);
+    const timers = fanOrder.map((suit, i) =>
+      setTimeout(() => {
+        fanEditions = { ...fanEditions, [suit]: picks[i] };
+        setEditions(fanEditions);
+        play(EDITION_SOUND[picks[i]], { volume: 0.8 });
+      }, 700 + i * 450),
+    );
+    return () => timers.forEach(clearTimeout);
+  }, []);
   // Entering a room unmounts the title screen: the fan starts over next time.
   useEffect(
     () => () => {
-      if (store.get().room) fanOrder = [...FAN];
+      if (!store.get().room) return;
+      fanOrder = [...FAN];
+      fanEditions = {};
     },
     [],
   );
@@ -133,7 +173,7 @@ export function Title() {
       <div class="logo-fan" aria-hidden="true">
         {/* Fixed DOM order; each Ace slides to its slot, so a reorder animates. */}
         {FAN.map((suit) => (
-          <FanCard key={suit} suit={suit} slot={shown.indexOf(suit)} onDrag={drag} onDrop={drop} />
+          <FanCard key={suit} suit={suit} slot={shown.indexOf(suit)} edition={editions[suit] ?? null} onDrag={drag} onDrop={drop} />
         ))}
       </div>
 

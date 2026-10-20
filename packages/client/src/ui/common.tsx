@@ -471,6 +471,7 @@ export function TopMenu() {
       </div>
       <MiniButton color="orange" onClick={() => store.set({ overlay: 'settings' })} label={t('title.settings')}>
         <UiIcon name="settings" />
+        <span class="mini-text">{t('title.settings')}</span>
       </MiniButton>
     </div>
   );

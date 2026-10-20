@@ -396,6 +396,42 @@ input[type='text'] {
     rotate: -8deg;
   }
 }
+/* Edition shader canvas over a card. */
+.edition-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.edition-juice {
+  display: block;
+}
+/* Balatro's juice when an edition lands: a swell, then a wobble that settles. */
+.edition-land {
+  animation: edition-land 0.6s ease-out;
+}
+@keyframes edition-land {
+  15% {
+    scale: 1.28;
+    rotate: -7deg;
+  }
+  35% {
+    scale: 0.94;
+    rotate: 5deg;
+  }
+  55% {
+    scale: 1.06;
+    rotate: -3deg;
+  }
+  75% {
+    scale: 0.99;
+    rotate: 1deg;
+  }
+}
+.reduced-motion .edition-land {
+  animation: none;
+}
 .reduced-motion .logo-fan > span {
   transition: none;
 }
@@ -550,22 +586,16 @@ input[type='text'] {
   gap: 12px;
   align-items: center;
 }
+/* Narrow enough to stay clear of the language and Settings corner. */
 .lobby-links {
-  flex: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 170px);
   gap: 8px;
-}
-.lobby .top-menu {
-  position: static;
 }
 /* The two lobby columns stop fitting side by side below ~990px. */
 @media (max-width: 989px) {
   .lobby {
     padding-top: calc(64px + var(--safe-top));
-  }
-  .lobby .top-menu {
-    position: absolute;
   }
   .lobby-top {
     display: contents;
@@ -614,6 +644,26 @@ input[type='text'] {
 .toggle.disabled {
   cursor: default;
   opacity: 0.85;
+}
+/* A switch and the sliders it locks: one frame, the sliders indented under the switch. */
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  border: 2px solid #4f6a70;
+  border-radius: 10px;
+}
+.setting-group > .bslider {
+  margin-left: 18px;
+}
+.setting-group > .bslider::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 8px;
+  border-top: 2px solid #4f6a70;
 }
 .toggle-text {
   flex: 1;
@@ -2054,7 +2104,13 @@ input[type='text'] {
 .hand-points b.after {
   color: var(--blue);
   min-width: 5ch;
+}
+/* Labels to the left, figures to the right. */
+.hand-points .muted {
   text-align: left;
+}
+.hand-points b {
+  text-align: right;
 }
 .hand-points b + .muted {
   margin-left: 6px;
@@ -2180,8 +2236,11 @@ input[type='text'] {
   white-space: nowrap;
   max-width: 100%;
 }
+/* TximTxom! and Txi jog match the main buttons in size. */
 .hold.special {
-  width: 210px;
+  width: min(250px, 100%);
+  min-height: 56px;
+  font-size: 1.15em;
 }
 .corner {
   display: flex;
@@ -2485,7 +2544,8 @@ input[type='text'] {
 }
 .top-menu .mini-btn {
   min-height: 40px;
-  width: 40px;
+  min-width: 40px;
+  padding: 0 12px;
   font-size: 1.2em;
   border-radius: 8px;
   box-shadow: 0 3px 0 var(--panel-d);
@@ -2632,7 +2692,7 @@ input.rename {
   .action-bar {
     grid-template-columns: 1fr 1fr;
     grid-template-areas: 'main main' 'left right';
-    row-gap: 6px;
+    gap: 10px;
   }
   .main-actions {
     grid-area: main;
@@ -2648,10 +2708,14 @@ input.rename {
     min-width: 0;
     flex: 1 1 0;
   }
+  /* Every action button the same height, with room between them. */
   .hold,
   .hold.special {
-    min-height: 44px;
+    min-height: 52px;
     width: 100%;
+  }
+  .main-actions .btn {
+    min-height: 52px;
   }
   .corner {
     justify-content: stretch !important;
@@ -2734,7 +2798,7 @@ input.rename {
   }
   .action-bar {
     width: 100%;
-    gap: 5px;
+    gap: 10px;
   }
   .btn {
     padding: 0.35em 0.5em;
@@ -2878,7 +2942,15 @@ input.rename {
     order: 2;
     width: 100%;
   }
-  .mini-leave .mini-text {
+}
+/* Icon and text where there is room; the icon alone on narrower screens. */
+@media (max-width: 1100px) {
+  .topbar .mini-text {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .top-menu .mini-text {
     display: none;
   }
 }

@@ -19,6 +19,19 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.21.0',
+    date: '2026-10-20',
+    items: [
+      n('The title-screen Aces get Balatro-style editions: Foil, Holographic, Polychrome and Negative, as shaders that shimmer under the pointer. Each one lands with its own sound and a little jolt, in a new shuffle every visit.', 'Os Ases do ecrã inicial ganham edições à Balatro: Foil, Holográfica, Policromática e Negativa, como shaders que brilham debaixo do ponteiro. Cada uma chega com o seu som e um pequeno abanão, baralhadas de novo a cada visita.'),
+      n('Added RDCLSM.', 'Adicionado RDCLSM.'),
+      c('Settings: a switch and the sliders it locks share a frame (Mute with the volumes, CRT with its strength).', 'Definições: um interruptor e as barras que ele bloqueia ficam na mesma moldura (Silenciar com os volumes, CRT com a força).'),
+      c('In the room, language and Settings sit in the top corner of the screen, as on the title screen.', 'Na sala, a língua e as Definições ficam no canto de cima do ecrã, como no ecrã inicial.'),
+      c('The small buttons show their name next to the icon where there is room (computer), and just the icon where there is not (phone).', 'Os botões pequenos mostram o nome ao lado do ícone quando há espaço (computador), e só o ícone quando não há (telemóvel).'),
+      c('"After formations" is now "Formed". Labels sit on the left, numbers on the right.', '"Após formações" passa a "Formada". Os nomes ficam à esquerda e os números à direita.'),
+      f('TximTxom! and Txi jog are the same size as the other action buttons, and on phones the buttons have more room between them.', 'TximTxom! e Txi jog têm o mesmo tamanho que os outros botões de ação, e no telemóvel há mais espaço entre os botões.'),
+    ],
+  },
+  {
     version: '0.20.0',
     date: '2026-10-20',
     items: [

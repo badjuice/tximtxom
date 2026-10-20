@@ -12,7 +12,7 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace
 const KENNEY = path.join(ROOT, '.cache/kenney');
 const OUT = path.join(ROOT, 'packages/client/public/assets');
 
-const PACKS = ['playing-cards-pack', 'tiny-dungeon', 'board-game-icons', 'casino-audio', 'interface-sounds', 'impact-sounds', 'music-jingles', 'rpg-audio', 'ui-pack', 'game-icons'];
+const PACKS = ['playing-cards-pack', 'tiny-dungeon', 'board-game-icons', 'casino-audio', 'interface-sounds', 'impact-sounds', 'music-jingles', 'rpg-audio', 'ui-pack', 'game-icons', 'digital-audio'];
 for (const p of PACKS) {
   if (!fs.existsSync(path.join(KENNEY, p))) {
     console.error(`Missing ${path.join(KENNEY, p)}. Download it from https://kenney.nl/assets/${p} and unzip it there.`);
@@ -254,6 +254,11 @@ const SFX = {
   foil1: { file: 'impact-sounds/Audio/impactGlass_heavy_000', pitch: 0.76, tempo: 0.75, gain: 0.9 }, // full hand
   negative: { file: 'music-jingles/Audio/Steel jingles/jingles_STEEL14', gain: 0.47 }, // bust, lost
   explosion1: { file: 'music-jingles/Audio/Hit jingles/jingles_HIT15', gain: 1.28, echo: true }, // TximTxom called
+  // An edition lands on a title-screen Ace, as in Balatro: glassy foil, warbling holo, rising polychrome, falling negative.
+  editionFoil: { file: 'impact-sounds/Audio/impactGlass_light_002', gain: 0.3 },
+  editionHolo: { file: 'digital-audio/Audio/phaseJump2', pitch: 0.85, gain: 0.14 },
+  editionPoly: { file: 'digital-audio/Audio/powerUp7', pitch: 0.85, gain: 0.16 },
+  editionNegative: { file: 'digital-audio/Audio/phaserDown2', pitch: 0.85, gain: 0.24 },
 };
 const RATE = 44100;
 const GAP = 0.15; // seconds of silence between sprites

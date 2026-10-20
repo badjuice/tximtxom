@@ -5,6 +5,15 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.21.0 (2026-10-20)
+- ✨ The title-screen Aces get Balatro-style editions: Foil, Holographic, Polychrome and Negative, as shaders that shimmer under the pointer. Each one lands with its own sound and a little jolt, in a new shuffle every visit.
+- ✨ Added RDCLSM.
+- 🔧 Settings: a switch and the sliders it locks share a frame (Mute with the volumes, CRT with its strength).
+- 🔧 In the room, language and Settings sit in the top corner of the screen, as on the title screen.
+- 🔧 The small buttons show their name next to the icon where there is room (computer), and just the icon where there is not (phone).
+- 🔧 "After formations" is now "Formed". Labels sit on the left, numbers on the right.
+- 🐛 TximTxom! and Txi jog are the same size as the other action buttons, and on phones the buttons have more room between them.
+
 ## 0.20.0 (2026-10-20)
 - ✨ Next to Hand Points, "After formations" shows in blue what your hand would still be worth once you lay your formations: from the best way of laying them to the worst.
 - ✨ Added 👾.

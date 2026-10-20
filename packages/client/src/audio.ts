@@ -6,7 +6,8 @@ const A = `${import.meta.env.BASE_URL}assets/`;
 export type Sfx =
   | 'button' | 'cancel' | 'highlight1' | 'highlight2' | 'card1' | 'card3' | 'cardSlide1' | 'cardSlide2'
   | 'cardFan2' | 'chips1' | 'coin1' | 'coin2' | 'multhit1' | 'multhit2' | 'whoosh1' | 'win' | 'tarot1'
-  | 'foil1' | 'negative' | 'explosion1';
+  | 'foil1' | 'negative' | 'explosion1'
+  | 'editionFoil' | 'editionHolo' | 'editionPoly' | 'editionNegative';
 
 let sfx: Howl | null = null;
 let music: Howl | null = null;

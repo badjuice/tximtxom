@@ -414,16 +414,21 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             <Toggle label={t('set.reduced')} desc={t('set.reduced.desc')} checked={s.reducedMotion} onChange={(v) => set({ reducedMotion: v })} />
             <Toggle label={t('set.shake')} checked={s.screenShake} onChange={(v) => set({ screenShake: v })} disabled={s.reducedMotion} />
             <Toggle label={t('set.bg')} checked={s.backgroundAnim} onChange={(v) => set({ backgroundAnim: v })} disabled={s.reducedMotion} />
-            <Toggle label={t('set.crt')} desc={t('set.crt.desc')} checked={s.crt} onChange={(v) => set({ crt: v })} />
-            <Slider label={t('set.crtStrength')} value={s.crtIntensity} min={0.1} max={1} step={0.05} onChange={(v) => set({ crtIntensity: v })} format={pct} disabled={!s.crt} />
+            {/* A switch and the slider it locks, framed together. */}
+            <div class="setting-group">
+              <Toggle label={t('set.crt')} desc={t('set.crt.desc')} checked={s.crt} onChange={(v) => set({ crt: v })} />
+              <Slider label={t('set.crtStrength')} value={s.crtIntensity} min={0.1} max={1} step={0.05} onChange={(v) => set({ crtIntensity: v })} format={pct} disabled={!s.crt} />
+            </div>
             <Toggle label={t('set.flash')} desc={t('set.flash.desc')} checked={s.safeFlash} onChange={(v) => set({ safeFlash: v })} />
             <Slider label={t('set.speed')} value={s.gameSpeed} min={0.5} max={4} step={0.5} onChange={(v) => set({ gameSpeed: v })} format={(v) => `${v}x`} />
         </div>
         <div class={`tab-panel${tab === 'sound' ? '' : ' hidden'}`} inert={tab !== 'sound'}>
-            <Toggle label={t('set.mute')} checked={s.muted} onChange={(v) => set({ muted: v })} />
-            <Slider label={t('set.master')} value={s.masterVolume} min={0} max={1} step={0.05} onChange={(v) => set({ masterVolume: v })} format={pct} disabled={s.muted} />
-            <Slider label={t('set.sfx')} value={s.sfxVolume} min={0} max={1} step={0.05} onChange={(v) => set({ sfxVolume: v })} format={pct} disabled={s.muted} />
-            <Slider label={t('set.music')} value={s.musicVolume} min={0} max={1} step={0.05} onChange={(v) => set({ musicVolume: v })} format={pct} disabled={s.muted} />
+            <div class="setting-group">
+              <Toggle label={t('set.mute')} checked={s.muted} onChange={(v) => set({ muted: v })} />
+              <Slider label={t('set.master')} value={s.masterVolume} min={0} max={1} step={0.05} onChange={(v) => set({ masterVolume: v })} format={pct} disabled={s.muted} />
+              <Slider label={t('set.sfx')} value={s.sfxVolume} min={0} max={1} step={0.05} onChange={(v) => set({ sfxVolume: v })} format={pct} disabled={s.muted} />
+              <Slider label={t('set.music')} value={s.musicVolume} min={0} max={1} step={0.05} onChange={(v) => set({ musicVolume: v })} format={pct} disabled={s.muted} />
+            </div>
             <Toggle label={t('set.vibration')} desc={t('set.vibration.desc')} checked={s.haptics} onChange={(v) => set({ haptics: v })} />
         </div>
       </div>
