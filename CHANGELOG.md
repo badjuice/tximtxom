@@ -5,6 +5,14 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.20.0 (2026-10-20)
+- ✨ Next to Hand Points, "After formations" shows in blue what your hand would still be worth once you lay your formations: from the best way of laying them to the worst.
+- ✨ Added 👾.
+- 🔧 Scores, Formations and History are small buttons too, like Rules, on computer and phone.
+- 🔧 In the room, the two panels end on the same line.
+- 🔧 Settings > Controls: the two columns of keys are evenly spaced.
+- 🐛 Phones: the top buttons, the name plates and the bar under the hand no longer overlap, down to 360px wide screens.
+
 ## 0.19.0 (2026-10-19)
 - ✨ While you drag a card over your hand, the other cards open a gap where it would land, like in Balatro. The title-screen Aces do the same.
 - ✨ Anti-aliasing setting (Cards tab): off, card edges (default) or everything.

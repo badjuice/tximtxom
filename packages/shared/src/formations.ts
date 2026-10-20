@@ -139,6 +139,48 @@ export function bestPartition(hand: readonly Card[], rules: RuleFlags): Partitio
   return { formations, leftover, points: best[full] };
 }
 
+/**
+ * Points left in the hand once formations are laid, from the best way of
+ * laying them to the worst. The worst still lays everything it can: no
+ * formation is left among the leftover cards. With a card that fits more
+ * than one formation, the two ends differ.
+ */
+export function leftoverRange(hand: readonly Card[], rules: RuleFlags): { min: number; max: number } {
+  const n = hand.length;
+  const full = (1 << n) - 1;
+  const valid: boolean[] = new Array(1 << n).fill(false);
+  for (let m = 1; m <= full; m++) if (popcount(m) >= 2) valid[m] = classifyFormation(pick(hand, m), rules) !== null;
+  // free[m]: no formation can be made from the cards in m.
+  const free: boolean[] = new Array(1 << n).fill(true);
+  for (let m = 1; m <= full; m++) {
+    if (valid[m]) free[m] = false;
+    else for (let b = m; b && free[m]; b &= b - 1) free[m] = free[m ^ (b & -b)];
+  }
+  // tiled[m]: the cards in m split exactly into formations.
+  const tiled: boolean[] = new Array(1 << n).fill(false);
+  tiled[0] = true;
+  for (let m = 1; m <= full; m++) {
+    const low = m & -m;
+    const rest = m ^ low;
+    for (let s = rest; ; s = (s - 1) & rest) {
+      if (valid[s | low] && tiled[m ^ (s | low)]) {
+        tiled[m] = true;
+        break;
+      }
+      if (s === 0) break;
+    }
+  }
+  let min = Infinity;
+  let max = -Infinity;
+  for (let left = 0; left <= full; left++) {
+    if (!free[left] || !tiled[full ^ left]) continue;
+    const pts = pick(hand, left).reduce((sum, c) => sum + cardPoints(c), 0);
+    min = Math.min(min, pts);
+    max = Math.max(max, pts);
+  }
+  return { min, max };
+}
+
 /** True if every card in the hand can be placed in formations. */
 export function isFullyFormed(hand: readonly Card[], rules: RuleFlags): boolean {
   return hand.length > 0 && bestPartition(hand, rules).leftover.length === 0;

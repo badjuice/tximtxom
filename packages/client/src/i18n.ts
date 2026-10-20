@@ -100,6 +100,8 @@ const en = {
   drawPile: 'Draw Pile',
   discardPile: 'Discard Pile',
   handPoints: 'Hand Points',
+  'handPoints.after': 'After formations',
+  'handPoints.title': 'Points now, and left after laying formations (best way to worst)',
   round: 'Round',
   dealer: 'Dealer',
 
@@ -520,6 +522,8 @@ const pt: Record<Key, string> = {
   drawPile: 'Monte',
   discardPile: 'Descarte',
   handPoints: 'Pontos na mão',
+  'handPoints.after': 'Após formações',
+  'handPoints.title': 'Pontos agora, e os que sobram depois de pousar formações (da melhor maneira à pior)',
   round: 'Ronda',
   dealer: 'Dealer',
 

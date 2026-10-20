@@ -450,8 +450,9 @@ input[type='text'] {
   display: flex;
   gap: 18px;
   justify-content: center;
-  /* In the middle of the screen, like the title panel; from the top once it no longer fits. */
-  align-items: safe center;
+  /* In the middle of the screen, like the title panel; from the top once it no longer fits.
+     Both columns stretch to the taller one, so the panels end on the same line. */
+  align-items: stretch;
   align-content: safe center;
   padding: calc(18px + var(--safe-top)) 16px calc(18px + var(--safe-bottom));
   overflow-y: auto;
@@ -465,6 +466,7 @@ input[type='text'] {
 }
 .lobby-rules {
   width: min(560px, 94vw);
+  flex: 1;
 }
 .room-code {
   font: inherit;
@@ -917,6 +919,7 @@ input[type='text'] {
   gap: 6px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-self: center;
 }
 .round-chip {
   white-space: nowrap;
@@ -1808,10 +1811,14 @@ input[type='text'] {
   margin: 0.6em 0 0.2em;
   text-align: center;
 }
+/* Two columns of shortcuts with equal space around each. */
+.keys-cols {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  gap: 6px 14px;
+}
 .keys-list {
-  width: max-content;
-  max-width: 100%;
-  margin-inline: auto !important;
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 6px 14px;
@@ -1828,15 +1835,10 @@ input[type='text'] {
 .keys-list dd {
   margin: 0;
 }
-@media (min-width: 700px) {
-  .keys-list {
-    grid-template-columns: max-content 1fr max-content 1fr;
-  }
-}
 /* No keyboard on touch-only screens. */
 @media (hover: none) {
   .keys-title,
-  .keys-list {
+  .keys-cols {
     display: none;
   }
 }
@@ -2047,6 +2049,47 @@ input[type='text'] {
 .hand-points b {
   color: var(--red);
   font-size: 1.25em;
+}
+/* Points after formations: in blue, wide enough for "45–60" so the bar doesn't jump. */
+.hand-points b.after {
+  color: var(--blue);
+  min-width: 5ch;
+  text-align: left;
+}
+.hand-points b + .muted {
+  margin-left: 6px;
+}
+/* Very narrow phones: the sort buttons speak for themselves. */
+@media (max-width: 400px) {
+  .sort-row > .muted:first-child {
+    display: none;
+  }
+  .hand-bar {
+    gap: 6px;
+  }
+  .plate-stats {
+    font-size: 0.72em;
+    gap: 3px;
+  }
+  /* One line, so it stays clear of the hand bar above it. */
+  .bar-status {
+    font-size: 0.78em;
+    padding: 2px 8px;
+  }
+}
+/* Phones: the two figures stack, one per line, to keep the bar inside the screen. */
+@media (max-width: 700px) {
+  .hand-points {
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 6px;
+    row-gap: 0;
+    padding: 1px 8px;
+    line-height: 1.05;
+  }
+  .hand-points b + .muted {
+    margin-left: 0;
+  }
 }
 .mini {
   background: var(--grey);
@@ -2697,7 +2740,8 @@ input.rename {
     padding: 0.35em 0.5em;
   }
   .plate {
-    --pw: calc(124px * max(1, var(--text-scale)));
+    /* Three opponents across the top must fit side by side, even at 360px. */
+    --pw: calc(min(124px, (100vw - 24px) / 3) * max(1, var(--text-scale)));
     padding: 2px 6px;
   }
   .turn-tag,
@@ -2782,14 +2826,43 @@ input.rename {
 .mini-btn:hover {
   filter: brightness(1.15);
 }
-.mini-btn.mini-orange,
-.top-menu .mini-btn {
+.mini-orange {
   background: var(--orange);
   box-shadow: 0 2px 0 var(--orange-d);
 }
-.mini-btn.mini-leave {
+.mini-red {
+  background: var(--red);
+  box-shadow: 0 2px 0 var(--red-d);
+}
+.mini-blue {
+  background: var(--blue);
+  box-shadow: 0 2px 0 var(--blue-d);
+}
+.mini-purple {
+  background: var(--purple);
+  box-shadow: 0 2px 0 #5a4470;
+}
+.mini-leave {
   background: #7a3a3f;
   box-shadow: 0 2px 0 #3a1c1f;
+}
+.mini-btn.pressed {
+  transform: translateY(2px);
+  box-shadow: none;
+  filter: brightness(0.85);
+}
+.mini-btn .kbd {
+  font-size: 0.7em;
+  margin-left: 2px;
+  padding: 0 3px;
+  min-height: 0;
+  line-height: 1.3;
+}
+/* No keyboard on touch-only screens. */
+@media (hover: none) {
+  .mini-btn .kbd {
+    display: none;
+  }
 }
 /* Phones: the small buttons share the first row with the round chip, the rest go below. */
 @media (max-width: 700px) {

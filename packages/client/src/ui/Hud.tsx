@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { type GameView, handPoints, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
+import { type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
 import { type BarButton, cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { revealGroups } from '../game/scene';
@@ -8,7 +8,7 @@ import { leaveRoom, playAgain, startGame } from '../net';
 import { updateSettings, useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, useStore } from '../store';
-import { Button, CardText, HoldButton, Modal, UiIcon } from './common';
+import { Button, CardText, HoldButton, MiniButton, Modal, UiIcon } from './common';
 import { CardIcon, Icon, ArtIcon, Wins } from './sprites';
 
 function toScreen(L: Layout, p: Point) {
@@ -60,29 +60,29 @@ function TopBar({ g }: { g: GameView }) {
           {t('top.rules')}
         </button>
       </div>
+      {/* Every menu button is small, like the Rules button, so the table keeps the space. */}
       <div class="topbar-buttons">
-        <Button color="red" onClick={() => open('scoreboard')} kbd="S">
+        <MiniButton color="red" onClick={() => open('scoreboard')} kbd="S">
           {t('top.scores')}
-        </Button>
-        <Button color="blue" onClick={() => open('formations')} kbd="F">
+        </MiniButton>
+        <MiniButton color="blue" onClick={() => open('formations')} kbd="F">
           {t('top.formations')}
-        </Button>
-        <Button color="purple" onClick={() => updateSettings({ historyOpen: !historyOpen })} kbd="H" class={historyOpen ? 'pressed' : ''}>
+        </MiniButton>
+        <MiniButton color="purple" onClick={() => updateSettings({ historyOpen: !historyOpen })} kbd="H" pressed={historyOpen}>
           {t('top.history')}
-        </Button>
+        </MiniButton>
       </div>
-      {/* Small, like the Rules button: menus you need now and then. */}
       <div class="topbar-mini">
-        <button class="mini-btn" onClick={() => open('help')} title={t('top.help')} aria-label={t('top.help')}>
+        <MiniButton onClick={() => open('help')} label={t('top.help')}>
           <UiIcon name="help" />
-        </button>
-        <button class="mini-btn mini-orange" onClick={() => open('settings')} title={t('top.settings')} aria-label={t('top.settings')}>
+        </MiniButton>
+        <MiniButton color="orange" onClick={() => open('settings')} label={t('top.settings')}>
           <UiIcon name="settings" />
-        </button>
-        <button class="mini-btn mini-leave" onClick={() => open('leave')} title={t('top.leave')} aria-label={t('top.leave')}>
+        </MiniButton>
+        <MiniButton color="leave" onClick={() => open('leave')} label={t('top.leave')}>
           <UiIcon name="leave" />
           <span class="mini-text">{t('top.leave')}</span>
-        </button>
+        </MiniButton>
       </div>
     </nav>
   );
@@ -258,6 +258,8 @@ function HandBar({ g, L }: { g: GameView; L: Layout }) {
   const hand = g.players[g.you].hand ?? [];
   if (hand.length < 2) return null;
   const y = L.hand.y + (CARD_H * L.hand.cardScale) / 2 + 22;
+  // What the hand would still be worth once formations are laid, best way to worst.
+  const after = leftoverRange(hand, g.rules);
   return (
     <div class="hand-bar" style={toScreen(L, { x: L.hand.x, y })}>
       <div class="sort-row" role="group" aria-label={t('sort.label')}>
@@ -277,8 +279,11 @@ function HandBar({ g, L }: { g: GameView; L: Layout }) {
           {t('sort.auto')}
         </button>
       </div>
-      <div class="hand-points" title={t('handPoints')}>
-        <span class="muted">{t('handPoints')}</span> <b>{handPoints(hand)}</b>
+      <div class="hand-points" title={t('handPoints.title')}>
+        <span class="muted">{t('handPoints')}</span>
+        <b>{handPoints(hand)}</b>
+        <span class="muted">{t('handPoints.after')}</span>
+        <b class="after">{after.min === after.max ? after.min : `${after.min}–${after.max}`}</b>
       </div>
     </div>
   );

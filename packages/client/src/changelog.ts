@@ -19,6 +19,18 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.20.0',
+    date: '2026-10-20',
+    items: [
+      n('Next to Hand Points, "After formations" shows in blue what your hand would still be worth once you lay your formations: from the best way of laying them to the worst.', 'Ao lado dos Pontos na mão, "Após formações" mostra a azul quanto a mão ainda valeria depois de pousares as formações: da melhor maneira de as pousar à pior.'),
+      n('Added 👾.', 'Adicionado 👾.'),
+      c('Scores, Formations and History are small buttons too, like Rules, on computer and phone.', 'Pontuação, Formações e Histórico também são botões pequenos, como Regras, no computador e no telemóvel.'),
+      c('In the room, the two panels end on the same line.', 'Na sala, os dois painéis acabam à mesma altura.'),
+      c('Settings > Controls: the two columns of keys are evenly spaced.', 'Definições > Controlos: as duas colunas de teclas ficam igualmente espaçadas.'),
+      f('Phones: the top buttons, the name plates and the bar under the hand no longer overlap, down to 360px wide screens.', 'Telemóveis: os botões de cima, as placas com os nomes e a barra debaixo da mão já não se sobrepõem, até ecrãs com 360px de largura.'),
+    ],
+  },
+  {
     version: '0.19.0',
     date: '2026-10-19',
     items: [

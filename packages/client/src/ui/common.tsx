@@ -425,6 +425,38 @@ export function UiIcon({ name }: { name: 'help' | 'settings' | 'leave' }) {
   return <span class="ui-icon" style={{ '--icon': `url(${import.meta.env.BASE_URL}assets/ui/${name}.png)` }} aria-hidden="true" />;
 }
 
+/** A small button the size of the Rules button, for the menus along the top. */
+export function MiniButton(props: {
+  color?: 'grey' | 'red' | 'blue' | 'purple' | 'orange' | 'leave';
+  onClick: () => void;
+  children: ComponentChildren;
+  kbd?: string;
+  /** Names an icon-only button, and shows as its hint. */
+  label?: string;
+  pressed?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      class={`mini-btn mini-${props.color ?? 'grey'}${props.pressed ? ' pressed' : ''}`}
+      title={props.label}
+      aria-label={props.label}
+      aria-pressed={props.pressed}
+      onClick={() => {
+        play('button', { volume: 0.7 });
+        props.onClick();
+      }}
+    >
+      {props.children}
+      {props.kbd && (
+        <kbd class="kbd" aria-hidden="true">
+          {props.kbd}
+        </kbd>
+      )}
+    </button>
+  );
+}
+
 /** Top-right corner of the title screen and the room: language and Settings. */
 export function TopMenu() {
   const { lang } = useSettings();
@@ -437,9 +469,9 @@ export function TopMenu() {
           </button>
         ))}
       </div>
-      <button class="mini-btn" title={t('title.settings')} aria-label={t('title.settings')} onClick={() => store.set({ overlay: 'settings' })}>
+      <MiniButton color="orange" onClick={() => store.set({ overlay: 'settings' })} label={t('title.settings')}>
         <UiIcon name="settings" />
-      </button>
+      </MiniButton>
     </div>
   );
 }

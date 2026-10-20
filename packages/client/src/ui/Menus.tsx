@@ -366,17 +366,21 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             <Toggle label={t('set.confirm')} desc={t('set.confirm.desc')} checked={s.confirmMoves} onChange={(v) => set({ confirmMoves: v })} />
             <Toggle label={t('set.lefty')} desc={t('set.lefty.desc')} checked={s.leftHanded} onChange={(v) => set({ leftHanded: v })} />
             <h3 class="keys-title">{t('set.keyboard')}</h3>
-            <dl class="keys-list">
-              {KEYS.map((k) => (
-                <>
-                  <dt>
-                    {k.hold && <span class="muted small">{t('set.hold')} </span>}
-                    <kbd class="kbd">{k.keys}</kbd>
-                  </dt>
-                  <dd>{t(k.label)}</dd>
-                </>
+            <div class="keys-cols">
+              {[KEYS.slice(0, Math.ceil(KEYS.length / 2)), KEYS.slice(Math.ceil(KEYS.length / 2))].map((col) => (
+                <dl class="keys-list">
+                  {col.map((k) => (
+                    <>
+                      <dt>
+                        {k.hold && <span class="muted small">{t('set.hold')} </span>}
+                        <kbd class="kbd">{k.keys}</kbd>
+                      </dt>
+                      <dd>{t(k.label)}</dd>
+                    </>
+                  ))}
+                </dl>
               ))}
-            </dl>
+            </div>
         </div>
         <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
             <Toggle label={t('set.highContrast')} desc={t('set.highContrast.desc')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />

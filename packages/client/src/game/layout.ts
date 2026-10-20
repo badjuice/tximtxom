@@ -86,7 +86,9 @@ export function computeLayout(
     if (portrait) {
       const y = 300;
       const x = side === 'topLeft' ? 135 : side === 'topRight' ? w - 135 : w / 2;
-      return { x, y, side, plate: { x, y: y - 120 } };
+      // Side plates sit out at the edges so three fit across a narrow phone.
+      const px = side === 'topLeft' ? 60 : side === 'topRight' ? w - 60 : x;
+      return { x, y, side, plate: { x: px, y: y - 112 } };
     }
     const sideY = n === 3 ? 215 : 300;
     switch (side) {

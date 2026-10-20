@@ -6,6 +6,8 @@ import {
   classifyFormation,
   isFullyFormed,
   isTximTxom,
+  leftoverRange,
+  handPoints,
   parseCards as P,
 } from '../src/index.js';
 
@@ -111,5 +113,20 @@ describe('bestPartition', () => {
     expect(anyFormationPossible(P('2H 5S 9D'), base)).toBe(false);
     expect(anyFormationPossible(P('2H 2S 9D'), base)).toBe(true);
     expect(anyFormationPossible(P('2H 2S 9D'), hardcore)).toBe(false);
+  });
+});
+
+describe('leftoverRange', () => {
+  it('spans the best and the worst complete way of laying formations', () => {
+    // Best: 7H-8H-9H plus the pair 7S-7D leave K and Q. Worst: the pair 7H-7S strands 7D 8H 9H.
+    const hand = P('7H 7S 7D 8H 9H KC QD');
+    expect(leftoverRange(hand, base)).toEqual({ min: handPoints(P('KC QD')), max: handPoints(P('7D 8H 9H KC QD')) });
+  });
+  it('is the whole hand when nothing forms', () => {
+    const hand = P('2H 5C 9D KS');
+    expect(leftoverRange(hand, base)).toEqual({ min: handPoints(hand), max: handPoints(hand) });
+  });
+  it('follows the rules: no pairs in Hardcore', () => {
+    expect(leftoverRange(P('7H 7S KC'), hardcore)).toEqual({ min: handPoints(P('7H 7S KC')), max: handPoints(P('7H 7S KC')) });
   });
 });

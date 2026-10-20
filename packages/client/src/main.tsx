@@ -2,6 +2,7 @@ import { render } from 'preact';
 import { initAudio, unlockAudio } from './audio';
 import { startBackground } from './background';
 import { badDrop, canDrop, drop, initController, send, setHandOrder, tapDrawn, tapHand } from './controller';
+import { greetConsole } from './easterEgg';
 import { Table } from './game/table';
 import { initNet } from './net';
 import { applyCssSettings, onSettings } from './settings';
@@ -11,6 +12,7 @@ import { App } from './ui/App';
 import { loadSpriteAtlases } from './ui/sprites';
 
 async function boot() {
+  greetConsole();
   applyCssSettings();
   startBackground(document.getElementById('bg') as HTMLCanvasElement);
 
