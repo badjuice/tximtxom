@@ -29,9 +29,31 @@ function reordered(order: Suit[], suit: Suit, x: number): Suit[] {
 // language changes, back to the start on leaving the title screen.
 let fanOrder = [...FAN];
 
-// Each Ace gets one of the four editions, in a new shuffle on every visit; they land one by one.
+// Each time the Aces are dealt onto the title screen, each one may get an edition.
 const EDITION_SOUND = { foil: 'editionFoil', holo: 'editionHolo', poly: 'editionPoly', negative: 'editionNegative' } as const;
+const EDITION_ODDS: [Edition, number][] = [
+  ['foil', 0.1],
+  ['holo', 0.07],
+  ['poly', 0.03],
+  ['negative', 0.03],
+];
+function rollEdition(): Edition | null {
+  let r = Math.random();
+  for (const [ed, p] of EDITION_ODDS) {
+    if (r < p) return ed;
+    r -= p;
+  }
+  return null;
+}
 let fanEditions: Partial<Record<Suit, Edition>> = {};
+/** The Aces were dealt (and rolled) this visit; overlays and language changes don't deal again. */
+let fanDealt = false;
+/** Editions rolled but not landed yet. */
+let fanPending: Partial<Record<Suit, Edition>> = {};
+// Typing "radicalism" on the title screen gives every Ace an edition, if none has one.
+// Once per page load, or again after a visit to a room.
+const SECRET = 'radicalism';
+let secretArmed = true;
 const shuffled = <T,>(a: T[]) => a.map((v) => [Math.random(), v] as const).sort((x, y) => x[0] - y[0]).map(([, v]) => v);
 
 /** A title-screen Ace that drags like a hand card: it follows the pointer
@@ -124,18 +146,51 @@ export function Title() {
   const cleanName = name.trim() || t('title.namePlaceholder');
   const [order, setOrder] = useState(fanOrder);
   const [editions, setEditions] = useState(fanEditions);
-  // Land the editions left to right, each with its sound, unless they already landed this visit.
+  // Editions land left to right, each with its sound.
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const land = (picks: Partial<Record<Suit, Edition>>, delay: number) => {
+    let i = 0;
+    for (const suit of fanOrder) {
+      const ed = picks[suit];
+      if (!ed) continue;
+      fanPending[suit] = ed;
+      timers.current.push(
+        setTimeout(() => {
+          delete fanPending[suit];
+          fanEditions = { ...fanEditions, [suit]: ed };
+          setEditions(fanEditions);
+          play(EDITION_SOUND[ed], { volume: 0.8 });
+        }, delay + i++ * 450),
+      );
+    }
+  };
   useEffect(() => {
-    if (Object.keys(fanEditions).length) return;
-    const picks = shuffled(EDITIONS);
-    const timers = fanOrder.map((suit, i) =>
-      setTimeout(() => {
-        fanEditions = { ...fanEditions, [suit]: picks[i] };
-        setEditions(fanEditions);
-        play(EDITION_SOUND[picks[i]], { volume: 0.8 });
-      }, 700 + i * 450),
-    );
-    return () => timers.forEach(clearTimeout);
+    if (!fanDealt) {
+      fanDealt = true;
+      const picks: Partial<Record<Suit, Edition>> = {};
+      for (const suit of FAN) {
+        const ed = rollEdition();
+        if (ed) picks[suit] = ed;
+      }
+      land(picks, 700);
+    }
+    let typed = '';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.length !== 1) return;
+      typed = (typed + e.key.toLowerCase()).slice(-SECRET.length);
+      if (typed !== SECRET || !secretArmed || Object.keys(fanEditions).length || Object.keys(fanPending).length) return;
+      secretArmed = false;
+      const picks = shuffled(EDITIONS);
+      land(Object.fromEntries(fanOrder.map((suit, i) => [suit, picks[i]])), 200);
+    };
+    addEventListener('keydown', onKey);
+    return () => {
+      removeEventListener('keydown', onKey);
+      timers.current.forEach(clearTimeout);
+      // Redrawn mid-landing (language change): the rest arrive already in place.
+      fanEditions = { ...fanEditions, ...fanPending };
+      fanPending = {};
+    };
   }, []);
   // Entering a room unmounts the title screen: the fan starts over next time.
   useEffect(
@@ -143,6 +198,8 @@ export function Title() {
       if (!store.get().room) return;
       fanOrder = [...FAN];
       fanEditions = {};
+      fanDealt = false;
+      secretArmed = true;
     },
     [],
   );

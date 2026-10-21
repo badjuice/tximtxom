@@ -321,6 +321,11 @@ input[type='text'] {
     0 6px 0 var(--red-d),
     0 10px 0 rgba(0, 0, 0, 0.4);
 }
+/* A thin dark outline behind each letter keeps the title readable over any colour of the swirl. */
+.logo .wave .w > span {
+  -webkit-text-stroke: 0.07em rgba(14, 22, 24, 0.85);
+  paint-order: stroke fill;
+}
 .logo .wave .w > span:nth-child(odd) {
   color: var(--red);
 }

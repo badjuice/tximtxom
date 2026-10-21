@@ -70,14 +70,13 @@ void main() {
     hsv.y = max(hsv.y, 0.5);
     col = mix(col, hsv2rgb(hsv), 0.7);
   } else if (edition == 3) {
-    // Negative: lightness flipped, so the card goes dark and its marks light, with a violet cast.
-    vec3 hsv = rgb2hsv(col);
-    hsv.z = 1.0 - hsv.z * 0.92;
-    hsv.x = fract(hsv.x + 0.5);
-    col = hsv2rgb(hsv);
-    col = mix(col, col * vec3(0.8, 0.6, 1.15), 0.5);
-    float s = sin((px.x - px.y) * 10.0 + time * 1.5 + tilt.x * 4.0) * 0.5 + 0.5;
-    col += vec3(0.35, 0.2, 0.55) * pow(s, 6.0) * 0.5;
+    // Negative: the colours inverted, so rank and suit stay readable (white marks on a dark card),
+    // with a violet sheen sweeping across like the other editions.
+    col = 1.0 - col;
+    float s = sin((px.x - px.y) * 8.0 + time * 1.4 + tilt.x * 5.0) * 0.5 + 0.5;
+    float s2 = sin((px.x * 1.7 + px.y) * 11.0 - time * 0.9 + tilt.y * 6.0) * 0.5 + 0.5;
+    col += vec3(0.45, 0.3, 0.75) * pow(s * s2, 3.0) * 0.55;
+    col += vec3(0.9, 0.8, 1.0) * pow(s * s2, 10.0) * 0.5;
   }
   // The landing flash: white that fades as the edition settles.
   col = mix(col, vec3(1.0), flash * 0.85);

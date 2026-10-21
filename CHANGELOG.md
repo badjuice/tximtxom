@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.22.0 (2026-10-21)
+- 🔧 The title-screen Aces are no longer sure to get an edition: each one rolls for it every time they are dealt (Foil 10%, Holographic 7%, Polychrome 3%, Negative 3%).
+- 🔧 Negative inverts the card's colours and keeps its sheen, so rank and suit stay readable.
+- 🔧 The title has a thin dark outline, so it reads over any colour of the background.
+- ✨ The Aces may answer to a certain word.
+
 ## 0.21.0 (2026-10-20)
 - ✨ The title-screen Aces get Balatro-style editions: Foil, Holographic, Polychrome and Negative, as shaders that shimmer under the pointer. Each one lands with its own sound and a little jolt, in a new shuffle every visit.
 - ✨ Added RDCLSM.

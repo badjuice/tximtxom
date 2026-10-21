@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.22.0',
+    date: '2026-10-21',
+    items: [
+      c('The title-screen Aces are no longer sure to get an edition: each one rolls for it every time they are dealt (Foil 10%, Holographic 7%, Polychrome 3%, Negative 3%).', 'Os Ases do ecrã inicial já não ganham sempre uma edição: cada um tenta a sorte sempre que são dados (Foil 10%, Holográfica 7%, Policromática 3%, Negativa 3%).'),
+      c('Negative inverts the card\'s colours and keeps its sheen, so rank and suit stay readable.', 'A Negativa inverte as cores da carta e mantém o brilho, por isso o valor e o naipe continuam legíveis.'),
+      c('The title has a thin dark outline, so it reads over any colour of the background.', 'O título tem um contorno escuro fino, para se ler sobre qualquer cor do fundo.'),
+      n('The Aces may answer to a certain word.', 'Os Ases podem responder a uma certa palavra.'),
+    ],
+  },
+  {
     version: '0.21.0',
     date: '2026-10-20',
     items: [
