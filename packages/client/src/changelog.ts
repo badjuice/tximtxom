@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.22.1',
+    date: '2026-10-24',
+    items: [c('Polychrome is now a 5% chance per Ace, up from 3%.', 'A Policromática passa a ter 5% de hipótese por Ás, em vez de 3%.')],
+  },
+  {
     version: '0.22.0',
     date: '2026-10-21',
     items: [

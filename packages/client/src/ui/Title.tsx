@@ -34,7 +34,7 @@ const EDITION_SOUND = { foil: 'editionFoil', holo: 'editionHolo', poly: 'edition
 const EDITION_ODDS: [Edition, number][] = [
   ['foil', 0.1],
   ['holo', 0.07],
-  ['poly', 0.03],
+  ['poly', 0.05],
   ['negative', 0.03],
 ];
 function rollEdition(): Edition | null {

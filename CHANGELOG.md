@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.22.1 (2026-10-24)
+- 🔧 Polychrome is now a 5% chance per Ace, up from 3%.
+
 ## 0.22.0 (2026-10-21)
 - 🔧 The title-screen Aces are no longer sure to get an edition: each one rolls for it every time they are dealt (Foil 10%, Holographic 7%, Polychrome 3%, Negative 3%).
 - 🔧 Negative inverts the card's colours and keeps its sheen, so rank and suit stay readable.
