@@ -82,6 +82,11 @@ export function clearSession(): void {
   history.replaceState(null, '', url);
 }
 
+/** The room this device had a seat in before the page loaded, if any. */
+export function savedRoom(): string {
+  return loadSession()?.code ?? '';
+}
+
 /** Room code from a shared link (?room=ABCD), if any. */
 export function linkedRoom(): string {
   return new URL(location.href).searchParams.get('room')?.toUpperCase() ?? '';
@@ -112,9 +117,10 @@ async function initServerMode(): Promise<void> {
   socket = io(SERVER_URL === '/' ? undefined : SERVER_URL, { transports: ['websocket', 'polling'], reconnectionDelayMax: 3000 });
   socket.on('connect', () => {
     store.set({ connected: true });
-    // Back after a refresh or a dropped connection: reclaim the seat.
+    // Back after a dropped connection: reclaim the seat. (After a refresh the
+    // menu shows first, and rejoinRoom does it.)
     const s = loadSession();
-    if (s) {
+    if (s && store.get().room) {
       socket!.emit('room:join', { code: s.code, name: savedName(), token: s.token }, (res) => {
         if (!res.ok) {
           clearSession();
@@ -128,11 +134,22 @@ async function initServerMode(): Promise<void> {
   socket.on('room:closed', onClosed);
 }
 
-/** Peer-to-peer: pick up where we left off after a refresh. */
 async function initP2PMode(): Promise<void> {
   store.set({ connected: true });
+}
+
+/** Back to the room this device had a seat in, after a refresh (the menu's Rejoin). */
+export async function rejoinRoom(): Promise<void> {
   const s = loadSession();
   if (!s) return;
+  if (MODE === 'server') {
+    const res = await call<JoinResult>({ event: 'room:join', msg: { code: s.code, name: savedName(), token: s.token } });
+    if (!res.ok) {
+      clearSession();
+      toast(t('err.roomGone'), 'error');
+    }
+    return;
+  }
   try {
     if (s.host && hasSavedHostRoom(s.code)) {
       toast(t('err.reopening'));

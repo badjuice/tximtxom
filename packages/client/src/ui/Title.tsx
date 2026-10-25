@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { makeCard, NAME_MAX, ROOM_CODE_LENGTH, type Suit } from '@tximtxom/shared';
 import { play, unlockAudio } from '../audio';
 import { t } from '../i18n';
-import { createRoom, joinRoom, linkedRoom, saveName, savedName } from '../net';
+import { createRoom, joinRoom, linkedRoom, rejoinRoom, saveName, savedName, savedRoom } from '../net';
 import { store, useStore } from '../store';
 import { Button, Credits, TopMenu, WaveText } from './common';
 import { EditionCard } from './EditionCard';
 import { EDITIONS, type Edition } from './editions';
+import { spawnElement } from './textSpawn';
 
 // Four Aces fanned like a hand, red and black alternating: spades, hearts, clubs, diamonds.
 const FAN: Suit[] = [3, 0, 1, 2];
@@ -16,6 +17,10 @@ const FAN_SCALE = 1.25; // 119 px tall cards
 const FAN_STEP = 60; // px between card centres
 const DRAG_THRESHOLD = 10;
 const SPAWN_STEP = 150; // ms between the Aces materialising
+const LOGO_MS = 900; // the title materialising
+const ACES_AFTER = 400; // ms into the title's spawn when the Aces start
+// Balatro's Spectral blue, palest edge first.
+const SPECTRAL: [string, string, string, string] = ['#d6e6ff', '#4584fa', '#1f3f8f', '#0b1430'];
 const slotX = (i: number) => (i - (FAN.length - 1) / 2) * FAN_STEP;
 
 /** `order` with `suit` moved to the slot nearest to x, as reordering the hand does. */
@@ -144,7 +149,9 @@ function FanCard(props: {
 export function Title() {
   const connected = useStore((s) => s.connected);
   const [name, setName] = useState(savedName());
-  const [code, setCode] = useState(linkedRoom());
+  const [code, setCode] = useState(linkedRoom() || savedRoom());
+  // This device had a seat in that room before the page loaded: Join takes it back.
+  const rejoin = code !== '' && code === savedRoom();
   const [busy, setBusy] = useState(false);
   const cleanName = name.trim() || t('title.namePlaceholder');
   const [order, setOrder] = useState(fanOrder);
@@ -171,16 +178,21 @@ export function Title() {
   // they materialise left to right, then their editions land.
   const entered = useStore((s) => s.entered);
   const dealtBefore = useRef(fanDealt);
+  // The title materialises first, in Spectral blue.
+  const logo = useRef<HTMLHeadingElement>(null);
+  const [logoBorn, setLogoBorn] = useState(fanDealt);
   useEffect(() => {
     if (!entered || fanDealt) return;
     fanDealt = true;
+    if (logo.current) spawnElement(logo.current, LOGO_MS, SPECTRAL);
+    setLogoBorn(true);
     play('tarot1', { volume: 0.5 });
     const picks: Partial<Record<Suit, Edition>> = {};
     for (const suit of FAN) {
       const ed = rollEdition();
       if (ed) picks[suit] = ed;
     }
-    land(picks, SPAWN_STEP * (FAN.length - 1) + 700 + 300);
+    land(picks, ACES_AFTER + SPAWN_STEP * (FAN.length - 1) + 700 + 300);
   }, [entered]);
   useEffect(() => {
     let typed = '';
@@ -234,7 +246,7 @@ export function Title() {
   return (
     <main class="title-screen">
       <TopMenu />
-      <h1 class="logo">
+      <h1 class="logo" ref={logo} style={logoBorn ? undefined : { visibility: 'hidden' }}>
         <WaveText text="TximTxom" amp={12} />
       </h1>
       <div class="logo-fan" aria-hidden="true">
@@ -245,7 +257,7 @@ export function Title() {
             suit={suit}
             slot={shown.indexOf(suit)}
             edition={editions[suit] ?? null}
-            spawn={dealtBefore.current ? undefined : entered ? FAN.indexOf(suit) * SPAWN_STEP : 'wait'}
+            spawn={dealtBefore.current ? undefined : entered ? ACES_AFTER + FAN.indexOf(suit) * SPAWN_STEP : 'wait'}
             onDrag={drag}
             onDrop={drop}
           />
@@ -256,7 +268,8 @@ export function Title() {
         class="panel title-panel"
         onSubmit={(e) => {
           e.preventDefault();
-          if (code.length === ROOM_CODE_LENGTH) void go(() => joinRoom(code, cleanName));
+          if (rejoin) void go(rejoinRoom);
+          else if (code.length === ROOM_CODE_LENGTH) void go(() => joinRoom(code, cleanName));
         }}
       >
         <label class="field">
@@ -291,7 +304,7 @@ export function Title() {
             />
           </label>
           <Button color="red" type="submit" disabled={!connected || busy || code.length !== ROOM_CODE_LENGTH}>
-            {t('title.join')}
+            {t(rejoin ? 'title.rejoin' : 'title.join')}
           </Button>
         </div>
         {!connected && (

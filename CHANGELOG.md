@@ -5,6 +5,10 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.24.2 (2026-10-25)
+- 🔧 "Click to start" always opens the main menu. After a refresh, Join reads "Rejoin" and takes you back to your seat.
+- ✨ The "TximTxom" title materialises in Spectral blue before the Aces.
+
 ## 0.24.1 (2026-10-25)
 - 🔧 The "Click to start" button is always there once the game has loaded; the music starts with it.
 - 🔧 The title Aces materialise in green, like Balatro's DNA.

@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.24.2',
+    date: '2026-10-25',
+    items: [
+      c('"Click to start" always opens the main menu. After a refresh, Join reads "Rejoin" and takes you back to your seat.', '"Clica para começar" abre sempre o menu principal. Depois de recarregar a página, o botão Entrar passa a "Voltar" e leva-te de volta ao teu lugar.'),
+      n('The "TximTxom" title materialises in Spectral blue before the Aces.', 'O título "TximTxom" materializa-se em azul Espectral antes dos Ases.'),
+    ],
+  },
+  {
     version: '0.24.1',
     date: '2026-10-25',
     items: [
