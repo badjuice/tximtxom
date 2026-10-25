@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.23.2',
+    date: '2026-10-25',
+    items: [
+      c('The loading card turns over: red Joker, back, black Joker, back. The back is a new colour each time.', 'A carta do carregamento vira-se: Joker vermelho, costas, Joker preto, costas. As costas mudam de cor de cada vez.'),
+      c('Right-click no longer opens the browser menu. In a game it lets go of the selected cards.', 'O clique direito já não abre o menu do navegador. Num jogo, larga as cartas selecionadas.'),
+    ],
+  },
+  {
     version: '0.23.1',
     date: '2026-10-25',
     items: [

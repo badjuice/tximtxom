@@ -13,7 +13,9 @@
     <link rel="icon" type="image/png" sizes="64x64" href="favicon.png" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <style>
-      /* Shown until the game's first assets load: a card back spinning. main.tsx removes it. */
+      /* Shown until the game's first assets load: a card turning over, red Joker,
+         back, black Joker, back. The back's colour is picked at random below.
+         assets/ui/loading.png is a strip: the two Jokers, then the six backs. */
       #loading {
         position: fixed;
         inset: 0;
@@ -22,27 +24,60 @@
         place-items: center;
         background: #1b2b2a;
         transition: opacity 0.3s;
-        perspective: 400px;
+        perspective: 500px;
       }
       #loading.done {
         opacity: 0;
         pointer-events: none;
       }
-      #loading img {
+      #loading .card {
+        position: relative;
         width: 84px;
         height: 120px;
-        image-rendering: pixelated;
-        filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
-        animation: loading-flip 1.2s ease-in-out infinite;
+        transform-style: preserve-3d;
+        animation: loading-turn 1.2s linear infinite;
       }
-      @keyframes loading-flip {
+      #loading .card > span {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
+        background: url(assets/ui/loading.png) 0 0 / 672px 120px no-repeat;
+        image-rendering: pixelated;
+      }
+      /* The front swaps Jokers while it faces away: one full turn each. */
+      #loading .card > .front {
+        animation: loading-joker 2.4s step-end infinite;
+      }
+      #loading .card > .back {
+        transform: rotateY(180deg);
+        background-position-x: var(--back, -168px);
+      }
+      @keyframes loading-turn {
+        from {
+          transform: rotateY(0deg);
+        }
         to {
           transform: rotateY(360deg);
         }
       }
+      @keyframes loading-joker {
+        0% {
+          background-position-x: 0;
+        }
+        25% {
+          background-position-x: -84px;
+        }
+        75% {
+          background-position-x: 0;
+        }
+      }
       @media (prefers-reduced-motion: reduce) {
-        #loading img {
+        #loading .card {
           animation: loading-pulse 1.2s ease-in-out infinite alternate;
+        }
+        #loading .card > .front {
+          animation: none;
         }
       }
       @keyframes loading-pulse {
@@ -53,7 +88,11 @@
     </style>
   </head>
   <body>
-    <div id="loading" role="status" aria-label="Loading"><img src="assets/ui/loading.png" alt="" /></div>
+    <div id="loading" role="status" aria-label="Loading"><div class="card"><span class="front"></span><span class="back"></span></div></div>
+    <script>
+      // A new back colour on every load (one of the six in the strip, after the two Jokers).
+      document.getElementById('loading').style.setProperty('--back', -(2 + Math.floor(Math.random() * 6)) * 84 + 'px');
+    </script>
     <canvas id="bg" aria-hidden="true"></canvas>
     <div id="stage" aria-hidden="true"></div>
     <div id="app"></div>

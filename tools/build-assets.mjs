@@ -84,6 +84,7 @@ async function cards() {
     }
   }
   entries.push(['base', await png(await load('card_empty'))]);
+  for (const c of ['red', 'black']) entries.push([`joker_${c}`, await png(await load(`card_joker_${c}`))]);
   const back = await load('card_back');
   for (const [k, rgb] of Object.entries(BACKS)) entries.push([k, await png(recolour(back, FIELD, rgb))]);
   await buildAtlas('cards', entries, AW, AH);
@@ -224,10 +225,19 @@ async function uiIcons() {
       .toFile(path.join(OUT, 'ui', `${key}.png`));
   }
   console.log(`ui icons: ${Object.keys(UI_ICONS).length}`);
-  // The red card back on its own, for the loading screen (shown before the atlases load).
-  const { frame } = JSON.parse(fs.readFileSync(path.join(OUT, 'cards.json'), 'utf8')).frames.back_red;
-  await sharp(path.join(OUT, 'cards.png'))
-    .extract({ left: frame.x, top: frame.y, width: frame.w, height: frame.h })
+  // The loading screen's card (shown before the atlases load), as one strip:
+  // the two Jokers, then the backs in BACKS order (index.html picks one at random).
+  const { frames } = JSON.parse(fs.readFileSync(path.join(OUT, 'cards.json'), 'utf8'));
+  const strip = ['joker_red', 'joker_black', ...Object.keys(BACKS)];
+  const parts = await Promise.all(
+    strip.map(async (k, i) => {
+      const f = frames[k].frame;
+      const input = await sharp(path.join(OUT, 'cards.png')).extract({ left: f.x, top: f.y, width: f.w, height: f.h }).png().toBuffer();
+      return { input, left: i * AW, top: 0 };
+    }),
+  );
+  await sharp({ create: { width: AW * strip.length, height: AH, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite(parts)
     .png({ compressionLevel: 9 })
     .toFile(path.join(OUT, 'ui', 'loading.png'));
 }

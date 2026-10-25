@@ -396,7 +396,8 @@ export class Table {
   }
 
   private onPointerDown(e: PointerEvent): void {
-    if (!this.canvasOnTop(e)) return;
+    // Only the main button picks cards up; right-click lets go of the selection (App.tsx).
+    if (e.button !== 0 || !this.canvasOnTop(e)) return;
     const p = this.toVirtual(e);
     this.pointer = p;
     const d = this.hit(p, (x) => this.isInteractive(x));

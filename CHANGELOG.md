@@ -5,6 +5,10 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.23.2 (2026-10-25)
+- 🔧 The loading card turns over: red Joker, back, black Joker, back. The back is a new colour each time.
+- 🔧 Right-click no longer opens the browser menu. In a game it lets go of the selected cards.
+
 ## 0.23.1 (2026-10-25)
 - 🐛 The table showed no cards (hand, piles, other players) since 0.23.0.
 - 🔧 The Cards tab in Settings is now called Graphics.

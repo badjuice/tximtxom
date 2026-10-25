@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import { play } from '../audio';
 import { getHandOrder, setAnnouncer, tapDrawn, tapHand } from '../controller';
 import { getSettings, updateSettings, useSettings } from '../settings';
 import { t } from '../i18n';
@@ -43,8 +44,23 @@ export function App() {
         else if (i === order.length && g.drawn !== null) tapDrawn(g.drawn);
       }
     };
+    // Right-click never opens the browser's menu (text fields keep it, for pasting).
+    // In a game, with no window open and no card held, it lets go of the selected cards.
+    const onMenu = (e: MouseEvent) => {
+      const el = e.target as HTMLElement;
+      if (el.closest?.('input, textarea')) return;
+      e.preventDefault();
+      const s = store.get();
+      if (!s.room?.game || s.overlay || s.dragging || !s.selected.length || document.querySelector('.modal-backdrop')) return;
+      store.set({ selected: [] });
+      play('cancel', { volume: 0.5 });
+    };
     addEventListener('keydown', onKey);
-    return () => removeEventListener('keydown', onKey);
+    addEventListener('contextmenu', onMenu);
+    return () => {
+      removeEventListener('keydown', onKey);
+      removeEventListener('contextmenu', onMenu);
+    };
   }, []);
 
   return (
