@@ -844,11 +844,32 @@ input[type='text'] {
 .back-pick.on {
   border-color: var(--gold);
 }
-/* Random: whichever back is up now, with a question mark on it. */
-.back-pick.random {
-  position: relative;
+/* Random: the backs fade into one another in turn (0.7 s each), under a question mark.
+   Each layer fades in over the one before, holds, then fades out once covered;
+   the last one fades out to show the first (the card's own background). */
+.random-back > .sprite {
+  opacity: 0;
+  animation: back-cycle 4.2s linear infinite;
+  animation-delay: calc(var(--i) * 0.7s);
 }
-.back-pick.random > .q {
+@keyframes back-cycle {
+  0% {
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  22.6% {
+    opacity: 1;
+  }
+  28.6% {
+    opacity: 0;
+  }
+}
+.reduced-motion .random-back > .sprite {
+  animation: none;
+}
+.random-back > .q {
   position: absolute;
   inset: 0;
   display: grid;

@@ -7,6 +7,7 @@ async function open(page: Page) {
   await page.addInitScript((s) => localStorage.setItem('tximtxom.settings', s), LIGHT);
   page.setDefaultTimeout(60_000);
   await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.click('#loading button');
   await page.waitForSelector('text=Create room');
 }
 

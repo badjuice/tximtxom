@@ -2,13 +2,13 @@ import { useEffect, useState } from 'preact/hooks';
 import { makeCard, parseCards, type Suit } from '@tximtxom/shared';
 import { type Key, t } from '../i18n';
 import { leaveRoom, MODE } from '../net';
-import { CARD_BACKS, currentBack, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
+import { CARD_BACKS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { RulesForm } from './RulesForm';
-import { CardBackIcon, CardIcon, ArtIcon, Wins } from './sprites';
+import { CardBackIcon, CardIcon, ArtIcon, RandomBackIcon, Wins } from './sprites';
 
 export function Overlays() {
   const overlay = useStore((s) => s.overlay);
@@ -396,8 +396,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
                   </button>
                 ))}
                 <button class={`back-pick random${s.cardBack === 'random' ? ' on' : ''}`} aria-pressed={s.cardBack === 'random'} title={t('set.cardBack.random')} onClick={() => set({ cardBack: 'random' })}>
-                  <CardBackIcon back={currentBack()} scale={0.42} />
-                  <span class="q" aria-hidden="true">?</span>
+                  <RandomBackIcon backs={CARD_BACKS} scale={0.42} />
                 </button>
               </span>
             </div>

@@ -14,34 +14,27 @@ let music: Howl | null = null;
 let musicId: number | undefined;
 
 /**
- * Starts streaming the music at once and tries to play it. Resolves true once
- * it plays (or there's no music to play), false if the browser wants a click
- * first or it isn't ready within `maxMs`.
+ * Starts streaming the music at once. Resolves when it can play, or after
+ * `maxMs` so a slow connection doesn't hold up the game. It plays from unlockAudio.
  */
-export function initAudio(maxMs = 4000): Promise<boolean> {
+export function initAudio(maxMs = 4000): Promise<void> {
   music = new Howl({ src: [`${A}theme.webm`, `${A}theme.mp3`], loop: true, html5: true, preload: true });
   applyVolumes();
   onSettings(applyVolumes);
   // Howler's own unlock on the first click reloads the audio, cutting off a play
   // started on pointerdown, so start again once it's done.
   music.once('unlock', applyVolumes);
-  // Browsers that allow sound before any click (sites played often) start it now;
-  // elsewhere this play is refused and unlockAudio resumes it on the first click.
-  const s = getSettings();
-  const playing = new Promise<boolean>((done) => {
-    if (!(s.musicVolume > 0 && !s.muted)) return done(true);
-    music!.once('play', () => done(true));
-    music!.once('playerror', () => done(false));
-    music!.once('loaderror', () => done(true));
-    setTimeout(() => done(false), maxMs);
-    musicId = music!.play();
+  const ready = new Promise<void>((done) => {
+    music!.once('load', () => done());
+    music!.once('loaderror', () => done());
+    setTimeout(done, maxMs);
   });
   void fetch(`${A}sfx.json`)
     .then((r) => r.json())
     .then((sprite: Record<string, [number, number]>) => {
       sfx = new Howl({ src: [`${A}sfx.webm`, `${A}sfx.mp3`], sprite, preload: true });
     });
-  return playing;
+  return ready;
 }
 
 function applyVolumes(): void {

@@ -52,24 +52,15 @@ async function boot() {
   render(<App />, document.getElementById('app')!);
   initNet();
 
-  // Audio needs a user gesture on most browsers.
-  const unlock = () => {
-    unlockAudio();
-    removeEventListener('pointerdown', unlock);
-    removeEventListener('keydown', unlock);
-  };
-  addEventListener('pointerdown', unlock);
-  addEventListener('keydown', unlock);
-
-  // The loading screen stays until the music plays, so it starts with the menu.
-  // Where the browser wants a click first, a button asks for it.
+  // Once the music can play, a button opens the menu and starts it (browsers
+  // only allow sound after a click or key press).
   const loading = document.getElementById('loading');
   const close = () => {
     store.set({ entered: true });
     loading?.classList.add('done');
     setTimeout(() => loading?.remove(), 300);
   };
-  if (await initAudio()) return close();
+  await initAudio();
   const slot = loading?.querySelector('p');
   if (!slot) return close();
   slot.removeAttribute('aria-label');

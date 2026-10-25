@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.24.1 (2026-10-25)
+- 🔧 The "Click to start" button is always there once the game has loaded; the music starts with it.
+- 🔧 The title Aces materialise in green, like Balatro's DNA.
+- 🔧 The "Random" card back fades through every back in turn.
+- 🐛 The question mark on the "Random" card back vanished on hover.
+
 ## 0.24.0 (2026-10-25)
 - 🔧 Pairs no longer count by default. The new Softcore rule turns them back on; it replaces Hardcore.
 - 🔧 Dealt cards fill the hand one by one, in the order they arrive. Auto sort waits until the deal is over.

@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.24.1',
+    date: '2026-10-25',
+    items: [
+      c('The "Click to start" button is always there once the game has loaded; the music starts with it.', 'O botão "Clica para começar" aparece sempre quando o jogo acaba de carregar; a música começa com ele.'),
+      c('The title Aces materialise in green, like Balatro\'s DNA.', 'Os Ases do título materializam-se a verde, como o DNA do Balatro.'),
+      c('The "Random" card back fades through every back in turn.', 'As costas "Aleatórias" passam por todas as costas, umas atrás das outras.'),
+      f('The question mark on the "Random" card back vanished on hover.', 'O ponto de interrogação das costas "Aleatórias" desaparecia ao passar o rato.'),
+    ],
+  },
+  {
     version: '0.24.0',
     date: '2026-10-25',
     items: [

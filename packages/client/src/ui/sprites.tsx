@@ -139,3 +139,16 @@ export function CardIcon({ card, scale: sc = 0.5, dim, class: cls, children }: {
 export function CardBackIcon({ back, scale = 0.5 }: { back: string; scale?: number }) {
   return <span class="sprite card tilt" style={spriteStyle('cards', back, fit('cards', scale))} aria-hidden="true" {...tilt} />;
 }
+
+/** The "random" back: it fades through every back in turn, with a question mark on top. */
+export function RandomBackIcon({ backs, scale = 0.5 }: { backs: string[]; scale?: number }) {
+  const sc = fit('cards', scale);
+  return (
+    <span class="sprite card tilt random-back" style={spriteStyle('cards', backs[0], sc)} aria-hidden="true" {...tilt}>
+      {backs.slice(1).map((b, i) => (
+        <span class="sprite" style={{ ...spriteStyle('cards', b, sc), '--i': i + 1 }} />
+      ))}
+      <span class="q">?</span>
+    </span>
+  );
+}

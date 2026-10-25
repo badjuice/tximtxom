@@ -107,8 +107,8 @@ void main() {
     col += vec3(0.45, 0.3, 0.75) * pow(s * s2, 3.0) * 0.55;
     col += vec3(0.9, 0.8, 1.0) * pow(s * s2, 10.0) * 0.5;
   }
-  // Spawning (Balatro's DNA): the table's burn-away run backwards. The card fills
-  // in from blocky holes, behind a gold, orange and red edge.
+  // Spawning (Balatro's DNA): the table's burn-away run backwards, in DNA's green.
+  // The card fills in from blocky holes, behind a pale, bright and deep green edge.
   if (spawn > 0.0) {
     vec2 block = floor(uv * texSize / 3.0);
     float n = 0.7 * noise(block * 0.18) + 0.3 * hash(block);
@@ -116,10 +116,10 @@ void main() {
     if (n < cut) { gl_FragColor = vec4(0.0); return; }
     float edge = n - cut;
     if (edge < 0.15) {
-      col = edge < 0.03 ? vec3(1.0, 0.86, 0.35)
-          : edge < 0.07 ? vec3(0.99, 0.55, 0.05)
-          : edge < 0.11 ? vec3(0.9, 0.24, 0.2)
-          : mix(vec3(0.16, 0.08, 0.06), col, 0.45);
+      col = edge < 0.03 ? vec3(0.8, 1.0, 0.86)
+          : edge < 0.07 ? vec3(0.29, 0.76, 0.57)
+          : edge < 0.11 ? vec3(0.12, 0.5, 0.36)
+          : mix(vec3(0.05, 0.16, 0.12), col, 0.45);
     }
   }
   // The landing flash: white that fades as the edition settles.
