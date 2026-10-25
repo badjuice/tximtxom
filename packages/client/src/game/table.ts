@@ -1,4 +1,4 @@
-import { Application, Assets, Container, type Spritesheet, type Texture, TextureSource } from 'pixi.js';
+import { Application, Assets, CanvasSource, Container, type Spritesheet, type Texture } from 'pixi.js';
 import type { Card, GameView } from '@tximtxom/shared';
 import { upscaled, UPSCALE } from '../pixelArt';
 import { getSettings, historyInset, onSettings } from '../settings';
@@ -94,7 +94,7 @@ export class Table {
     const sheet = (await Assets.load(`${import.meta.env.BASE_URL}assets/cards.json`)) as Spritesheet;
     // The art enlarged with hard pixel edges first: smoothing it then softens
     // only the edges between pixels, not each pixel into its neighbours.
-    const big = new TextureSource({
+    const big = new CanvasSource({
       resource: upscaled(sheet.textureSource.resource as HTMLImageElement | ImageBitmap),
       resolution: UPSCALE,
       autoGenerateMipmaps: true,

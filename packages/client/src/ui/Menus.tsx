@@ -321,7 +321,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
         tabs={[
           { id: 'general', label: t('set.tab.general') },
           { id: 'controls', label: t('set.tab.controls') },
-          { id: 'cards', label: t('set.tab.cards') },
+          { id: 'cards', label: t('set.tab.graphics') },
           { id: 'motion', label: t('set.tab.motion') },
           { id: 'sound', label: t('set.tab.sound') },
         ]}

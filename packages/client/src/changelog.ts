@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.23.1',
+    date: '2026-10-25',
+    items: [
+      f('The table showed no cards (hand, piles, other players) since 0.23.0.', 'A mesa não mostrava cartas (mão, montes, outros jogadores) desde a 0.23.0.'),
+      c('The Cards tab in Settings is now called Graphics.', 'O separador Cartas das Definições passa a chamar-se Gráficos.'),
+    ],
+  },
+  {
     version: '0.23.0',
     date: '2026-10-25',
     items: [

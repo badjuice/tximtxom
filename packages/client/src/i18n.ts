@@ -324,7 +324,7 @@ const en = {
   // settings
   'set.title': 'Settings',
   'set.tab.general': 'General',
-  'set.tab.cards': 'Cards',
+  'set.tab.graphics': 'Graphics',
   'set.tab.motion': 'Motion',
   'set.tab.sound': 'Sound',
   'set.highContrast': 'High contrast cards',
@@ -734,7 +734,7 @@ const pt: Record<Key, string> = {
 
   'set.title': 'Definições',
   'set.tab.general': 'Geral',
-  'set.tab.cards': 'Cartas',
+  'set.tab.graphics': 'Gráficos',
   'set.tab.motion': 'Movimento',
   'set.tab.sound': 'Som',
   'set.highContrast': 'Cartas de alto contraste',
