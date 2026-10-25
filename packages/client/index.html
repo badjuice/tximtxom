@@ -18,15 +18,28 @@
          assets/ui/loading.png is a strip: the two Jokers, then the six backs.
          Only transform and opacity animate, so the turn stays smooth while the
          page is busy starting the game. */
+      @font-face {
+        font-family: m6x11;
+        src: url(assets/m6x11plus.woff2) format('woff2');
+      }
       #loading {
         position: fixed;
         inset: 0;
         z-index: 50;
-        display: grid;
-        place-items: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
         background: #1b2b2a;
         transition: opacity 0.3s;
         perspective: 500px;
+      }
+      #loading p {
+        margin: 0;
+        font: 28px m6x11, monospace;
+        color: #fff;
+        text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
       }
       #loading.done {
         opacity: 0;
@@ -97,10 +110,15 @@
     </style>
   </head>
   <body>
-    <div id="loading" role="status" aria-label="Loading"><div class="card"><div class="face"><i></i><i class="black"></i></div><div class="face back"><i></i></div></div></div>
+    <div id="loading" role="status"><div class="card"><div class="face"><i></i><i class="black"></i></div><div class="face back"><i></i></div></div><p>Loading...</p></div>
     <script>
       // A new back colour on every load (one of the six in the strip, after the two Jokers).
-      document.getElementById('loading').style.setProperty('--back', -(2 + Math.floor(Math.random() * 6)) * 84 + 'px');
+      const loading = document.getElementById('loading');
+      loading.style.setProperty('--back', -(2 + Math.floor(Math.random() * 6)) * 84 + 'px');
+      // In the player's language (Portuguese unless they picked English, as in settings.ts).
+      try {
+        if ((JSON.parse(localStorage.getItem('tximtxom.settings') || '{}').lang || 'pt') === 'pt') loading.querySelector('p').textContent = 'A carregar...';
+      } catch {}
     </script>
     <canvas id="bg" aria-hidden="true"></canvas>
     <div id="stage" aria-hidden="true"></div>

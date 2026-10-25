@@ -275,8 +275,10 @@ function Formations({ onClose }: { onClose: () => void }) {
 type SetTab = 'general' | 'controls' | 'cards' | 'motion' | 'sound';
 
 /** Keyboard shortcuts shown in the Controls tab. `hold` keys need a press and hold. */
-const KEYS: { keys: string; label: Key; hold?: boolean }[] = [
+/** `keys` is shown as is; `mouse` is a translated mouse action in its place. */
+const KEYS: { keys?: string; mouse?: Key; label: Key; hold?: boolean }[] = [
   { keys: '1–8', label: 'key.select' },
+  { mouse: 'key.rightClick', label: 'key.deselect' },
   { keys: 'D', label: 'key.draw' },
   { keys: 'P', label: 'key.take' },
   { keys: 'Enter', label: 'key.main' },
@@ -373,7 +375,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
                     <>
                       <dt>
                         {k.hold && <span class="muted small">{t('set.hold')} </span>}
-                        <kbd class="kbd">{k.keys}</kbd>
+                        <kbd class="kbd">{k.mouse ? t(k.mouse) : k.keys}</kbd>
                       </dt>
                       <dd>{t(k.label)}</dd>
                     </>

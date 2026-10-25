@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.23.4',
+    date: '2026-10-25',
+    items: [
+      c('"Loading..." under the loading card.', '"A carregar..." por baixo da carta do carregamento.'),
+      c('The Controls tab lists right-click (deselect all cards), under "Keyboard and mouse".', 'O separador Controlos mostra o clique direito (largar todas as cartas), em "Teclado e rato".'),
+    ],
+  },
+  {
     version: '0.23.3',
     date: '2026-10-25',
     items: [f('The loading card glitched while it turned.', 'A carta do carregamento falhava enquanto girava.')],
