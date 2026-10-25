@@ -1,4 +1,5 @@
 import { botAction } from '../bot.js';
+import { cardPoints } from '../cards.js';
 import { applyAction, newGame } from '../engine.js';
 import type { LobbyPlayer, RoomView } from '../protocol.js';
 import { randomSeed } from '../rng.js';
@@ -21,6 +22,20 @@ function randomId(bytes: number): string {
 /** A room closes when no human has done anything for this long. Bots don't count. */
 export const ROOM_IDLE_MS = 10 * 60 * 1000;
 export const IDLE_REASON = 'Nobody played for 10 minutes';
+
+/**
+ * A turn played for someone whose time ran out: the least it takes to pass the
+ * turn on. Draw, then let the drawn card go; never Txi jog or TximTxom for them,
+ * unless the rules force the round to end (the draw pile ran out).
+ */
+function timeoutMove(g: GameState, seat: Seat): Action | null {
+  if (g.turn !== seat) return null;
+  if (g.step === 'choose') return { type: 'draw' };
+  if (g.step === 'drawn') return g.mustEnd ? { type: 'endRound', card: g.drawn! } : { type: 'discardDrawn' };
+  // Took the discard top: let go of the highest-scoring other card.
+  const out = g.players[seat].hand.filter((c) => c !== g.taken).sort((a, b) => cardPoints(b) - cardPoints(a))[0];
+  return out === undefined ? null : { type: 'swap', card: out };
+}
 
 /** How long bots "think" before acting (ms). */
 const BOT_DELAY = { turn: 900, reveal: 700, ride: 600, ready: 400 };
@@ -418,7 +433,7 @@ export class Room {
     this.timerKey = '';
     for (const seat of seats) {
       for (let i = 0; i < 20 && this.game; i++) {
-        const a = botAction(this.game, seat);
+        const a = this.game.phase === 'playing' ? timeoutMove(this.game, seat) : botAction(this.game, seat);
         if (!a || a.type === 'ready') break;
         if (this.apply(seat, a, true)) break;
       }

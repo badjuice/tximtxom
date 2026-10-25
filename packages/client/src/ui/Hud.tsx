@@ -3,7 +3,7 @@ import { type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, 
 import { type BarButton, canDrop, cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { drawPileTop, revealGroups } from '../game/scene';
-import { kindName, t } from '../i18n';
+import { type Key, kindName, t } from '../i18n';
 import { leaveRoom, playAgain, startGame } from '../net';
 import { updateSettings, useSettings } from '../settings';
 import { copyReport } from '../report';
@@ -45,6 +45,22 @@ export function Hud() {
   );
 }
 
+/** The rules changed from the defaults, as [art, name, description] for the round chip. */
+function activeRules(r: GameView['rules']): [string, Key, Key][] {
+  const out: [string, Key, Key][] = [];
+  if (r.softcore) out.push(['softcore', 'rule.softcore', 'rule.softcore.desc']);
+  if (r.superposition) out.push(['ace', 'rule.superposition', 'rule.superposition.desc']);
+  if (r.smeared) out.push(['mixed', 'rule.smeared', 'rule.smeared.desc']);
+  if (r.rideOrder === 'roundRobin') out.push(['ride', 'rule.rideOrder', 'rule.rideOrder.desc']);
+  if (r.autoRide) out.push(['autoride', 'rule.autoRide', 'rule.autoRide.desc']);
+  if (r.sixthSense) out.push(['peek', 'rule.sixthSense', 'rule.sixthSense.desc']);
+  if (r.noMoreFormationsNotice) out.push(['notice', 'rule.notice', 'rule.notice.desc']);
+  if (r.penalty10) out.push(['penalty', 'rule.penalty10', 'rule.penalty10.desc']);
+  if (r.doubleDown) out.push(['double', 'rule.doubleDown', 'rule.doubleDown.desc']);
+  if (r.turnTimer > 0) out.push(['timer', 'rule.timer', 'rule.timer.desc']);
+  return out;
+}
+
 function TopBar({ g }: { g: GameView }) {
   const open = (overlay: NonNullable<Overlay>) => store.set({ overlay });
   const { historyOpen } = useSettings();
@@ -53,10 +69,11 @@ function TopBar({ g }: { g: GameView }) {
       <div class="round-chip">
         <span>{t('top.round', { n: g.round })}</span>
         <span class="bust-chip">{t('top.bust', { n: g.rules.threshold })}</span>
-        {g.rules.softcore && <ArtIcon name="softcore" scale={0.26} title={t('rule.softcore')} />}
-        {g.rules.superposition && <ArtIcon name="ace" scale={0.26} title={t('rule.superposition')} />}
-        {g.rules.smeared && <ArtIcon name="mixed" scale={0.26} title={t('rule.smeared')} />}
-        {g.rules.sixthSense && <ArtIcon name="peek" scale={0.26} title={t('rule.sixthSense')} />}
+        <span class="rule-cards">
+          {activeRules(g.rules).map(([art, name, desc]) => (
+            <ArtIcon name={art} scale={0.26} title={`${t(name)}\n${t(desc)}`} />
+          ))}
+        </span>
         <button class="rules-btn" onClick={() => open('rules')}>
           {t('top.rules')}
         </button>
@@ -69,14 +86,14 @@ function TopBar({ g }: { g: GameView }) {
         <MiniButton color="blue" onClick={() => open('formations')} kbd="F">
           {t('top.formations')}
         </MiniButton>
-        <MiniButton color="purple" onClick={() => updateSettings({ historyOpen: !historyOpen })} kbd="H" pressed={historyOpen}>
-          {t('top.history')}
+        <MiniButton color="green" onClick={() => open('help')}>
+          {t('top.help')}
         </MiniButton>
       </div>
       <div class="topbar-mini">
-        <MiniButton color="green" onClick={() => open('help')} label={t('top.help')}>
-          <UiIcon name="help" />
-          <span class="mini-text">{t('top.help')}</span>
+        <MiniButton color="purple" onClick={() => updateSettings({ historyOpen: !historyOpen })} label={t('top.history')} kbd="H" pressed={historyOpen}>
+          <UiIcon name="history" />
+          <span class="mini-text">{t('top.history')}</span>
         </MiniButton>
         <MiniButton color="orange" onClick={() => open('settings')} label={t('top.settings')}>
           <UiIcon name="settings" />

@@ -421,7 +421,7 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
 }
 
 /** A white Kenney Game Icon, drawn in the text colour of its button. */
-export function UiIcon({ name }: { name: 'help' | 'settings' | 'leave' }) {
+export function UiIcon({ name }: { name: 'help' | 'settings' | 'leave' | 'history' }) {
   return <span class="ui-icon" style={{ '--icon': `url(${import.meta.env.BASE_URL}assets/ui/${name}.png)` }} aria-hidden="true" />;
 }
 

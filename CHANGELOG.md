@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.26.1 (2026-10-25)
+- 🐛 When the turn timer ran out, the game could end the round for you. Now it only draws and discards for you; the round ends on its own only if the Draw Pile runs out.
+- 🐛 Every active rule shows on the round chip, and its hint gives the rule's name and description.
+- 🔧 In game, History and How to play swapped places.
+
 ## 0.26.0 (2026-10-25)
 - ✨ Drag a card of 5 or lower onto the Draw Pile to Txi jog. The pile shows a Txi jog sign while you hold one.
 - 🔧 Txi jog plays out as at a real table: the card slides face down under the Discard Pile, and the pile goes onto the Draw Pile. Nobody sees which card it was.

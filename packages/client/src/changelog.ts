@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.26.1',
+    date: '2026-10-25',
+    items: [
+      f('When the turn timer ran out, the game could end the round for you. Now it only draws and discards for you; the round ends on its own only if the Draw Pile runs out.', 'Quando o tempo da jogada acabava, o jogo podia fazer Txi jog por ti. Agora só tira e descarta por ti; a ronda só acaba sozinha se o Monte acabar.'),
+      f('Every active rule shows on the round chip, and its hint gives the rule\'s name and description.', 'Todas as regras ativas aparecem ao lado da ronda, e a dica mostra o nome e a descrição da regra.'),
+      c('In game, History and How to play swapped places.', 'No jogo, o Histórico e o Como jogar trocaram de lugar.'),
+    ],
+  },
+  {
     version: '0.26.0',
     date: '2026-10-25',
     items: [

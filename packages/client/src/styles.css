@@ -1588,6 +1588,8 @@ input[type='text'] {
   font-size: 0.8em;
   line-height: 1.25;
   text-align: center;
+  white-space: pre-line; /* a rule's name, then its description */
+  width: max-content; /* near the screen edge it moves over rather than squeezing */
   pointer-events: none;
   animation: hint-in 0.14s cubic-bezier(0.2, 1.6, 0.4, 1);
 }
@@ -2044,6 +2046,19 @@ input[type='text'] {
 /* --- top bar */
 .round-chip {
   gap: 8px;
+}
+.rule-cards {
+  display: flex;
+  gap: 4px;
+}
+/* On a phone the active rules overlap like a fanned hand, so the chip fits. */
+@media (max-width: 700px) {
+  .rule-cards > .sprite + .sprite {
+    margin-left: -10px;
+  }
+}
+.hint b {
+  color: var(--gold);
 }
 .bust-chip {
   background: var(--red);

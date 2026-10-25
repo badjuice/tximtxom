@@ -199,7 +199,15 @@ function Hint() {
   if (!tip) return null;
   return (
     <div class={`hint${tip.below ? ' below' : ''}`} ref={box} style={{ left: `${tip.x}px`, top: `${tip.y}px` }} aria-hidden="true">
-      {tip.text}
+      {/* A name and a description: the name stands out. */}
+      {tip.text.includes('\n') ? (
+        <>
+          <b>{tip.text.slice(0, tip.text.indexOf('\n'))}</b>
+          {tip.text.slice(tip.text.indexOf('\n'))}
+        </>
+      ) : (
+        tip.text
+      )}
     </div>
   );
 }
