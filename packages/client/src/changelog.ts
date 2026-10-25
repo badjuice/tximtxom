@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.23.3',
+    date: '2026-10-25',
+    items: [f('The loading card glitched while it turned.', 'A carta do carregamento falhava enquanto girava.')],
+  },
+  {
     version: '0.23.2',
     date: '2026-10-25',
     items: [

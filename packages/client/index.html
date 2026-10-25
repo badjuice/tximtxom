@@ -15,7 +15,9 @@
     <style>
       /* Shown until the game's first assets load: a card turning over, red Joker,
          back, black Joker, back. The back's colour is picked at random below.
-         assets/ui/loading.png is a strip: the two Jokers, then the six backs. */
+         assets/ui/loading.png is a strip: the two Jokers, then the six backs.
+         Only transform and opacity animate, so the turn stays smooth while the
+         page is busy starting the game. */
       #loading {
         position: fixed;
         inset: 0;
@@ -37,20 +39,27 @@
         transform-style: preserve-3d;
         animation: loading-turn 1.2s linear infinite;
       }
-      #loading .card > span {
+      #loading .face {
         position: absolute;
         inset: 0;
         backface-visibility: hidden;
-        filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
+      }
+      #loading .back {
+        transform: rotateY(180deg);
+      }
+      #loading .face > i {
+        position: absolute;
+        inset: 0;
         background: url(assets/ui/loading.png) 0 0 / 672px 120px no-repeat;
         image-rendering: pixelated;
       }
-      /* The front swaps Jokers while it faces away: one full turn each. */
-      #loading .card > .front {
-        animation: loading-joker 2.4s step-end infinite;
+      #loading .face > .black {
+        background-position-x: -84px;
+        opacity: 0;
+        /* Shows from the first time the front faces away until the second. */
+        animation: loading-black 2.4s step-end infinite;
       }
-      #loading .card > .back {
-        transform: rotateY(180deg);
+      #loading .back > i {
         background-position-x: var(--back, -168px);
       }
       @keyframes loading-turn {
@@ -61,22 +70,22 @@
           transform: rotateY(360deg);
         }
       }
-      @keyframes loading-joker {
+      @keyframes loading-black {
         0% {
-          background-position-x: 0;
+          opacity: 0;
         }
         25% {
-          background-position-x: -84px;
+          opacity: 1;
         }
         75% {
-          background-position-x: 0;
+          opacity: 0;
         }
       }
       @media (prefers-reduced-motion: reduce) {
         #loading .card {
           animation: loading-pulse 1.2s ease-in-out infinite alternate;
         }
-        #loading .card > .front {
+        #loading .face > .black {
           animation: none;
         }
       }
@@ -88,7 +97,7 @@
     </style>
   </head>
   <body>
-    <div id="loading" role="status" aria-label="Loading"><div class="card"><span class="front"></span><span class="back"></span></div></div>
+    <div id="loading" role="status" aria-label="Loading"><div class="card"><div class="face"><i></i><i class="black"></i></div><div class="face back"><i></i></div></div></div>
     <script>
       // A new back colour on every load (one of the six in the strip, after the two Jokers).
       document.getElementById('loading').style.setProperty('--back', -(2 + Math.floor(Math.random() * 6)) * 84 + 'px');
