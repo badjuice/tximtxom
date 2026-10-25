@@ -19,6 +19,20 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.26.0',
+    date: '2026-10-25',
+    items: [
+      n('Drag a card of 5 or lower onto the Draw Pile to Txi jog. The pile shows a Txi jog sign while you hold one.', 'Arrasta uma carta de 5 ou menos para o Monte para fazer Txi jog. O Monte mostra um sinal de Txi jog enquanto a seguras.'),
+      c('Txi jog plays out as at a real table: the card slides face down under the Discard Pile, and the pile goes onto the Draw Pile. Nobody sees which card it was.', 'O Txi jog é como numa mesa a sério: a carta entra virada para baixo debaixo da Pilha de Descarte, e a pilha vai para cima do Monte. Ninguém vê que carta foi.'),
+      f('A new round started out of order. Now the old cards burn, the new deck appears, the cards are dealt, then the bottom card opens the Discard Pile. Bots wait for all of it.', 'Uma nova ronda começava fora de ordem. Agora as cartas antigas ardem, o baralho novo aparece, as cartas são dadas e só depois a carta de baixo abre a Pilha de Descarte. Os bots esperam por tudo isto.'),
+      c('Random card backs use every back once before repeating, and never the same one twice in a row.', 'As costas aleatórias usam todas as costas uma vez antes de repetir, e nunca a mesma duas vezes seguidas.'),
+      c('On the menu, the Aces appear a second after the title, one at a time. Tapping an Ace no longer makes it appear again.', 'No menu, os Ases aparecem um segundo depois do título, um de cada vez. Tocar num Ás já não o faz aparecer de novo.'),
+      f('Button hints point at their button near the screen edge, and don\'t show when the button\'s text already says it.', 'As dicas dos botões apontam para o botão certo junto à borda do ecrã, e não aparecem quando o texto do botão já o diz.'),
+      c('Reset to defaults asks first.', 'Repor tudo pergunta primeiro.'),
+      c('Screen shake and Animated background sit under Reduced motion, which turns them off; locked switches are now clearly greyed out.', 'Ecrã a tremer e Fundo animado ficam por baixo de Menos movimento, que os desliga; os interruptores bloqueados ficam agora bem acinzentados.'),
+    ],
+  },
+  {
     version: '0.25.0',
     date: '2026-10-25',
     items: [

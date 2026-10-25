@@ -5,6 +5,16 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.26.0 (2026-10-25)
+- ✨ Drag a card of 5 or lower onto the Draw Pile to Txi jog. The pile shows a Txi jog sign while you hold one.
+- 🔧 Txi jog plays out as at a real table: the card slides face down under the Discard Pile, and the pile goes onto the Draw Pile. Nobody sees which card it was.
+- 🐛 A new round started out of order. Now the old cards burn, the new deck appears, the cards are dealt, then the bottom card opens the Discard Pile. Bots wait for all of it.
+- 🔧 Random card backs use every back once before repeating, and never the same one twice in a row.
+- 🔧 On the menu, the Aces appear a second after the title, one at a time. Tapping an Ace no longer makes it appear again.
+- 🐛 Button hints point at their button near the screen edge, and don't show when the button's text already says it.
+- 🔧 Reset to defaults asks first.
+- 🔧 Screen shake and Animated background sit under Reduced motion, which turns them off; locked switches are now clearly greyed out.
+
 ## 0.25.0 (2026-10-25)
 - ✨ Drag the top of the Discard Pile onto a hand card to take it in that card's place; the hand card goes to the pile.
 - 🐛 Auto sort turned itself off when a card was dragged. It now stays on and keeps the hand sorted as cards come and go.

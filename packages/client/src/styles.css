@@ -660,8 +660,21 @@ input[type='text'] {
   position: relative;
 }
 .toggle.disabled {
-  cursor: default;
-  opacity: 0.85;
+  cursor: not-allowed;
+}
+/* Locked by another setting: text faded, and the switch flat grey whether on or off. */
+.toggle.disabled .toggle-text {
+  opacity: 0.45;
+}
+.toggle.disabled .switch,
+.toggle.disabled input:checked + .switch {
+  background: #3a4a4e;
+  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.3);
+}
+.toggle.disabled .switch::after,
+.toggle.disabled input:checked + .switch::after {
+  background: #6f8186;
+  box-shadow: none;
 }
 /* A switch and the sliders it locks: one frame, the sliders indented under the switch. */
 .setting-group {
@@ -672,10 +685,12 @@ input[type='text'] {
   border: 2px solid #4f6a70;
   border-radius: 10px;
 }
-.setting-group > .bslider {
+.setting-group > .bslider,
+.setting-group > .toggle + .toggle {
   margin-left: 18px;
 }
-.setting-group > .bslider::before {
+.setting-group > .bslider::before,
+.setting-group > .toggle + .toggle::before {
   content: '';
   position: absolute;
   left: -12px;
@@ -1244,6 +1259,21 @@ input[type='text'] {
 .formation-label.end {
   background: var(--red);
 }
+/* Over the draw pile while a card that can end the round is held. */
+.txijog-drop {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px 2px 4px;
+  background: var(--red);
+  border-radius: 8px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: hint-in 0.14s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
 
 .action-area {
   position: absolute;
@@ -1567,7 +1597,7 @@ input[type='text'] {
 .hint::after {
   content: '';
   position: absolute;
-  left: 50%;
+  left: clamp(10px, calc(50% + var(--arrow, 0px)), calc(100% - 10px));
   top: 100%;
   translate: -50% 0;
   border: 6px solid transparent;
@@ -3018,8 +3048,26 @@ input.rename {
   -webkit-mask: var(--icon) center / contain no-repeat;
   mask: var(--icon) center / contain no-repeat;
 }
+/* Read-only rules aren't locked, just not yours to change: they keep their colours. */
 .rules-view .toggle.disabled {
   opacity: 1;
+  cursor: default;
+}
+.rules-view .toggle.disabled .toggle-text {
+  opacity: 1;
+}
+.rules-view .toggle.disabled .switch {
+  background: var(--grey-d);
+}
+.rules-view .toggle.disabled input:checked + .switch {
+  background: var(--red);
+}
+.rules-view .toggle.disabled .switch::after {
+  background: #cfd8da;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.rules-view .toggle.disabled input:checked + .switch::after {
+  background: #fff;
 }
 .rules-view .toggle input,
 .rules-view .seg button {
@@ -3197,4 +3245,36 @@ input.rename {
 .cl-icon {
   flex: none;
   font-family: system-ui, 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+}
+
+/* Reset to defaults: a small prompt floating over the button (nothing moves). */
+.reset-wrap {
+  position: relative;
+  display: flex;
+  flex: 1;
+  max-width: 320px;
+}
+.modal-foot .reset-wrap > .btn {
+  max-width: none;
+}
+.reset-wrap > .confirm-pop {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  translate: -50% 0;
+  bottom: calc(100% + 8px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--panel-d);
+  border: 2px solid var(--red);
+  border-radius: 8px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  animation: hint-in 0.14s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.confirm-pop-buttons {
+  display: flex;
+  gap: 6px;
 }

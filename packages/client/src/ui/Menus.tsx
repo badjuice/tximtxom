@@ -292,6 +292,37 @@ const KEYS: { keys?: string; mouse?: Key; label: Key; hold?: boolean }[] = [
   { keys: 'Esc', label: 'key.settings' },
 ];
 
+/** Reset to defaults asks first, in a small prompt over the button. */
+function ResetButton() {
+  const [asking, setAsking] = useState(false);
+  return (
+    <span class="reset-wrap">
+      <Button color="red" onClick={() => setAsking((a) => !a)}>
+        {t('set.reset')}
+      </Button>
+      {asking && (
+        <span class="confirm-pop" role="alertdialog" aria-label={t('set.resetAsk')}>
+          <span>{t('set.resetAsk')}</span>
+          <span class="confirm-pop-buttons">
+            <Button
+              color="red"
+              onClick={() => {
+                setAsking(false);
+                resetSettings();
+              }}
+            >
+              {t('set.resetYes')}
+            </Button>
+            <Button color="grey" onClick={() => setAsking(false)}>
+              {t('cancel')}
+            </Button>
+          </span>
+        </span>
+      )}
+    </span>
+  );
+}
+
 function SettingsMenu({ onClose }: { onClose: () => void }) {
   const s = useSettings();
   const room = useStore((st) => st.room);
@@ -307,9 +338,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
       footer={
         // Next to Back, so they can be reached from every tab.
         <>
-          <Button color="red" onClick={resetSettings}>
-            {t('set.reset')}
-          </Button>
+          <ResetButton />
           {room && (
             <Button color="red" onClick={() => store.set({ overlay: 'leave' })}>
               {room.game ? t('top.leave') : t('lobby.leave')}
@@ -415,9 +444,12 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />
         </div>
         <div class={`tab-panel${tab === 'motion' ? '' : ' hidden'}`} inert={tab !== 'motion'}>
-            <Toggle label={t('set.reduced')} desc={t('set.reduced.desc')} checked={s.reducedMotion} onChange={(v) => set({ reducedMotion: v })} />
-            <Toggle label={t('set.shake')} checked={s.screenShake} onChange={(v) => set({ screenShake: v })} disabled={s.reducedMotion} />
-            <Toggle label={t('set.bg')} checked={s.backgroundAnim} onChange={(v) => set({ backgroundAnim: v })} disabled={s.reducedMotion} />
+            {/* Reduced motion turns these two off, so they sit under it. */}
+            <div class="setting-group">
+              <Toggle label={t('set.reduced')} desc={t('set.reduced.desc')} checked={s.reducedMotion} onChange={(v) => set({ reducedMotion: v })} />
+              <Toggle label={t('set.shake')} checked={s.screenShake} onChange={(v) => set({ screenShake: v })} disabled={s.reducedMotion} />
+              <Toggle label={t('set.bg')} checked={s.backgroundAnim} onChange={(v) => set({ backgroundAnim: v })} disabled={s.reducedMotion} />
+            </div>
             {/* A switch and the slider it locks, framed together. */}
             <div class="setting-group">
               <Toggle label={t('set.crt')} desc={t('set.crt.desc')} checked={s.crt} onChange={(v) => set({ crt: v })} />

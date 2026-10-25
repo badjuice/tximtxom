@@ -31,11 +31,11 @@ async function boot() {
     onDrop: drop,
     onBadDrop: badDrop,
     blocked: () => store.get().overlay !== null,
-    onDragChange: (dragging) => store.set({ dragging }),
+    onDragChange: (card) => store.set({ dragging: card !== null, dragCard: card }),
   });
   table.onLayout = (layout) => store.set({ layout });
   await table.init(document.getElementById('stage')!);
-  if (import.meta.env.DEV) (window as unknown as { __table: Table }).__table = table;
+  if (import.meta.env.DEV) Object.assign(window, { __table: table, __send: send });
   initController(table);
 
   let lastSettings = '';

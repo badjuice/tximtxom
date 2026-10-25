@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'preact/hooks';
 import { type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
-import { type BarButton, cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort } from '../controller';
+import { type BarButton, canDrop, cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
-import { revealGroups } from '../game/scene';
+import { drawPileTop, revealGroups } from '../game/scene';
 import { kindName, t } from '../i18n';
 import { leaveRoom, playAgain, startGame } from '../net';
 import { updateSettings, useSettings } from '../settings';
@@ -35,6 +35,7 @@ export function Hud() {
         <Plate g={g} room={room} seat={seat} L={L} />
       ))}
       <PileInfo g={g} L={L} />
+      <TxiJogDrop g={g} L={L} />
       {(g.phase === 'reveal' || g.phase === 'roundOver') && <FormationLabels g={g} L={L} />}
       <HandBar g={g} L={L} />
       <ActionBar />
@@ -235,6 +236,19 @@ function SixthSense({ g, L }: { g: GameView; L: Layout }) {
   );
 }
 
+/** While a card that can end the round is held, the draw pile says it takes it. */
+function TxiJogDrop({ g, L }: { g: GameView; L: Layout }) {
+  const card = useStore((s) => s.dragCard);
+  if (card === null || !canDrop(card, { kind: 'drawPile' })) return null;
+  const top = drawPileTop(L, Math.min(g.drawCount, 6));
+  return (
+    <div class="txijog-drop" style={toScreen(L, { x: top.x, y: top.y - (CARD_H * L.pileScale) / 2 - 6 })}>
+      <ArtIcon name="txijog" scale={0.4} />
+      {t('drop.txiJog')}
+    </div>
+  );
+}
+
 function FormationLabels({ g, L }: { g: GameView; L: Layout }) {
   const groups = revealGroups(g, L);
   return (
@@ -244,11 +258,6 @@ function FormationLabels({ g, L }: { g: GameView; L: Layout }) {
           {grp.owner === g.you ? t('you') : g.players[grp.owner].name} · {kindName(grp.kind)}
         </div>
       ))}
-      {g.reveal?.endCard != null && (
-        <div class="formation-label end" style={toScreen(L, { x: L.endCard.x, y: L.endCard.y - (CARD_H * L.pileScale) / 2 - 12 })}>
-          {g.reveal.endKind === 'manual' ? t('label.endingCard') : t('label.lastCard')}
-        </div>
-      )}
     </>
   );
 }

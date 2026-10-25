@@ -36,6 +36,7 @@ export function EditionCard({ card, scale = 1, edition, spawn }: { card: Card; s
       <canvas
         ref={canvas}
         class="edition-layer"
+        data-edition={edition ?? undefined}
         width={Math.round(w * dpr)}
         height={Math.round(h * dpr)}
         aria-hidden="true"

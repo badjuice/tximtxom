@@ -16,9 +16,9 @@ const FAN_DROP = [11, 1, 1, 11];
 const FAN_SCALE = 1.25; // 119 px tall cards
 const FAN_STEP = 60; // px between card centres
 const DRAG_THRESHOLD = 10;
-const SPAWN_STEP = 150; // ms between the Aces materialising
+const SPAWN_STEP = 700 + 250; // one Ace materialises (700 ms), a short pause, then the next
 const LOGO_MS = 900; // the title materialising
-const ACES_AFTER = LOGO_MS; // the Aces start once the title is whole
+const ACES_AFTER = LOGO_MS + 1000; // the Aces start a second after the title is whole
 // Balatro's Spectral blue, palest edge first.
 const SPECTRAL: [string, string, string, string] = ['#d6e6ff', '#4584fa', '#1f3f8f', '#0b1430'];
 const slotX = (i: number) => (i - (FAN.length - 1) / 2) * FAN_STEP;
@@ -139,7 +139,8 @@ function FanCard(props: {
       {/* Keyed so each tap restarts the hop. */}
       <span class={hops ? 'fan-hop' : ''} key={hops}>
         <span class="edition-juice" ref={juice}>
-          <EditionCard card={makeCard(1, suit)} scale={FAN_SCALE} edition={props.edition} spawn={props.spawn} />
+          {/* A tap remounts the card for the hop: it must not materialise again. */}
+          <EditionCard card={makeCard(1, suit)} scale={FAN_SCALE} edition={props.edition} spawn={hops ? undefined : props.spawn} />
         </span>
       </span>
     </span>

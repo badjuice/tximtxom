@@ -145,6 +145,7 @@ const RULE_ART = {
   timer: ['hourglass', 'blue'],
   help: ['cards_fan', 'purple'],
   turn: ['cards_take', 'purple'],
+  txijog: ['cards_under', 'red'],
 };
 
 /** A white Board Game icon at `size` px, hard-edged so it reads as pixel art. */

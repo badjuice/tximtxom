@@ -42,6 +42,8 @@ export interface SceneInput {
   drag: { card: Card; x: number; y: number } | null;
   /** Cards still waiting in the deck during a deal (view keys). Hands leave them out, so they grow as cards arrive. */
   pending?: ReadonlySet<string>;
+  /** Txi jog under way: the ending card slides under the discard pile before the piles merge. */
+  ritual?: boolean;
 }
 
 /** Lays out formations in rows inside the reveal area. */
@@ -171,7 +173,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
   const roundDone = g.phase === 'roundOver' || g.phase === 'gameOver';
   // Once the round ends, the draw and discard piles slide together into one
   // stack beside the ending card, out of the way of the formations.
-  const merged = revealing || roundDone;
+  const merged = (revealing || roundDone) && !input.ritual;
   const stack = { x: L.endCard.x - 60, y: L.endCard.y };
   const ps = L.pileScale;
 
@@ -396,12 +398,16 @@ export function describeScene(input: SceneInput): DesiredCard[] {
         });
       });
     }
+    // Face down, as at a real table: first slid under the discard pile (peeking
+    // out), then at the bottom of the stack the piles make. It stays hidden.
     if (endCard !== null) {
       out.push({
         key: `c${endCard}`,
         card: endCard,
         role: 'endCard',
-        target: { x: L.endCard.x, y: L.endCard.y + 6, rot: 0.08, scale: ps, z: 25, faceUp: true, glow: RED, wobble: true },
+        target: merged
+          ? { x: stack.x, y: stack.y, rot: 0, scale: ps, z: 9, faceUp: false }
+          : { x: L.discard.x + 14, y: L.discard.y + 8, rot: 0.1, scale: ps, z: 18, faceUp: false },
       });
     }
   }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { play } from '../audio';
 import { getHandOrder, setAnnouncer, tapDrawn, tapHand } from '../controller';
 import { getSettings, updateSettings, useSettings } from '../settings';
@@ -139,6 +139,17 @@ function Toast() {
  */
 function Hint() {
   const [tip, setTip] = useState<{ text: string; x: number; y: number; below: boolean } | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  // Once its width is known, the box is kept on screen and its arrow still
+  // points at the element (near a screen edge the two part ways).
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el || !tip) return;
+    const half = el.offsetWidth / 2;
+    const left = Math.min(innerWidth - half - 6, Math.max(half + 6, tip.x));
+    el.style.left = `${left}px`;
+    el.style.setProperty('--arrow', `${tip.x - left}px`);
+  }, [tip]);
   useEffect(() => {
     let current: HTMLElement | null = null;
     let touchTimer = 0;
@@ -158,13 +169,14 @@ function Hint() {
       release();
       const text = el?.getAttribute('title') ?? el?.dataset.tip;
       if (!el || !text) return;
+      // The button already reads the same, in full: nothing to add.
+      if (el.innerText.trim() === text.trim() && el.scrollWidth <= el.clientWidth) return;
       current = el;
       el.dataset.tip = text;
       el.removeAttribute('title');
       const r = el.getBoundingClientRect();
       const below = r.top < 70;
-      const x = Math.min(innerWidth - 90, Math.max(90, r.left + r.width / 2));
-      setTip({ text, x, y: below ? r.bottom + 8 : r.top - 8, below });
+      setTip({ text, x: r.left + r.width / 2, y: below ? r.bottom + 8 : r.top - 8, below });
       // Touch has no "leave": show it for a moment.
       clearTimeout(touchTimer);
       if (e.pointerType !== 'mouse') touchTimer = window.setTimeout(release, 1800);
@@ -186,7 +198,7 @@ function Hint() {
   }, []);
   if (!tip) return null;
   return (
-    <div class={`hint${tip.below ? ' below' : ''}`} style={{ left: `${tip.x}px`, top: `${tip.y}px` }} aria-hidden="true">
+    <div class={`hint${tip.below ? ' below' : ''}`} ref={box} style={{ left: `${tip.x}px`, top: `${tip.y}px` }} aria-hidden="true">
       {tip.text}
     </div>
   );

@@ -328,16 +328,17 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
           hints.set(key, { from, delay: (k * n + j) * 0.07 * speedK, hidden: lead, faceDown: true, reset: true, deal: true });
         }
       }
-      if (g.discardTop !== null) hints.set(`c${g.discardTop}`, { from, delay: 7 * n * 0.07 * speedK, hidden: lead, faceDown: true, reset: true });
+      // Once everyone has their cards, the bottom card of the deck opens the discard pile.
+      if (g.discardTop !== null) hints.set(`c${g.discardTop}`, { from: drawPileTop(L, 1), delay: (7 * n + 3) * 0.07 * speedK, hidden: lead, faceDown: true, reset: true });
       // Turn callouts wait until the cards have landed.
       dealUntil = Date.now() + lead * 1000 + ((7 * n + 4) * 70 * speedK) / gs;
       for (let i = 0; i < 7 * n; i += 2) sfx('cardSlide1', { delay: lead * 1000 + (i * 70 * speedK) / gs, volume: 0.5 });
       // Every round is dealt on a new colour, like a new blind in Balatro (and a new back, if chosen).
       shuffleTablePalette();
-      if (getSettings().cardBack === 'random') {
-        rollRandomBack();
-        table.refreshAll();
-      }
+      // No redraw needed: the old cards have burned (or keep their back while they
+      // burn), and the new ones read the new back as they're made. A redraw here
+      // would lay out the new round at once, before its deal hints arrive.
+      if (getSettings().cardBack === 'random') rollRandomBack();
       setMood('table');
       swirl(1);
       banner(t('b.round', { n: e.round }), { sub: t('b.dealsPlays', { name: name(g, e.dealer) }), tone: 'info' });
@@ -393,7 +394,7 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       table.shake.add(8);
       swirl(2);
       setMood('reveal');
-      const how = e.kind === 'pileOut' ? t('b.pileOut') : e.kind === 'exhausted' ? t('b.noCards') : t('b.txiJog', { name: who });
+      const how = e.kind === 'pileOut' ? t('b.pileOut') : e.kind === 'exhausted' ? t('b.noCards') : e.seat === me ? t('b.txiJogYou') : t('b.txiJog', { name: who });
       if (e.bonus) {
         setTimeout(() => {
           sfx('foil1');
@@ -404,11 +405,13 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       } else if (e.kind !== 'manual') {
         setTimeout(() => banner(t('b.noRides'), { sub: t('b.noRidesSub'), joker: 'ride', tone: 'bad', ms: 2200 }), 1300);
       }
-      banner(how, { sub: e.card !== null ? t('b.endingCard', { card: cardShort(e.card) }) : undefined, tone: 'bad' });
+      // The ending card goes under the discard pile face down, and the pile onto
+      // the draw pile: nobody sees which card it was.
+      if (e.card !== null) table.ritual(getSettings().reducedMotion ? 0.3 : 0.9);
+      banner(how, { tone: 'bad' });
       announce(
         t('sr.end', {
           how,
-          card: e.card !== null ? t('sr.withCard', { card: cardSpoken(e.card) }) : '',
           after: e.bonus ? t('sr.fullHand', { name: who }) : e.kind === 'manual' ? t('sr.ridesOpen') : t('sr.noRides'),
         }),
       );
@@ -504,6 +507,12 @@ export function canDrop(card: Card, target: DropTarget): boolean {
   const me = g.you;
   const hand = g.players[me].hand ?? [];
   if (g.phase === 'playing' && g.turn === me) {
+    // Txi jog: the card goes under the discard pile, and the pile onto the draw pile.
+    if (target.kind === 'drawPile') {
+      if (g.step === 'drawn') return (card === g.drawn || hand.includes(card)) && (g.mustEnd || canEndWith(card));
+      if (g.step === 'tookDiscard') return hand.includes(card) && card !== g.taken && canEndWith(card);
+      return false;
+    }
     if (g.mustEnd) return false;
     if (target.kind === 'discard') {
       if (g.step === 'drawn') return card === g.drawn || hand.includes(card);
@@ -555,6 +564,11 @@ function swapTaken(): void {
 export function drop(card: Card, target: DropTarget): void {
   const g = store.get().room?.game;
   if (!g) return;
+  // Dragging a card onto the draw pile is as deliberate as holding the Txi jog button.
+  if (target.kind === 'drawPile') {
+    void send({ type: 'endRound', card });
+    return;
+  }
   if (target.kind === 'handCard' && card === g.discardTop && g.step === 'choose') {
     swapAfterTake = target.card;
     takeInFlight = true;

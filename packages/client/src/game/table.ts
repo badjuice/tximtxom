@@ -6,9 +6,9 @@ import type { Staged } from '../store';
 import { type CardTarget, type CardTextures, CardView } from './cardView';
 import { CARD_H, CARD_W, computeLayout, type Layout, type Point } from './layout';
 import { Particles, Shake } from './particles';
-import { type DesiredCard, describeScene, GREEN, handDropTop, reorderedHand } from './scene';
+import { type DesiredCard, describeScene, drawPileTop, GREEN, handDropTop, reorderedHand } from './scene';
 
-export type DropTarget = { kind: 'discard' } | { kind: 'handCard'; card: Card } | { kind: 'formation'; id: number } | { kind: 'table' };
+export type DropTarget = { kind: 'discard' } | { kind: 'drawPile' } | { kind: 'handCard'; card: Card } | { kind: 'formation'; id: number } | { kind: 'table' };
 
 export interface TableHandlers {
   onTapHand(card: Card): void;
@@ -23,8 +23,8 @@ export interface TableHandlers {
   onBadDrop(card: Card, target: DropTarget): void;
   /** True while something (modal, panel) blocks the table. */
   blocked(): boolean;
-  /** A card drag started (true) or ended (false). */
-  onDragChange(active: boolean): void;
+  /** A card drag started (the card) or ended (null). */
+  onDragChange(card: Card | null): void;
 }
 
 export interface TableInput {
@@ -123,7 +123,7 @@ export class Table {
     canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
     addEventListener('pointerup', (e) => this.onPointerUp(e));
     addEventListener('pointercancel', () => {
-      if (this.drag?.active) this.handlers.onDragChange(false);
+      if (this.drag?.active) this.handlers.onDragChange(null);
       this.drag = null;
       this.sync();
     });
@@ -237,6 +237,7 @@ export class Table {
       discardMemory: this.discardMemory,
       drag: drag ? { card: drag.card, x: drag.x, y: drag.y } : null,
       pending: this.dealPending,
+      ritual: this.ritualEnd > 0,
     });
     const seen = new Set<string>();
     this.roles.clear();
@@ -291,6 +292,7 @@ export class Table {
   private dropGlow(d: DesiredCard, dragged: Card): boolean {
     if (d.card === dragged) return false;
     if (d.role === 'discardTop') return this.handlers.canDrop(dragged, { kind: 'discard' });
+    if (d.role === 'drawPile') return this.handlers.canDrop(dragged, { kind: 'drawPile' });
     if (d.role === 'hand' && d.card !== null) return this.handlers.canDrop(dragged, { kind: 'handCard', card: d.card });
     if (d.role === 'formation') {
       const f = this.formationAtCard(d.card!);
@@ -406,7 +408,7 @@ export class Table {
       this.drag.y = p.y;
       if (!this.drag.active && Math.hypot(p.x - this.drag.start.x, p.y - this.drag.start.y) > DRAG_THRESHOLD) {
         this.drag.active = true;
-        this.handlers.onDragChange(true);
+        this.handlers.onDragChange(this.drag.card);
       }
       if (this.drag.active) this.sync();
     }
@@ -442,7 +444,7 @@ export class Table {
       this.views.get(`c${drag.card}`)?.pop(0.12);
       return;
     }
-    this.handlers.onDragChange(false);
+    this.handlers.onDragChange(null);
     const p = this.toVirtual(e);
     // Dropped on something that takes it?
     const under = this.hit(p, (d) => d.card !== drag.card && (d.role === 'discardTop' || d.role === 'hand' || d.role === 'formation'));
@@ -453,6 +455,9 @@ export class Table {
       const id = this.formationAtCard(under.card);
       if (id !== null) target = { kind: 'formation', id };
     }
+    // On the draw pile: Txi jog (end the round with this card). It counts even
+    // when the pile has run out, as the spot is where the cards go.
+    if (!target && this.overDrawPile(p)) target = { kind: 'drawPile' };
     // Dropped on the open table (above the hand): lay a formation.
     const handTop = handDropTop(this.layout);
     if (!target && p.y < handTop) target = { kind: 'table' };
@@ -472,6 +477,13 @@ export class Table {
     const g = this.input.game;
     const first = g && g.you !== null ? g.players[g.you].hand?.[0] : undefined;
     return first !== undefined && this.handlers.canDrop(card, { kind: 'handCard', card: first });
+  }
+
+  /** Over the draw pile's spot (a little generous: it's a big move to aim for). */
+  private overDrawPile(p: Point): boolean {
+    const L = this.layout;
+    const top = drawPileTop(L, Math.min(this.input.game?.drawCount ?? 0, 6));
+    return Math.abs(p.x - top.x) <= (CARD_W * L.pileScale) / 2 + 8 && Math.abs(p.y - top.y) <= (CARD_H * L.pileScale) / 2 + 8;
   }
 
   /** An empty discard pile has no card to hit, but still takes drops on its spot. */
@@ -503,9 +515,21 @@ export class Table {
     this.views.get(key)?.pop(amount);
   }
 
+  /** Table time when the Txi jog ritual is over and the piles merge (0: none). */
+  private ritualEnd = 0;
+
+  /** Holds the piles apart for `s` seconds while the ending card slides under the discard pile. */
+  ritual(s: number): void {
+    this.ritualEnd = this.time + s;
+  }
+
   private tick(dt: number): void {
     dt = Math.min(dt, 0.05);
     this.time += dt;
+    if (this.ritualEnd && this.time >= this.ritualEnd) {
+      this.ritualEnd = 0;
+      this.sync();
+    }
     this.updateHover();
     for (const v of this.views.values()) v.update(dt, this.time);
     // A dealt card that leaves the deck joins the end of its hand, which widens to fit it.

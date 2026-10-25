@@ -82,7 +82,8 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
               t('h.noCards')
             ) : (
               <>
-                {tj(e.kind === 'pileOut' ? 'h.pileOut' : 'h.txiJog', { name: N(e.seat), card: <C card={e.card} /> })}
+                {/* The ending card went under the pile face down: the log doesn't name it either. */}
+                {tj(e.kind === 'pileOut' ? 'h.pileOut' : 'h.txiJog', { name: N(e.seat) })}
                 {e.bonus && <b class="good"> · {t('h.fullHand')}</b>}
                 {!e.bonus && e.kind !== 'manual' && <span> · {t('h.noRides')}</span>}
               </>

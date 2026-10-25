@@ -24,6 +24,11 @@ export const IDLE_REASON = 'Nobody played for 10 minutes';
 
 /** How long bots "think" before acting (ms). */
 const BOT_DELAY = { turn: 900, reveal: 700, ride: 600, ready: 400 };
+/**
+ * A fresh deal plays out on screen first (old cards burn, the new deck appears,
+ * every card is dealt, the first discard turns up): a bot opening the round waits for it.
+ */
+const dealMs = (players: number) => 2600 + players * 7 * 70 + 500;
 
 export interface Member {
   id: string;
@@ -360,8 +365,16 @@ export class Room {
     const move = this.nextBotMove();
     if (!move) return;
     const t = move.action.type;
+    const g = this.game!;
+    const justDealt = g.events.at(-1)?.e.t === 'deal';
     const delay =
-      t === 'ready' ? BOT_DELAY.ready : t === 'ride' || t === 'pass' ? BOT_DELAY.ride : this.game!.phase === 'reveal' ? BOT_DELAY.reveal : BOT_DELAY.turn;
+      t === 'ready'
+        ? BOT_DELAY.ready
+        : t === 'ride' || t === 'pass'
+          ? BOT_DELAY.ride
+          : g.phase === 'reveal'
+            ? BOT_DELAY.reveal
+            : BOT_DELAY.turn + (justDealt ? dealMs(g.players.length) : 0);
     this.botTimer = setTimeout(() => {
       this.botTimer = null;
       const m = this.nextBotMove();

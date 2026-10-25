@@ -4,10 +4,19 @@ export type CardBack = 'back_red' | 'back_blue' | 'back_yellow' | 'back_green' |
 export const CARD_BACKS: CardBack[] = ['back_red', 'back_blue', 'back_yellow', 'back_green', 'back_black', 'back_purple'];
 
 let randomBack: CardBack = CARD_BACKS[Math.floor(Math.random() * CARD_BACKS.length)];
-/** Picks the next random back (a different one), for a new deal. */
+/** Backs not yet dealt on in this round of picks; every back comes up once before any repeats. */
+let backBag: CardBack[] = [...CARD_BACKS];
+/** Picks the next random back for a new deal: never the one just used. */
 export function rollRandomBack(): void {
-  const others = CARD_BACKS.filter((b) => b !== randomBack);
-  randomBack = others[Math.floor(Math.random() * others.length)];
+  if (!backBag.length) backBag = [...CARD_BACKS];
+  const pick = backBag.filter((b) => b !== randomBack);
+  // Only the current back is left in the bag: it goes back in with the next set.
+  if (!pick.length) {
+    backBag = CARD_BACKS.filter((b) => b !== randomBack);
+    return rollRandomBack();
+  }
+  randomBack = pick[Math.floor(Math.random() * pick.length)];
+  backBag.splice(backBag.indexOf(randomBack), 1);
 }
 /** The back to draw right now. */
 export function currentBack(): CardBack {
