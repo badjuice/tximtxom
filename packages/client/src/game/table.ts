@@ -419,7 +419,7 @@ export class Table {
     this.pointer = p;
     const d = this.hit(p, (x) => this.isInteractive(x));
     if (!d) return;
-    if ((d.role === 'hand' || d.role === 'drawn') && d.card !== null) {
+    if (((d.role === 'hand' || d.role === 'drawn') && d.card !== null) || (d.role === 'discardTop' && d.card !== null && this.canDragDiscard(d.card))) {
       this.drag = { card: d.card, start: p, x: p.x, y: p.y, active: false };
       e.preventDefault(); // a card dragged over the history panel must not select its text
       this.app.canvas.setPointerCapture?.(e.pointerId);
@@ -437,6 +437,7 @@ export class Table {
     const role = this.roles.get(`c${drag.card}`)?.role;
     if (!drag.active) {
       if (role === 'drawn') this.handlers.onTapDrawn(drag.card);
+      else if (role === 'discardTop') this.handlers.onTapDiscard();
       else this.handlers.onTapHand(drag.card);
       this.views.get(`c${drag.card}`)?.pop(0.12);
       return;
@@ -464,6 +465,13 @@ export class Table {
       this.reorder(drag.card, p.x);
     }
     this.sync();
+  }
+
+  /** The top discard can be dragged when dropping it on a hand card would take it. */
+  private canDragDiscard(card: Card): boolean {
+    const g = this.input.game;
+    const first = g && g.you !== null ? g.players[g.you].hand?.[0] : undefined;
+    return first !== undefined && this.handlers.canDrop(card, { kind: 'handCard', card: first });
   }
 
   /** An empty discard pile has no card to hit, but still takes drops on its spot. */

@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.25.0 (2026-10-25)
+- ✨ Drag the top of the Discard Pile onto a hand card to take it in that card's place; the hand card goes to the pile.
+- 🐛 Auto sort turned itself off when a card was dragged. It now stays on and keeps the hand sorted as cards come and go.
+- 🔧 Held cards swing and wobble as they move, instead of staying upright.
+- 🔧 Sound drops to 10% while the game's window or tab is not in focus.
+
 ## 0.24.4 (2026-10-25)
 - 🔧 The title Aces start materialising only once the "TximTxom" title is whole.
 

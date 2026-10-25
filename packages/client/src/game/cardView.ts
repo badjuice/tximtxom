@@ -39,6 +39,12 @@ const DRAG_STIFF = 700;
 const DRAG_DAMP = 2 * Math.sqrt(DRAG_STIFF);
 /** Longest spring integration step (s); stable for these constants. */
 const MAX_STEP = 1 / 120;
+// A held card swings on a looser spring than it follows the pointer, so it
+// leans into a move and wobbles back when shaken or stopped.
+const SWING_STIFF = 260;
+const SWING_DAMP = 14;
+const SWING_LEAN = 0.0008; // radians per px/s of travel
+const SWING_MAX = 0.3;
 
 export class CardView extends Container {
   readonly key: string;
@@ -260,16 +266,19 @@ export class CardView extends Container {
       const n = Math.max(1, Math.ceil(h / MAX_STEP));
       const sh = h / n;
       const [k, c] = t.dragged ? [DRAG_STIFF, DRAG_DAMP] : [STIFF, DAMP];
-      const step = (pos: number, vel: number, goal: number) => {
+      const step = (pos: number, vel: number, goal: number, kk = k, cc = c) => {
         for (let i = 0; i < n; i++) {
-          vel += (k * (goal - pos) - c * vel) * sh;
+          vel += (kk * (goal - pos) - cc * vel) * sh;
           pos += vel * sh;
         }
         return [pos, vel];
       };
       [this.x, this.vx] = step(this.x, this.vx, tx);
       [this.y, this.vy] = step(this.y, this.vy, ty);
-      [this.rotation, this.vr] = step(this.rotation, this.vr, tr);
+      if (t.dragged) {
+        const lean = Math.max(-SWING_MAX, Math.min(SWING_MAX, this.vx * SWING_LEAN));
+        [this.rotation, this.vr] = step(this.rotation, this.vr, tr + lean, SWING_STIFF, SWING_DAMP);
+      } else [this.rotation, this.vr] = step(this.rotation, this.vr, tr);
       let sc: number;
       [sc, this.vs] = step(this.scale.y, this.vs, ts + this.juice);
       this.juice = Math.max(0, this.juice - h * 1.6);

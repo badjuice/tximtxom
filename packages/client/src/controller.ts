@@ -63,14 +63,13 @@ export function getHandOrder(): Card[] {
 }
 
 export function setHandOrder(order: Card[]): void {
-  // Dropping a card back where it was is not a move.
-  if (order.join() === handOrder.join()) {
+  // Dropping a card back where it was is not a move; with auto sort on, the
+  // hand stays sorted and the card slides back to its place.
+  if (order.join() === handOrder.join() || getSettings().autoSort) {
     pushToTable();
     return;
   }
   handOrder = order;
-  // Moving cards by hand turns auto-sort off; it would undo the move.
-  if (getSettings().autoSort) updateSettings({ autoSort: false });
   pushToTable();
 }
 
@@ -210,6 +209,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   }
 
   turnCallouts(g, prevG);
+  swapTaken();
   // Dealt cards keep the order they arrived in; auto sort waits until the deal is over.
   if (getSettings().autoSort) {
     const wait = dealUntil - Date.now();
@@ -510,6 +510,8 @@ export function canDrop(card: Card, target: DropTarget): boolean {
       if (g.step === 'tookDiscard') return hand.includes(card) && card !== g.taken;
       return false;
     }
+    // The top discard dropped on a hand card: take it, and that card goes in its place.
+    if (target.kind === 'handCard' && card === g.discardTop && g.step === 'choose') return hand.includes(target.card);
     if (target.kind === 'handCard') return g.step === 'drawn' && card === g.drawn && hand.includes(target.card);
     return false;
   }
@@ -529,9 +531,41 @@ export function canDrop(card: Card, target: DropTarget): boolean {
   return false;
 }
 
+/** A hand card to discard as soon as the top discard (dragged onto it) has been taken. */
+let swapAfterTake: Card | null = null;
+/** The take is on its way: its reply clears any staged move, so the swap waits for it. */
+let takeInFlight = false;
+
+/** Once the top discard is taken: it takes the dropped-on card's slot, and that card is staged to go. */
+function swapTaken(): void {
+  const g = store.get().room?.game;
+  const out = swapAfterTake;
+  if (!g || out === null || takeInFlight) return;
+  const me = g.you;
+  if (g.turn === me && g.step === 'tookDiscard' && g.taken !== null) {
+    swapAfterTake = null;
+    const taken = g.taken;
+    handOrder = handOrder.filter((c) => c !== taken);
+    const i = handOrder.indexOf(out);
+    if (i >= 0) handOrder.splice(i, 0, taken);
+    stage({ type: 'swap', card: out });
+  } else if (g.turn !== me || g.step !== 'choose') swapAfterTake = null;
+}
+
 export function drop(card: Card, target: DropTarget): void {
   const g = store.get().room?.game;
   if (!g) return;
+  if (target.kind === 'handCard' && card === g.discardTop && g.step === 'choose') {
+    swapAfterTake = target.card;
+    takeInFlight = true;
+    void send({ type: 'takeDiscard' }).then((ok) => {
+      takeInFlight = false;
+      if (!ok) swapAfterTake = null;
+      swapTaken();
+      pushToTable();
+    });
+    return;
+  }
   // Like the buttons, a dropped discard waits for End Turn (with "confirm moves"
   // on), so other players don't see the card until the turn is sent.
   if (target.kind === 'discard') stage(card === g.drawn ? { type: 'discardDrawn', card } : { type: 'swap', card });

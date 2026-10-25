@@ -223,18 +223,21 @@ export function describeScene(input: SceneInput): DesiredCard[] {
       x -= 6;
       y += 3;
     }
+    // Dragged towards the hand (to swap it in for a hand card).
+    const held = drag?.card === top;
     out.push({
       key: `c${top}`,
       card: top,
       role: 'discardTop',
       target: {
-        x,
-        y,
-        rot: -0.03,
-        scale: ps,
-        z: 20,
+        x: held ? drag!.x : x,
+        y: held ? drag!.y : y,
+        rot: held ? 0 : -0.03,
+        scale: held ? L.hand.cardScale : ps,
+        z: held ? 200 : 20,
         faceUp: true,
-        wobble: true,
+        wobble: !held,
+        dragged: held,
         glow: myTurn && g.step === 'choose' ? GOLD : null,
       },
     });
@@ -264,7 +267,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
     }
 
     // A card held over the hand opens a gap where it would land, like Balatro.
-    if (drag && !staged && shownHand.includes(drag.card) && drag.y >= handDropTop(L)) shownHand = reorderedHand(L, shownHand, drag.card, drag.x);
+    if (drag && !staged && !input.autoSortBy && shownHand.includes(drag.card) && drag.y >= handDropTop(L)) shownHand = reorderedHand(L, shownHand, drag.card, drag.x);
 
     for (const c of shownHand) if (pending.has(`c${c}`)) out.push(inDeck(`c${c}`, c, 'hand'));
     shownHand = shownHand.filter((c) => !pending.has(`c${c}`));

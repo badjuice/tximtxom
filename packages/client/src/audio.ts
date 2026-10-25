@@ -37,10 +37,17 @@ export function initAudio(maxMs = 4000): Promise<void> {
   return ready;
 }
 
+// While the window is out of focus (another window or tab), everything plays at 10%.
+const UNFOCUSED = 0.1;
+const focused = () => document.hasFocus() && !document.hidden;
+addEventListener('focus', () => applyVolumes());
+addEventListener('blur', () => applyVolumes());
+document.addEventListener('visibilitychange', () => applyVolumes());
+
 function applyVolumes(): void {
   const s = getSettings();
   Howler.mute(s.muted);
-  Howler.volume(s.masterVolume);
+  Howler.volume(s.masterVolume * (focused() ? 1 : UNFOCUSED));
   if (music) {
     music.volume(s.musicVolume * 0.6);
     if (s.musicVolume > 0 && !s.muted) startMusic();

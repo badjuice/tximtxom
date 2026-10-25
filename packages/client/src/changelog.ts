@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.25.0',
+    date: '2026-10-25',
+    items: [
+      n('Drag the top of the Discard Pile onto a hand card to take it in that card\'s place; the hand card goes to the pile.', 'Arrasta a carta do topo da Pilha de Descarte para uma carta da mão para a trocar por ela; a carta da mão vai para a pilha.'),
+      f('Auto sort turned itself off when a card was dragged. It now stays on and keeps the hand sorted as cards come and go.', 'A ordenação automática desligava-se ao arrastar uma carta. Agora fica ligada e mantém a mão ordenada quando entram e saem cartas.'),
+      c('Held cards swing and wobble as they move, instead of staying upright.', 'As cartas agarradas balançam enquanto se movem, em vez de ficarem direitas.'),
+      c('Sound drops to 10% while the game\'s window or tab is not in focus.', 'O som baixa para 10% quando a janela ou o separador do jogo não está em foco.'),
+    ],
+  },
+  {
     version: '0.24.4',
     date: '2026-10-25',
     items: [c('The title Aces start materialising only once the "TximTxom" title is whole.', 'Os Ases do título só começam a materializar-se quando o título "TximTxom" está completo.')],
