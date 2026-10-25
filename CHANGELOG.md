@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.24.3 (2026-10-25)
+- ✨ Each round, the new deck materialises in Tarot purple before the cards are dealt.
+
 ## 0.24.2 (2026-10-25)
 - 🔧 "Click to start" always opens the main menu. After a refresh, Join reads "Rejoin" and takes you back to your seat.
 - ✨ The "TximTxom" title materialises in Spectral blue before the Aces.

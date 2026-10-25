@@ -305,17 +305,19 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       const speedK = getSettings().reducedMotion ? 0.3 : 1;
       const from = drawPileTop(L, 6);
       // Cards left from the last round burn away (Balatro's Hanged Man), then a
-      // fresh deck is placed in the middle and slides to the draw pile.
-      let lead = 0; // seconds before the deal starts
+      // fresh deck materialises in the middle in Tarot purple and slides to the draw pile.
+      let clear = 0;
       if (table.hasCards) {
-        const clear = table.dissolveAll();
-        const hold = 0.45;
-        const middle = { x: L.w / 2, y: L.h / 2 };
-        for (let i = 0; i < 6; i++) hints.set(`d${i}`, { from: { x: middle.x - i * 0.8, y: middle.y - i * 2 }, hidden: clear, hold });
+        clear = table.dissolveAll();
         sfx('tarot1', { volume: 0.6 });
-        sfx('cardFan2', { delay: clear * 1000, volume: 0.6 });
-        lead = clear + hold + 0.35;
       }
+      const spawn = 0.7;
+      const hold = spawn + 0.3;
+      const middle = { x: L.w / 2, y: L.h / 2 };
+      for (let i = 0; i < 6; i++) hints.set(`d${i}`, { from: { x: middle.x - i * 0.8, y: middle.y - i * 2 }, hidden: clear, hold, spawn, reset: true });
+      sfx('whoosh1', { delay: clear * 1000, volume: 0.5 });
+      sfx('cardFan2', { delay: (clear + hold) * 1000, volume: 0.6 });
+      const lead = clear + hold + 0.35; // seconds before the deal starts
       const gs = Math.max(0.25, getSettings().gameSpeed);
       for (let j = 0; j < n; j++) {
         const seat = (e.dealer + 1 + j) % n;

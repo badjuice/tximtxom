@@ -1,7 +1,7 @@
 import { Container, type Filter, Graphics, Sprite, type Texture } from 'pixi.js';
 import { type Card, cardCode } from '@tximtxom/shared';
 import { currentBack, getSettings } from '../settings';
-import { dissolveFilter, setDissolve } from './dissolve';
+import { dissolveFilter, setDissolve, TAROT } from './dissolve';
 import { ART_SCALE, CARD_H, CARD_W } from './layout';
 
 export interface CardTextures {
@@ -51,6 +51,7 @@ export class CardView extends Container {
   dying = false;
   /** Set while the card burns away; `done` once it has gone. */
   private dissolving: { t: number; filter: Filter; started: boolean; onStart?: () => void } | null = null;
+  private materializing: { t: number; s: number; filter: Filter } | null = null;
 
   private shadow: Sprite;
   private body: Container;
@@ -125,6 +126,15 @@ export class CardView extends Container {
     this.dissolving = { t: -delay, filter: dissolveFilter(), started: false, onStart };
   }
 
+  /** Fill the card in over `s` seconds once it shows (the dissolve backwards, in Tarot purple). */
+  materialize(s: number): void {
+    const filter = dissolveFilter(TAROT);
+    setDissolve(filter, 1);
+    this.body.filters = [filter];
+    this.shadow.visible = false;
+    this.materializing = { t: 0, s, filter };
+  }
+
   /** The dissolve has finished; the table can remove the card. */
   get dissolved(): boolean {
     return !!this.dissolving && this.dissolving.t >= DISSOLVE_S;
@@ -191,6 +201,15 @@ export class CardView extends Container {
       return;
     }
     this.visible = true;
+    const m = this.materializing;
+    if (m) {
+      m.t += dt;
+      if (m.t >= m.s) {
+        this.body.filters = null;
+        this.shadow.visible = true;
+        this.materializing = null;
+      } else setDissolve(m.filter, 1 - m.t / m.s);
+    }
     if (this.hold > 0) {
       this.hold -= dt;
       return;

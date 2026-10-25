@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.24.3',
+    date: '2026-10-25',
+    items: [
+      n('Each round, the new deck materialises in Tarot purple before the cards are dealt.', 'A cada ronda, o baralho novo materializa-se em roxo de Tarot antes de as cartas serem dadas.'),
+    ],
+  },
+  {
     version: '0.24.2',
     date: '2026-10-25',
     items: [

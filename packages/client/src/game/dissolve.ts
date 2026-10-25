@@ -1,6 +1,7 @@
 // Card dissolve, after Balatro's Hanged Man: the card is eaten away in blocky
 // noise, burning from the holes outward in gold, orange and red, with a
-// charred rim before the untouched card.
+// charred rim before the untouched card. Run backwards (amount 1 to 0) with
+// other colours, it materialises a card instead.
 import { Filter, GlProgram } from 'pixi.js';
 
 const VERT = `
@@ -28,6 +29,10 @@ out vec4 finalColor;
 uniform sampler2D uTexture;
 uniform float uAmount;
 uniform float uSeed;
+uniform vec3 uEdge0;
+uniform vec3 uEdge1;
+uniform vec3 uEdge2;
+uniform vec3 uEdge3;
 
 float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7)) + uSeed) * 43758.5453);
@@ -50,23 +55,44 @@ void main(void) {
   // Burning edge, hottest at the hole.
   float edge = n - cut;
   if (uAmount > 0.0 && edge < 0.15) {
-    vec3 fire = edge < 0.03 ? vec3(1.0, 0.86, 0.35)   // gold
-              : edge < 0.07 ? vec3(0.99, 0.55, 0.05)  // orange
-              : edge < 0.11 ? vec3(0.9, 0.24, 0.2)    // red
-              : mix(vec3(0.16, 0.08, 0.06), c.rgb, 0.45); // charred
+    vec3 fire = edge < 0.03 ? uEdge0   // hottest
+              : edge < 0.07 ? uEdge1
+              : edge < 0.11 ? uEdge2
+              : mix(uEdge3, c.rgb, 0.45); // charred
     c.rgb = fire * c.a;
   }
   finalColor = c;
 }
 `;
 
-export function dissolveFilter(): Filter {
+type Rgb = [number, number, number];
+/** Edge colours, hottest first; the last is mixed into the card like a char. */
+export type EdgeColors = [Rgb, Rgb, Rgb, Rgb];
+export const FIRE: EdgeColors = [
+  [1.0, 0.86, 0.35], // gold
+  [0.99, 0.55, 0.05], // orange
+  [0.9, 0.24, 0.2], // red
+  [0.16, 0.08, 0.06], // charred
+];
+/** Balatro's Tarot purple (#a782d1), palest first. */
+export const TAROT: EdgeColors = [
+  [0.92, 0.86, 1.0],
+  [0.65, 0.51, 0.82],
+  [0.36, 0.24, 0.54],
+  [0.12, 0.08, 0.19],
+];
+
+export function dissolveFilter(edges: EdgeColors = FIRE): Filter {
   return new Filter({
     glProgram: GlProgram.from({ vertex: VERT, fragment: FRAG, name: 'card-dissolve' }),
     resources: {
       dissolveUniforms: {
         uAmount: { value: 0, type: 'f32' },
         uSeed: { value: Math.random() * 100, type: 'f32' },
+        uEdge0: { value: new Float32Array(edges[0]), type: 'vec3<f32>' },
+        uEdge1: { value: new Float32Array(edges[1]), type: 'vec3<f32>' },
+        uEdge2: { value: new Float32Array(edges[2]), type: 'vec3<f32>' },
+        uEdge3: { value: new Float32Array(edges[3]), type: 'vec3<f32>' },
       },
     },
   });

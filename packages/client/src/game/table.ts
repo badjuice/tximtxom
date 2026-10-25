@@ -50,6 +50,8 @@ export type SpawnHints = Map<
     hold?: number;
     /** Dealt into a hand: the hand makes room for it only once it leaves the deck. */
     deal?: boolean;
+    /** Seconds to materialise in, once it shows (during `hold`). */
+    spawn?: number;
   }
 >;
 
@@ -247,7 +249,10 @@ export class Table {
         this.pendingHints.delete(d.key);
         v.spawnAt(reset.from.x, reset.from.y, d.target.scale * 0.9, 0);
         if (reset.faceDown) v.showFaceDown(true);
-        v.delay = (reset.delay ?? 0) / Math.max(0.25, getSettings().gameSpeed);
+        v.delay = (reset.delay ?? 0) / Math.max(0.25, getSettings().gameSpeed) + (reset.hidden ?? 0);
+        v.hold = reset.hold ?? 0;
+        if (reset.hidden) v.visible = false;
+        if (reset.spawn) v.materialize(reset.spawn);
       }
       if (!v) {
         const hint = this.pendingHints.get(d.key);
@@ -259,6 +264,7 @@ export class Table {
           v.delay = (hint.delay ?? 0) / Math.max(0.25, getSettings().gameSpeed) + (hint.hidden ?? 0);
           v.hold = hint.hold ?? 0;
           if (hint.hidden) v.visible = false;
+          if (hint.spawn) v.materialize(hint.spawn);
         }
         v.eventMode = 'none';
         this.cards.addChild(v);
