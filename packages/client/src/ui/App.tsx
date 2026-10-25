@@ -135,10 +135,12 @@ function Hint() {
       setTip(null);
     };
     const over = (e: PointerEvent) => {
-      const el = (e.target as Element | null)?.closest?.('[title]') as HTMLElement | null;
+      // The hinted element has its title in data-tip by now, so look for both:
+      // moving over its children must not hide the hint and bring it back.
+      const el = (e.target as Element | null)?.closest?.('[title], [data-tip]') as HTMLElement | null;
       if (el === current) return;
       release();
-      const text = el?.getAttribute('title');
+      const text = el?.getAttribute('title') ?? el?.dataset.tip;
       if (!el || !text) return;
       current = el;
       el.dataset.tip = text;

@@ -141,9 +141,10 @@ export function bestPartition(hand: readonly Card[], rules: RuleFlags): Partitio
 
 /**
  * Points left in the hand once formations are laid, from the best way of
- * laying them to the worst. The worst still lays everything it can: no
- * formation is left among the leftover cards. With a card that fits more
- * than one formation, the two ends differ.
+ * laying them to the worst. Even the worst lays everything it can: no
+ * formation can be made from the leftover cards, and no leftover card fits
+ * onto a laid formation (a third 7 next to a pair of 7s makes a trio). With a
+ * card that fits more than one formation, the two ends differ.
  */
 export function leftoverRange(hand: readonly Card[], rules: RuleFlags): { min: number; max: number } {
   const n = hand.length;
@@ -156,24 +157,36 @@ export function leftoverRange(hand: readonly Card[], rules: RuleFlags): { min: n
     if (valid[m]) free[m] = false;
     else for (let b = m; b && free[m]; b &= b - 1) free[m] = free[m ^ (b & -b)];
   }
-  // tiled[m]: the cards in m split exactly into formations.
-  const tiled: boolean[] = new Array(1 << n).fill(false);
-  tiled[0] = true;
-  for (let m = 1; m <= full; m++) {
-    const low = m & -m;
-    const rest = m ^ low;
-    for (let s = rest; ; s = (s - 1) & rest) {
-      if (valid[s | low] && tiled[m ^ (s | low)]) {
-        tiled[m] = true;
-        break;
-      }
-      if (s === 0) break;
-    }
+  // fits[f]: the cards that, added one at a time, still make formation f valid.
+  const fits: number[] = new Array(1 << n).fill(0);
+  for (let f = 1; f <= full; f++) {
+    if (!valid[f]) continue;
+    for (let c = 1; c <= full; c <<= 1) if (!(f & c) && valid[f | c]) fits[f] |= c;
   }
   let min = Infinity;
   let max = -Infinity;
   for (let left = 0; left <= full; left++) {
-    if (!free[left] || !tiled[full ^ left]) continue;
+    if (!free[left]) continue;
+    // Can the other cards split into formations that none of the leftovers fit onto?
+    const tiled = new Map<number, boolean>([[0, true]]);
+    const tile = (m: number): boolean => {
+      let r = tiled.get(m);
+      if (r !== undefined) return r;
+      r = false;
+      const low = m & -m;
+      const rest = m ^ low;
+      for (let s = rest; ; s = (s - 1) & rest) {
+        const f = s | low;
+        if (valid[f] && !(fits[f] & left) && tile(m ^ f)) {
+          r = true;
+          break;
+        }
+        if (s === 0) break;
+      }
+      tiled.set(m, r);
+      return r;
+    };
+    if (!tile(full ^ left)) continue;
     const pts = pick(hand, left).reduce((sum, c) => sum + cardPoints(c), 0);
     min = Math.min(min, pts);
     max = Math.max(max, pts);

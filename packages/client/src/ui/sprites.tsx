@@ -1,6 +1,7 @@
 import type { ComponentChildren } from 'preact';
 import { type Card, cardCode } from '@tximtxom/shared';
 import { cardSpoken } from '../i18n';
+import { upscaled } from '../pixelArt';
 import { useSettings } from '../settings';
 
 interface Frame {
@@ -11,6 +12,8 @@ interface Frame {
 }
 interface Atlas {
   url: string;
+  /** The atlas enlarged UPSCALE times with hard pixel edges, for drawing on screen (see pixelArt.ts). */
+  bigUrl: string;
   w: number;
   h: number;
   frames: Record<string, Frame>;
@@ -23,7 +26,13 @@ export async function loadSpriteAtlases(): Promise<void> {
     const json = await (await fetch(`${import.meta.env.BASE_URL}assets/${name}.json`)).json();
     const frames: Record<string, Frame> = {};
     for (const [k, v] of Object.entries<{ frame: Frame }>(json.frames)) frames[k] = v.frame;
-    atlases[name] = { url: `${import.meta.env.BASE_URL}assets/${json.meta.image}`, w: json.meta.size.w, h: json.meta.size.h, frames };
+    const url = `${import.meta.env.BASE_URL}assets/${json.meta.image}`;
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const blob = await new Promise<Blob | null>((resolve) => upscaled(img).toBlob(resolve));
+    const bigUrl = blob ? URL.createObjectURL(blob) : url;
+    atlases[name] = { url, bigUrl, w: json.meta.size.w, h: json.meta.size.h, frames };
   }
 }
 
@@ -41,7 +50,7 @@ function spriteStyle(atlas: string, frame: string, scale: number): Record<string
   return {
     width: `${f.w * scale}px`,
     height: `${f.h * scale}px`,
-    backgroundImage: `url(${a.url})`,
+    backgroundImage: `url(${a.bigUrl})`,
     backgroundSize: `${a.w * scale}px ${a.h * scale}px`,
     backgroundPosition: `-${f.x * scale}px -${f.y * scale}px`,
   };

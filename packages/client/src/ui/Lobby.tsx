@@ -93,15 +93,15 @@ export function Lobby() {
             The second button fills the room, or empties it of bots once there are some. */}
         {isHost && (
           <div class="bot-row">
-            <Button color="grey" disabled={room.players.length >= MAX_PLAYERS} onClick={() => void addBot()}>
+            <Button color="blue" disabled={room.players.length >= MAX_PLAYERS} onClick={() => void addBot()}>
               {t('lobby.addBot')}
             </Button>
             {bots.length ? (
-              <Button color="grey" onClick={() => void removeBots(bots.map((b) => b.id))}>
+              <Button color="red" onClick={() => void removeBots(bots.map((b) => b.id))}>
                 {t('lobby.removeBots')}
               </Button>
             ) : (
-              <Button color="grey" disabled={room.players.length >= MAX_PLAYERS} onClick={() => void fillWithBots(MAX_PLAYERS - room.players.length)}>
+              <Button color="purple" disabled={room.players.length >= MAX_PLAYERS} onClick={() => void fillWithBots(MAX_PLAYERS - room.players.length)}>
                 {t('lobby.fillBots')}
               </Button>
             )}
@@ -198,7 +198,7 @@ export function Lobby() {
         {/* Above the rules on wide screens; on phones right after the room panel. */}
         <div class="lobby-top">
           <div class="lobby-links">
-            <Button color="grey" onClick={() => store.set({ overlay: 'help' })}>
+            <Button color="green" onClick={() => store.set({ overlay: 'help' })}>
               {t('title.howToPlay')}
             </Button>
             <Button color="blue" onClick={() => store.set({ overlay: 'formations' })}>
@@ -213,7 +213,7 @@ export function Lobby() {
           <RulesForm rules={room.rules} readOnly={!isHost} onChange={(r) => void setRules(r)} />
           {isHost && (
             <div class="rules-reset">
-              <Button color="grey" disabled={isDefault(room.rules)} onClick={() => void setRules(DEFAULT_RULES)}>
+              <Button color="orange" disabled={isDefault(room.rules)} onClick={() => void setRules(DEFAULT_RULES)}>
                 {t('lobby.resetRules')}
               </Button>
             </div>

@@ -427,7 +427,7 @@ export function UiIcon({ name }: { name: 'help' | 'settings' | 'leave' }) {
 
 /** A small button the size of the Rules button, for the menus along the top. */
 export function MiniButton(props: {
-  color?: 'grey' | 'red' | 'blue' | 'purple' | 'orange' | 'leave';
+  color?: 'grey' | 'red' | 'blue' | 'purple' | 'orange' | 'green' | 'leave';
   onClick: () => void;
   children: ComponentChildren;
   kbd?: string;

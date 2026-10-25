@@ -11,8 +11,9 @@ import { EDITIONS, type Edition } from './editions';
 // Four Aces fanned like a hand, red and black alternating: spades, hearts, clubs, diamonds.
 const FAN: Suit[] = [3, 0, 1, 2];
 const FAN_ANGLE = [-12, -4, 4, 12];
-const FAN_DROP = [9, 1, 1, 9];
-const FAN_STEP = 48; // px between card centres
+const FAN_DROP = [11, 1, 1, 11];
+const FAN_SCALE = 1.25; // 119 px tall cards
+const FAN_STEP = 60; // px between card centres
 const DRAG_THRESHOLD = 10;
 const slotX = (i: number) => (i - (FAN.length - 1) / 2) * FAN_STEP;
 
@@ -131,7 +132,7 @@ function FanCard(props: {
       {/* Keyed so each tap restarts the hop. */}
       <span class={hops ? 'fan-hop' : ''} key={hops}>
         <span class="edition-juice" ref={juice}>
-          <EditionCard card={makeCard(1, suit)} edition={props.edition} />
+          <EditionCard card={makeCard(1, suit)} scale={FAN_SCALE} edition={props.edition} />
         </span>
       </span>
     </span>
@@ -148,9 +149,9 @@ export function Title() {
   const [editions, setEditions] = useState(fanEditions);
   // Editions land left to right, each with its sound.
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const land = (picks: Partial<Record<Suit, Edition>>, delay: number) => {
+  const land = (picks: Partial<Record<Suit, Edition>>, delay: number, order = fanOrder) => {
     let i = 0;
-    for (const suit of fanOrder) {
+    for (const suit of order) {
       const ed = picks[suit];
       if (!ed) continue;
       fanPending[suit] = ed;
@@ -181,7 +182,8 @@ export function Title() {
       if (typed !== SECRET || !secretArmed || Object.keys(fanEditions).length || Object.keys(fanPending).length) return;
       secretArmed = false;
       const picks = shuffled(EDITIONS);
-      land(Object.fromEntries(fanOrder.map((suit, i) => [suit, picks[i]])), 200);
+      // Which Ace gets which edition, and which lands first, both at random.
+      land(Object.fromEntries(fanOrder.map((suit, i) => [suit, picks[i]])), 200, shuffled(fanOrder));
     };
     addEventListener('keydown', onKey);
     return () => {
@@ -284,7 +286,7 @@ export function Title() {
       </form>
 
       <div class="title-links">
-        <Button color="grey" onClick={() => store.set({ overlay: 'help' })}>
+        <Button color="green" onClick={() => store.set({ overlay: 'help' })}>
           {t('title.howToPlay')}
         </Button>
         <Button color="purple" onClick={() => store.set({ overlay: 'changelog' })}>

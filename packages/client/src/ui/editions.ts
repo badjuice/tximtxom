@@ -2,6 +2,7 @@
 // WebGL shaders, for DOM cards. One hidden WebGL canvas draws every card in
 // turn and each card copies the result into its own 2D canvas, so any number
 // of cards share a single GL context.
+import { upscaled } from '../pixelArt';
 import { getSettings } from '../settings';
 import { atlasFrame } from './sprites';
 
@@ -27,6 +28,15 @@ uniform vec2 tilt;
 uniform int edition;
 uniform float flash;
 
+// The shine's clock: each 2.4 s it eases 3 steps forward, then 1 back, so the
+// sheen sways like a wave while still drifting on (2 steps a cycle, 1 per second).
+float wave(float s) {
+  float cycle = floor(s / 2.4);
+  float u = fract(s / 2.4);
+  float k = u < 0.75 ? 3.0 * smoothstep(0.0, 1.0, u / 0.75) : 3.0 - smoothstep(0.0, 1.0, (u - 0.75) / 0.25);
+  return (cycle * 2.0 + k) * 1.2;
+}
+
 vec3 rgb2hsv(vec3 c) {
   vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
   vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
@@ -43,20 +53,21 @@ void main() {
   vec4 c = texture2D(tex, uv);
   if (c.a < 0.01) { gl_FragColor = vec4(0.0); return; }
   vec3 col = c.rgb;
+  float t = wave(time);
   float lum = dot(col, vec3(0.299, 0.587, 0.114));
   // Effects follow the art's pixel grid, so they read as pixel art too.
   vec2 px = (floor(uv * texSize) + 0.5) / texSize - 0.5;
 
   if (edition == 0) {
     // Foil: cold silver-blue metal with bright bands sweeping across as the card moves.
-    float a = sin((px.x * 1.3 + px.y * 2.1) * 7.0 + time * 1.3 + tilt.x * 5.0) * 0.5 + 0.5;
-    float b = sin((px.x * -2.2 + px.y * 1.2) * 9.0 - time * 0.8 + tilt.y * 6.0) * 0.5 + 0.5;
+    float a = sin((px.x * 1.3 + px.y * 2.1) * 7.0 + t * 1.3 + tilt.x * 5.0) * 0.5 + 0.5;
+    float b = sin((px.x * -2.2 + px.y * 1.2) * 9.0 - t * 0.8 + tilt.y * 6.0) * 0.5 + 0.5;
     vec3 metal = mix(vec3(0.3, 0.45, 0.85), vec3(0.75, 0.88, 1.0), a * b);
     col = mix(col, col * 0.35 + metal * (0.2 + 0.45 * lum), 0.85);
     col += vec3(0.7, 0.85, 1.0) * pow(a * b, 8.0) * 0.5;
   } else if (edition == 1) {
     // Holographic: a red-leaning rainbow sheen over a fine grid that shifts with the angle.
-    float h = fract(px.x * 0.9 + px.y * 0.7 + time * 0.12 + tilt.x * 0.6 + tilt.y * 0.4);
+    float h = fract(px.x * 0.9 + px.y * 0.7 + t * 0.12 + tilt.x * 0.6 + tilt.y * 0.4);
     vec3 irid = hsv2rgb(vec3(h, 0.6, 1.0));
     vec2 cell = fract(uv * texSize / 3.0);
     float grid = step(0.66, max(cell.x, cell.y));
@@ -65,16 +76,16 @@ void main() {
   } else if (edition == 2) {
     // Polychrome: every colour, whites included, turns through the rainbow in a slow swirl.
     vec3 hsv = rgb2hsv(col);
-    float swirl = sin(length(px) * 9.0 - time * 1.1) * 0.12 + atan(px.y, px.x) / 6.2832;
-    hsv.x = fract(hsv.x + swirl + time * 0.06 + tilt.x * 0.25 - tilt.y * 0.15);
+    float swirl = sin(length(px) * 9.0 - t * 1.1) * 0.12 + atan(px.y, px.x) / 6.2832;
+    hsv.x = fract(hsv.x + swirl + t * 0.06 + tilt.x * 0.25 - tilt.y * 0.15);
     hsv.y = max(hsv.y, 0.5);
     col = mix(col, hsv2rgb(hsv), 0.7);
   } else if (edition == 3) {
     // Negative: the colours inverted, so rank and suit stay readable (white marks on a dark card),
     // with a violet sheen sweeping across like the other editions.
     col = 1.0 - col;
-    float s = sin((px.x - px.y) * 8.0 + time * 1.4 + tilt.x * 5.0) * 0.5 + 0.5;
-    float s2 = sin((px.x * 1.7 + px.y) * 11.0 - time * 0.9 + tilt.y * 6.0) * 0.5 + 0.5;
+    float s = sin((px.x - px.y) * 8.0 + t * 1.4 + tilt.x * 5.0) * 0.5 + 0.5;
+    float s2 = sin((px.x * 1.7 + px.y) * 11.0 - t * 0.9 + tilt.y * 6.0) * 0.5 + 0.5;
     col += vec3(0.45, 0.3, 0.75) * pow(s * s2, 3.0) * 0.55;
     col += vec3(0.9, 0.8, 1.0) * pow(s * s2, 10.0) * 0.5;
   }
@@ -157,9 +168,8 @@ async function cardTexture(e: Entry, face: string): Promise<void> {
   const g = gl!;
   e.tex = g.createTexture();
   g.bindTexture(g.TEXTURE_2D, e.tex);
-  g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, art);
-  g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.NEAREST);
-  g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.NEAREST);
+  // Enlarged first, so "smooth everything" softens only the edges between pixels (see pixelArt.ts).
+  g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, upscaled(art));
   g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
   g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
   e.texSize = [art.width, art.height];
@@ -170,6 +180,7 @@ function draw(now: number): void {
   if (!g || !glCanvas) return;
   const reduced = getSettings().reducedMotion;
   const time = reduced ? 1.5 : (now - start) / 1000;
+  const filter = getSettings().smooth === 'all' ? g.LINEAR : g.NEAREST;
   for (const e of entries) {
     if (!e.tex || !e.edition) continue;
     const { width: w, height: h } = e.canvas;
@@ -181,6 +192,8 @@ function draw(now: number): void {
     g.clearColor(0, 0, 0, 0);
     g.clear(g.COLOR_BUFFER_BIT);
     g.bindTexture(g.TEXTURE_2D, e.tex);
+    g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, filter);
+    g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, filter);
     g.uniform1i(uniforms.tex, 0);
     g.uniform2f(uniforms.texSize, e.texSize[0], e.texSize[1]);
     g.uniform1f(uniforms.time, time);

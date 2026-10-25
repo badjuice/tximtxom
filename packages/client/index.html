@@ -12,8 +12,48 @@
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="favicon.png" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <style>
+      /* Shown until the game's first assets load: a card back spinning. main.tsx removes it. */
+      #loading {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: grid;
+        place-items: center;
+        background: #1b2b2a;
+        transition: opacity 0.3s;
+        perspective: 400px;
+      }
+      #loading.done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #loading img {
+        width: 84px;
+        height: 120px;
+        image-rendering: pixelated;
+        filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
+        animation: loading-flip 1.2s ease-in-out infinite;
+      }
+      @keyframes loading-flip {
+        to {
+          transform: rotateY(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #loading img {
+          animation: loading-pulse 1.2s ease-in-out infinite alternate;
+        }
+      }
+      @keyframes loading-pulse {
+        to {
+          opacity: 0.4;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="loading" role="status" aria-label="Loading"><img src="assets/ui/loading.png" alt="" /></div>
     <canvas id="bg" aria-hidden="true"></canvas>
     <div id="stage" aria-hidden="true"></div>
     <div id="app"></div>

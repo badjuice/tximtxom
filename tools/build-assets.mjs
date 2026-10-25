@@ -224,6 +224,12 @@ async function uiIcons() {
       .toFile(path.join(OUT, 'ui', `${key}.png`));
   }
   console.log(`ui icons: ${Object.keys(UI_ICONS).length}`);
+  // The red card back on its own, for the loading screen (shown before the atlases load).
+  const { frame } = JSON.parse(fs.readFileSync(path.join(OUT, 'cards.json'), 'utf8')).frames.back_red;
+  await sharp(path.join(OUT, 'cards.png'))
+    .extract({ left: frame.x, top: frame.y, width: frame.w, height: frame.h })
+    .png({ compressionLevel: 9 })
+    .toFile(path.join(OUT, 'ui', 'loading.png'));
 }
 
 // ---------------------------------------------------------------- audio

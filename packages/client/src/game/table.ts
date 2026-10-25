@@ -1,5 +1,6 @@
-import { Application, Assets, Container, type Spritesheet, type Texture } from 'pixi.js';
+import { Application, Assets, Container, type Spritesheet, type Texture, TextureSource } from 'pixi.js';
 import type { Card, GameView } from '@tximtxom/shared';
+import { upscaled, UPSCALE } from '../pixelArt';
 import { getSettings, historyInset, onSettings } from '../settings';
 import type { Staged } from '../store';
 import { type CardTarget, type CardTextures, CardView } from './cardView';
@@ -79,7 +80,7 @@ export class Table {
     await this.app.init({
       backgroundAlpha: 0,
       // Smooths the edges of tilted cards. Fixed when the canvas is made, so a change applies on reload.
-      antialias: getSettings().smoothing !== 'off',
+      antialias: getSettings().smooth !== 'off',
       // The card dissolve is a GLSL filter.
       preference: 'webgl',
       resizeTo: window,
@@ -91,8 +92,16 @@ export class Table {
     host.appendChild(this.app.canvas);
 
     const sheet = (await Assets.load(`${import.meta.env.BASE_URL}assets/cards.json`)) as Spritesheet;
+    // The art enlarged with hard pixel edges first: smoothing it then softens
+    // only the edges between pixels, not each pixel into its neighbours.
+    const big = new TextureSource({
+      resource: upscaled(sheet.textureSource.resource as HTMLImageElement | ImageBitmap),
+      resolution: UPSCALE,
+      autoGenerateMipmaps: true,
+    });
+    for (const tex of Object.values(sheet.textures)) tex.source = big;
     // Crisp pixel art, unless the player asked to smooth everything.
-    const filter = () => (sheet.textureSource.scaleMode = getSettings().smoothing === 'all' ? 'linear' : 'nearest');
+    const filter = () => (big.scaleMode = getSettings().smooth === 'all' ? 'linear' : 'nearest');
     filter();
     onSettings(filter);
     this.tex = { get: (name: string) => sheet.textures[name] as Texture };

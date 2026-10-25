@@ -49,6 +49,9 @@ async function boot() {
 
   render(<App />, document.getElementById('app')!);
   initNet();
+  const loading = document.getElementById('loading');
+  loading?.classList.add('done');
+  setTimeout(() => loading?.remove(), 300);
 
   // Audio needs a user gesture on mobile.
   void initAudio();

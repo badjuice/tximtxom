@@ -19,6 +19,21 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.23.0',
+    date: '2026-10-25',
+    items: [
+      n('A spinning card shows while the game loads.', 'Uma carta a girar aparece enquanto o jogo carrega.'),
+      c('Anti-aliasing "Everything" no longer blurs the cards: only the edges between pixels are smoothed. It is now the default.', 'A suavização "Tudo" já não desfoca as cartas: só suaviza as margens entre píxeis. Passa a ser a predefinição.'),
+      c('The hand points read "Total" and "Unformed" (points of the cards left out of formations).', 'Os pontos da mão dizem "Total" e "Por formar" (pontos das cartas que ficam fora das formações).'),
+      c('The edition shine sways like a wave: three steps forward, one back.', 'O brilho das edições ondula: três passos para a frente, um para trás.'),
+      c('Bigger Aces on the title screen.', 'Ases maiores no ecrã inicial.'),
+      c('More colour on the buttons: How to play, the bot buttons and the reset buttons.', 'Mais cor nos botões: Como jogar, os botões dos bots e os de repor.'),
+      c('How to play no longer mentions Mixed Suits; the rule is explained in the room.', 'Como jogar já não fala de Naipes Misturados; a regra está explicada na sala.'),
+      f('"Unformed" counted a card that still fitted a laid formation (a third 7 next to a pair of 7s) as left over.', '"Por formar" contava como solta uma carta que ainda cabia numa formação (um terceiro 7 ao lado de um par de 7).'),
+      f('The hint over the hand points flickered while the pointer moved across it, and the browser showed its own hint too.', 'A dica dos pontos da mão piscava ao passar o ponteiro, e o navegador mostrava também a sua.'),
+    ],
+  },
+  {
     version: '0.22.1',
     date: '2026-10-24',
     items: [c('Polychrome is now a 5% chance per Ace, up from 3%.', 'A Policromática passa a ter 5% de hipótese por Ás, em vez de 3%.')],

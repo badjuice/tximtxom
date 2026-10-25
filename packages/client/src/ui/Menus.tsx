@@ -306,7 +306,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
       footer={
         // Next to Back, so they can be reached from every tab.
         <>
-          <Button color="grey" onClick={resetSettings}>
+          <Button color="red" onClick={resetSettings}>
             {t('set.reset')}
           </Button>
           {room && (
@@ -399,13 +399,13 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             <Choice
               label={t('set.smoothing')}
               desc={t('set.smoothing.desc')}
-              value={s.smoothing}
+              value={s.smooth}
               options={[
                 { value: 'off', label: t('set.smooth.off') },
                 { value: 'edges', label: t('set.smooth.edges') },
                 { value: 'all', label: t('set.smooth.all') },
               ]}
-              onChange={(smoothing) => set({ smoothing })}
+              onChange={(smooth) => set({ smooth })}
             />
             <Slider label={t('set.size')} value={s.uiScale} min={0.8} max={1.2} step={0.05} onChange={(v) => set({ uiScale: v })} format={pct} />
             <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />

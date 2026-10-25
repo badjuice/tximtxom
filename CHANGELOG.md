@@ -5,6 +5,17 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.23.0 (2026-10-25)
+- ✨ A spinning card shows while the game loads.
+- 🔧 Anti-aliasing "Everything" no longer blurs the cards: only the edges between pixels are smoothed. It is now the default.
+- 🔧 The hand points read "Total" and "Unformed" (points of the cards left out of formations).
+- 🔧 The edition shine sways like a wave: three steps forward, one back.
+- 🔧 Bigger Aces on the title screen.
+- 🔧 More colour on the buttons: How to play, the bot buttons and the reset buttons.
+- 🔧 How to play no longer mentions Mixed Suits; the rule is explained in the room.
+- 🐛 "Unformed" counted a card that still fitted a laid formation (a third 7 next to a pair of 7s) as left over.
+- 🐛 The hint over the hand points flickered while the pointer moved across it, and the browser showed its own hint too.
+
 ## 0.22.1 (2026-10-24)
 - 🔧 Polychrome is now a 5% chance per Ace, up from 3%.
 

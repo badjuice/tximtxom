@@ -7,7 +7,7 @@ export interface Settings {
   bigLabels: boolean;
   cardBack: 'back_red' | 'back_blue' | 'back_yellow' | 'back_green' | 'back_black' | 'back_purple';
   /** Anti-aliasing: none, the edges of tilted table cards, or all the pixel art too. */
-  smoothing: 'off' | 'edges' | 'all';
+  smooth: 'off' | 'edges' | 'all';
   // Layout
   clockwise: boolean;
   uiScale: number;
@@ -47,7 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
   highContrast: prefersContrast,
   bigLabels: false,
   cardBack: 'back_red',
-  smoothing: 'edges',
+  smooth: 'all',
   clockwise: false,
   uiScale: 1,
   textScale: 1,
@@ -77,7 +77,14 @@ const listeners = new Set<() => void>();
 
 function load(): Settings {
   try {
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') };
+    const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}');
+    // Before 0.23 this was `smoothing`, saved as 'edges' by default. Only a
+    // deliberate 'off' carries over; everyone else gets the new default.
+    if ('smoothing' in saved) {
+      if (saved.smoothing === 'off') saved.smooth = 'off';
+      delete saved.smoothing;
+    }
+    return { ...DEFAULT_SETTINGS, ...saved };
   } catch {
     return { ...DEFAULT_SETTINGS };
   }
@@ -137,6 +144,6 @@ export function applyCssSettings(): void {
   root.classList.toggle('crt-on', current.crt);
   root.classList.toggle('history-open', current.historyOpen);
   root.classList.toggle('lefty', current.leftHanded);
-  root.classList.toggle('smooth-all', current.smoothing === 'all');
+  root.classList.toggle('smooth-all', current.smooth === 'all');
   root.lang = current.lang === 'pt' ? 'pt-PT' : 'en';
 }

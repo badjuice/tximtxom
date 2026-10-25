@@ -118,9 +118,15 @@ describe('bestPartition', () => {
 
 describe('leftoverRange', () => {
   it('spans the best and the worst complete way of laying formations', () => {
-    // Best: 7H-8H-9H plus the pair 7S-7D leave K and Q. Worst: the pair 7H-7S strands 7D 8H 9H.
+    // Best: 7H-8H-9H plus the pair 7S-7D leave K and Q. Worst: the trio of 7s strands 8H 9H.
     const hand = P('7H 7S 7D 8H 9H KC QD');
-    expect(leftoverRange(hand, base)).toEqual({ min: handPoints(P('KC QD')), max: handPoints(P('7D 8H 9H KC QD')) });
+    expect(leftoverRange(hand, base)).toEqual({ min: handPoints(P('KC QD')), max: handPoints(P('8H 9H KC QD')) });
+  });
+  it('never leaves a card that fits onto a laid formation', () => {
+    // A pair of 7s with the third 7 left over is not a finished hand: it makes a trio.
+    expect(leftoverRange(P('7H 7S 7D KC'), base)).toEqual({ min: handPoints(P('KC')), max: handPoints(P('KC')) });
+    // Nor is 5-6-7 with the 8 of the same suit left over.
+    expect(leftoverRange(P('5H 6H 7H 8H KC'), base)).toEqual({ min: handPoints(P('KC')), max: handPoints(P('KC')) });
   });
   it('is the whole hand when nothing forms', () => {
     const hand = P('2H 5C 9D KS');

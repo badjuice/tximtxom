@@ -99,9 +99,9 @@ const en = {
   formation: 'formation',
   drawPile: 'Draw Pile',
   discardPile: 'Discard Pile',
-  handPoints: 'Hand Points',
-  'handPoints.after': 'Formed',
-  'handPoints.title': 'Points now, and what is left once formations are laid (best way to worst)',
+  handPoints: 'Total',
+  'handPoints.after': 'Unformed',
+  'handPoints.title': 'Total: points of every card in your hand. Unformed: points of the cards left out of formations (a range when the cards can be formed in more than one way)',
   round: 'Round',
   dealer: 'Dealer',
 
@@ -397,13 +397,13 @@ const en = {
   'help.tab.ride': 'Take a Ride',
   'help.tab.more': 'More',
   'help.goal':
-    'Keep the {b}fewest points{/b} in your hand. Cards in {g}formations{/g} (pairs, trios, quads, straights of 3+ in one suit, or any suits with {o}Mixed Suits{/o}) don\'t count. Card values: {o}A = 1{/o}, 2–10 as printed, {o}J = 11, Q = 12, K = 13{/o}. When someone goes over the limit it\'s a {r}bust{/r}, and the {b}lowest total wins{/b}.',
+    'Keep the {b}fewest points{/b} in your hand. Cards in {g}formations{/g} (pairs, trios, quads, straights of 3+ in one suit) don\'t count. Card values: {o}A = 1{/o}, 2–10 as printed, {o}J = 11, Q = 12, K = 13{/o}. When someone goes over the limit it\'s a {r}bust{/r}, and the {b}lowest total wins{/b}.',
   'help.turn':
     'Take the face-up card from the {o}Discard Pile{/o} or draw from the {b}Draw Pile{/b}. A card you take from the discard must stay: let go of another card. A drawn card can be kept (swap it in) or thrown straight onto the Discard Pile. You can {g}drag cards{/g} instead of using the buttons.',
   'help.end':
     '{r}End the round{/r}: after picking a card, slide a card ranked {r}5 or lower{/r} (Ace = 1) under the Discard Pile. It can be the card you drew or one from your hand, not the discard you just took. With all 7 cards formed you get {g}-10{/g} and nobody may take a ride.',
   'help.ride':
-    'After the round ends, formations are shown one by one. Other players can {g}take a ride{/g}: add their own cards to them to shed points. One card per player on a pair or trio; cards at either end of a straight, in its suit (any suit with {o}Mixed Suits{/o}).',
+    'After the round ends, formations are shown one by one. Other players can {g}take a ride{/g}: add their own cards to them to shed points. One card per player on a pair or trio; cards at either end of a straight, in its suit.',
   'help.more':
     'The first time the Draw Pile empties, the discards (except the top one) are reshuffled. The second time, whoever drew the last card must {r}end the round{/r} with any card, and there are no rides. Hold a {o}7-card straight flush{/o} and call {o}TximTxom!{/o} on your turn to win the whole game. Turns go counter-clockwise; the dealer plays first and the deal rotates.',
 
@@ -521,9 +521,9 @@ const pt: Record<Key, string> = {
   formation: 'formação',
   drawPile: 'Monte',
   discardPile: 'Descarte',
-  handPoints: 'Pontos na mão',
-  'handPoints.after': 'Formada',
-  'handPoints.title': 'Pontos agora, e os que sobram depois de pousar formações (da melhor maneira à pior)',
+  handPoints: 'Total',
+  'handPoints.after': 'Por formar',
+  'handPoints.title': 'Total: pontos de todas as cartas na mão. Por formar: pontos das cartas que ficam fora das formações (um intervalo quando as cartas se podem formar de mais de uma maneira)',
   round: 'Ronda',
   dealer: 'Dealer',
 
@@ -805,13 +805,13 @@ const pt: Record<Key, string> = {
   'help.tab.ride': 'Boleias',
   'help.tab.more': 'Mais',
   'help.goal':
-    'Fica com {b}menos pontos{/b} na mão. As cartas em {g}formações{/g} (pares, trincas, quadras, escadas de 3+ do mesmo naipe, ou de qualquer naipe com {o}Naipes Misturados{/o}) não contam. Valores: {o}Ás = 1{/o}, 2–10 o que diz a carta, {o}J = 11, Q = 12, K = 13{/o}. Quando alguém passa do limite é {r}Rabenta{/r}, e {b}ganha o total mais baixo{/b}.',
+    'Fica com {b}menos pontos{/b} na mão. As cartas em {g}formações{/g} (pares, trincas, quadras, escadas de 3+ do mesmo naipe) não contam. Valores: {o}Ás = 1{/o}, 2–10 o que diz a carta, {o}J = 11, Q = 12, K = 13{/o}. Quando alguém passa do limite é {r}Rabenta{/r}, e {b}ganha o total mais baixo{/b}.',
   'help.turn':
     'Apanha a carta virada do {o}Descarte{/o} ou tira do {b}Monte{/b}. A carta que apanhas do Descarte fica contigo: larga outra. Uma carta tirada do Monte pode ficar (troca-a por uma da mão) ou ir logo para o Descarte. Podes {g}arrastar as cartas{/g} em vez de usar os botões.',
   'help.end':
     '{r}Txi jog{/r} acaba a ronda: depois de tirar ou apanhar, mete uma carta de {r}5 ou menos{/r} (Ás = 1) por baixo do Descarte. Pode ser a carta que tiraste ou uma da mão, mas não a que acabaste de apanhar do Descarte. Com as 7 cartas formadas ganhas {g}-10{/g} e ninguém pode apanhar boleia.',
   'help.ride':
-    'Depois do {r}Txi jog{/r}, as formações são mostradas uma a uma. Os outros jogadores podem {g}apanhar boleia{/g}: juntar cartas suas para se livrarem de pontos. Uma carta por jogador num par ou trinca; cartas do mesmo naipe nas pontas de uma escada (qualquer naipe com {o}Naipes Misturados{/o}).',
+    'Depois do {r}Txi jog{/r}, as formações são mostradas uma a uma. Os outros jogadores podem {g}apanhar boleia{/g}: juntar cartas suas para se livrarem de pontos. Uma carta por jogador num par ou trinca; cartas do mesmo naipe nas pontas de uma escada.',
   'help.more':
     'Da primeira vez que o Monte acaba, o Descarte (menos a carta de cima) é baralhado. Da segunda vez, quem tirou a última carta tem de fazer {r}Txi jog{/r} com qualquer carta, e não há boleias. Com uma {o}escada de 7 do mesmo naipe{/o} na mão, chama {o}TximTxom!{/o} na tua vez e ganhas o jogo todo. Joga-se no sentido anti-horário; o Dealer joga primeiro e o Dealer muda a cada ronda.',
 
