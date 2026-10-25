@@ -16,7 +16,7 @@ let musicId: number | undefined;
 export async function initAudio(): Promise<void> {
   const sprite = (await (await fetch(`${A}sfx.json`)).json()) as Record<string, [number, number]>;
   sfx = new Howl({ src: [`${A}sfx.webm`, `${A}sfx.mp3`], sprite, preload: true });
-  music = new Howl({ src: [`${A}music1.webm`, `${A}music1.mp3`], loop: true, html5: true, preload: false });
+  music = new Howl({ src: [`${A}theme.webm`, `${A}theme.mp3`], loop: true, html5: true, preload: false });
   applyVolumes();
   onSettings(applyVolumes);
 }

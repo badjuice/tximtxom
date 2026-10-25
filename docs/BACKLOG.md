@@ -73,4 +73,4 @@ Code: new messages over the existing PeerJS connection, a chat panel.
 Code: `SFX` in `tools/build-assets.mjs`, `audio.ts`. Can run any time it's wanted, since it touches nothing else.
 
 - Sound effects: the 0.16.0 Kenney sounds need another pass. Several feel too short, too long or too high-pitched next to the old ones. Pick replacements by ear (sound-check page with old and new side by side).
-- Music: replace the Balatro track once the songs arrive.
+- ~~Music: replace the Balatro track.~~ Done in 0.23.5 (TximTxom Theme).

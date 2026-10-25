@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.23.5',
+    date: '2026-10-25',
+    items: [
+      c('New music: the TximTxom Theme by BadJuice, in place of the Balatro track.', 'Música nova: o TximTxom Theme da BadJuice, no lugar da faixa do Balatro.'),
+    ],
+  },
+  {
     version: '0.23.4',
     date: '2026-10-25',
     items: [

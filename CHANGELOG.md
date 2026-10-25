@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.23.5 (2026-10-25)
+- 🔧 New music: the TximTxom Theme by BadJuice, in place of the Balatro track.
+
 ## 0.23.4 (2026-10-25)
 - 🔧 "Loading..." under the loading card.
 - 🔧 The Controls tab lists right-click (deselect all cards), under "Keyboard and mouse".
