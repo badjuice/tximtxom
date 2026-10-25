@@ -68,8 +68,20 @@ describe('lobby art and names', () => {
     expect(bot.name).toBe('Bob');
   });
 
+  it('starts only once every guest is ready', () => {
+    const { server, guest } = setup();
+    expect(server.handle('host', { event: 'room:start' })).toEqual({ ok: false, error: 'Not everyone is ready' });
+    expect(server.handle('guest', { event: 'room:ready', msg: { ready: true } }).ok).toBe(true);
+    expect(guest.ready).toBe(true);
+    expect(server.handle('guest', { event: 'room:ready', msg: { ready: false } }).ok).toBe(true);
+    expect(server.handle('host', { event: 'room:start' }).ok).toBe(false);
+    server.handle('guest', { event: 'room:ready', msg: { ready: true } });
+    expect(server.handle('host', { event: 'room:start' }).ok).toBe(true);
+  });
+
   it('locks names and art once the game starts', () => {
     const { server, guest } = setup();
+    server.handle('guest', { event: 'room:ready', msg: { ready: true } });
     server.handle('host', { event: 'room:start' });
     expect(server.handle('guest', { event: 'room:rename', msg: { playerId: guest.id, name: 'x' } }).ok).toBe(false);
     expect(server.handle('guest', { event: 'room:avatar', msg: { playerId: guest.id } }).ok).toBe(false);

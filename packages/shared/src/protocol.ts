@@ -10,6 +10,8 @@ export interface LobbyPlayer {
   connected: boolean;
   /** Games won in this room. */
   wins: number;
+  /** Ready to start (bots and the host always are). */
+  ready: boolean;
 }
 
 /** Everything a client needs, sent after every change. */
@@ -44,6 +46,8 @@ export interface ClientToServer {
   /** Switch to the next free Joker art: your own, or (host only) a bot's, which also renames it. Lobby only. */
   'room:avatar': (msg: { playerId: string }, ack: Ack) => void;
   'room:start': (ack: Ack) => void;
+  /** A player who isn't the host says they're ready to start (or not). Lobby only. */
+  'room:ready': (msg: { ready: boolean }, ack: Ack) => void;
   /** After a game ends: the host's action log and the full final state, for bug reports. */
   'room:debug': (ack: Ack<{ log: unknown[]; state: unknown; members: unknown[] }>) => void;
   /** Host, after a game ends: a new game with the same table (wins are kept). */

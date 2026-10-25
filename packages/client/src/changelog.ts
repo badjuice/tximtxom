@@ -19,6 +19,20 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.27.0',
+    date: '2026-10-26',
+    items: [
+      n('Players say Ready in the lobby before the host can start. A tick or an hourglass shows who is ready.', 'Os jogadores carregam em Pronto na sala antes de o anfitrião poder começar. Um visto ou uma ampulheta mostra quem está pronto.'),
+      n('A Language button on the main menu opens a language menu. The PT/EN switch in the corner is gone.', 'Um botão Língua no menu principal abre um menu de línguas. O interruptor PT/EN no canto desapareceu.'),
+      n('Left a game in progress? Join on the main menu takes you back to your seat.', 'Saíste de um jogo a decorrer? O Entrar no menu principal leva-te de volta ao teu lugar.'),
+      f('Switching language no longer moves buttons and labels: each takes the space of its longest translation.', 'Mudar de língua já não mexe botões nem textos: cada um ocupa o espaço da sua tradução mais comprida.'),
+      f('Scoreboard columns have even widths, and the copy button\'s icon is centred.', 'As colunas da pontuação têm a mesma largura, e o ícone do botão de copiar está centrado.'),
+      f('The browser\'s own tooltips no longer show on hover.', 'As dicas do próprio navegador já não aparecem ao passar o rato.'),
+      c('The History log is more compact.', 'O Histórico ocupa menos espaço.'),
+      c('Leave game is no longer in Settings.', 'Sair do jogo já não está nas Definições.'),
+    ],
+  },
+  {
     version: '0.26.1',
     date: '2026-10-25',
     items: [

@@ -169,11 +169,12 @@ function Hint() {
       release();
       const text = el?.getAttribute('title') ?? el?.dataset.tip;
       if (!el || !text) return;
-      // The button already reads the same, in full: nothing to add.
-      if (el.innerText.trim() === text.trim() && el.scrollWidth <= el.clientWidth) return;
+      // The title moves aside even when no hint shows, so the browser never shows its own.
       current = el;
       el.dataset.tip = text;
       el.removeAttribute('title');
+      // The button already reads the same, in full: nothing to add.
+      if (el.innerText.trim() === text.trim() && el.scrollWidth <= el.clientWidth) return;
       const r = el.getBoundingClientRect();
       const below = r.top < 70;
       setTip({ text, x: r.left + r.width / 2, y: below ? r.bottom + 8 : r.top - 8, below });

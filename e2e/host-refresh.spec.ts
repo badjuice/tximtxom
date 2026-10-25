@@ -26,8 +26,9 @@ test('the game survives the host refreshing the page', async ({ browser }) => {
   await guest.fill('.code-field input', code);
   await guest.click('button:has-text("Join")');
   await expect(host.locator('.player-list li:not(.empty-seat)')).toHaveCount(2);
+  await guest.click('button:has-text("Ready")');
   await host.click('text=+ Add bot');
-  await host.click('text=Start game');
+  await host.click('button:has-text("Start game")');
   await expect(guest.locator('.plate')).toHaveCount(3);
   const before = await roundText(host);
 

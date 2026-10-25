@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { DEFAULT_RULES, MAX_PLAYERS, MIN_PLAYERS, NAME_MAX, type Rules } from '@tximtxom/shared';
 import { play } from '../audio';
 import { t } from '../i18n';
-import { addBot, cycleAvatar, kick, renamePlayer, setRules, startGame } from '../net';
+import { addBot, cycleAvatar, kick, renamePlayer, setReady, setRules, startGame } from '../net';
 import { store, useStore } from '../store';
 import { Button, TopMenu, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
@@ -20,6 +20,20 @@ const PencilIcon = () => (
 const RemoveIcon = () => (
   <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
     <path d="M4 4 L12 12 M12 4 L4 12" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" />
+  </svg>
+);
+
+/** A green tick: ready to start. */
+const ReadyIcon = () => (
+  <svg viewBox="0 0 16 16" width="18" height="18" shape-rendering="crispEdges" aria-hidden="true">
+    <polygon points="2,8 4,6 7,9 12,3 14,5 7,12" fill="#4bc292" />
+  </svg>
+);
+
+/** A grey hourglass: not ready yet. */
+const NotReadyIcon = () => (
+  <svg viewBox="0 0 16 16" width="18" height="18" shape-rendering="crispEdges" aria-hidden="true">
+    <polygon points="3,2 13,2 13,4 9,8 13,12 13,14 3,14 3,12 7,8 3,4" fill="#7d8f93" />
   </svg>
 );
 
@@ -44,6 +58,8 @@ const focusOnMount = (el: HTMLInputElement | null) => {
 export function Lobby() {
   const room = useStore((s) => s.room)!;
   const isHost = room.hostId === room.youId;
+  const me = room.players.find((p) => p.id === room.youId);
+  const allReady = room.players.every((p) => p.ready);
   const bots = room.players.filter((p) => p.isBot);
   const link = `${location.origin}${location.pathname}?room=${room.code}`;
   const [editing, setEditing] = useState<string | null>(null);
@@ -146,7 +162,10 @@ export function Lobby() {
                   <Wins n={p.wins} />
                 </span>
               )}
-              {/* Fixed slots (tag, rename, remove) keep every row's icons in the same columns. */}
+              {/* Fixed slots (ready, tag, rename, remove) keep every row's icons in the same columns. */}
+              <span class="slot" title={p.ready ? t('lobby.isReady') : t('lobby.notReady')} role="img" aria-label={p.ready ? t('lobby.isReady') : t('lobby.notReady')}>
+                {p.ready ? <ReadyIcon /> : <NotReadyIcon />}
+              </span>
               <span class="slot">
                 {p.id === room.hostId && <Icon name="host" scale={0.7} title={t('lobby.hostTitle')} />}
                 {p.isBot && <Icon name="bot" scale={0.7} title={t('lobby.botTitle')} />}
@@ -178,20 +197,27 @@ export function Lobby() {
             {t('lobby.leave')}
           </Button>
           {isHost ? (
-            <Button color="blue" big disabled={room.players.length < MIN_PLAYERS} onClick={() => void startGame()}>
+            <Button color="blue" big disabled={room.players.length < MIN_PLAYERS || !allReady} onClick={() => void startGame()}>
               {t('lobby.start')}
             </Button>
           ) : (
-            <p class="muted" role="status">
-              {t('lobby.waitHost')}
-            </p>
+            <Button color={me?.ready ? 'orange' : 'green'} big onClick={() => void setReady(!me?.ready)}>
+              {me?.ready ? t('lobby.unready') : t('lobby.ready')}
+            </Button>
           )}
         </div>
-        {isHost && (
-          <p class="muted" style={{ visibility: room.players.length < MIN_PLAYERS ? 'visible' : 'hidden' }}>
-            {t('lobby.needPlayers', { n: MIN_PLAYERS })}
-          </p>
-        )}
+        {/* One line, always there (empty when there's nothing to say), so nothing moves. */}
+        <p class="muted lobby-note" role="status">
+          {isHost
+            ? room.players.length < MIN_PLAYERS
+              ? t('lobby.needPlayers', { n: MIN_PLAYERS })
+              : !allReady
+                ? t('lobby.waitReady')
+                : '\u00a0'
+            : me?.ready
+              ? t('lobby.waitHost')
+              : t('lobby.sayReady')}
+        </p>
       </section>
 
       <div class="lobby-side">

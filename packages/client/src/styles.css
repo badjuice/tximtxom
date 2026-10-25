@@ -544,7 +544,7 @@ input[type='text'] {
 }
 .player-list li {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 30px 36px 40px;
+  grid-template-columns: auto minmax(0, 1fr) 22px 30px 36px 40px;
   align-items: center;
   gap: 8px;
   background: var(--panel-in);
@@ -1687,15 +1687,15 @@ input[type='text'] {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  font-size: 0.85em;
+  gap: 0;
+  font-size: 0.82em;
 }
+/* One continuous log with thin dividers; only round headers and ends get a box. */
 .hline {
-  background: var(--panel-in);
-  border-radius: 6px;
-  padding: 3px 7px;
-  line-height: 1.3;
+  padding: 2px 6px;
+  line-height: 1.22;
   border-left: 3px solid transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .hline.mine {
   border-left-color: var(--gold);
@@ -1703,14 +1703,22 @@ input[type='text'] {
 .hline.round {
   background: var(--blue);
   text-align: center;
-  margin-top: 6px;
+  margin: 6px 0 2px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border-bottom: none;
   box-shadow: 0 2px 0 var(--blue-d);
 }
 .hline.big {
   background: var(--red-d);
+  border-radius: 6px;
+  border-bottom: none;
+  margin: 2px 0;
 }
 .hline.score {
   background: var(--panel-d);
+  border-radius: 6px;
+  border-bottom: none;
 }
 .hscore {
   display: inline-block;
@@ -2046,6 +2054,25 @@ input[type='text'] {
 /* --- top bar */
 .round-chip {
   gap: 8px;
+}
+/* As wide as the longest translation: only the current language shows. */
+.fixed-label {
+  display: inline-grid;
+}
+.fixed-label > span {
+  grid-area: 1 / 1;
+}
+.fixed-label > .ghost {
+  visibility: hidden;
+}
+.fixed-label.block {
+  display: grid;
+}
+.language-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: min(320px, 80vw);
 }
 .rule-cards {
   display: flex;
@@ -2492,11 +2519,26 @@ input[type='text'] {
 .sb-delta.zero {
   background: var(--grey-d);
 }
+/* Names get a fixed share; every round and the total split the rest evenly. */
 .sb-grid {
   width: 100%;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 2px;
   font-size: 0.85em;
+}
+.sb-grid th:first-child {
+  width: 28%;
+  text-align: left;
+  padding-left: 6px;
+}
+.sb-grid .num {
+  text-align: center;
+}
+.sb-grid .pname {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sb-grid th {
   color: var(--muted);
@@ -2614,18 +2656,25 @@ input[type='text'] {
 .hscore-title {
   margin-bottom: 2px;
 }
+/* Two players to a line. */
 .hscores {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 12px;
+  row-gap: 1px;
 }
 .hscores li {
   display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 4px;
+}
+.hscores li > :first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* --- title & lobby */
@@ -3103,6 +3152,7 @@ input.rename {
   font: inherit;
   width: 30px;
   height: 30px;
+  padding: 0;
   display: grid;
   place-items: center;
   color: #fff;

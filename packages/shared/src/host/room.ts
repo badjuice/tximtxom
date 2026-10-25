@@ -55,6 +55,8 @@ export interface Member {
   clientId: string | null;
   /** Games won in this room. Missing in old saves. */
   wins?: number;
+  /** Said they're ready, in the lobby. */
+  ready?: boolean;
 }
 
 /** One line of the host's action log, kept for bug reports. */
@@ -271,8 +273,14 @@ export class Room {
     this.touch();
   }
 
+  /** Bots and the host don't need to say so; everyone else does. */
+  isReady(m: Member): boolean {
+    return m.isBot || m.id === this.hostId || !!m.ready;
+  }
+
   start(): string | null {
     if (this.members.length < MIN_PLAYERS) return `Need at least ${MIN_PLAYERS} players`;
+    if (!this.members.every((m) => this.isReady(m))) return 'Not everyone is ready';
     if (this.members.length > MAX_PLAYERS) return `At most ${MAX_PLAYERS} players`;
     this.game = newGame(
       this.members.map((m) => ({ id: m.id, name: m.name, isBot: m.isBot, avatar: m.avatar })),
@@ -290,6 +298,8 @@ export class Room {
   playAgain(): string | null {
     this.game = null;
     this.members = this.members.filter((m) => m.isBot || m.clientId);
+    // Everyone at the table was just playing: they count as ready.
+    for (const m of this.members) m.ready = true;
     return this.start();
   }
 
@@ -297,6 +307,7 @@ export class Room {
   backToLobby(): void {
     this.game = null;
     this.members = this.members.filter((m) => m.isBot || m.clientId);
+    for (const m of this.members) m.ready = false;
     this.touch();
   }
 
@@ -345,6 +356,7 @@ export class Room {
       avatar: x.avatar,
       connected: x.isBot || !!x.clientId,
       wins: x.wins ?? 0,
+      ready: this.isReady(x),
     }));
     return {
       code: this.code,

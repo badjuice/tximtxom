@@ -5,7 +5,7 @@ import { badDrop, canDrop, drop, initController, send, setHandOrder, tapDrawn, t
 import { greetConsole } from './easterEgg';
 import { Table } from './game/table';
 import { initNet } from './net';
-import { applyCssSettings, onSettings } from './settings';
+import { applyCssSettings, onSettings, updateSettings } from './settings';
 import { store } from './store';
 import './styles.css';
 import { App } from './ui/App';
@@ -35,7 +35,7 @@ async function boot() {
   });
   table.onLayout = (layout) => store.set({ layout });
   await table.init(document.getElementById('stage')!);
-  if (import.meta.env.DEV) Object.assign(window, { __table: table, __send: send });
+  if (import.meta.env.DEV) Object.assign(window, { __table: table, __send: send, __lang: (lang: 'en' | 'pt') => updateSettings({ lang }) });
   initController(table);
 
   let lastSettings = '';

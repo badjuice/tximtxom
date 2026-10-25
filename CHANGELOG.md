@@ -5,6 +5,16 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.27.0 (2026-10-26)
+- ✨ Players say Ready in the lobby before the host can start. A tick or an hourglass shows who is ready.
+- ✨ A Language button on the main menu opens a language menu. The PT/EN switch in the corner is gone.
+- ✨ Left a game in progress? Join on the main menu takes you back to your seat.
+- 🐛 Switching language no longer moves buttons and labels: each takes the space of its longest translation.
+- 🐛 Scoreboard columns have even widths, and the copy button's icon is centred.
+- 🐛 The browser's own tooltips no longer show on hover.
+- 🔧 The History log is more compact.
+- 🔧 Leave game is no longer in Settings.
+
 ## 0.26.1 (2026-10-25)
 - 🐛 When the turn timer ran out, the game could end the round for you. Now it only draws and discards for you; the round ends on its own only if the Draw Pile runs out.
 - 🐛 Every active rule shows on the round chip, and its hint gives the rule's name and description.

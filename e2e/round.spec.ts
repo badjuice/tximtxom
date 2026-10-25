@@ -63,9 +63,12 @@ test('two players create, join and finish a round', async ({ browser }) => {
   await guest.fill('.code-field input', code);
   await guest.click('button:has-text("Join")');
   await expect(host.locator('.player-list li:not(.empty-seat)')).toHaveCount(2);
+  // The host can't start until the guest is ready.
+  await expect(host.locator('button:has-text("Start game")')).toBeDisabled();
+  await guest.click('button:has-text("Ready")');
   await expect(guest.locator('text=Waiting for the host')).toBeVisible();
 
-  await host.click('text=Start game');
+  await host.click('button:has-text("Start game")');
   await expect(host.locator('.plate')).toHaveCount(2);
   await expect(guest.locator('.plate')).toHaveCount(2);
 

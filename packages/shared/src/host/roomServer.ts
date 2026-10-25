@@ -38,6 +38,7 @@ export type Request =
   | { event: 'room:rename'; msg: Parameters<ClientToServer['room:rename']>[0] }
   | { event: 'room:avatar'; msg: Parameters<ClientToServer['room:avatar']>[0] }
   | { event: 'room:start' }
+  | { event: 'room:ready'; msg: Parameters<ClientToServer['room:ready']>[0] }
   | { event: 'room:again' }
   | { event: 'room:debug' }
   | { event: 'room:leave' }
@@ -199,6 +200,13 @@ export class RoomServer {
       if (target.id !== member.id && !(target.isBot && room.hostId === member.id)) return { ok: false, error: 'Only the host can do that' };
       if (req.event === 'room:rename') room.rename(target.id, cleanName(req.msg?.name));
       else room.cycleAvatar(target.id);
+      return { ok: true };
+    }
+
+    if (req.event === 'room:ready') {
+      if (room.game) return { ok: false, error: 'The game has started' };
+      member.ready = !!req.msg?.ready;
+      room.broadcast();
       return { ok: true };
     }
 

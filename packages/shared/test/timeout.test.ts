@@ -10,6 +10,7 @@ describe('turn timer', () => {
     const { code } = server.handle('a', { event: 'room:create', msg: { name: 'Nox' } }) as { ok: true; code: string };
     server.handle('b', { event: 'room:join', msg: { code, name: 'Manci' } });
     server.handle('a', { event: 'room:rules', msg: { rules: { turnTimer: 30 } } });
+    server.handle('b', { event: 'room:ready', msg: { ready: true } });
     server.handle('a', { event: 'room:start' });
     const room = server.rooms.get(code)!;
     // Nobody plays: every turn runs out until the draw pile does.

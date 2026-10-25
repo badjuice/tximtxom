@@ -8,7 +8,7 @@ import { leaveRoom, playAgain, startGame } from '../net';
 import { updateSettings, useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, useStore } from '../store';
-import { Button, CardText, HoldButton, MiniButton, Modal, UiIcon } from './common';
+import { Button, CardText, HoldButton, Label, MiniButton, Modal, UiIcon } from './common';
 import { CardIcon, Icon, ArtIcon, Wins } from './sprites';
 
 function toScreen(L: Layout, p: Point) {
@@ -67,41 +67,49 @@ function TopBar({ g }: { g: GameView }) {
   return (
     <nav class="topbar" aria-label="Game menu">
       <div class="round-chip">
-        <span>{t('top.round', { n: g.round })}</span>
-        <span class="bust-chip">{t('top.bust', { n: g.rules.threshold })}</span>
+        <Label k="top.round" vars={{ n: g.round }} />
+        <span class="bust-chip">
+          <Label k="top.bust" vars={{ n: g.rules.threshold }} />
+        </span>
         <span class="rule-cards">
           {activeRules(g.rules).map(([art, name, desc]) => (
             <ArtIcon name={art} scale={0.26} title={`${t(name)}\n${t(desc)}`} />
           ))}
         </span>
         <button class="rules-btn" onClick={() => open('rules')}>
-          {t('top.rules')}
+          <Label k="top.rules" />
         </button>
       </div>
       {/* Every menu button is small, like the Rules button, so the table keeps the space. */}
       <div class="topbar-buttons">
         <MiniButton color="red" onClick={() => open('scoreboard')} kbd="S">
-          {t('top.scores')}
+          <Label k="top.scores" />
         </MiniButton>
         <MiniButton color="blue" onClick={() => open('formations')} kbd="F">
-          {t('top.formations')}
+          <Label k="top.formations" />
         </MiniButton>
         <MiniButton color="green" onClick={() => open('help')}>
-          {t('top.help')}
+          <Label k="top.help" />
         </MiniButton>
       </div>
       <div class="topbar-mini">
         <MiniButton color="purple" onClick={() => updateSettings({ historyOpen: !historyOpen })} label={t('top.history')} kbd="H" pressed={historyOpen}>
           <UiIcon name="history" />
-          <span class="mini-text">{t('top.history')}</span>
+          <span class="mini-text">
+            <Label k="top.history" />
+          </span>
         </MiniButton>
         <MiniButton color="orange" onClick={() => open('settings')} label={t('top.settings')}>
           <UiIcon name="settings" />
-          <span class="mini-text">{t('top.settings')}</span>
+          <span class="mini-text">
+            <Label k="top.settings" />
+          </span>
         </MiniButton>
         <MiniButton color="leave" onClick={() => open('leave')} label={t('top.leave')}>
           <UiIcon name="leave" />
-          <span class="mini-text">{t('top.leave')}</span>
+          <span class="mini-text">
+            <Label k="top.leave" />
+          </span>
         </MiniButton>
       </div>
     </nav>
@@ -188,7 +196,9 @@ function PileInfo({ g, L }: { g: GameView; L: Layout }) {
   return (
     <>
       <div class="pile-label" style={toScreen(L, below(L.draw))}>
-        <span class="muted">{t('drawPile')}</span> <b>{g.drawCount}</b>
+        <span class="muted">
+          <Label k="drawPile" />
+        </span> <b>{g.drawCount}</b>
         {g.reshuffled && (
           <span class="last-pile" title={t('pile.lastTitle')}>
             {t('pile.last')}
@@ -196,7 +206,9 @@ function PileInfo({ g, L }: { g: GameView; L: Layout }) {
         )}
       </div>
       <div class="pile-label" style={toScreen(L, below(L.discard))}>
-        <span class="muted">{t('discardPile')}</span> <b>{g.discardCount}</b>
+        <span class="muted">
+          <Label k="discardPile" />
+        </span> <b>{g.discardCount}</b>
       </div>
       {g.rules.sixthSense && <SixthSense g={g} L={L} />}
     </>
@@ -291,12 +303,14 @@ function HandBar({ g, L }: { g: GameView; L: Layout }) {
   return (
     <div class="hand-bar" style={toScreen(L, { x: L.hand.x, y })}>
       <div class="sort-row" role="group" aria-label={t('sort.label')}>
-        <span class="muted">{t('sort.label')}</span>
+        <span class="muted">
+          <Label k="sort.label" />
+        </span>
         <button class={`mini${s.sortBy === 'rank' ? ' on' : ''}`} onClick={() => sortHand('rank')}>
-          {t('sort.rank')}
+          <Label k="sort.rank" />
         </button>
         <button class={`mini${s.sortBy === 'suit' ? ' on' : ''}`} onClick={() => sortHand('suit')}>
-          {t('sort.suit')}
+          <Label k="sort.suit" />
         </button>
         <span class="sort-sep" aria-hidden="true" />
         {/* A switch, not a third sort option: keeps the hand sorted as cards come and go. */}
@@ -304,13 +318,17 @@ function HandBar({ g, L }: { g: GameView; L: Layout }) {
           <span class="mini-switch" aria-hidden="true">
             <span class="knob" />
           </span>
-          {t('sort.auto')}
+          <Label k="sort.auto" />
         </button>
       </div>
       <div class="hand-points" title={t('handPoints.title')}>
-        <span class="muted">{t('handPoints')}</span>
+        <span class="muted">
+          <Label k="handPoints" />
+        </span>
         <b>{handPoints(hand)}</b>
-        <span class="muted">{t('handPoints.after')}</span>
+        <span class="muted">
+          <Label k="handPoints.after" />
+        </span>
         <b class="after">{after.min === after.max ? after.min : `${after.min}–${after.max}`}</b>
       </div>
     </div>
@@ -482,7 +500,11 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
           aria-label={t('go.copyReport')}
           onClick={async () => toast((await copyReport()) ? t('go.reportCopied') : t('go.reportFailed'), 'info')}
         >
-          ⧉
+          {/* Two overlapping sheets: copy. A drawn icon, so it sits dead centre (the ⧉ glyph didn't). */}
+          <svg viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true">
+            <path d="M5 1h9v9h-2V3H5z" fill="currentColor" />
+            <path d="M2 5h9v10H2zm2 2v6h5V7z" fill="currentColor" fill-rule="evenodd" />
+          </svg>
         </button>
       }
       footer={

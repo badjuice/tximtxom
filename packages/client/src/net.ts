@@ -77,6 +77,11 @@ function loadSession(): Session | null {
 
 export function clearSession(): void {
   localStorage.removeItem(SESSION_KEY);
+  clearLink();
+}
+
+/** Drops ?room= from the address bar. */
+function clearLink(): void {
   const url = new URL(location.href);
   url.searchParams.delete('room');
   history.replaceState(null, '', url);
@@ -272,6 +277,7 @@ export const setRules = (rules: Partial<Rules>) => call({ event: 'room:rules', m
 export const addBot = () => call({ event: 'room:addBot' });
 export const kick = (playerId: string) => call({ event: 'room:kick', msg: { playerId } });
 export const startGame = () => call({ event: 'room:start' });
+export const setReady = (ready: boolean) => call({ event: 'room:ready', msg: { ready } });
 export const playAgain = () => call({ event: 'room:again' });
 export const renamePlayer = (playerId: string, name: string) => {
   if (playerId === store.get().room?.youId) localStorage.setItem(NAME_KEY, name);
@@ -280,12 +286,16 @@ export const renamePlayer = (playerId: string, name: string) => {
 export const cycleAvatar = (playerId: string) => call({ event: 'room:avatar', msg: { playerId } });
 
 export function leaveRoom(): void {
+  // A guest leaving a game in progress keeps the seat (a bot plays it): the
+  // menu's Join can take it back. The host's room closes with them.
+  const keepSeat = !!store.get().room?.game && store.get().room?.game?.phase !== 'gameOver' && !host;
   void request({ event: 'room:leave' });
   host?.close('The host closed the room');
   guest?.stop();
   host = null;
   guest = null;
-  clearSession();
+  if (keepSeat) clearLink();
+  else clearSession();
   store.set({ room: null, staged: null, selected: [], overlay: null });
 }
 

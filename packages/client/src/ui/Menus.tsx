@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'preact/hooks';
 import { makeCard, parseCards, type Suit } from '@tximtxom/shared';
-import { type Key, t } from '../i18n';
+import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE } from '../net';
 import { CARD_BACKS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
-import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle, WaveText } from './common';
+import { Button, Choice, Credits, Fit, Modal, Rich, Slider, Tabs, Toggle, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { RulesForm } from './RulesForm';
@@ -28,9 +28,34 @@ export function Overlays() {
       return <Changelog onClose={close} />;
     case 'leave':
       return <LeaveConfirm onClose={close} />;
+    case 'language':
+      return <LanguageMenu onClose={close} />;
     default:
       return null;
   }
+}
+
+/** Balatro-style language picker: one big button per language, named in itself. */
+function LanguageMenu({ onClose }: { onClose: () => void }) {
+  const { lang } = useSettings();
+  return (
+    <Modal title={t('language')} onClose={onClose} class="language-modal">
+      <div class="language-list">
+        {(Object.keys(LANG_NAMES) as Lang[]).map((l) => (
+          <Button
+            color={l === lang ? 'red' : 'grey'}
+            big
+            onClick={() => {
+              updateSettings({ lang: l });
+              onClose();
+            }}
+          >
+            <span lang={l}>{LANG_NAMES[l]}</span>
+          </Button>
+        ))}
+      </div>
+    </Modal>
+  );
 }
 
 /** "Are you sure?" before leaving a game or a room. */
@@ -325,7 +350,6 @@ function ResetButton() {
 
 function SettingsMenu({ onClose }: { onClose: () => void }) {
   const s = useSettings();
-  const room = useStore((st) => st.room);
   const [tab, setTab] = useState<SetTab>('general');
   const set = (p: Partial<Settings>) => updateSettings(p);
   const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -339,11 +363,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
         // Next to Back, so they can be reached from every tab.
         <>
           <ResetButton />
-          {room && (
-            <Button color="red" onClick={() => store.set({ overlay: 'leave' })}>
-              {room.game ? t('top.leave') : t('lobby.leave')}
-            </Button>
-          )}
         </>
       }
     >
@@ -416,7 +435,9 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             <Toggle label={t('set.highContrast')} desc={t('set.highContrast.desc')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />
             <div class="toggle">
               <span class="toggle-text">
-                <span class="toggle-label">{t('set.cardBack')}</span>
+                <span class="toggle-label">
+                  <Fit text={t('set.cardBack')} />
+                </span>
               </span>
               <span class="backs">
                 {CARD_BACKS.map((b) => (

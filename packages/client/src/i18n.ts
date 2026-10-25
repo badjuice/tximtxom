@@ -56,6 +56,12 @@ const en = {
   'lobby.leave': 'Leave room',
   'lobby.start': 'Start game',
   'lobby.waitHost': 'Waiting for the host to start…',
+  'lobby.ready': 'Ready',
+  'lobby.unready': 'Not ready',
+  'lobby.isReady': 'Ready',
+  'lobby.notReady': 'Not ready yet',
+  'lobby.waitReady': 'Waiting for everyone to be ready…',
+  'lobby.sayReady': 'Press Ready when you want to play.',
   'lobby.needPlayers': 'Need at least {n} players: invite a friend or add a bot.',
   'lobby.rules': 'Rules',
   'lobby.rulesByHost': 'Rules (set by the host)',
@@ -485,6 +491,12 @@ const pt: Record<Key, string> = {
   'lobby.leave': 'Sair da sala',
   'lobby.start': 'Começar',
   'lobby.waitHost': 'À espera que o anfitrião comece…',
+  'lobby.ready': 'Pronto',
+  'lobby.unready': 'Ainda não',
+  'lobby.isReady': 'Pronto',
+  'lobby.notReady': 'Ainda não está pronto',
+  'lobby.waitReady': 'À espera que todos estejam prontos…',
+  'lobby.sayReady': 'Carrega em Pronto quando quiseres jogar.',
   'lobby.needPlayers': 'São precisos pelo menos {n} jogadores: convida um amigo ou junta um bot.',
   'lobby.rules': 'Regras',
   'lobby.rulesByHost': 'Regras (escolhidas pelo anfitrião)',
@@ -861,6 +873,47 @@ export function t(key: Key, vars: Record<string, string | number> = {}): string 
   const s = dicts[lang()][key] ?? en[key] ?? key;
   return s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
 }
+
+/** A key in every language, current one first: to size a label for the longest. */
+export function tEvery(key: Key, vars: Record<string, string | number> = {}): string[] {
+  const cur = lang();
+  const order = [cur, ...(Object.keys(dicts) as Lang[]).filter((l) => l !== cur)];
+  return order.map((l) => (dicts[l][key] ?? en[key] ?? key).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)));
+}
+
+/** Current-language text → every key with that text, to find a plain label's other translations. */
+const byText: Partial<Record<Lang, Map<string, Key[]>>> = {};
+
+/**
+ * The other languages' versions of a plain label (no placeholders), or none if
+ * it isn't one. A text used by several keys ("Off") gets all their translations.
+ */
+export function otherTexts(text: string): string[] {
+  const keysOf = (l: Lang, s: string) => {
+    let index = byText[l];
+    if (!index) {
+      index = new Map();
+      for (const [k, v] of Object.entries(dicts[l])) index.set(v, [...(index.get(v) ?? []), k as Key]);
+      byText[l] = index;
+    }
+    return index.get(s) ?? [];
+  };
+  // Follow the translations both ways until nothing new turns up, so both
+  // languages end up with the same set (and the same width).
+  const texts = new Set([text]);
+  const keys = new Set<Key>(keysOf(lang(), text));
+  if (!keys.size) return [];
+  for (let grew = true; grew; ) {
+    grew = false;
+    for (const k of keys) for (const l of Object.keys(dicts) as Lang[]) texts.add(dicts[l][k] ?? en[k]);
+    for (const s of texts) for (const l of Object.keys(dicts) as Lang[]) for (const k of keysOf(l, s)) if (!keys.has(k)) (keys.add(k), (grew = true));
+  }
+  texts.delete(text);
+  return [...texts];
+}
+
+/** Each language's name, in that language. */
+export const LANG_NAMES: Record<Lang, string> = { en: 'English', pt: 'Português' };
 
 /** Engine and host errors arrive in English; show them in the player's language. */
 const ERRORS: Record<string, Key> = {

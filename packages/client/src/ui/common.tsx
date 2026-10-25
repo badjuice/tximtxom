@@ -1,8 +1,8 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { play } from '../audio';
-import { t } from '../i18n';
-import { updateSettings, useSettings } from '../settings';
+import { type Key, otherTexts, t, tEvery } from '../i18n';
+import { useSettings } from '../settings';
 import { store } from '../store';
 import { AUTHOR_URL, VERSION } from '../version';
 import { ArtIcon } from './sprites';
@@ -110,7 +110,15 @@ export function Button(props: {
         props.onClick?.();
       }}
     >
-      <span class="btn-label">{typeof props.children === 'string' ? <WaveText text={props.children} /> : props.children}</span>
+      <span class="btn-label">
+        {typeof props.children === 'string' ? (
+          <Fit text={props.children}>
+            <WaveText text={props.children} />
+          </Fit>
+        ) : (
+          props.children
+        )}
+      </span>
       {props.kbd && (
         <kbd class="kbd" aria-hidden="true">
           {props.kbd}
@@ -239,8 +247,14 @@ export function Toggle(props: { label: string; desc?: string; checked: boolean; 
     <label class={`toggle${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`}>
       {props.joker && <ArtIcon name={props.joker} scale={0.55} />}
       <span class="toggle-text">
-        <span class="toggle-label">{props.joker ? <WaveText text={props.label} max={28} /> : props.label}</span>
-        {props.desc && <span class="toggle-desc">{props.desc}</span>}
+        <span class="toggle-label">
+          <Fit text={props.label}>{props.joker ? <WaveText text={props.label} max={28} /> : props.label}</Fit>
+        </span>
+        {props.desc && (
+          <span class="toggle-desc">
+            <Fit text={props.desc} block />
+          </span>
+        )}
       </span>
       <input
         type="checkbox"
@@ -271,8 +285,14 @@ export function Choice<T extends string | number>(props: {
     <div class={`toggle choice${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`} role="group" aria-label={props.label}>
       {props.joker && <ArtIcon name={props.joker} scale={0.55} />}
       <span class="toggle-text">
-        <span class="toggle-label">{props.joker ? <WaveText text={props.label} max={28} /> : props.label}</span>
-        {props.desc && <span class="toggle-desc">{props.desc}</span>}
+        <span class="toggle-label">
+          <Fit text={props.label}>{props.joker ? <WaveText text={props.label} max={28} /> : props.label}</Fit>
+        </span>
+        {props.desc && (
+          <span class="toggle-desc">
+            <Fit text={props.desc} block />
+          </span>
+        )}
       </span>
       <span class="seg">
         {props.options.map((o) => (
@@ -286,7 +306,7 @@ export function Choice<T extends string | number>(props: {
               props.onChange(o.value);
             }}
           >
-            {o.label}
+            <Fit text={o.label} />
           </button>
         ))}
       </span>
@@ -317,7 +337,9 @@ export function Slider(props: { label: string; value: number; min: number; max: 
   return (
     <div class={`toggle bslider${props.disabled ? ' disabled' : ''}`}>
       <span class="toggle-text">
-        <span class="toggle-label">{props.label}</span>
+        <span class="toggle-label">
+          <Fit text={props.label} />
+        </span>
       </span>
       <div
         class="bslider-track"
@@ -371,7 +393,9 @@ export function Tabs<T extends string>(props: { tabs: { id: T; label: string }[]
             props.onChange(tb.id);
           }}
         >
-          <WaveText text={tb.label} />
+          <Fit text={tb.label}>
+            <WaveText text={tb.label} />
+          </Fit>
         </button>
       ))}
     </div>
@@ -447,7 +471,7 @@ export function MiniButton(props: {
         props.onClick();
       }}
     >
-      {props.children}
+      {typeof props.children === 'string' ? <Fit text={props.children} /> : props.children}
       {props.kbd && (
         <kbd class="kbd" aria-hidden="true">
           {props.kbd}
@@ -457,21 +481,51 @@ export function MiniButton(props: {
   );
 }
 
-/** Top-right corner of the title screen and the room: language and Settings. */
+/** Shows `children` (default: `text`) in the space its longest translation needs. */
+export function Fit({ text, children, block }: { text: string; children?: ComponentChildren; block?: boolean }) {
+  const others = otherTexts(text);
+  if (!others.length) return <>{children ?? text}</>;
+  // `block`: a wrapping line of text, kept as tall as its longest translation.
+  return (
+    <span class={`fixed-label${block ? ' block' : ''}`}>
+      <span>{children ?? text}</span>
+      {others.map((s) => (
+        <span class="ghost" aria-hidden="true">
+          {s}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/**
+ * A label as wide as its longest translation: every language sits in the same
+ * spot, only the current one shows. Switching languages then moves nothing.
+ */
+export function Label({ k, vars }: { k: Key; vars?: Record<string, string | number> }) {
+  const [shown, ...others] = tEvery(k, vars);
+  return (
+    <span class="fixed-label">
+      <span>{shown}</span>
+      {others.map((s) => (
+        <span class="ghost" aria-hidden="true">
+          {s}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Top-right corner of the title screen and the room: Settings. */
 export function TopMenu() {
-  const { lang } = useSettings();
+  useSettings(); // redraw on a language change
   return (
     <div class="top-menu">
-      <div class="lang-switch" role="group" aria-label={t('language')}>
-        {(['pt', 'en'] as const).map((l) => (
-          <button class={lang === l ? 'on' : ''} aria-pressed={lang === l} onClick={() => updateSettings({ lang: l })}>
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
       <MiniButton color="orange" onClick={() => store.set({ overlay: 'settings' })} label={t('title.settings')}>
         <UiIcon name="settings" />
-        <span class="mini-text">{t('title.settings')}</span>
+        <span class="mini-text">
+          <Label k="title.settings" />
+        </span>
       </MiniButton>
     </div>
   );
