@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.24.4 (2026-10-25)
+- 🔧 The title Aces start materialising only once the "TximTxom" title is whole.
+
 ## 0.24.3 (2026-10-25)
 - ✨ Each round, the new deck materialises in Tarot purple before the cards are dealt.
 

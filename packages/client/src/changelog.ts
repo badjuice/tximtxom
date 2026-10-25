@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.24.4',
+    date: '2026-10-25',
+    items: [c('The title Aces start materialising only once the "TximTxom" title is whole.', 'Os Ases do título só começam a materializar-se quando o título "TximTxom" está completo.')],
+  },
+  {
     version: '0.24.3',
     date: '2026-10-25',
     items: [
