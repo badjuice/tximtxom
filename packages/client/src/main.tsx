@@ -9,6 +9,8 @@ import { applyCssSettings, onSettings } from './settings';
 import { store } from './store';
 import './styles.css';
 import { App } from './ui/App';
+import { Button } from './ui/common';
+import { t } from './i18n';
 import { loadSpriteAtlases } from './ui/sprites';
 
 async function boot() {
@@ -49,12 +51,8 @@ async function boot() {
 
   render(<App />, document.getElementById('app')!);
   initNet();
-  const loading = document.getElementById('loading');
-  loading?.classList.add('done');
-  setTimeout(() => loading?.remove(), 300);
 
-  // Audio needs a user gesture on mobile.
-  void initAudio();
+  // Audio needs a user gesture on most browsers.
   const unlock = () => {
     unlockAudio();
     removeEventListener('pointerdown', unlock);
@@ -62,6 +60,31 @@ async function boot() {
   };
   addEventListener('pointerdown', unlock);
   addEventListener('keydown', unlock);
+
+  // The loading screen stays until the music plays, so it starts with the menu.
+  // Where the browser wants a click first, a button asks for it.
+  const loading = document.getElementById('loading');
+  const close = () => {
+    loading?.classList.add('done');
+    setTimeout(() => loading?.remove(), 300);
+  };
+  if (await initAudio()) return close();
+  const slot = loading?.querySelector('p');
+  if (!slot) return close();
+  slot.removeAttribute('aria-label');
+  slot.replaceChildren();
+  const start = () => {
+    removeEventListener('keydown', start);
+    unlockAudio();
+    close();
+  };
+  addEventListener('keydown', start);
+  render(
+    <Button color="blue" onClick={start}>
+      {t(matchMedia('(pointer: coarse)').matches ? 'load.tap' : 'load.click')}
+    </Button>,
+    slot,
+  );
 }
 
 void boot();

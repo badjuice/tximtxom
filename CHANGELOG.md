@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.23.6 (2026-10-25)
+- 🔧 The music loads with the game and starts with the menu. Browsers that need a click first get a "Click to start" button.
+- 🔧 The loading text hops like the rest of the game's text.
+- 🔧 While others ride on your formation, you can select several cards for your next one.
+- 🔧 Text in the game can no longer be selected (names and codes you type still can).
+
 ## 0.23.5 (2026-10-25)
 - 🔧 New music: the TximTxom Theme by BadJuice, in place of the Balatro track.
 

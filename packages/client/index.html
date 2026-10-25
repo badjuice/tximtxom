@@ -23,6 +23,8 @@
         src: url(assets/m6x11plus.woff2) format('woff2');
       }
       #loading {
+        user-select: none;
+        -webkit-user-select: none;
         position: fixed;
         inset: 0;
         z-index: 50;
@@ -40,6 +42,25 @@
         font: 28px m6x11, monospace;
         color: #fff;
         text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+        white-space: pre;
+        /* Tall enough for the "Click to start" button that may replace the text. */
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+      }
+      /* The letters wobble and hop in turn like WaveText (ui/common.tsx), in CSS so
+         they keep moving while the game loads; the script below adds loading-hop. */
+      #loading p .l {
+        display: inline-block;
+        animation: loading-idle 1.3s ease-in-out infinite alternate, loading-hop var(--cycle) linear infinite;
+      }
+      @keyframes loading-idle {
+        from {
+          rotate: -2.5deg;
+        }
+        to {
+          rotate: 2.5deg;
+        }
       }
       #loading.done {
         opacity: 0;
@@ -98,7 +119,8 @@
         #loading .card {
           animation: loading-pulse 1.2s ease-in-out infinite alternate;
         }
-        #loading .face > .black {
+        #loading .face > .black,
+        #loading p .l {
           animation: none;
         }
       }
@@ -119,6 +141,31 @@
       try {
         if ((JSON.parse(localStorage.getItem('tximtxom.settings') || '{}').lang || 'pt') === 'pt') loading.querySelector('p').textContent = 'A carregar...';
       } catch {}
+      // One letter at a time: a 300 ms hop every 390 ms, then a quiet beat before starting over.
+      const p = loading.querySelector('p');
+      const text = p.textContent;
+      const cycle = (text.replace(/ /g, '').length + 1) * 390;
+      const hop = document.createElement('style');
+      hop.textContent = `@keyframes loading-hop { 0% { translate: 0 0; animation-timing-function: ease-out } ${(15000 / cycle).toFixed(2)}% { translate: 0 -5px; animation-timing-function: ease-in } ${(30000 / cycle).toFixed(2)}%, 100% { translate: 0 0 } }`;
+      document.head.append(hop);
+      p.style.setProperty('--cycle', cycle + 'ms');
+      p.setAttribute('aria-label', text);
+      // One wrapper, so the flex layout keeps the spaces between words.
+      const word = document.createElement('span');
+      word.setAttribute('aria-hidden', 'true');
+      let i = 0;
+      word.append(
+        ...[...text].map((ch) => {
+          if (ch === ' ') return ' ';
+          const s = document.createElement('span');
+          s.className = 'l';
+          s.textContent = ch;
+          s.style.animationDelay = `${i * -0.37}s, ${i * 0.39}s`;
+          i++;
+          return s;
+        }),
+      );
+      p.replaceChildren(word);
     </script>
     <canvas id="bg" aria-hidden="true"></canvas>
     <div id="stage" aria-hidden="true"></div>

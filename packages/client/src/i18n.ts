@@ -18,6 +18,8 @@ const en = {
   // title
   'title.name': 'Your name',
   'title.namePlaceholder': 'Player',
+  'load.click': 'Click to start',
+  'load.tap': 'Tap to start',
   'title.create': 'Create room',
   'title.orJoin': 'or join a friend',
   'title.code': 'Room code',
@@ -444,6 +446,8 @@ const pt: Record<Key, string> = {
 
   'title.name': 'O teu nome',
   'title.namePlaceholder': 'Jogador',
+  'load.click': 'Clica para começar',
+  'load.tap': 'Toca para começar',
   'title.create': 'Criar sala',
   'title.orJoin': 'ou junta-te a um amigo',
   'title.code': 'Código da sala',

@@ -553,7 +553,9 @@ export function tapDrawn(card: Card): void {
 
 function isMultiSelect(g: GameView): boolean {
   if (g.phase === 'reveal' && g.reveal) {
-    if (g.reveal.ride) return false;
+    const ride = g.reveal.ride;
+    // While others ride a formation, its owner can pick the cards for their next one.
+    if (ride) return g.reveal.formations.find((f) => f.id === ride.formationId)?.owner === g.you;
     return g.reveal.order[g.reveal.current] === g.you;
   }
   if (g.phase === 'playing' && g.turn === g.you && g.step !== 'choose') return false;

@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.23.6',
+    date: '2026-10-25',
+    items: [
+      c('The music loads with the game and starts with the menu. Browsers that need a click first get a "Click to start" button.', 'A música carrega com o jogo e começa com o menu. Nos browsers que pedem um clique primeiro aparece o botão "Clica para começar".'),
+      c('The loading text hops like the rest of the game\'s text.', 'O texto do carregamento salta como o resto do texto do jogo.'),
+      c('While others ride on your formation, you can select several cards for your next one.', 'Enquanto os outros apanham boleia na tua formação, podes escolher várias cartas para a próxima.'),
+      c('Text in the game can no longer be selected (names and codes you type still can).', 'O texto do jogo já não pode ser selecionado (nomes e códigos que escreves ainda podem).'),
+    ],
+  },
+  {
     version: '0.23.5',
     date: '2026-10-25',
     items: [
