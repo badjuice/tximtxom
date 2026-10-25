@@ -9,7 +9,7 @@ export interface FormationInfo {
   cards: Card[];
 }
 
-type RuleFlags = Pick<Rules, 'hardcore' | 'superposition'> & { smeared?: boolean };
+type RuleFlags = Pick<Rules, 'softcore' | 'superposition'> & { smeared?: boolean };
 
 function setKind(n: number): FormationKind | null {
   return n === 2 ? 'pair' : n === 3 ? 'trio' : n === 4 ? 'quad' : null;
@@ -27,7 +27,7 @@ function straightOrder(cards: readonly Card[], aceHigh: boolean): Card[] | null 
 
 /**
  * Checks whether a group of cards is a legal formation.
- * - Sets: 2-4 cards of one rank (3-4 in Hardcore).
+ * - Sets: 3-4 cards of one rank (2-4 with Softcore).
  * - Straights: 3+ consecutive cards of ONE suit (any suits with Smeared). Ace is low (A-2-3); with
  *   Superposition it may instead be high (Q-K-A). Since an Ace takes exactly
  *   one value per straight, it can never sit in the middle and nothing wraps.
@@ -39,7 +39,7 @@ export function classifyFormation(cards: readonly Card[], rules: RuleFlags): For
   if (cards.every((c) => rankOf(c) === r0)) {
     const kind = setKind(cards.length);
     if (!kind) return null;
-    if (kind === 'pair' && rules.hardcore) return null;
+    if (kind === 'pair' && !rules.softcore) return null;
     return { kind, cards: [...cards].sort((a, b) => suitOf(a) - suitOf(b)) };
   }
 

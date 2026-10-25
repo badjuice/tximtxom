@@ -5,6 +5,14 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.24.0 (2026-10-25)
+- 🔧 Pairs no longer count by default. The new Softcore rule turns them back on; it replaces Hardcore.
+- 🔧 Dealt cards fill the hand one by one, in the order they arrive. Auto sort waits until the deal is over.
+- ✨ The title Aces appear once you reach the menu: they materialise, then get their editions.
+- ✨ Card back "Random": a new back every round.
+- 🔧 Tapped title Aces hop straight up along the card.
+- 🔧 Penalty +10 now comes before Double Down in the rules.
+
 ## 0.23.6 (2026-10-25)
 - 🔧 The music loads with the game and starts with the menu. Browsers that need a click first get a "Click to start" button.
 - 🔧 The loading text hops like the rest of the game's text.

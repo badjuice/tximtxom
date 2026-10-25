@@ -11,9 +11,10 @@ import {
   viewFor,
 } from '../src/index.js';
 
+// The scoring cases below are built with pairs, so Softcore is on unless a test says otherwise.
 function game(n = 2, rules: Partial<Rules> = {}): GameState {
   const players = Array.from({ length: n }, (_, i) => ({ id: `p${i}`, name: `P${i}`, isBot: false }));
-  return newGame(players, { ...DEFAULT_RULES, ...rules }, 1234);
+  return newGame(players, { ...DEFAULT_RULES, softcore: true, ...rules }, 1234);
 }
 
 /** Rigs a fresh round: hands, draw pile (top = last) and discard pile. */

@@ -65,8 +65,8 @@ const en = {
   // rules
   'rule.bust': 'Bust at',
   'rule.bust.desc': 'Going OVER this total is a bust; the lowest total wins',
-  'rule.hardcore': 'Hardcore',
-  'rule.hardcore.desc': 'No pairs: only trios, quads and straights count',
+  'rule.softcore': 'Softcore',
+  'rule.softcore.desc': 'Pairs count too: two of a rank is a formation',
   'rule.superposition': 'Ace High',
   'rule.superposition.desc': 'Ace high (Q-K-A) or low (A-2-3), never in the middle. Still worth 1',
   'rule.rideOrder': 'Ride order',
@@ -301,7 +301,7 @@ const en = {
   'f.title': 'Formations',
   'f.lead': 'Cards in formations don\'t count. Everything else adds points: A = 1 … 10, J = 11, Q = 12, K = 13.',
   'f.pair': 'Two of a rank',
-  'f.pairOff': 'Not allowed in Hardcore',
+  'f.pairOff': 'Only with Softcore',
   'f.trio': 'Three of a rank',
   'f.quad': 'Four of a rank',
   'f.straight': '3+ in a row of one suit',
@@ -332,6 +332,7 @@ const en = {
   'set.highContrast': 'High contrast cards',
   'set.highContrast.desc': 'Colour-blind friendly: 4 suit colours',
   'set.cardBack': 'Card back',
+  'set.cardBack.random': 'Random: a new back every round',
   'set.size': 'Card & table size',
   'set.text': 'Text size',
   'set.seats': 'Seat order',
@@ -401,7 +402,7 @@ const en = {
   'help.tab.ride': 'Take a Ride',
   'help.tab.more': 'More',
   'help.goal':
-    'Keep the {b}fewest points{/b} in your hand. Cards in {g}formations{/g} (pairs, trios, quads, straights of 3+ in one suit) don\'t count. Card values: {o}A = 1{/o}, 2–10 as printed, {o}J = 11, Q = 12, K = 13{/o}. When someone goes over the limit it\'s a {r}bust{/r}, and the {b}lowest total wins{/b}.',
+    'Keep the {b}fewest points{/b} in your hand. Cards in {g}formations{/g} (trios, quads, straights of 3+ in one suit, and pairs with Softcore) don\'t count. Card values: {o}A = 1{/o}, 2–10 as printed, {o}J = 11, Q = 12, K = 13{/o}. When someone goes over the limit it\'s a {r}bust{/r}, and the {b}lowest total wins{/b}.',
   'help.turn':
     'Take the face-up card from the {o}Discard Pile{/o} or draw from the {b}Draw Pile{/b}. A card you take from the discard must stay: let go of another card. A drawn card can be kept (swap it in) or thrown straight onto the Discard Pile. You can {g}drag cards{/g} instead of using the buttons.',
   'help.end':
@@ -491,8 +492,8 @@ const pt: Record<Key, string> = {
 
   'rule.bust': 'Rabenta aos',
   'rule.bust.desc': 'Quem passar deste total rabenta; ganha o total mais baixo',
-  'rule.hardcore': 'Hardcore',
-  'rule.hardcore.desc': 'Sem pares: só contam trincas, quadras e escadas',
+  'rule.softcore': 'Softcore',
+  'rule.softcore.desc': 'Os pares também contam: duas do mesmo valor são uma formação',
   'rule.superposition': 'Ás Alto',
   'rule.superposition.desc': 'Ás alto (Q-K-Ás) ou baixo (Ás-2-3), nunca no meio. Vale sempre 1',
   'rule.rideOrder': 'Ordem das boleias',
@@ -716,7 +717,7 @@ const pt: Record<Key, string> = {
   'f.title': 'Formações',
   'f.lead': 'As cartas em formações não contam. As outras somam pontos: Ás = 1 … 10, J = 11, Q = 12, K = 13.',
   'f.pair': 'Duas do mesmo valor',
-  'f.pairOff': 'Não vale em Hardcore',
+  'f.pairOff': 'Só com Softcore',
   'f.trio': 'Três do mesmo valor',
   'f.quad': 'Quatro do mesmo valor',
   'f.straight': '3 ou mais seguidas do mesmo naipe',
@@ -746,6 +747,7 @@ const pt: Record<Key, string> = {
   'set.highContrast': 'Cartas de alto contraste',
   'set.highContrast.desc': 'Para daltonismo: 4 cores de naipe',
   'set.cardBack': 'Costas das cartas',
+  'set.cardBack.random': 'Aleatórias: costas novas a cada ronda',
   'set.size': 'Tamanho das cartas e mesa',
   'set.text': 'Tamanho do texto',
   'set.seats': 'Ordem dos lugares',
@@ -813,7 +815,7 @@ const pt: Record<Key, string> = {
   'help.tab.ride': 'Boleias',
   'help.tab.more': 'Mais',
   'help.goal':
-    'Fica com {b}menos pontos{/b} na mão. As cartas em {g}formações{/g} (pares, trincas, quadras, escadas de 3+ do mesmo naipe) não contam. Valores: {o}Ás = 1{/o}, 2–10 o que diz a carta, {o}J = 11, Q = 12, K = 13{/o}. Quando alguém passa do limite é {r}Rabenta{/r}, e {b}ganha o total mais baixo{/b}.',
+    'Fica com {b}menos pontos{/b} na mão. As cartas em {g}formações{/g} (trincas, quadras, escadas de 3+ do mesmo naipe, e pares com Softcore) não contam. Valores: {o}Ás = 1{/o}, 2–10 o que diz a carta, {o}J = 11, Q = 12, K = 13{/o}. Quando alguém passa do limite é {r}Rabenta{/r}, e {b}ganha o total mais baixo{/b}.',
   'help.turn':
     'Apanha a carta virada do {o}Descarte{/o} ou tira do {b}Monte{/b}. A carta que apanhas do Descarte fica contigo: larga outra. Uma carta tirada do Monte pode ficar (troca-a por uma da mão) ou ir logo para o Descarte. Podes {g}arrastar as cartas{/g} em vez de usar os botões.',
   'help.end':

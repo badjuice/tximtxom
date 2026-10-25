@@ -1,6 +1,6 @@
 import { Container, type Filter, Graphics, Sprite, type Texture } from 'pixi.js';
 import { type Card, cardCode } from '@tximtxom/shared';
-import { getSettings } from '../settings';
+import { currentBack, getSettings } from '../settings';
 import { dissolveFilter, setDissolve } from './dissolve';
 import { ART_SCALE, CARD_H, CARD_W } from './layout';
 
@@ -156,7 +156,7 @@ export class CardView extends Container {
       this.face.texture = this.tex.get(`${s.highContrast ? 'hc' : 'n'}_${cardCode(this.card)}`);
       this.face.visible = true;
     } else {
-      this.base.texture = this.tex.get(s.cardBack);
+      this.base.texture = this.tex.get(currentBack());
       this.face.visible = false;
     }
   }

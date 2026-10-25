@@ -9,6 +9,7 @@ import { atlasFrame } from './sprites';
 export type Edition = 'foil' | 'holo' | 'poly' | 'negative';
 export const EDITIONS: Edition[] = ['foil', 'holo', 'poly', 'negative'];
 const EDITION_ID: Record<Edition, number> = { foil: 0, holo: 1, poly: 2, negative: 3 };
+const PLAIN = 4; // no edition: the card as it is (while it spawns)
 
 const VERT = `
 attribute vec2 pos;
@@ -19,7 +20,11 @@ void main() {
 }`;
 
 const FRAG = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 varying vec2 uv;
 uniform sampler2D tex;
 uniform vec2 texSize;
@@ -27,6 +32,19 @@ uniform float time;
 uniform vec2 tilt;
 uniform int edition;
 uniform float flash;
+uniform float spawn;
+uniform float seed;
+
+// Blocky noise for the spawn, as in the table's dissolve (game/dissolve.ts).
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7)) + seed) * 43758.5453);
+}
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+}
 
 // The shine's clock: each 2.4 s it eases 3 steps forward, then 1 back, so the
 // sheen sways like a wave while still drifting on (2 steps a cycle, 1 per second).
@@ -89,6 +107,21 @@ void main() {
     col += vec3(0.45, 0.3, 0.75) * pow(s * s2, 3.0) * 0.55;
     col += vec3(0.9, 0.8, 1.0) * pow(s * s2, 10.0) * 0.5;
   }
+  // Spawning (Balatro's DNA): the table's burn-away run backwards. The card fills
+  // in from blocky holes, behind a gold, orange and red edge.
+  if (spawn > 0.0) {
+    vec2 block = floor(uv * texSize / 3.0);
+    float n = 0.7 * noise(block * 0.18) + 0.3 * hash(block);
+    float cut = spawn * 1.15;
+    if (n < cut) { gl_FragColor = vec4(0.0); return; }
+    float edge = n - cut;
+    if (edge < 0.15) {
+      col = edge < 0.03 ? vec3(1.0, 0.86, 0.35)
+          : edge < 0.07 ? vec3(0.99, 0.55, 0.05)
+          : edge < 0.11 ? vec3(0.9, 0.24, 0.2)
+          : mix(vec3(0.16, 0.08, 0.06), col, 0.45);
+    }
+  }
   // The landing flash: white that fades as the edition settles.
   col = mix(col, vec3(1.0), flash * 0.85);
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), c.a);
@@ -102,6 +135,7 @@ interface Entry {
   edition: Edition | null;
   tilt: [number, number];
   landedAt: number;
+  spawning: { start: number; ms: number; seed: number; done: () => void } | null;
 }
 
 let gl: WebGLRenderingContext | null = null;
@@ -134,7 +168,7 @@ function setup(): boolean {
   const loc = g.getAttribLocation(prog, 'pos');
   g.enableVertexAttribArray(loc);
   g.vertexAttribPointer(loc, 2, g.FLOAT, false, 0, 0);
-  for (const u of ['tex', 'texSize', 'time', 'tilt', 'edition', 'flash']) uniforms[u] = g.getUniformLocation(prog, u);
+  for (const u of ['tex', 'texSize', 'time', 'tilt', 'edition', 'flash', 'spawn', 'seed']) uniforms[u] = g.getUniformLocation(prog, u);
   gl = g;
   return true;
 }
@@ -182,7 +216,18 @@ function draw(now: number): void {
   const time = reduced ? 1.5 : (now - start) / 1000;
   const filter = getSettings().smooth === 'all' ? g.LINEAR : g.NEAREST;
   for (const e of entries) {
-    if (!e.tex || !e.edition) continue;
+    const sp = e.spawning;
+    let spawn = 0;
+    if (sp) {
+      spawn = 1 - (now - sp.start) / sp.ms;
+      if (spawn <= 0) {
+        e.spawning = null;
+        spawn = 0;
+        if (!e.edition) e.ctx.clearRect(0, 0, e.canvas.width, e.canvas.height);
+        sp.done();
+      }
+    }
+    if (!e.tex || (!e.edition && spawn <= 0)) continue;
     const { width: w, height: h } = e.canvas;
     if (glCanvas.width !== w || glCanvas.height !== h) {
       glCanvas.width = w;
@@ -198,7 +243,9 @@ function draw(now: number): void {
     g.uniform2f(uniforms.texSize, e.texSize[0], e.texSize[1]);
     g.uniform1f(uniforms.time, time);
     g.uniform2f(uniforms.tilt, e.tilt[0], e.tilt[1]);
-    g.uniform1i(uniforms.edition, EDITION_ID[e.edition]);
+    g.uniform1i(uniforms.edition, e.edition ? EDITION_ID[e.edition] : PLAIN);
+    g.uniform1f(uniforms.spawn, Math.min(1, spawn));
+    g.uniform1f(uniforms.seed, sp?.seed ?? 0);
     const since = (now - e.landedAt) / 1000;
     g.uniform1f(uniforms.flash, reduced ? 0 : Math.max(0, 1 - since / 0.45));
     g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
@@ -219,7 +266,7 @@ function loop(now: number): void {
  */
 export function attachEdition(canvas: HTMLCanvasElement, face: string) {
   const ctx = canvas.getContext('2d')!;
-  const e: Entry = { canvas, ctx, tex: null, texSize: [1, 1], edition: null, tilt: [0, 0], landedAt: 0 };
+  const e: Entry = { canvas, ctx, tex: null, texSize: [1, 1], edition: null, tilt: [0, 0], landedAt: 0, spawning: null };
   entries.add(e);
   void cardTexture(e, face);
   if (!frame) frame = requestAnimationFrame(loop);
@@ -234,8 +281,15 @@ export function attachEdition(canvas: HTMLCanvasElement, face: string) {
     setTilt(x: number, y: number) {
       e.tilt = [x, y];
     },
+    /** Draws the card materialising over `ms`, then calls `done` (at once without WebGL). */
+    spawn(ms: number, done: () => void) {
+      if (ms <= 0 || !setup()) return done();
+      e.spawning = { start: performance.now(), ms, seed: Math.random() * 100, done };
+      if (!frame) frame = requestAnimationFrame(loop);
+    },
     detach() {
       entries.delete(e);
+      e.spawning = null;
       if (e.tex) gl?.deleteTexture(e.tex);
     },
   };

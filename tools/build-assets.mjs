@@ -132,7 +132,7 @@ const AVATARS = {
 // Board Game Icons for rules and help, on a card in the rule's colour.
 const RULE_ART = {
   bust: ['skull', 'red'],
-  hardcore: ['fire', 'red'],
+  softcore: ['card_add', 'green'],
   double: ['cards_collection', 'red'],
   penalty: ['dollar', 'red'],
   ace: ['arrow_reserve', 'green'],

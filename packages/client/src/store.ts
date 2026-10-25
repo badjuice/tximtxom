@@ -28,6 +28,8 @@ export interface ClientState {
   shake: number;
   /** A card is being dragged on the table: the action bar is locked meanwhile. */
   dragging: boolean;
+  /** The loading screen is gone and the player sees the menu. */
+  entered: boolean;
   layout: Layout | null;
   /** Full move log of the current game, oldest first. */
   history: { id: number; e: GameEvent }[];
@@ -65,6 +67,7 @@ export const store = createStore<ClientState>({
   callout: null,
   shake: 0,
   dragging: false,
+  entered: false,
   layout: null,
   history: [],
   myDraws: {},

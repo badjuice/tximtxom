@@ -19,6 +19,18 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.24.0',
+    date: '2026-10-25',
+    items: [
+      c('Pairs no longer count by default. The new Softcore rule turns them back on; it replaces Hardcore.', 'Os pares já não contam por defeito. A nova regra Softcore volta a ligá-los; substitui a Hardcore.'),
+      c('Dealt cards fill the hand one by one, in the order they arrive. Auto sort waits until the deal is over.', 'As cartas dadas enchem a mão uma a uma, pela ordem em que chegam. A ordenação automática espera pelo fim da distribuição.'),
+      n('The title Aces appear once you reach the menu: they materialise, then get their editions.', 'Os Ases do título aparecem quando chegas ao menu: materializam-se e depois recebem as edições.'),
+      n('Card back "Random": a new back every round.', 'Costas "Aleatórias": costas novas a cada ronda.'),
+      c('Tapped title Aces hop straight up along the card.', 'Os Ases do título, quando tocados, saltam a direito ao longo da carta.'),
+      c('Penalty +10 now comes before Double Down in the rules.', 'A Multa +10 aparece agora antes da Dobra nas regras.'),
+    ],
+  },
+  {
     version: '0.23.6',
     date: '2026-10-25',
     items: [

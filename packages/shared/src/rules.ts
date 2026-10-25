@@ -4,8 +4,8 @@ export type RideOrder = 'simultaneous' | 'roundRobin';
 export interface Rules {
   /** A player busts when their total goes OVER this. */
   threshold: number;
-  /** Pairs are not formations. Trios, quads and straights only. */
-  hardcore: boolean;
+  /** Pairs count as formations too (off: trios, quads and straights only). */
+  softcore: boolean;
   /** Aces can also be high (Q-K-A), but never in the middle of a straight. */
   superposition: boolean;
   /** The server places ride cards for everyone. */
@@ -27,7 +27,7 @@ export interface Rules {
 
 export const DEFAULT_RULES: Rules = {
   threshold: 40,
-  hardcore: false,
+  softcore: false,
   superposition: false,
   autoRide: false,
   noMoreFormationsNotice: true,
@@ -46,7 +46,7 @@ export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
   const r = { ...DEFAULT_RULES, ...(input ?? {}) };
   return {
     threshold: (THRESHOLD_OPTIONS as readonly number[]).includes(r.threshold) ? r.threshold : 40,
-    hardcore: !!r.hardcore,
+    softcore: !!r.softcore,
     superposition: !!r.superposition,
     autoRide: !!r.autoRide,
     noMoreFormationsNotice: !!r.noMoreFormationsNotice,

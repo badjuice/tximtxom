@@ -40,7 +40,7 @@ function playGame(n: number, rules: Rules, seed: number): GameState {
 describe('bot simulation', () => {
   const variants: [string, Partial<Rules>][] = [
     ['default', {}],
-    ['hardcore + superposition', { hardcore: true, superposition: true }],
+    ['softcore + superposition', { softcore: true, superposition: true }],
     ['round robin + penalties', { rideOrder: 'roundRobin', doubleDown: true, penalty10: true }],
     ['auto ride, 100 points', { autoRide: true, threshold: 100 }],
     ['smeared + superposition', { smeared: true, superposition: true }],

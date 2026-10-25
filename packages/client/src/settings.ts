@@ -1,11 +1,27 @@
 import { useEffect, useState } from 'preact/hooks';
 
+export type CardBack = 'back_red' | 'back_blue' | 'back_yellow' | 'back_green' | 'back_black' | 'back_purple';
+export const CARD_BACKS: CardBack[] = ['back_red', 'back_blue', 'back_yellow', 'back_green', 'back_black', 'back_purple'];
+
+let randomBack: CardBack = CARD_BACKS[Math.floor(Math.random() * CARD_BACKS.length)];
+/** Picks the next random back (a different one), for a new deal. */
+export function rollRandomBack(): void {
+  const others = CARD_BACKS.filter((b) => b !== randomBack);
+  randomBack = others[Math.floor(Math.random() * others.length)];
+}
+/** The back to draw right now. */
+export function currentBack(): CardBack {
+  const b = getSettings().cardBack;
+  return b === 'random' ? randomBack : b;
+}
+
 /** Per-player settings, saved on this device. */
 export interface Settings {
   // Cards & colour
   highContrast: boolean;
   bigLabels: boolean;
-  cardBack: 'back_red' | 'back_blue' | 'back_yellow' | 'back_green' | 'back_black' | 'back_purple';
+  /** `random` deals each round on a new back. */
+  cardBack: CardBack | 'random';
   /** Anti-aliasing: none, the edges of tilted table cards, or all the pixel art too. */
   smooth: 'off' | 'edges' | 'all';
   // Layout

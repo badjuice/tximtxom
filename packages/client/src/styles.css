@@ -278,6 +278,13 @@ input:focus-visible {
 .sprite.card.dim {
   opacity: 0.4;
 }
+/* Not spawned yet, or spawning: only the edition canvas draws it. */
+.sprite.card.unborn {
+  background: none !important;
+}
+.sprite.card.unborn > .sprite {
+  visibility: hidden;
+}
 
 input:not([type]),
 input[type='text'] {
@@ -401,10 +408,10 @@ input[type='text'] {
   display: block;
   animation: fan-hop 0.4s cubic-bezier(0.3, 1.4, 0.5, 1);
 }
+/* Straight up along the card's own axis (the card is already turned in the fan). */
 @keyframes fan-hop {
   40% {
     translate: 0 -18px;
-    rotate: -8deg;
   }
 }
 /* Edition shader canvas over a card. */
@@ -836,6 +843,20 @@ input[type='text'] {
 }
 .back-pick.on {
   border-color: var(--gold);
+}
+/* Random: whichever back is up now, with a question mark on it. */
+.back-pick.random {
+  position: relative;
+}
+.back-pick.random > .q {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.6em;
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+  pointer-events: none;
 }
 
 /* Balatro "hand levels"-style rows */

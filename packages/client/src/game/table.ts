@@ -48,6 +48,8 @@ export type SpawnHints = Map<
     hidden?: number;
     /** Seconds it then waits at `from` before moving to its spot. */
     hold?: number;
+    /** Dealt into a hand: the hand makes room for it only once it leaves the deck. */
+    deal?: boolean;
   }
 >;
 
@@ -71,6 +73,8 @@ export class Table {
   private time = 0;
   private roles = new Map<string, DesiredCard>();
   private pendingHints: SpawnHints = new Map();
+  /** Cards still waiting in the deck during a deal (view keys). */
+  private dealPending = new Set<string>();
   /** Called whenever the layout changes (resize, players). */
   onLayout: (l: Layout) => void = () => {};
 
@@ -165,7 +169,12 @@ export class Table {
         if (this.discardMemory.length > 4) this.discardMemory.shift();
       }
     }
-    if (hints) for (const [k, v] of hints) this.pendingHints.set(k, v);
+    if (hints) {
+      for (const [k, v] of hints) {
+        this.pendingHints.set(k, v);
+        if (v.deal) this.dealPending.add(k);
+      }
+    }
     if (g && (g.players.length !== prevPlayers || g.you !== prevYou || g.rules.sixthSense !== prevSixth)) this.relayout();
     else this.sync();
   }
@@ -205,6 +214,7 @@ export class Table {
   clear(): void {
     for (const v of this.views.values()) v.destroy();
     this.views.clear();
+    this.dealPending.clear();
     this.discardMemory = [];
   }
 
@@ -224,6 +234,7 @@ export class Table {
       staged: this.input.staged,
       discardMemory: this.discardMemory,
       drag: drag ? { card: drag.card, x: drag.x, y: drag.y } : null,
+      pending: this.dealPending,
     });
     const seen = new Set<string>();
     this.roles.clear();
@@ -483,6 +494,15 @@ export class Table {
     this.time += dt;
     this.updateHover();
     for (const v of this.views.values()) v.update(dt, this.time);
+    // A dealt card that leaves the deck joins the end of its hand, which widens to fit it.
+    let dealt = false;
+    for (const k of this.dealPending) {
+      const v = this.views.get(k);
+      if (v && v.delay > 0) continue;
+      this.dealPending.delete(k);
+      dealt = true;
+    }
+    if (dealt) this.sync();
     for (let i = this.dying.length - 1; i >= 0; i--) {
       const v = this.dying[i];
       v.update(dt, this.time);

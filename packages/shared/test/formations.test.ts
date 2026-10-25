@@ -11,10 +11,10 @@ import {
   parseCards as P,
 } from '../src/index.js';
 
-const base = { hardcore: false, superposition: false };
-const hardcore = { hardcore: true, superposition: false };
-const superpos = { hardcore: false, superposition: true };
-const smeared = { hardcore: false, superposition: false, smeared: true };
+const base = { softcore: true, superposition: false };
+const strict = { softcore: false, superposition: false };
+const superpos = { softcore: true, superposition: true };
+const smeared = { softcore: true, superposition: false, smeared: true };
 
 describe('sets', () => {
   it('pairs, trios, quads', () => {
@@ -24,9 +24,9 @@ describe('sets', () => {
     expect(classifyFormation(P('7H 8H'), base)).toBeNull();
     expect(classifyFormation(P('7H'), base)).toBeNull();
   });
-  it('hardcore disables pairs only', () => {
-    expect(classifyFormation(P('7H 7S'), hardcore)).toBeNull();
-    expect(classifyFormation(P('7H 7S 7D'), hardcore)?.kind).toBe('trio');
+  it('pairs need Softcore', () => {
+    expect(classifyFormation(P('7H 7S'), strict)).toBeNull();
+    expect(classifyFormation(P('7H 7S 7D'), strict)?.kind).toBe('trio');
   });
 });
 
@@ -106,13 +106,13 @@ describe('bestPartition', () => {
   });
   it('detects a fully formed hand', () => {
     expect(isFullyFormed(P('7H 7S 2D 3D 4D KC KH'), base)).toBe(true);
-    expect(isFullyFormed(P('7H 7S 2D 3D 4D KC KH'), hardcore)).toBe(false);
-    expect(isFullyFormed(P('7H 7S 7D 3D 4D 5D 6D'), hardcore)).toBe(true);
+    expect(isFullyFormed(P('7H 7S 2D 3D 4D KC KH'), strict)).toBe(false);
+    expect(isFullyFormed(P('7H 7S 7D 3D 4D 5D 6D'), strict)).toBe(true);
   });
   it('anyFormationPossible', () => {
     expect(anyFormationPossible(P('2H 5S 9D'), base)).toBe(false);
     expect(anyFormationPossible(P('2H 2S 9D'), base)).toBe(true);
-    expect(anyFormationPossible(P('2H 2S 9D'), hardcore)).toBe(false);
+    expect(anyFormationPossible(P('2H 2S 9D'), strict)).toBe(false);
   });
 });
 
@@ -132,7 +132,7 @@ describe('leftoverRange', () => {
     const hand = P('2H 5C 9D KS');
     expect(leftoverRange(hand, base)).toEqual({ min: handPoints(hand), max: handPoints(hand) });
   });
-  it('follows the rules: no pairs in Hardcore', () => {
-    expect(leftoverRange(P('7H 7S KC'), hardcore)).toEqual({ min: handPoints(P('7H 7S KC')), max: handPoints(P('7H 7S KC')) });
+  it('follows the rules: no pairs without Softcore', () => {
+    expect(leftoverRange(P('7H 7S KC'), strict)).toEqual({ min: handPoints(P('7H 7S KC')), max: handPoints(P('7H 7S KC')) });
   });
 });

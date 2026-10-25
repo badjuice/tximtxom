@@ -65,6 +65,7 @@ async function boot() {
   // Where the browser wants a click first, a button asks for it.
   const loading = document.getElementById('loading');
   const close = () => {
+    store.set({ entered: true });
     loading?.classList.add('done');
     setTimeout(() => loading?.remove(), 300);
   };

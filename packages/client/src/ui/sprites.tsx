@@ -125,11 +125,11 @@ export function faceFrame(card: Card, highContrast: boolean): string {
   return `${highContrast ? 'hc' : 'n'}_${cardCode(card)}`;
 }
 
-export function CardIcon({ card, scale: sc = 0.5, dim, children }: { card: Card; scale?: number; dim?: boolean; children?: ComponentChildren }) {
+export function CardIcon({ card, scale: sc = 0.5, dim, class: cls, children }: { card: Card; scale?: number; dim?: boolean; class?: string; children?: ComponentChildren }) {
   const s = useSettings();
   const scale = fit('cards', sc);
   return (
-    <span class={`sprite card tilt${dim ? ' dim' : ''}`} style={spriteStyle('cards', 'base', scale)} role="img" aria-label={cardSpoken(card)} {...tilt}>
+    <span class={`sprite card tilt${dim ? ' dim' : ''}${cls ? ` ${cls}` : ''}`} style={spriteStyle('cards', 'base', scale)} role="img" aria-label={cardSpoken(card)} {...tilt}>
       <span class="sprite" style={spriteStyle('cards', faceFrame(card, s.highContrast), scale)} />
       {children}
     </span>

@@ -40,6 +40,8 @@ export interface SceneInput {
   discardMemory: Card[];
   /** Hand card being dragged and where. */
   drag: { card: Card; x: number; y: number } | null;
+  /** Cards still waiting in the deck during a deal (view keys). Hands leave them out, so they grow as cards arrive. */
+  pending?: ReadonlySet<string>;
 }
 
 /** Lays out formations in rows inside the reveal area. */
@@ -154,6 +156,15 @@ export function reorderedHand(layout: Layout, order: Card[], card: Card, x: numb
 export function describeScene(input: SceneInput): DesiredCard[] {
   const { game: g, layout: L, selected, staged, drag } = input;
   const out: DesiredCard[] = [];
+  const pending = input.pending ?? new Set<string>();
+  // Where a card waits to be dealt.
+  const inDeck = (key: string, card: Card | null, role: DesiredCard['role'], seat?: number): DesiredCard => ({
+    key,
+    card,
+    role,
+    seat,
+    target: { x: L.draw.x, y: L.draw.y, rot: 0, scale: L.pileScale, z: 10, faceUp: false },
+  });
   const me = g.you;
   const myTurn = me !== null && g.phase === 'playing' && g.turn === me;
   const revealing = g.phase === 'reveal';
@@ -255,6 +266,8 @@ export function describeScene(input: SceneInput): DesiredCard[] {
     // A card held over the hand opens a gap where it would land, like Balatro.
     if (drag && !staged && shownHand.includes(drag.card) && drag.y >= handDropTop(L)) shownHand = reorderedHand(L, shownHand, drag.card, drag.x);
 
+    for (const c of shownHand) if (pending.has(`c${c}`)) out.push(inDeck(`c${c}`, c, 'hand'));
+    shownHand = shownHand.filter((c) => !pending.has(`c${c}`));
     const slots = handSlots(L, shownHand.length);
     shownHand.forEach((c, i) => {
       const s = slots[i];
@@ -328,8 +341,14 @@ export function describeScene(input: SceneInput): DesiredCard[] {
       });
       return;
     }
-    const slots = fan(a, p.handCount, 16, 0.07);
+    let dealt = 0;
+    for (let i = 0; i < p.handCount; i++) if (!pending.has(`o${s}_${i}`)) dealt++;
+    const slots = fan(a, dealt, 16, 0.07);
     for (let i = 0; i < p.handCount; i++) {
+      if (i >= dealt) {
+        out.push(inDeck(`o${s}_${i}`, null, 'opponent', s));
+        continue;
+      }
       out.push({
         key: `o${s}_${i}`,
         card: null,

@@ -38,7 +38,7 @@ Every player holds 7 cards at the end of their turn. On your turn, choose one:
 ## Formations
 | Formation | What it is |
 |---|---|
-| Pair | 2 cards of the same rank. Not allowed in **Hardcore**. |
+| Pair | 2 cards of the same rank. Only with **Softcore**. |
 | Trio | 3 cards of the same rank |
 | Quad | 4 cards of the same rank |
 | Straight | 3 or more consecutive cards of the same suit. With **Mixed Suits**, the suits can mix. |
@@ -73,7 +73,7 @@ Every player holds 7 cards at the end of their turn. On your turn, choose one:
 | Setting | Art | Effect |
 |---|---|---|
 | Limit | Skull | 40 or 100 points |
-| Hardcore | Fire | Pairs don't count |
+| Softcore | Card with a plus | Pairs count as formations |
 | Ace High | Two-way arrows | Aces can be high |
 | Mixed Suits (*Naipes Misturados*) | Flask | Straights can mix suits. TximTxom still needs one suit. |
 | Ride order | Pawn going round | Together or in turns |

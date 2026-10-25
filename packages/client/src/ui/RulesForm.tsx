@@ -24,7 +24,7 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         onChange={(threshold) => onChange({ threshold })}
         disabled={readOnly}
       />
-      <Toggle label={t('rule.hardcore')} desc={t('rule.hardcore.desc')} joker="hardcore" tone="punish" checked={rules.hardcore} onChange={(hardcore) => onChange({ hardcore })} disabled={readOnly} />
+      <Toggle label={t('rule.softcore')} desc={t('rule.softcore.desc')} joker="softcore" tone="support" checked={rules.softcore} onChange={(softcore) => onChange({ softcore })} disabled={readOnly} />
       <Toggle
         label={t('rule.superposition')}
         desc={t('rule.superposition.desc')}
@@ -63,8 +63,8 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         onChange={(noMoreFormationsNotice) => onChange({ noMoreFormationsNotice })}
         disabled={readOnly}
       />
-      <Toggle label={t('rule.doubleDown')} desc={t('rule.doubleDown.desc')} joker="double" tone="punish" checked={rules.doubleDown} onChange={(doubleDown) => onChange({ doubleDown })} disabled={readOnly} />
       <Toggle label={t('rule.penalty10')} desc={t('rule.penalty10.desc')} joker="penalty" tone="punish" checked={rules.penalty10} onChange={(penalty10) => onChange({ penalty10 })} disabled={readOnly} />
+      <Toggle label={t('rule.doubleDown')} desc={t('rule.doubleDown.desc')} joker="double" tone="punish" checked={rules.doubleDown} onChange={(doubleDown) => onChange({ doubleDown })} disabled={readOnly} />
       <Choice
         label={t('rule.timer')}
         desc={t('rule.timer.desc')}

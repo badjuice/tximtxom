@@ -5,7 +5,7 @@ import { drawPileTop, revealGroups, sortedCards } from './game/scene';
 import type { DropTarget, SpawnHints, Table } from './game/table';
 import { cardShort, cardSpoken, kindName, t, tError } from './i18n';
 import { act, fetchHistory } from './net';
-import { getSettings, onSettings, updateSettings } from './settings';
+import { getSettings, onSettings, rollRandomBack, updateSettings } from './settings';
 import { banner, callout, SEAT_COLORS, type Staged, store, toast } from './store';
 
 let table: Table;
@@ -210,9 +210,14 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   }
 
   turnCallouts(g, prevG);
+  // Dealt cards keep the order they arrived in; auto sort waits until the deal is over.
   if (getSettings().autoSort) {
-    const hand = me !== null ? g.players[me].hand ?? [] : [];
-    handOrder = sortedCards(hand, getSettings().sortBy);
+    const wait = dealUntil - Date.now();
+    if (wait > 0) setTimeout(applyAutoSort, wait);
+    else {
+      const hand = me !== null ? g.players[me].hand ?? [] : [];
+      handOrder = sortedCards(hand, getSettings().sortBy);
+    }
   }
   pushToTable(hints);
 }
@@ -318,15 +323,19 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
         const count = seat === me ? (p.hand?.length ?? 0) : p.handCount;
         for (let k = 0; k < count; k++) {
           const key = seat === me ? `c${p.hand![k]}` : `o${seat}_${k}`;
-          hints.set(key, { from, delay: (k * n + j) * 0.07 * speedK, hidden: lead, faceDown: true, reset: true });
+          hints.set(key, { from, delay: (k * n + j) * 0.07 * speedK, hidden: lead, faceDown: true, reset: true, deal: true });
         }
       }
       if (g.discardTop !== null) hints.set(`c${g.discardTop}`, { from, delay: 7 * n * 0.07 * speedK, hidden: lead, faceDown: true, reset: true });
       // Turn callouts wait until the cards have landed.
       dealUntil = Date.now() + lead * 1000 + ((7 * n + 4) * 70 * speedK) / gs;
       for (let i = 0; i < 7 * n; i += 2) sfx('cardSlide1', { delay: lead * 1000 + (i * 70 * speedK) / gs, volume: 0.5 });
-      // Every round is dealt on a new colour, like a new blind in Balatro.
+      // Every round is dealt on a new colour, like a new blind in Balatro (and a new back, if chosen).
       shuffleTablePalette();
+      if (getSettings().cardBack === 'random') {
+        rollRandomBack();
+        table.refreshAll();
+      }
       setMood('table');
       swirl(1);
       banner(t('b.round', { n: e.round }), { sub: t('b.dealsPlays', { name: name(g, e.dealer) }), tone: 'info' });

@@ -52,7 +52,7 @@ function TopBar({ g }: { g: GameView }) {
       <div class="round-chip">
         <span>{t('top.round', { n: g.round })}</span>
         <span class="bust-chip">{t('top.bust', { n: g.rules.threshold })}</span>
-        {g.rules.hardcore && <ArtIcon name="hardcore" scale={0.26} title={t('rule.hardcore')} />}
+        {g.rules.softcore && <ArtIcon name="softcore" scale={0.26} title={t('rule.softcore')} />}
         {g.rules.superposition && <ArtIcon name="ace" scale={0.26} title={t('rule.superposition')} />}
         {g.rules.smeared && <ArtIcon name="mixed" scale={0.26} title={t('rule.smeared')} />}
         {g.rules.sixthSense && <ArtIcon name="peek" scale={0.26} title={t('rule.sixthSense')} />}

@@ -15,6 +15,7 @@ const FAN_DROP = [11, 1, 1, 11];
 const FAN_SCALE = 1.25; // 119 px tall cards
 const FAN_STEP = 60; // px between card centres
 const DRAG_THRESHOLD = 10;
+const SPAWN_STEP = 150; // ms between the Aces materialising
 const slotX = (i: number) => (i - (FAN.length - 1) / 2) * FAN_STEP;
 
 /** `order` with `suit` moved to the slot nearest to x, as reordering the hand does. */
@@ -66,6 +67,7 @@ function FanCard(props: {
   suit: Suit;
   slot: number;
   edition: Edition | null;
+  spawn?: 'wait' | number;
   onDrag: (suit: Suit, x: number | null) => void;
   onDrop: (suit: Suit, x: number | null) => void;
 }) {
@@ -132,7 +134,7 @@ function FanCard(props: {
       {/* Keyed so each tap restarts the hop. */}
       <span class={hops ? 'fan-hop' : ''} key={hops}>
         <span class="edition-juice" ref={juice}>
-          <EditionCard card={makeCard(1, suit)} scale={FAN_SCALE} edition={props.edition} />
+          <EditionCard card={makeCard(1, suit)} scale={FAN_SCALE} edition={props.edition} spawn={props.spawn} />
         </span>
       </span>
     </span>
@@ -165,16 +167,22 @@ export function Title() {
       );
     }
   };
+  // The Aces appear once the player is on the menu (past the loading screen):
+  // they materialise left to right, then their editions land.
+  const entered = useStore((s) => s.entered);
+  const dealtBefore = useRef(fanDealt);
   useEffect(() => {
-    if (!fanDealt) {
-      fanDealt = true;
-      const picks: Partial<Record<Suit, Edition>> = {};
-      for (const suit of FAN) {
-        const ed = rollEdition();
-        if (ed) picks[suit] = ed;
-      }
-      land(picks, 700);
+    if (!entered || fanDealt) return;
+    fanDealt = true;
+    play('tarot1', { volume: 0.5 });
+    const picks: Partial<Record<Suit, Edition>> = {};
+    for (const suit of FAN) {
+      const ed = rollEdition();
+      if (ed) picks[suit] = ed;
     }
+    land(picks, SPAWN_STEP * (FAN.length - 1) + 700 + 300);
+  }, [entered]);
+  useEffect(() => {
     let typed = '';
     const onKey = (e: KeyboardEvent) => {
       if (e.key.length !== 1) return;
@@ -232,7 +240,15 @@ export function Title() {
       <div class="logo-fan" aria-hidden="true">
         {/* Fixed DOM order; each Ace slides to its slot, so a reorder animates. */}
         {FAN.map((suit) => (
-          <FanCard key={suit} suit={suit} slot={shown.indexOf(suit)} edition={editions[suit] ?? null} onDrag={drag} onDrop={drop} />
+          <FanCard
+            key={suit}
+            suit={suit}
+            slot={shown.indexOf(suit)}
+            edition={editions[suit] ?? null}
+            spawn={dealtBefore.current ? undefined : entered ? FAN.indexOf(suit) * SPAWN_STEP : 'wait'}
+            onDrag={drag}
+            onDrop={drop}
+          />
         ))}
       </div>
 

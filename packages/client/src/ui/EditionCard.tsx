@@ -1,12 +1,18 @@
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Card } from '@tximtxom/shared';
-import { useSettings } from '../settings';
+import { getSettings, useSettings } from '../settings';
 import { attachEdition, type Edition } from './editions';
 import { CardIcon, cardSize, faceFrame } from './sprites';
 
-/** A card with a Balatro edition shader over it. With no edition it is a plain CardIcon. */
-export function EditionCard({ card, scale = 1, edition }: { card: Card; scale?: number; edition: Edition | null }) {
+const SPAWN_MS = 700;
+
+/**
+ * A card with a Balatro edition shader over it. With no edition it is a plain CardIcon.
+ * `spawn`: 'wait' keeps it unseen (its space kept); a number of ms then materialises it.
+ */
+export function EditionCard({ card, scale = 1, edition, spawn }: { card: Card; scale?: number; edition: Edition | null; spawn?: 'wait' | number }) {
   const { highContrast } = useSettings();
+  const [born, setBorn] = useState(spawn === undefined);
   const canvas = useRef<HTMLCanvasElement>(null);
   const ctl = useRef<ReturnType<typeof attachEdition> | null>(null);
   const { w, h } = cardSize(scale);
@@ -19,9 +25,14 @@ export function EditionCard({ card, scale = 1, edition }: { card: Card; scale?: 
     return () => c.detach();
   }, [card, highContrast]);
   useEffect(() => ctl.current?.setEdition(edition), [edition]);
+  useEffect(() => {
+    if (typeof spawn !== 'number') return;
+    const id = setTimeout(() => ctl.current?.spawn(getSettings().reducedMotion ? 0 : SPAWN_MS, () => setBorn(true)), spawn);
+    return () => clearTimeout(id);
+  }, [spawn]);
 
   return (
-    <CardIcon card={card} scale={scale}>
+    <CardIcon card={card} scale={scale} class={born ? undefined : 'unborn'}>
       <canvas
         ref={canvas}
         class="edition-layer"

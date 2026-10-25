@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { makeCard, parseCards, type Suit } from '@tximtxom/shared';
 import { type Key, t } from '../i18n';
 import { leaveRoom, MODE } from '../net';
-import { resetSettings, type Settings, updateSettings, useSettings } from '../settings';
+import { CARD_BACKS, currentBack, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
@@ -214,7 +214,7 @@ function useTximTxomExample(superposition: boolean) {
 
 function Formations({ onClose }: { onClose: () => void }) {
   const rules = useStore((s) => s.room?.game?.rules ?? s.room?.rules);
-  const hardcore = !!rules?.hardcore;
+  const softcore = !!rules?.softcore;
   const superposition = !!rules?.superposition;
   const smeared = !!rules?.smeared;
   const tximtxom = useTximTxomExample(superposition);
@@ -240,7 +240,7 @@ function Formations({ onClose }: { onClose: () => void }) {
     <Modal title={t('f.title')} onClose={onClose} wide>
       <p class="center muted f-lead">{t('f.lead')}</p>
       <div class="f-grid">
-        {row(t('pair'), 'blue', EX.pair, hardcore ? t('f.pairOff') : t('f.pair'), { off: hardcore, joker: hardcore ? 'hardcore' : undefined })}
+        {row(t('pair'), 'blue', EX.pair, softcore ? t('f.pair') : t('f.pairOff'), { off: !softcore, joker: 'softcore' })}
         {row(t('trio'), 'blue', EX.trio, t('f.trio'))}
         {row(t('quad'), 'blue', EX.quad, t('f.quad'))}
         {row(t('straight'), 'red', EX.straight, t('f.straight'))}
@@ -297,7 +297,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
   const room = useStore((st) => st.room);
   const [tab, setTab] = useState<SetTab>('general');
   const set = (p: Partial<Settings>) => updateSettings(p);
-  const backs: Settings['cardBack'][] = ['back_red', 'back_blue', 'back_yellow', 'back_green', 'back_black', 'back_purple'];
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   return (
     <Modal
@@ -391,11 +390,15 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
                 <span class="toggle-label">{t('set.cardBack')}</span>
               </span>
               <span class="backs">
-                {backs.map((b) => (
+                {CARD_BACKS.map((b) => (
                   <button class={`back-pick${s.cardBack === b ? ' on' : ''}`} aria-pressed={s.cardBack === b} aria-label={b.replace('back_', '')} onClick={() => set({ cardBack: b })}>
                     <CardBackIcon back={b} scale={0.42} />
                   </button>
                 ))}
+                <button class={`back-pick random${s.cardBack === 'random' ? ' on' : ''}`} aria-pressed={s.cardBack === 'random'} title={t('set.cardBack.random')} onClick={() => set({ cardBack: 'random' })}>
+                  <CardBackIcon back={currentBack()} scale={0.42} />
+                  <span class="q" aria-hidden="true">?</span>
+                </button>
               </span>
             </div>
             <Choice
