@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.27.1',
+    date: '2026-10-26',
+    items: [
+      c('When every player has left, the bots stop and wait: for someone to come back, or for the room to close after 10 minutes.', 'Quando todos os jogadores saem, os bots param e esperam: que alguém volte, ou que a sala feche ao fim de 10 minutos.'),
+    ],
+  },
+  {
     version: '0.27.0',
     date: '2026-10-26',
     items: [

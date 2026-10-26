@@ -388,6 +388,13 @@ export class Room {
   }
 
   private scheduleBots(): void {
+    // With nobody at the table the bots wait: for a player to come back, or for
+    // the room to close as idle.
+    if (!this.humansConnected) {
+      if (this.botTimer) clearTimeout(this.botTimer);
+      this.botTimer = null;
+      return;
+    }
     if (this.botTimer) return;
     const move = this.nextBotMove();
     if (!move) return;
@@ -404,6 +411,7 @@ export class Room {
             : BOT_DELAY.turn + (justDealt ? dealMs(g.players.length) : 0);
     this.botTimer = setTimeout(() => {
       this.botTimer = null;
+      if (!this.humansConnected) return;
       const m = this.nextBotMove();
       if (!m) return;
       const err = this.apply(m.seat, m.action, true);

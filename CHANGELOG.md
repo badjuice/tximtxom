@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.27.1 (2026-10-26)
+- 🔧 When every player has left, the bots stop and wait: for someone to come back, or for the room to close after 10 minutes.
+
 ## 0.27.0 (2026-10-26)
 - ✨ Players say Ready in the lobby before the host can start. A tick or an hourglass shows who is ready.
 - ✨ A Language button on the main menu opens a language menu. The PT/EN switch in the corner is gone.

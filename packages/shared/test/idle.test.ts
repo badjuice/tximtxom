@@ -11,15 +11,15 @@ function setup() {
     closed: (clientId, reason) => closed.push([clientId, reason]),
     roomClosed: (code) => roomsClosed.push(code),
   });
-  const res = server.handle('human', { event: 'room:create', msg: { name: 'Nox' } }) as { ok: true; code: string };
-  return { server, code: res.code, closed, roomsClosed };
+  const res = server.handle('human', { event: 'room:create', msg: { name: 'Nox' } }) as { ok: true; code: string; token: string };
+  return { server, code: res.code, token: res.token, closed, roomsClosed };
 }
 
 describe('idle rooms', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it('closes a game of bots after 10 minutes, even though the bots keep playing', () => {
+  it('with only bots left, the game waits; the room closes after 10 minutes', () => {
     const { server, code, closed, roomsClosed } = setup();
     server.handle('human', { event: 'room:addBot' });
     server.handle('human', { event: 'room:addBot' });
@@ -29,13 +29,29 @@ describe('idle rooms', () => {
     const before = JSON.stringify(room.game);
 
     vi.advanceTimersByTime(ROOM_IDLE_MS - MIN);
-    expect(JSON.stringify(room.game)).not.toBe(before); // bots moved
+    expect(JSON.stringify(room.game)).toBe(before); // nobody moved
     expect(server.rooms.has(code)).toBe(true);
 
     vi.advanceTimersByTime(MIN);
     expect(server.rooms.has(code)).toBe(false);
     expect(roomsClosed).toEqual([code]);
     expect(closed).toEqual([]); // nobody was connected to tell
+  });
+
+  it('the bots pick up again when the player comes back', () => {
+    const { server, code, token } = setup();
+    server.handle('human', { event: 'room:addBot' });
+    server.handle('human', { event: 'room:addBot' });
+    server.handle('human', { event: 'room:start' });
+    server.disconnect('human');
+    const room = server.rooms.get(code)!;
+    const before = JSON.stringify(room.game);
+    vi.advanceTimersByTime(MIN);
+    expect(JSON.stringify(room.game)).toBe(before);
+
+    expect(server.handle('back', { event: 'room:join', msg: { code, name: 'Nox', token } }).ok).toBe(true);
+    vi.advanceTimersByTime(MIN);
+    expect(JSON.stringify(room.game)).not.toBe(before);
   });
 
   it('sends connected humans away with the idle reason', () => {
