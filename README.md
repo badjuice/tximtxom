@@ -11,6 +11,7 @@ The room creator's browser hosts the game; other players connect to it over WebR
 
 - Cards, characters, icons and sound effects: [Kenney](https://kenney.nl) (CC0): Playing Cards Pack, Tiny Dungeon, Board Game Icons, Casino Audio, Interface Sounds, Impact Sounds, Music Jingles, RPG Audio, UI Pack and Game Icons. `npm run assets` rebuilds them from the packs unzipped in `.cache/kenney/<pack>/`.
 - Font: m6x11plus by [Daniel Linssen](https://managore.itch.io/m6x11).
+- Fonts kept for a future font option (not used yet): Grape Soda and Digital Disco by jeti ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)), CutePixel by zK4rim and Superstar by memesbruh03 (both free for personal and commercial use). Details in `packages/client/public/assets/fonts/README.md`.
 - Music: TximTxom Theme by BadJuice, made with [Suno](https://suno.com).
 
 Made by [badjuice](https://github.com/badjuice).
