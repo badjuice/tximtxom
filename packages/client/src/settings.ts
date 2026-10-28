@@ -31,8 +31,8 @@ export interface Settings {
   bigLabels: boolean;
   /** `random` deals each round on a new back. */
   cardBack: CardBack | 'random';
-  /** Anti-aliasing: none, the edges of tilted table cards, or all the pixel art too. */
-  smooth: 'off' | 'edges' | 'all';
+  /** Anti-aliasing: off, or on (the edges of tilted table cards and all the pixel art). */
+  smooth: 'off' | 'all';
   // Layout
   clockwise: boolean;
   uiScale: number;
@@ -109,6 +109,8 @@ function load(): Settings {
       if (saved.smoothing === 'off') saved.smooth = 'off';
       delete saved.smoothing;
     }
+    // Before 0.28 there was a third choice, card edges only: it's on now.
+    if (saved.smooth === 'edges') saved.smooth = 'all';
     return { ...DEFAULT_SETTINGS, ...saved };
   } catch {
     return { ...DEFAULT_SETTINGS };

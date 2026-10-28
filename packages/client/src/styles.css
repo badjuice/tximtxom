@@ -394,6 +394,10 @@ input[type='text'] {
 .logo-fan > span:hover {
   scale: 1.05;
 }
+/* Still materialising: it can't be hovered, tilted or picked up yet. */
+.logo-fan > span.unborn {
+  pointer-events: none;
+}
 /* Held like a hand card: upright, following the pointer. */
 .logo-fan > span.held {
   cursor: grabbing;
@@ -487,13 +491,97 @@ input[type='text'] {
   letter-spacing: 6px;
   text-align: center;
 }
-.title-links {
-  display: flex;
+/* Balatro's main menu: Play across the top, then the rest in order of
+   importance, the last two smaller. Six columns, so 3 + 2 split evenly. */
+.main-menu {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
   gap: 10px;
-  width: min(420px, 94vw);
+  width: min(460px, 94vw);
 }
-.title-links .btn {
+.main-menu .btn {
+  min-width: 0;
+}
+.main-menu .menu-play {
+  grid-column: 1 / -1;
+  min-height: 72px;
+  font-size: 2em;
+}
+.main-menu .menu-main,
+.main-menu .soon-wrap {
+  grid-column: span 2;
+}
+.main-menu .menu-minor {
+  grid-column: span 3;
+  min-height: 40px;
+  font-size: 0.95em;
+}
+/* Achievements: locked until they exist. */
+.soon-wrap {
+  position: relative;
+  display: flex;
+}
+.soon-wrap .btn {
   flex: 1;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.soon-wrap .btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/* A small padlock drawn in CSS: a shackle over a body. */
+.lock {
+  position: relative;
+  width: 0.6em;
+  height: 0.5em;
+  margin-top: 0.3em;
+  background: currentColor;
+  border-radius: 2px;
+  flex: none;
+}
+.lock::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 0.4em;
+  height: 0.35em;
+  translate: -50% 0;
+  border: 0.1em solid currentColor;
+  border-bottom: none;
+  border-radius: 0.25em 0.25em 0 0;
+}
+.soon-hint {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  translate: -50% -4px;
+  z-index: 6;
+  width: max-content;
+  max-width: min(240px, 80vw);
+  padding: 6px 10px;
+  font-size: 0.85em;
+  text-align: center;
+  color: var(--text);
+  background: var(--panel-d);
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.15s,
+    translate 0.15s;
+}
+.soon-hint.on {
+  opacity: 1;
+  translate: -50% 0;
+}
+.title-panel .play-back {
+  align-self: center;
+  margin-top: 4px;
 }
 
 /* ---------------------------------------------------------- lobby */
@@ -745,35 +833,109 @@ input[type='text'] {
   outline: 3px solid var(--gold);
   outline-offset: 2px;
 }
-.seg {
-  display: flex;
-  border-radius: 8px;
-  overflow: hidden;
-  flex: none;
-  box-shadow: 0 3px 0 var(--panel-d);
-}
-/* Too narrow for the label and the options side by side (phones): the
-   options drop to their own line instead of widening the modal. */
 .choice {
   flex-wrap: wrap;
 }
+/* Too narrow for the label and the cycler side by side (phones): the cycler
+   drops to its own line instead of widening the modal. */
 .choice .toggle-text {
   flex: 1 1 8em;
 }
-.choice .seg {
+/* Balatro's option cycler: red arrows either side of the value, dots below. */
+.cycler {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
   margin-left: auto;
+  flex: none;
+  max-width: 100%;
+  border-radius: 8px;
+  cursor: default;
 }
-.seg button {
-  font: inherit;
-  color: #fff;
-  background: var(--grey-d);
+.cycler:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+.cyc-arrow {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  min-height: 44px;
+  padding: 0;
   border: none;
-  padding: 6px 10px;
-  min-height: 40px;
+  border-radius: 8px;
+  background: var(--red);
+  box-shadow: 0 3px 0 var(--red-d);
   cursor: pointer;
 }
-.seg button.on {
-  background: var(--red);
+.cyc-arrow:active:not(:disabled) {
+  translate: 0 2px;
+  box-shadow: 0 1px 0 var(--red-d);
+}
+/* A pixel-crisp triangle pointing out. */
+.cyc-tri {
+  width: 0;
+  height: 0;
+  border-block: 6px solid transparent;
+}
+.cyc-tri.left {
+  border-right: 8px solid #fff;
+}
+.cyc-tri.right {
+  border-left: 8px solid #fff;
+}
+.cyc-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 5em;
+  padding: 3px 10px 4px;
+  background: var(--panel-d);
+  border-radius: 8px;
+  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+/* Every option in one grid cell: only the current one shows. */
+.cyc-val {
+  display: grid;
+  text-align: center;
+  white-space: nowrap;
+}
+.cyc-val > span {
+  grid-area: 1 / 1;
+}
+/* Opacity, not visibility: a visible option would show through a hidden tab. */
+.cyc-val > span:not(.on) {
+  opacity: 0;
+}
+.cyc-dots {
+  display: flex;
+  gap: 4px;
+}
+.cyc-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 2px;
+  background: var(--grey);
+  cursor: pointer;
+}
+.cyc-dot.on {
+  background: #fff;
+}
+/* Read-only (or locked): the value and dots stay, the arrows go grey. */
+.cyc-arrow:disabled {
+  background: var(--grey-d);
+  box-shadow: none;
+  cursor: default;
+}
+.cyc-arrow:disabled .cyc-tri {
+  opacity: 0.4;
+}
+.cyc-dot:disabled {
+  cursor: default;
 }
 .slider input[type='range'] {
   flex: 1;
@@ -818,6 +980,11 @@ input[type='text'] {
   border-radius: 8px;
   padding: 4px;
   box-shadow: 0 4px 0 var(--red-d);
+}
+/* Blue, so the title doesn't read as one of the language buttons below it. */
+.language-modal .modal-head h2 {
+  background: var(--blue);
+  box-shadow: 0 4px 0 var(--blue-d);
 }
 .modal-body {
   overflow-y: auto;
@@ -1094,9 +1261,14 @@ input[type='text'] {
 .plate-stats {
   font-size: 0.85em;
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 0 4px;
   justify-content: center;
   align-items: baseline;
+}
+/* "7 cards" moves to its own line on narrow plates rather than spilling out. */
+.plate-stats > * {
+  white-space: nowrap;
 }
 .total {
   color: var(--blue);
@@ -2743,12 +2915,48 @@ input[type='text'] {
 .icon-btn:hover {
   color: #fff;
 }
+/* Lobby rows: Rename and Remove are raised tiles, so they read as buttons. */
+.player-list .icon-btn,
+.player-list .x {
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: 8px;
+  color: #fff;
+  box-shadow: 0 3px 0 var(--shadow);
+  transition:
+    translate 0.08s,
+    box-shadow 0.08s,
+    filter 0.1s;
+}
+.player-list .icon-btn {
+  --shadow: var(--blue-d);
+  background: var(--blue);
+}
+.player-list .x {
+  --shadow: var(--red-d);
+  background: var(--red);
+}
+.player-list .icon-btn:hover,
+.player-list .x:hover {
+  color: #fff;
+  filter: brightness(1.12);
+}
+.player-list .icon-btn:active,
+.player-list .x:active {
+  translate: 0 2px;
+  box-shadow: 0 1px 0 var(--shadow);
+}
+.player-list .icon-btn:focus-visible,
+.player-list .x:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
 /* Modal and history text can be selected, but controls never: dragging a
    slider or holding a button must not highlight labels. */
 button,
 label,
 .toggle,
-.seg,
+.cycler,
 .tabs,
 .bslider,
 [role='slider'],
@@ -3145,7 +3353,7 @@ input.rename {
   background: #fff;
 }
 .rules-view .toggle input,
-.rules-view .seg button {
+.rules-view .cyc-dot {
   cursor: default;
 }
 
@@ -3215,15 +3423,12 @@ input.rename {
   border-radius: 50%;
 }
 
-/* Settings → Stats: a grid of number tiles. */
-.stats-title {
-  margin: 0.4em 0 0.3em;
-  text-align: center;
-}
-.stat-grid {
+/* Stats: big numbers on top, then titled boxes of label / number rows. */
+.stat-hero {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 6px;
+  margin-bottom: 8px;
 }
 .stat-tile {
   display: flex;
@@ -3237,22 +3442,93 @@ input.rename {
   border-radius: 8px;
   box-shadow: inset 0 -3px 0 var(--panel-d);
 }
-.stat-tile.big {
-  grid-column: span 2;
-}
 .stat-value {
-  font-size: 1.5em;
+  font-size: 1.6em;
   color: var(--gold);
 }
 .stat-tile.big .stat-value {
-  font-size: 2em;
+  font-size: 2.2em;
 }
 .stat-label {
   font-size: 0.85em;
   color: var(--muted);
 }
+.stat-box {
+  padding: 6px 10px 8px;
+  background: var(--panel-in);
+  border-radius: 8px;
+  box-shadow: inset 0 -3px 0 var(--panel-d);
+}
+.stat-box h4 {
+  margin: 0 0 6px;
+  text-align: center;
+  color: var(--gold);
+}
+.stat-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.stat-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.stat-list {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  margin: 0;
+}
+.stat-list dt {
+  color: var(--muted);
+}
+.stat-list dd {
+  margin: 0;
+  text-align: right;
+  color: var(--text);
+}
+/* Formations chart: tag, bar, count. One colour; the tags carry the names. */
+.f-chart {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 8px;
+}
+.f-chart-row {
+  display: contents;
+}
+.f-chart-track {
+  height: 16px;
+  background: var(--panel-d);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.f-chart-bar {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  background: var(--gold);
+  border-radius: 0 4px 4px 0;
+  transition: width 0.4s ease-out;
+}
+.f-chart-n {
+  min-width: 2.5em;
+  text-align: right;
+  color: var(--gold);
+}
 .stats .small {
-  margin: 0.5em 0;
+  margin: 0.6em 0 0;
+}
+@media (max-width: 480px) {
+  .stat-hero {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stat-hero .big {
+    grid-column: 1 / -1;
+  }
 }
 
 .title-screen > .credits {

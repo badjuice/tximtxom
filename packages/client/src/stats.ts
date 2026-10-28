@@ -3,23 +3,42 @@
 // Abacus (https://jasoncameron.dev/abacus/), a free counting service: the game
 // has no server of its own.
 import { useEffect, useState } from 'preact/hooks';
-import type { GameEvent, GameView, RoomView } from '@tximtxom/shared';
+import type { FormationKind, GameEvent, GameView, RoomView } from '@tximtxom/shared';
 import { store } from './store';
 
 /** What this device has played. */
 export interface MyStats {
+  /** Rounds dealt to you (counted as they start). */
   roundsPlayed: number;
-  /** Rounds where you scored the fewest points (ties count). */
+  /** Scored rounds where you had the fewest points (ties count), and the rest. */
   roundsWon: number;
+  roundsLost: number;
   gamesPlayed: number;
   gamesWon: number;
+  gamesLost: number;
+  /** Games won in a row: now, and the longest run. */
+  winStreak: number;
+  bestStreak: number;
   /** Rounds you ended yourself (Txi jog). */
   roundsEnded: number;
   tximtxoms: number;
+  /** Formations you showed, in all and by kind. */
   formations: number;
+  kinds: Record<FormationKind, number>;
+  /** Most cards in one straight you showed. */
+  longestStraight: number;
   rides: number;
-  /** Fewest points in one round, or null before the first round. */
+  cardsDrawn: number;
+  /** Cards picked up from the discard pile. */
+  cardsTaken: number;
+  cardsDiscarded: number;
+  /** Fewest and most points in one round, or null before the first round. */
   bestRound: number | null;
+  worstRound: number | null;
+  /** Points scored over every round. */
+  totalPoints: number;
+  /** Highest total you went bust with, or null if you never did. */
+  recordBust: number | null;
   /** Time spent at the table during a game, in ms. */
   timePlayed: number;
   /** Page loads of the game on this device. */
@@ -43,13 +62,25 @@ const VISIT_KEY = 'tximtxom.visited'; // this browser session was counted as a v
 const EMPTY: MyStats = {
   roundsPlayed: 0,
   roundsWon: 0,
+  roundsLost: 0,
   gamesPlayed: 0,
   gamesWon: 0,
+  gamesLost: 0,
+  winStreak: 0,
+  bestStreak: 0,
   roundsEnded: 0,
   tximtxoms: 0,
   formations: 0,
+  kinds: { pair: 0, trio: 0, quad: 0, straight: 0 },
+  longestStraight: 0,
   rides: 0,
+  cardsDrawn: 0,
+  cardsTaken: 0,
+  cardsDiscarded: 0,
   bestRound: null,
+  worstRound: null,
+  totalPoints: 0,
+  recordBust: null,
   timePlayed: 0,
   visits: 0,
   since: Date.now(),
@@ -57,7 +88,8 @@ const EMPTY: MyStats = {
 
 function load(): MyStats {
   try {
-    return { ...EMPTY, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') };
+    const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}');
+    return { ...EMPTY, ...saved, kinds: { ...EMPTY.kinds, ...saved.kinds } };
   } catch {
     return { ...EMPTY };
   }
@@ -121,21 +153,38 @@ export function formatCount(n: number): string {
 /** Counts one game event for you. Called once per event, as it happens. */
 export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
   const me = g.you;
-  // The host counts each round once for everyone.
-  if (e.t === 'score' && room.hostId === room.youId) void abacus('hit', 'rounds');
+  // A round counts as it starts. The host counts each one once for everyone.
+  if (e.t === 'deal' && room.hostId === room.youId) void abacus('hit', 'rounds');
   if (me === null) return;
   switch (e.t) {
+    case 'deal':
+      bump((s) => ({ roundsPlayed: s.roundsPlayed + 1 }));
+      break;
     case 'score': {
       const r = g.results.at(-1);
       if (!r) return;
       const pts = r.points[me];
+      const won = pts === Math.min(...r.points);
+      const total = r.totals[me];
       bump((s) => ({
-        roundsPlayed: s.roundsPlayed + 1,
-        roundsWon: s.roundsWon + (pts === Math.min(...r.points) ? 1 : 0),
+        roundsWon: s.roundsWon + (won ? 1 : 0),
+        roundsLost: s.roundsLost + (won ? 0 : 1),
         bestRound: s.bestRound === null ? pts : Math.min(s.bestRound, pts),
+        worstRound: s.worstRound === null ? pts : Math.max(s.worstRound, pts),
+        totalPoints: s.totalPoints + pts,
+        recordBust: total > g.rules.threshold ? Math.max(s.recordBust ?? total, total) : s.recordBust,
       }));
       break;
     }
+    case 'draw':
+      if (e.seat === me) bump((s) => ({ cardsDrawn: s.cardsDrawn + 1 }));
+      break;
+    case 'take':
+      if (e.seat === me) bump((s) => ({ cardsTaken: s.cardsTaken + 1 }));
+      break;
+    case 'discard':
+      if (e.seat === me) bump((s) => ({ cardsDiscarded: s.cardsDiscarded + 1 }));
+      break;
     case 'end':
       if (e.seat === me && e.kind === 'manual') bump((s) => ({ roundsEnded: s.roundsEnded + 1 }));
       break;
@@ -143,14 +192,30 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
       if (e.seat === me) bump((s) => ({ tximtxoms: s.tximtxoms + 1 }));
       break;
     case 'lay':
-      if (e.seat === me) bump((s) => ({ formations: s.formations + 1 }));
+      if (e.seat === me)
+        bump((s) => ({
+          formations: s.formations + 1,
+          kinds: { ...s.kinds, [e.kind]: s.kinds[e.kind] + 1 },
+          longestStraight: e.kind === 'straight' ? Math.max(s.longestStraight, e.cards.length) : s.longestStraight,
+        }));
       break;
     case 'ride':
       if (e.seat === me) bump((s) => ({ rides: s.rides + 1 }));
       break;
-    case 'gameOver':
-      bump((s) => ({ gamesPlayed: s.gamesPlayed + 1, gamesWon: s.gamesWon + (e.winners.includes(me) ? 1 : 0) }));
+    case 'gameOver': {
+      const won = e.winners.includes(me);
+      bump((s) => {
+        const winStreak = won ? s.winStreak + 1 : 0;
+        return {
+          gamesPlayed: s.gamesPlayed + 1,
+          gamesWon: s.gamesWon + (won ? 1 : 0),
+          gamesLost: s.gamesLost + (won ? 0 : 1),
+          winStreak,
+          bestStreak: Math.max(s.bestStreak, winStreak),
+        };
+      });
       break;
+    }
   }
 }
 

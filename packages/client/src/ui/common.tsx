@@ -294,23 +294,65 @@ export function Choice<T extends string | number>(props: {
           </span>
         )}
       </span>
-      <span class="seg">
-        {props.options.map((o) => (
-          <button
-            type="button"
-            class={o.value === props.value ? 'on' : ''}
-            aria-pressed={o.value === props.value}
-            disabled={props.disabled}
-            onClick={() => {
-              play('button', { volume: 0.5 });
-              props.onChange(o.value);
-            }}
-          >
-            <Fit text={o.label} />
-          </button>
-        ))}
-      </span>
+      <Cycler label={props.label} value={props.value} options={props.options} onChange={props.onChange} disabled={props.disabled} />
     </div>
+  );
+}
+
+/** Balatro's option cycler: arrows either side of the current option, one dot
+ *  per option underneath (tap a dot to jump). Wraps around at both ends. */
+function Cycler<T extends string | number>(props: { label: string; value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; disabled?: boolean }) {
+  const n = props.options.length;
+  const i = Math.max(0, props.options.findIndex((o) => o.value === props.value));
+  const go = (to: number, dir = 0) => {
+    const next = props.options[(to + n) % n];
+    if (props.disabled || next.value === props.value) return;
+    play('button', { volume: 0.4, rate: dir < 0 ? 0.9 : dir > 0 ? 1.15 : 1 });
+    props.onChange(next.value);
+  };
+  return (
+    <span
+      class="cycler"
+      role="spinbutton"
+      tabIndex={props.disabled ? -1 : 0}
+      aria-label={props.label}
+      aria-valuetext={props.options[i].label}
+      aria-valuenow={i + 1}
+      aria-valuemin={1}
+      aria-valuemax={n}
+      aria-disabled={props.disabled}
+      onKeyDown={(e) => {
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          go(i - 1, -1);
+        } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          go(i + 1, 1);
+        }
+      }}
+    >
+      <button type="button" class="cyc-arrow" tabIndex={-1} aria-hidden="true" disabled={props.disabled} onClick={() => go(i - 1, -1)}>
+        <span class="cyc-tri left" />
+      </button>
+      <span class="cyc-mid">
+        {/* Every option sits in the same spot, so the box is as wide as the longest. */}
+        <span class="cyc-val">
+          {props.options.map((o, k) => (
+            <span class={k === i ? 'on' : ''} aria-hidden="true">
+              {o.label}
+            </span>
+          ))}
+        </span>
+        <span class="cyc-dots">
+          {props.options.map((o, k) => (
+            <button type="button" class={`cyc-dot${k === i ? ' on' : ''}`} tabIndex={-1} aria-hidden="true" title={o.label} disabled={props.disabled} onClick={() => go(k)} />
+          ))}
+        </span>
+      </span>
+      <button type="button" class="cyc-arrow" tabIndex={-1} aria-hidden="true" disabled={props.disabled} onClick={() => go(i + 1, 1)}>
+        <span class="cyc-tri right" />
+      </button>
+    </span>
   );
 }
 

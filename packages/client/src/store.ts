@@ -11,7 +11,7 @@ export type Staged =
   | { type: 'swap'; card: Card }
   | { type: 'endRound'; card: Card };
 
-export type Overlay = null | 'scoreboard' | 'formations' | 'settings' | 'help' | 'rules' | 'changelog' | 'leave' | 'language';
+export type Overlay = null | 'scoreboard' | 'formations' | 'settings' | 'help' | 'rules' | 'changelog' | 'leave' | 'language' | 'stats';
 
 export interface ClientState {
   connected: boolean;

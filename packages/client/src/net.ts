@@ -23,7 +23,12 @@ interface Session {
   token: string;
   /** p2p: did this browser host the room? */
   host?: boolean;
+  /** Last time this device was in the room (ms timestamp). */
+  seen?: number;
 }
+
+/** The menu forgets the room code this long after the player left the room. */
+const ROOM_MEMORY_MS = 10 * 60_000;
 
 export function savedName(): string {
   return localStorage.getItem(NAME_KEY) ?? '';
@@ -61,7 +66,7 @@ function rememberPreferences(): void {
 }
 
 function saveSession(r: JoinResult, host: boolean): void {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ code: r.code, token: r.token, host } satisfies Session));
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ code: r.code, token: r.token, host, seen: Date.now() } satisfies Session));
   const url = new URL(location.href);
   url.searchParams.set('room', r.code);
   history.replaceState(null, '', url);
@@ -87,9 +92,32 @@ function clearLink(): void {
   history.replaceState(null, '', url);
 }
 
-/** The room this device had a seat in before the page loaded, if any. */
+/** Marks the saved room as visited just now (while in it, and on leaving it). */
+function touchSession(): void {
+  const s = loadSession();
+  if (s) localStorage.setItem(SESSION_KEY, JSON.stringify({ ...s, seen: Date.now() } satisfies Session));
+}
+
+/** When the menu forgets the saved room's code (ms timestamp), or null if there is none. */
+export function savedRoomExpiry(): number | null {
+  const s = loadSession();
+  if (!s) return null;
+  // Saved before codes expired: the ten minutes start now.
+  if (!s.seen) touchSession();
+  return (s.seen ?? Date.now()) + ROOM_MEMORY_MS;
+}
+
+/** The room this device had a seat in before the page loaded, if any. Forgotten
+ *  10 minutes after the player left it (idle rooms close after 10 minutes too). */
 export function savedRoom(): string {
-  return loadSession()?.code ?? '';
+  const s = loadSession();
+  if (!s) return '';
+  if (Date.now() >= savedRoomExpiry()!) {
+    if (linkedRoom() === s.code) clearLink();
+    clearSession();
+    return '';
+  }
+  return s.code;
 }
 
 /** Room code from a shared link (?room=ABCD), if any. */
@@ -206,6 +234,13 @@ export function initNet(): void {
   };
   addEventListener('pointerdown', ping, { capture: true, passive: true });
   addEventListener('keydown', ping, { capture: true, passive: true });
+  // While in a room the saved code stays fresh; closing the tab counts as leaving.
+  setInterval(() => {
+    if (store.get().room) touchSession();
+  }, 30_000);
+  addEventListener('pagehide', () => {
+    if (store.get().room) touchSession();
+  });
 }
 
 /** Sends a request over whichever connection is active. */
@@ -294,8 +329,10 @@ export function leaveRoom(): void {
   guest?.stop();
   host = null;
   guest = null;
-  if (keepSeat) clearLink();
-  else clearSession();
+  if (keepSeat) {
+    clearLink();
+    touchSession();
+  } else clearSession();
   store.set({ room: null, staged: null, selected: [], overlay: null });
 }
 

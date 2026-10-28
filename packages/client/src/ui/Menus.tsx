@@ -3,12 +3,12 @@ import { makeCard, parseCards, type Suit } from '@tximtxom/shared';
 import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE } from '../net';
 import { CARD_BACKS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
-import { formatCount, locale, refreshGlobalRounds, useStats } from '../stats';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, Fit, Modal, Rich, Slider, Tabs, Toggle, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { RulesForm } from './RulesForm';
+import { StatsMenu, StatsPanel } from './Stats';
 import { CardBackIcon, CardIcon, ArtIcon, RandomBackIcon, Wins } from './sprites';
 
 export function Overlays() {
@@ -31,6 +31,8 @@ export function Overlays() {
       return <LeaveConfirm onClose={close} />;
     case 'language':
       return <LanguageMenu onClose={close} />;
+    case 'stats':
+      return <StatsMenu onClose={close} />;
     default:
       return null;
   }
@@ -318,6 +320,9 @@ const KEYS: { keys?: string; mouse?: Key; label: Key; hold?: boolean }[] = [
   { keys: 'Esc', label: 'key.settings' },
 ];
 
+/** Balatro's game speeds, slowest first. */
+const SPEEDS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
+
 /** Reset to defaults asks first, in a small prompt over the button. */
 function ResetButton() {
   const [asking, setAsking] = useState(false);
@@ -452,17 +457,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
                 </button>
               </span>
             </div>
-            <Choice
-              label={t('set.smoothing')}
-              desc={t('set.smoothing.desc')}
-              value={s.smooth}
-              options={[
-                { value: 'off', label: t('set.smooth.off') },
-                { value: 'edges', label: t('set.smooth.edges') },
-                { value: 'all', label: t('set.smooth.all') },
-              ]}
-              onChange={(smooth) => set({ smooth })}
-            />
+            <Toggle label={t('set.smoothing')} desc={t('set.smoothing.desc')} checked={s.smooth === 'all'} onChange={(v) => set({ smooth: v ? 'all' : 'off' })} />
             <Slider label={t('set.size')} value={s.uiScale} min={0.8} max={1.2} step={0.05} onChange={(v) => set({ uiScale: v })} format={pct} />
             <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />
         </div>
@@ -479,7 +474,12 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
               <Slider label={t('set.crtStrength')} value={s.crtIntensity} min={0.1} max={1} step={0.05} onChange={(v) => set({ crtIntensity: v })} format={pct} disabled={!s.crt} />
             </div>
             <Toggle label={t('set.flash')} desc={t('set.flash.desc')} checked={s.safeFlash} onChange={(v) => set({ safeFlash: v })} />
-            <Slider label={t('set.speed')} value={s.gameSpeed} min={0.5} max={4} step={0.5} onChange={(v) => set({ gameSpeed: v })} format={(v) => `${v}x`} />
+            <Choice
+              label={t('set.speed')}
+              value={s.gameSpeed}
+              options={SPEEDS.map((v) => ({ value: v, label: `${v}x` }))}
+              onChange={(gameSpeed) => set({ gameSpeed })}
+            />
         </div>
         <div class={`tab-panel${tab === 'sound' ? '' : ' hidden'}`} inert={tab !== 'sound'}>
             <div class="setting-group">
@@ -496,61 +496,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
       </div>
       <Credits />
     </Modal>
-  );
-}
-
-// ------------------------------------------------------------------ stats
-
-/** "2h 05m", "12m 30s", "45s". */
-function formatDuration(ms: number): string {
-  const sec = Math.floor(ms / 1000);
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const two = (n: number) => String(n).padStart(2, '0');
-  if (h) return `${h}h ${two(m)}m`;
-  if (m) return `${m}m ${two(sec % 60)}s`;
-  return `${sec}s`;
-}
-
-function StatsPanel() {
-  useSettings(); // redraw on a language change
-  const { mine, global } = useStats();
-  useEffect(refreshGlobalRounds, []);
-  const pct = (n: number, of: number) => (of ? ` (${Math.round((100 * n) / of)}%)` : '');
-  const tile = (label: Key, value: string, big?: boolean) => (
-    <div class={`stat-tile${big ? ' big' : ''}`}>
-      <span class="stat-value">{value}</span>
-      <span class="stat-label">{t(label)}</span>
-    </div>
-  );
-  const count = (n: number | null) => (n === null ? '–' : formatCount(n));
-  return (
-    <div class="stats">
-      <h3 class="stats-title">{t('st.you')}</h3>
-      <div class="stat-grid">
-        {tile('st.time', formatDuration(mine.timePlayed), true)}
-        {tile('st.rounds', formatCount(mine.roundsPlayed), true)}
-        {tile('st.roundsWon', formatCount(mine.roundsWon) + pct(mine.roundsWon, mine.roundsPlayed))}
-        {tile('st.games', formatCount(mine.gamesPlayed))}
-        {tile('st.gamesWon', formatCount(mine.gamesWon) + pct(mine.gamesWon, mine.gamesPlayed))}
-        {tile('st.best', mine.bestRound === null ? '–' : `${mine.bestRound} ${t('pts')}`)}
-        {tile('st.ended', formatCount(mine.roundsEnded))}
-        {tile('st.tximtxoms', formatCount(mine.tximtxoms))}
-        {tile('st.formations', formatCount(mine.formations))}
-        {tile('st.rides', formatCount(mine.rides))}
-        {tile('st.visits', formatCount(mine.visits))}
-      </div>
-      <p class="center muted small">
-        {t('st.since', { date: new Date(mine.since).toLocaleDateString(locale()) })} · {t('st.note')}
-      </p>
-      <h3 class="stats-title">{t('st.everyone')}</h3>
-      <div class="stat-grid">
-        {tile('st.players', count(global.players))}
-        {tile('st.visits', count(global.visits))}
-        {tile('st.allRounds', count(global.rounds))}
-      </div>
-      {global.offline && <p class="center muted small">{t('st.offline')}</p>}
-    </div>
   );
 }
 

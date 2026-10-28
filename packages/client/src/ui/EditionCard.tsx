@@ -9,8 +9,9 @@ const SPAWN_MS = 700;
 /**
  * A card with a Balatro edition shader over it. With no edition it is a plain CardIcon.
  * `spawn`: 'wait' keeps it unseen (its space kept); a number of ms then materialises it.
+ * `onBorn` is called once it has fully materialised.
  */
-export function EditionCard({ card, scale = 1, edition, spawn }: { card: Card; scale?: number; edition: Edition | null; spawn?: 'wait' | number }) {
+export function EditionCard({ card, scale = 1, edition, spawn, onBorn }: { card: Card; scale?: number; edition: Edition | null; spawn?: 'wait' | number; onBorn?: () => void }) {
   const { highContrast } = useSettings();
   const [born, setBorn] = useState(spawn === undefined);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -27,7 +28,10 @@ export function EditionCard({ card, scale = 1, edition, spawn }: { card: Card; s
   useEffect(() => ctl.current?.setEdition(edition), [edition]);
   useEffect(() => {
     if (typeof spawn !== 'number') return;
-    const id = setTimeout(() => ctl.current?.spawn(getSettings().reducedMotion ? 0 : SPAWN_MS, () => setBorn(true)), spawn);
+    const id = setTimeout(() => ctl.current?.spawn(getSettings().reducedMotion ? 0 : SPAWN_MS, () => {
+          setBorn(true);
+          onBorn?.();
+        }), spawn);
     return () => clearTimeout(id);
   }, [spawn]);
 

@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { makeCard, NAME_MAX, ROOM_CODE_LENGTH, type Suit } from '@tximtxom/shared';
 import { play, unlockAudio } from '../audio';
 import { t } from '../i18n';
-import { createRoom, joinRoom, linkedRoom, rejoinRoom, saveName, savedName, savedRoom } from '../net';
+import { createRoom, joinRoom, linkedRoom, rejoinRoom, saveName, savedName, savedRoom, savedRoomExpiry } from '../net';
 import { formatCount, useStats } from '../stats';
 import { store, useStore } from '../store';
-import { Button, Credits, TopMenu, WaveText } from './common';
+import { Button, Credits, MiniButton, WaveText } from './common';
 import { EditionCard } from './EditionCard';
 import { EDITIONS, type Edition } from './editions';
 import { spawnElement } from './textSpawn';
@@ -38,7 +38,12 @@ function reordered(order: Suit[], suit: Suit, x: number): Suit[] {
 let fanOrder = [...FAN];
 
 // Each time the Aces are dealt onto the title screen, each one may get an edition.
-const EDITION_SOUND = { foil: 'editionFoil', holo: 'editionHolo', poly: 'editionPoly', negative: 'editionNegative' } as const;
+const EDITION_SOUND = {
+  foil: 'editionFoil',
+  holo: 'editionHolo',
+  poly: 'editionPoly',
+  negative: 'editionNegative',
+} as const;
 const EDITION_ODDS: [Edition, number][] = [
   ['foil', 0.1],
   ['holo', 0.07],
@@ -62,7 +67,11 @@ let fanPending: Partial<Record<Suit, Edition>> = {};
 // Once per page load, or again after a visit to a room.
 const SECRET = 'radicalism';
 let secretArmed = true;
-const shuffled = <T,>(a: T[]) => a.map((v) => [Math.random(), v] as const).sort((x, y) => x[0] - y[0]).map(([, v]) => v);
+const shuffled = <T,>(a: T[]) =>
+  a
+    .map((v) => [Math.random(), v] as const)
+    .sort((x, y) => x[0] - y[0])
+    .map(([, v]) => v);
 
 /** A title-screen Ace that drags like a hand card: it follows the pointer
  *  upright, and while it is over the fan the others open a gap where it
@@ -90,19 +99,37 @@ function FanCard(props: {
   }, [props.edition]);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const [hops, setHops] = useState(0);
-  const start = useRef<{ x: number; y: number; slot: number; moved: boolean } | null>(null);
+  // Not there yet: no hover, no taps (a tap would remount it and skip the spawn).
+  const [born, setBorn] = useState(props.spawn === undefined);
+  const start = useRef<{
+    x: number;
+    y: number;
+    slot: number;
+    moved: boolean;
+  } | null>(null);
   const onFan = (s: { x: number; slot: number }, e: PointerEvent, y: number) => (Math.abs(y) < 95 ? slotX(s.slot) + e.clientX - s.x : null);
 
-  const style: Record<string, string> = { '--x': `${slotX(slot)}px`, '--a': `${FAN_ANGLE[slot]}deg`, '--y': `${FAN_DROP[slot]}px`, zIndex: `${slot + 1}` };
+  const style: Record<string, string> = {
+    '--x': `${slotX(slot)}px`,
+    '--a': `${FAN_ANGLE[slot]}deg`,
+    '--y': `${FAN_DROP[slot]}px`,
+    zIndex: `${slot + 1}`,
+  };
   if (drag && start.current) {
     const from = start.current.slot;
-    Object.assign(style, { '--x': `${slotX(from) + drag.x}px`, '--a': '0deg', '--y': `${FAN_DROP[from] + drag.y}px`, zIndex: '10' });
+    Object.assign(style, {
+      '--x': `${slotX(from) + drag.x}px`,
+      '--a': '0deg',
+      '--y': `${FAN_DROP[from] + drag.y}px`,
+      zIndex: '10',
+    });
   }
   return (
     <span
-      class={`fan-card${drag ? ' held' : ''}`}
+      class={`fan-card${drag ? ' held' : ''}${born ? '' : ' unborn'}`}
       style={style}
       onPointerDown={(e) => {
+        if (!born) return;
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         start.current = { x: e.clientX, y: e.clientY, slot, moved: false };
         unlockAudio();
@@ -141,7 +168,7 @@ function FanCard(props: {
       <span class={hops ? 'fan-hop' : ''} key={hops}>
         <span class="edition-juice" ref={juice}>
           {/* A tap remounts the card for the hop: it must not materialise again. */}
-          <EditionCard card={makeCard(1, suit)} scale={FAN_SCALE} edition={props.edition} spawn={hops ? undefined : props.spawn} />
+          <EditionCard card={makeCard(1, suit)} scale={FAN_SCALE} edition={props.edition} spawn={hops ? undefined : props.spawn} onBorn={() => setBorn(true)} />
         </span>
       </span>
     </span>
@@ -155,8 +182,65 @@ function PlayerCounter() {
   return (
     <p class="player-counter">
       <span class="live-dot" aria-hidden="true" />
-      {t('st.counter', { players: formatCount(global.players), visits: formatCount(global.visits) })}
+      {t('stats.counter', {
+        players: formatCount(global.players),
+        visits: formatCount(global.visits),
+      })}
     </p>
+  );
+}
+
+/** Grey and locked until achievements exist; hovering, focusing or tapping it says so. */
+function SoonButton({ children }: { children: string }) {
+  const [hint, setHint] = useState(false);
+  return (
+    <span class="soon-wrap" onPointerEnter={() => setHint(true)} onPointerLeave={() => setHint(false)}>
+      <button
+        type="button"
+        class="btn btn-grey menu-soon"
+        aria-disabled="true"
+        aria-describedby="soon-hint"
+        onFocus={() => setHint(true)}
+        onBlur={() => setHint(false)}
+        onClick={() => {
+          play('button', { volume: 0.5, rate: 0.7 });
+          setHint(true);
+        }}
+      >
+        <span class="btn-label">
+          <span class="lock" aria-hidden="true" />
+          {children}
+        </span>
+      </button>
+      <span id="soon-hint" role="tooltip" class={`soon-hint${hint ? ' on' : ''}`}>
+        {t('menu.soon')}
+      </span>
+    </span>
+  );
+}
+
+/** Balatro's main menu: Play first and biggest, the rest in order of importance. */
+function MainMenu({ onPlay }: { onPlay: () => void }) {
+  const open = (overlay: 'stats' | 'settings' | 'changelog' | 'help') => () => store.set({ overlay });
+  return (
+    <nav class="main-menu panel" aria-label={t('menu.play')}>
+      <Button color="blue" big class="menu-play" onClick={onPlay}>
+        {t('menu.play')}
+      </Button>
+      <Button color="green" class="menu-main" onClick={open('stats')}>
+        {t('menu.stats')}
+      </Button>
+      <SoonButton>{t('menu.achievements')}</SoonButton>
+      <Button color="orange" class="menu-main" onClick={open('settings')}>
+        {t('title.settings')}
+      </Button>
+      <Button color="purple" class="menu-minor" onClick={open('changelog')}>
+        {t('title.changelog')}
+      </Button>
+      <Button color="red" class="menu-minor" onClick={open('help')}>
+        {t('title.howToPlay')}
+      </Button>
+    </nav>
   );
 }
 
@@ -166,7 +250,30 @@ export function Title() {
   const [code, setCode] = useState(linkedRoom() || savedRoom());
   // This device had a seat in that room before the page loaded: Join takes it back.
   const rejoin = code !== '' && code === savedRoom();
+  // Ten minutes after leaving, the saved code clears itself, even with the menu open.
+  useEffect(() => {
+    const at = savedRoomExpiry();
+    const saved = savedRoom();
+    if (at === null || !saved || code !== saved) return;
+    const id = setTimeout(
+      () => {
+        if (!savedRoom()) setCode((c) => (c === saved ? '' : c));
+      },
+      Math.max(0, at - Date.now()) + 50,
+    );
+    return () => clearTimeout(id);
+  }, [code]);
   const [busy, setBusy] = useState(false);
+  // The main menu, or the Play panel (straight to it from an invite link or a seat to take back).
+  const [playing, setPlaying] = useState(code !== '');
+  useEffect(() => {
+    if (!playing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !store.get().overlay) setPlaying(false);
+    };
+    addEventListener('keydown', onKey);
+    return () => removeEventListener('keydown', onKey);
+  }, [playing]);
   const cleanName = name.trim() || t('title.namePlaceholder');
   const [order, setOrder] = useState(fanOrder);
   const [editions, setEditions] = useState(fanEditions);
@@ -179,12 +286,15 @@ export function Title() {
       if (!ed) continue;
       fanPending[suit] = ed;
       timers.current.push(
-        setTimeout(() => {
-          delete fanPending[suit];
-          fanEditions = { ...fanEditions, [suit]: ed };
-          setEditions(fanEditions);
-          play(EDITION_SOUND[ed], { volume: 0.8 });
-        }, delay + i++ * 450),
+        setTimeout(
+          () => {
+            delete fanPending[suit];
+            fanEditions = { ...fanEditions, [suit]: ed };
+            setEditions(fanEditions);
+            play(EDITION_SOUND[ed], { volume: 0.8 });
+          },
+          delay + i++ * 450,
+        ),
       );
     }
   };
@@ -259,7 +369,11 @@ export function Title() {
 
   return (
     <main class="title-screen">
-      <TopMenu />
+      <div class="top-menu">
+        <MiniButton color="blue" onClick={() => store.set({ overlay: 'language' })} label={t('language')}>
+          {t('language')}
+        </MiniButton>
+      </div>
       <PlayerCounter />
       <h1 class="logo" ref={logo} style={logoBorn ? undefined : { visibility: 'hidden' }}>
         <WaveText text="TximTxom" amp={12} />
@@ -279,67 +393,62 @@ export function Title() {
         ))}
       </div>
 
-      <form
-        class="panel title-panel"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (rejoin) void go(rejoinRoom);
-          else if (code.length === ROOM_CODE_LENGTH) void go(() => joinRoom(code, cleanName));
-        }}
-      >
-        <label class="field">
-          <span>{t('title.name')}</span>
-          <input
-            value={name}
-            maxLength={NAME_MAX}
-            autoComplete="nickname"
-            placeholder={t('title.namePlaceholder')}
-            onInput={(e) => setName((e.target as HTMLInputElement).value)}
-            onBlur={() => saveName(name.trim())}
-          />
-        </label>
-
-        <Button color="blue" big disabled={!connected || busy} onClick={() => void go(() => createRoom(cleanName))}>
-          {t('title.create')}
-        </Button>
-
-        <div class="or">{t('title.orJoin')}</div>
-
-        <div class="join-row">
-          <label class="field code-field">
-            <span>{t('title.code')}</span>
+      {!playing && <MainMenu onPlay={() => setPlaying(true)} />}
+      {playing && (
+        <form
+          class="panel title-panel"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (rejoin) void go(rejoinRoom);
+            else if (code.length === ROOM_CODE_LENGTH) void go(() => joinRoom(code, cleanName));
+          }}
+        >
+          <label class="field">
+            <span>{t('title.name')}</span>
             <input
-              value={code}
-              maxLength={ROOM_CODE_LENGTH}
-              autoCapitalize="characters"
-              autoComplete="off"
-              spellcheck={false}
-              placeholder="ABCD"
-              onInput={(e) => setCode((e.target as HTMLInputElement).value.toUpperCase().replace(/[^A-Z]/g, ''))}
+              value={name}
+              maxLength={NAME_MAX}
+              autoComplete="nickname"
+              placeholder={t('title.namePlaceholder')}
+              onInput={(e) => setName((e.target as HTMLInputElement).value)}
+              onBlur={() => saveName(name.trim())}
             />
           </label>
-          <Button color="red" type="submit" disabled={!connected || busy || code.length !== ROOM_CODE_LENGTH}>
-            {t(rejoin ? 'title.rejoin' : 'title.join')}
-          </Button>
-        </div>
-        {!connected && (
-          <p class="muted" role="status">
-            {t('title.connecting')}
-          </p>
-        )}
-      </form>
 
-      <div class="title-links">
-        <Button color="green" onClick={() => store.set({ overlay: 'help' })}>
-          {t('title.howToPlay')}
-        </Button>
-        <Button color="purple" onClick={() => store.set({ overlay: 'changelog' })}>
-          {t('title.changelog')}
-        </Button>
-        <Button color="blue" onClick={() => store.set({ overlay: 'language' })}>
-          {t('language')}
-        </Button>
-      </div>
+          <Button color="blue" big disabled={!connected || busy} onClick={() => void go(() => createRoom(cleanName))}>
+            {t('title.create')}
+          </Button>
+
+          <div class="or">{t('title.orJoin')}</div>
+
+          <div class="join-row">
+            <label class="field code-field">
+              <span>{t('title.code')}</span>
+              <input
+                value={code}
+                maxLength={ROOM_CODE_LENGTH}
+                autoCapitalize="characters"
+                autoComplete="off"
+                spellcheck={false}
+                placeholder="ABCD"
+                onInput={(e) => setCode((e.target as HTMLInputElement).value.toUpperCase().replace(/[^A-Z]/g, ''))}
+              />
+            </label>
+            <Button color="red" type="submit" disabled={!connected || busy || code.length !== ROOM_CODE_LENGTH}>
+              {t(rejoin ? 'title.rejoin' : 'title.join')}
+            </Button>
+          </div>
+          {!connected && (
+            <p class="muted" role="status">
+              {t('title.connecting')}
+            </p>
+          )}
+          <Button color="orange" class="play-back" kbd="Esc" onClick={() => setPlaying(false)}>
+            {t('back')}
+          </Button>
+        </form>
+      )}
+
       <Credits />
     </main>
   );
