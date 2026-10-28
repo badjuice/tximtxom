@@ -19,6 +19,31 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.28.0',
+    date: '2026-10-28',
+    items: [
+      n('A new main menu in the style of Balatro: Play, Stats, Achievements (coming soon), Settings, Changelog and How to play.', 'Um menu principal novo ao estilo do Balatro: Jogar, Estatísticas, Conquistas (brevemente), Definições, Alterações e Como jogar.'),
+      n('Stats: time in games, rounds and games played, won and lost, win streaks, best and worst round, lowest total, record bust, cards drawn and a chart of your formations.', 'Estatísticas: tempo em jogo, rondas e jogos jogados, ganhos e perdidos, vitórias seguidas, melhor e pior ronda, total mais baixo, recorde de Rabenta, cartas tiradas e um gráfico das tuas formações.'),
+      n('A counter on the main menu shows how many players and visits the game has had.', 'Um contador no menu principal mostra quantos jogadores e visitas o jogo já teve.'),
+      n('Drag a card onto the Txi jog button to Txi jog. A hand card takes the drawn card\'s place. The button lights up while you hold a card it takes.', 'Arrasta uma carta para o botão de Txi jog para fazer Txi jog. Uma carta da mão troca de lugar com a carta tirada. O botão acende enquanto seguras uma carta que ele aceita.'),
+      n('Calling TximTxom without one gets a Nope!', 'Chamar TximTxom sem o ter dá um Nope!'),
+      n('TximTxom glows in colour and waves wherever it\'s written, except the title.', 'O TximTxom brilha a cores e ondula onde quer que esteja escrito, exceto no título.'),
+      c('Options with several choices are picked with arrows, with dots showing the choice, like Game speed.', 'As opções com várias escolhas mudam-se com setas, com pontos a mostrar a escolha, como a Velocidade do jogo.'),
+      c('Anti-aliasing is just on or off.', 'O anti-aliasing é só ligado ou desligado.'),
+      c('A room code is forgotten 10 minutes after you leave the room.', 'O código da sala é esquecido 10 minutos depois de saíres da sala.'),
+      c('The rules in a game show as a short two-column list, with On in green and Off in red.', 'As regras num jogo aparecem numa lista curta em duas colunas, com Sim a verde e Não a vermelho.'),
+      c('Settings, Stats, How to play and the language menu are narrower, and switching tabs no longer changes their size.', 'As Definições, as Estatísticas, o Como jogar e o menu de línguas são mais estreitos, e mudar de separador já não lhes muda o tamanho.'),
+      c('Round and game summaries are more compact, and lobby rules take one row each on desktop.', 'Os resumos da ronda e do jogo ocupam menos espaço, e as regras na sala ocupam uma linha cada no computador.'),
+      c('Rename and Remove in the lobby look like buttons, and the language menu\'s title is blue.', 'Mudar nome e Remover na sala parecem botões, e o título do menu de línguas é azul.'),
+      f('On short screens and with bigger text, the hand and piles move up so nothing overlaps.', 'Em ecrãs baixos e com texto maior, a mão e as pilhas sobem para nada se sobrepor.'),
+      f('Hopping letters no longer shimmer.', 'As letras que saltam já não tremem.'),
+      f('The game page can no longer be scrolled.', 'A página do jogo já não se pode deslocar.'),
+      f('The Aces on the menu can\'t be tapped or lit up before they appear.', 'Os Ases no menu já não se podem tocar nem acender antes de aparecerem.'),
+      f('"cards" no longer spills out of the player plates on phones.', 'O "cartas" já não sai das placas dos jogadores nos telemóveis.'),
+      r('Stats are no longer in Settings: they have their own button on the main menu.', 'As estatísticas já não estão nas Definições: têm o seu próprio botão no menu principal.'),
+    ],
+  },
+  {
     version: '0.27.1',
     date: '2026-10-26',
     items: [

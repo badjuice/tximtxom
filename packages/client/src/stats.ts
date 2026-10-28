@@ -59,7 +59,6 @@ export interface GlobalStats {
 
 const KEY = 'tximtxom.stats';
 const COUNTED_KEY = 'tximtxom.counted'; // this device was counted as a player
-const VISIT_KEY = 'tximtxom.visited'; // this browser session was counted as a visit
 
 const EMPTY: MyStats = {
   roundsPlayed: 0,
@@ -239,15 +238,8 @@ export function initStats(): void {
     counted = true;
   }
   void abacus(counted ? 'get' : 'hit', 'players');
-  // Reloads within one browser session are the same visit.
-  let visited = false;
-  try {
-    visited = !!sessionStorage.getItem(VISIT_KEY);
-    if (!visited && COUNTING) sessionStorage.setItem(VISIT_KEY, '1');
-  } catch {
-    // No session storage: count every load.
-  }
-  void abacus(visited ? 'get' : 'hit', 'visits');
+  // Every load is a visit (a hit on the site); players are the unique devices above.
+  void abacus('hit', 'visits');
 
   // The clock runs while a game is on screen, not over, and the tab is visible.
   let ticks = 0;

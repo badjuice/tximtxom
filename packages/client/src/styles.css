@@ -1024,8 +1024,10 @@ input[type='text'] {
   padding: calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom));
   animation: fade 0.15s;
 }
+/* Modals are sized to their content: the default suits forms, lists and tabs;
+   only wide tables (scoreboard, formations, changelog) use .wide. */
 .modal {
-  width: min(560px, 96vw);
+  width: min(500px, 96vw);
   max-height: 100%;
   display: flex;
   flex-direction: column;
@@ -1048,6 +1050,9 @@ input[type='text'] {
 .language-modal .modal-head h2 {
   background: var(--blue);
   box-shadow: 0 4px 0 var(--blue-d);
+}
+.modal.language-modal {
+  width: min(340px, 96vw);
 }
 .modal-body {
   overflow-y: auto;
@@ -2195,7 +2200,7 @@ input[type='text'] {
 }
 /* Controls tab: keyboard shortcuts as rows of keycap + action. */
 .keys-title {
-  margin: 0.6em 0 0.2em;
+  margin: 0.3em 0 0.1em;
   text-align: center;
 }
 /* Two columns of shortcuts with equal space around each. */
@@ -2208,7 +2213,7 @@ input[type='text'] {
 .keys-list {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: 6px 14px;
+  gap: 4px 10px;
   align-items: center;
   margin: 0;
 }
@@ -2318,7 +2323,6 @@ input[type='text'] {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-width: min(320px, 80vw);
 }
 .rule-cards {
   display: flex;
@@ -2920,6 +2924,16 @@ input[type='text'] {
 }
 
 /* --- help */
+/* Every page sits in one grid cell, so the tallest sets the height and switching never resizes. */
+.help-pages {
+  display: grid;
+}
+.help-pages > .help-page {
+  grid-area: 1 / 1;
+}
+.help-pages > .help-page.hidden {
+  visibility: hidden;
+}
 .help-page {
   display: flex;
   gap: 18px;
@@ -3776,36 +3790,31 @@ input.rename {
   margin: 0 0 8px;
   font-size: 0.85em;
 }
-/* One release at a time: arrows either side of its version. */
-.cl-nav {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+.changelog-modal .modal-body {
+  max-height: 70vh;
 }
-.cl-nav h3 {
-  flex: 1;
-  margin: 0;
+.cl-release {
+  margin-bottom: 12px;
+}
+.cl-release h3 {
+  margin: 0 0 4px;
   color: var(--gold);
   display: flex;
   gap: 8px;
   align-items: center;
-  justify-content: center;
 }
-/* The changes in two columns where there's room, so long releases fit. */
-.cl-items {
+.cl-release ul {
   list-style: none;
-  margin: 0 0 8px;
+  margin: 0;
   padding: 0;
-  columns: 2 300px;
-  column-gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
-.cl-items li {
+.cl-release li {
   display: flex;
   gap: 8px;
   align-items: baseline;
-  margin-bottom: 3px;
-  break-inside: avoid;
   background: var(--panel-in);
   border-radius: 6px;
   padding: 4px 8px;
@@ -3864,19 +3873,12 @@ input.rename {
   gap: 6px;
 }
 
-/* Phones: the last few pixels so Settings and the longest releases fit unscrolled. */
+/* Phones: the last few pixels so Settings fits unscrolled. */
 @media (max-width: 520px) {
   .settings-modal .modal-body {
     padding-block: 2px;
   }
   .settings-modal .toggle {
     min-height: 44px;
-  }
-  .cl-items li {
-    font-size: 0.82em;
-    padding: 3px 6px;
-  }
-  .cl-legend {
-    margin-bottom: 4px;
   }
 }

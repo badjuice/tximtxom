@@ -5,6 +5,27 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.28.0 (2026-10-28)
+- ✨ A new main menu in the style of Balatro: Play, Stats, Achievements (coming soon), Settings, Changelog and How to play.
+- ✨ Stats: time in games, rounds and games played, won and lost, win streaks, best and worst round, lowest total, record bust, cards drawn and a chart of your formations.
+- ✨ A counter on the main menu shows how many players and visits the game has had.
+- ✨ Drag a card onto the Txi jog button to Txi jog. A hand card takes the drawn card's place. The button lights up while you hold a card it takes.
+- ✨ Calling TximTxom without one gets a Nope!
+- ✨ TximTxom glows in colour and waves wherever it's written, except the title.
+- 🔧 Options with several choices are picked with arrows, with dots showing the choice, like Game speed.
+- 🔧 Anti-aliasing is just on or off.
+- 🔧 A room code is forgotten 10 minutes after you leave the room.
+- 🔧 The rules in a game show as a short two-column list, with On in green and Off in red.
+- 🔧 Settings, Stats, How to play and the language menu are narrower, and switching tabs no longer changes their size.
+- 🔧 Round and game summaries are more compact, and lobby rules take one row each on desktop.
+- 🔧 Rename and Remove in the lobby look like buttons, and the language menu's title is blue.
+- 🐛 On short screens and with bigger text, the hand and piles move up so nothing overlaps.
+- 🐛 Hopping letters no longer shimmer.
+- 🐛 The game page can no longer be scrolled.
+- 🐛 The Aces on the menu can't be tapped or lit up before they appear.
+- 🐛 "cards" no longer spills out of the player plates on phones.
+- 🗑️ Stats are no longer in Settings: they have their own button on the main menu.
+
 ## 0.27.1 (2026-10-26)
 - 🔧 When every player has left, the bots stop and wait: for someone to come back, or for the room to close after 10 minutes.
 

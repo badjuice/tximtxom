@@ -72,8 +72,8 @@ function StatList({ title, rows }: { title: Key; rows: [Key, string][] }) {
 
 type StatsTab = 'overview' | 'play' | 'more';
 
-/** Your stats in three tabs, so none of them needs scrolling. */
-export function StatsPanel() {
+/** Your stats in three tabs, stacked so switching never resizes the modal. */
+function StatsPanel() {
   useSettings(); // redraw on a language change
   const { mine: s, global } = useStats();
   const [tab, setTab] = useState<StatsTab>('overview');
@@ -91,8 +91,8 @@ export function StatsPanel() {
         active={tab}
         onChange={setTab}
       />
-      {tab === 'overview' && (
-        <>
+      <div class="tab-body stacked">
+        <div class={`tab-panel${tab === 'overview' ? '' : ' hidden'}`} inert={tab !== 'overview'}>
           <div class="stat-hero">
             <div class="stat-tile big">
               <span class="stat-value">{formatDuration(s.timePlayed)}</span>
@@ -121,38 +121,36 @@ export function StatsPanel() {
               <dd>{formatCount(s.rides)}</dd>
             </dl>
           </section>
-        </>
-      )}
-      {tab === 'play' && (
-        <div class="stat-cols">
-          <StatList
-            title="stats.roundsTitle"
-            rows={[
-              ['stats.rounds', formatCount(s.roundsPlayed)],
-              ['stats.roundsWon', `${formatCount(s.roundsWon)} · ${pct(s.roundsWon, s.roundsWon + s.roundsLost)}`],
-              ['stats.roundsLost', formatCount(s.roundsLost)],
-              ['stats.ended', formatCount(s.roundsEnded)],
-              ['stats.best', pts(s.bestRound)],
-              ['stats.worst', pts(s.worstRound)],
-              ['stats.totalPoints', formatCount(s.totalPoints)],
-            ]}
-          />
-          <StatList
-            title="stats.gamesTitle"
-            rows={[
-              ['stats.games', formatCount(s.gamesPlayed)],
-              ['stats.gamesWon', `${formatCount(s.gamesWon)} · ${pct(s.gamesWon, s.gamesPlayed)}`],
-              ['stats.gamesLost', formatCount(s.gamesLost)],
-              ['stats.streak', formatCount(s.winStreak)],
-              ['stats.bestStreak', formatCount(s.bestStreak)],
-              ['stats.lowestTotal', pts(s.lowestTotal)],
-              ['stats.recordBust', pts(s.recordBust)],
-            ]}
-          />
         </div>
-      )}
-      {tab === 'more' && (
-        <>
+        <div class={`tab-panel${tab === 'play' ? '' : ' hidden'}`} inert={tab !== 'play'}>
+          <div class="stat-cols">
+            <StatList
+              title="stats.roundsTitle"
+              rows={[
+                ['stats.rounds', formatCount(s.roundsPlayed)],
+                ['stats.roundsWon', `${formatCount(s.roundsWon)} · ${pct(s.roundsWon, s.roundsWon + s.roundsLost)}`],
+                ['stats.roundsLost', formatCount(s.roundsLost)],
+                ['stats.ended', formatCount(s.roundsEnded)],
+                ['stats.best', pts(s.bestRound)],
+                ['stats.worst', pts(s.worstRound)],
+                ['stats.totalPoints', formatCount(s.totalPoints)],
+              ]}
+            />
+            <StatList
+              title="stats.gamesTitle"
+              rows={[
+                ['stats.games', formatCount(s.gamesPlayed)],
+                ['stats.gamesWon', `${formatCount(s.gamesWon)} · ${pct(s.gamesWon, s.gamesPlayed)}`],
+                ['stats.gamesLost', formatCount(s.gamesLost)],
+                ['stats.streak', formatCount(s.winStreak)],
+                ['stats.bestStreak', formatCount(s.bestStreak)],
+                ['stats.lowestTotal', pts(s.lowestTotal)],
+                ['stats.recordBust', pts(s.recordBust)],
+              ]}
+            />
+          </div>
+        </div>
+        <div class={`tab-panel${tab === 'more' ? '' : ' hidden'}`} inert={tab !== 'more'}>
           <div class="stat-cols">
             <StatList
               title="stats.cardsTitle"
@@ -176,8 +174,8 @@ export function StatsPanel() {
             {t('stats.since', { date: new Date(s.since).toLocaleDateString(locale()) })} · {t('stats.note')}
             {global.offline && ` ${t('stats.offline')}`}
           </p>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -185,7 +183,7 @@ export function StatsPanel() {
 /** The Stats screen, from the main menu. */
 export function StatsMenu({ onClose }: { onClose: () => void }) {
   return (
-    <Modal title={t('stats.title')} onClose={onClose} wide class="stats-modal">
+    <Modal title={t('stats.title')} onClose={onClose} class="stats-modal">
       <StatsPanel />
     </Modal>
   );

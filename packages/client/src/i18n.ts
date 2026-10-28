@@ -35,8 +35,6 @@ const en = {
   'cl.fix': 'Fixed',
   'cl.removed': 'Removed',
   'cl.current': 'current',
-  'cl.newer': 'Newer release',
-  'cl.older': 'Older release',
 
   // lobby
   'lobby.room': 'Room',
@@ -389,7 +387,6 @@ const en = {
   'key.scores': 'Scores',
   'key.formations': 'Formations',
   'key.history': 'History',
-  'set.tab.stats': 'Stats',
   'stats.title': 'Stats',
   'stats.tab.overview': 'Overview',
   'stats.tab.play': 'Rounds & games',
@@ -518,8 +515,6 @@ const pt: Record<Key, string> = {
   'cl.fix': 'Corrigido',
   'cl.removed': 'Removido',
   'cl.current': 'atual',
-  'cl.newer': 'Versão mais recente',
-  'cl.older': 'Versão anterior',
 
   'lobby.room': 'Sala',
   'lobby.share': 'Partilha este código (toca para enviar um link)',
@@ -858,7 +853,6 @@ const pt: Record<Key, string> = {
   'key.scores': 'Pontos',
   'key.formations': 'Formações',
   'key.history': 'Histórico',
-  'set.tab.stats': 'Estatísticas',
   'stats.title': 'Estatísticas',
   'stats.tab.overview': 'Resumo',
   'stats.tab.play': 'Rondas e jogos',

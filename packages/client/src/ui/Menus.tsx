@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
 import { makeCard, parseCards, type Suit } from '@tximtxom/shared';
-import { play } from '../audio';
 import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE } from '../net';
 import { CARD_BACKS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
@@ -9,7 +8,7 @@ import { Button, Choice, Credits, Fit, Modal, Rich, Slider, Tabs, Toggle, WaveTe
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { RulesSummary } from './RulesForm';
-import { StatsMenu, StatsPanel } from './Stats';
+import { StatsMenu } from './Stats';
 import { CardBackIcon, CardIcon, ArtIcon, RandomBackIcon, Wins } from './sprites';
 
 export function Overlays() {
@@ -95,21 +94,6 @@ function LeaveConfirm({ onClose }: { onClose: () => void }) {
 function Changelog({ onClose }: { onClose: () => void }) {
   const { lang } = useSettings();
   const kinds: ChangeKind[] = ['new', 'change', 'fix', 'removed'];
-  const [i, setI] = useState(0);
-  const rel = CHANGELOG[i];
-  const go = (to: number) => {
-    if (to < 0 || to >= CHANGELOG.length) return;
-    play('button', { volume: 0.4, rate: to > i ? 0.9 : 1.15 });
-    setI(to);
-  };
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') go(i - 1);
-      else if (e.key === 'ArrowRight') go(i + 1);
-    };
-    addEventListener('keydown', k);
-    return () => removeEventListener('keydown', k);
-  }, [i]);
   return (
     <Modal title={t('cl.title')} onClose={onClose} wide class="changelog-modal">
       <p class="cl-legend">
@@ -119,28 +103,24 @@ function Changelog({ onClose }: { onClose: () => void }) {
           </span>
         ))}
       </p>
-      <div class="cl-nav">
-        <button type="button" class="cyc-arrow" disabled={i === 0} aria-label={t('cl.newer')} onClick={() => go(i - 1)}>
-          <span class="cyc-tri left" />
-        </button>
-        <h3>
-          v{rel.version} <span class="muted">· {rel.date}</span>
-          {i === 0 && <span class="tag">{t('cl.current')}</span>}
-        </h3>
-        <button type="button" class="cyc-arrow" disabled={i === CHANGELOG.length - 1} aria-label={t('cl.older')} onClick={() => go(i + 1)}>
-          <span class="cyc-tri right" />
-        </button>
-      </div>
-      <ul class="cl-items">
-        {rel.items.map((it) => (
-          <li class={`k-${it.kind}`}>
-            <span class="cl-icon" title={t(`cl.${it.kind}` as Key)} aria-label={t(`cl.${it.kind}` as Key)}>
-              {KIND_ICON[it.kind]}
-            </span>
-            <span>{withTximTxom(lang === 'pt' ? it.pt : it.en)}</span>
-          </li>
-        ))}
-      </ul>
+      {CHANGELOG.map((rel, i) => (
+        <section class="cl-release">
+          <h3>
+            v{rel.version} <span class="muted">· {rel.date}</span>
+            {i === 0 && <span class="tag">{t('cl.current')}</span>}
+          </h3>
+          <ul>
+            {rel.items.map((it) => (
+              <li class={`k-${it.kind}`}>
+                <span class="cl-icon" title={t(`cl.${it.kind}` as Key)} aria-label={t(`cl.${it.kind}` as Key)}>
+                  {KIND_ICON[it.kind]}
+                </span>
+                <span>{withTximTxom(lang === 'pt' ? it.pt : it.en)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
       <Credits />
     </Modal>
   );
@@ -322,7 +302,7 @@ function Formations({ onClose }: { onClose: () => void }) {
 
 // ------------------------------------------------------------------ settings
 
-type SetTab = 'general' | 'controls' | 'cards' | 'motion' | 'sound' | 'stats';
+type SetTab = 'general' | 'controls' | 'cards' | 'motion' | 'sound';
 
 /** Keyboard shortcuts shown in the Controls tab. `hold` keys need a press and hold. */
 /** `keys` is shown as is; `mouse` is a translated mouse action in its place. */
@@ -385,7 +365,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
     <Modal
       title={t('set.title')}
       onClose={onClose}
-      wide
       class="settings-modal"
       footer={
         // Next to Back, so they can be reached from every tab.
@@ -401,119 +380,161 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
           { id: 'cards', label: t('set.tab.graphics') },
           { id: 'motion', label: t('set.tab.motion') },
           { id: 'sound', label: t('set.tab.sound') },
-          { id: 'stats', label: t('set.tab.stats') },
         ]}
         active={tab}
         onChange={setTab}
       />
       <div class="tab-body stacked">
         <div class={`tab-panel${tab === 'general' ? '' : ' hidden'}`} inert={tab !== 'general'}>
-            <Choice
-              label={t('language')}
-              value={s.lang}
-              options={[
-                { value: 'pt', label: 'Português' },
-                { value: 'en', label: 'English' },
-              ]}
-              onChange={(lang) => set({ lang })}
-            />
-            <Choice
-              label={t('set.seats')}
-              desc={t('set.seats.desc')}
-              value={s.clockwise ? 'cw' : 'ccw'}
-              options={[
-                { value: 'ccw', label: t('set.ccw') },
-                { value: 'cw', label: t('set.cw') },
-              ]}
-              onChange={(v) => set({ clockwise: v === 'cw' })}
-            />
-            <Toggle label={t('set.announce')} desc={t('set.announce.desc')} checked={s.announce} onChange={(v) => set({ announce: v })} />
+          <Choice
+            label={t('language')}
+            value={s.lang}
+            options={[
+              { value: 'pt', label: 'Português' },
+              { value: 'en', label: 'English' },
+            ]}
+            onChange={(lang) => set({ lang })}
+          />
+          <Choice
+            label={t('set.seats')}
+            desc={t('set.seats.desc')}
+            value={s.clockwise ? 'cw' : 'ccw'}
+            options={[
+              { value: 'ccw', label: t('set.ccw') },
+              { value: 'cw', label: t('set.cw') },
+            ]}
+            onChange={(v) => set({ clockwise: v === 'cw' })}
+          />
+          <Toggle label={t('set.announce')} desc={t('set.announce.desc')} checked={s.announce} onChange={(v) => set({ announce: v })} />
         </div>
         <div class={`tab-panel${tab === 'controls' ? '' : ' hidden'}`} inert={tab !== 'controls'}>
-            <Choice
-              label={t('set.sortBy')}
-              desc={t('set.sortBy.desc')}
-              value={s.sortBy}
-              options={[
-                { value: 'rank', label: t('sort.rank') },
-                { value: 'suit', label: t('sort.suit') },
-              ]}
-              onChange={(sortBy) => set({ sortBy })}
-            />
-            <Toggle label={t('set.autoSort')} desc={t('sort.autoTitle')} checked={s.autoSort} onChange={(v) => set({ autoSort: v })} />
-            <Toggle label={t('set.confirm')} desc={t('set.confirm.desc')} checked={s.confirmMoves} onChange={(v) => set({ confirmMoves: v })} />
-            <Toggle label={t('set.lefty')} desc={t('set.lefty.desc')} checked={s.leftHanded} onChange={(v) => set({ leftHanded: v })} />
-            <h3 class="keys-title">{t('set.keyboard')}</h3>
-            <div class="keys-cols">
-              {[KEYS.slice(0, Math.ceil(KEYS.length / 2)), KEYS.slice(Math.ceil(KEYS.length / 2))].map((col) => (
-                <dl class="keys-list">
-                  {col.map((k) => (
-                    <>
-                      <dt>
-                        {k.hold && <span class="muted small">{t('set.hold')} </span>}
-                        <kbd class="kbd">{k.mouse ? t(k.mouse) : k.keys}</kbd>
-                      </dt>
-                      <dd>{t(k.label)}</dd>
-                    </>
-                  ))}
-                </dl>
-              ))}
-            </div>
+          <Choice
+            label={t('set.sortBy')}
+            desc={t('set.sortBy.desc')}
+            value={s.sortBy}
+            options={[
+              { value: 'rank', label: t('sort.rank') },
+              { value: 'suit', label: t('sort.suit') },
+            ]}
+            onChange={(sortBy) => set({ sortBy })}
+          />
+          <Toggle label={t('set.autoSort')} desc={t('sort.autoTitle')} checked={s.autoSort} onChange={(v) => set({ autoSort: v })} />
+          <Toggle label={t('set.confirm')} desc={t('set.confirm.desc')} checked={s.confirmMoves} onChange={(v) => set({ confirmMoves: v })} />
+          <Toggle label={t('set.lefty')} desc={t('set.lefty.desc')} checked={s.leftHanded} onChange={(v) => set({ leftHanded: v })} />
+          <h3 class="keys-title">{t('set.keyboard')}</h3>
+          <div class="keys-cols">
+            {[KEYS.slice(0, Math.ceil(KEYS.length / 2)), KEYS.slice(Math.ceil(KEYS.length / 2))].map((col) => (
+              <dl class="keys-list">
+                {col.map((k) => (
+                  <>
+                    <dt>
+                      {k.hold && <span class="muted small">{t('set.hold')} </span>}
+                      <kbd class="kbd">{k.mouse ? t(k.mouse) : k.keys}</kbd>
+                    </dt>
+                    <dd>{t(k.label)}</dd>
+                  </>
+                ))}
+              </dl>
+            ))}
+          </div>
         </div>
         <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
-            <Toggle label={t('set.highContrast')} desc={t('set.highContrast.desc')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />
-            <div class="toggle">
-              <span class="toggle-text">
-                <span class="toggle-label">
-                  <Fit text={t('set.cardBack')} />
-                </span>
+          <Toggle label={t('set.highContrast')} desc={t('set.highContrast.desc')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />
+          <div class="toggle">
+            <span class="toggle-text">
+              <span class="toggle-label">
+                <Fit text={t('set.cardBack')} />
               </span>
-              <span class="backs">
-                {CARD_BACKS.map((b) => (
-                  <button class={`back-pick${s.cardBack === b ? ' on' : ''}`} aria-pressed={s.cardBack === b} aria-label={b.replace('back_', '')} onClick={() => set({ cardBack: b })}>
-                    <CardBackIcon back={b} scale={0.42} />
-                  </button>
-                ))}
-                <button class={`back-pick random${s.cardBack === 'random' ? ' on' : ''}`} aria-pressed={s.cardBack === 'random'} title={t('set.cardBack.random')} onClick={() => set({ cardBack: 'random' })}>
-                  <RandomBackIcon backs={CARD_BACKS} scale={0.42} />
+            </span>
+            <span class="backs">
+              {CARD_BACKS.map((b) => (
+                <button
+                  class={`back-pick${s.cardBack === b ? ' on' : ''}`}
+                  aria-pressed={s.cardBack === b}
+                  aria-label={b.replace('back_', '')}
+                  onClick={() => set({ cardBack: b })}
+                >
+                  <CardBackIcon back={b} scale={0.42} />
                 </button>
-              </span>
-            </div>
-            <Toggle label={t('set.smoothing')} desc={t('set.smoothing.desc')} checked={s.smooth === 'all'} onChange={(v) => set({ smooth: v ? 'all' : 'off' })} />
-            <Slider label={t('set.size')} value={s.uiScale} min={0.8} max={1.2} step={0.05} onChange={(v) => set({ uiScale: v })} format={pct} />
-            <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />
+              ))}
+              <button
+                class={`back-pick random${s.cardBack === 'random' ? ' on' : ''}`}
+                aria-pressed={s.cardBack === 'random'}
+                title={t('set.cardBack.random')}
+                onClick={() => set({ cardBack: 'random' })}
+              >
+                <RandomBackIcon backs={CARD_BACKS} scale={0.42} />
+              </button>
+            </span>
+          </div>
+          <Toggle label={t('set.smoothing')} desc={t('set.smoothing.desc')} checked={s.smooth === 'all'} onChange={(v) => set({ smooth: v ? 'all' : 'off' })} />
+          <Slider label={t('set.size')} value={s.uiScale} min={0.8} max={1.2} step={0.05} onChange={(v) => set({ uiScale: v })} format={pct} />
+          <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />
         </div>
         <div class={`tab-panel${tab === 'motion' ? '' : ' hidden'}`} inert={tab !== 'motion'}>
-            {/* Reduced motion turns these two off, so they sit under it. */}
-            <div class="setting-group">
-              <Toggle label={t('set.reduced')} desc={t('set.reduced.desc')} checked={s.reducedMotion} onChange={(v) => set({ reducedMotion: v })} />
-              <Toggle label={t('set.shake')} checked={s.screenShake} onChange={(v) => set({ screenShake: v })} disabled={s.reducedMotion} />
-              <Toggle label={t('set.bg')} checked={s.backgroundAnim} onChange={(v) => set({ backgroundAnim: v })} disabled={s.reducedMotion} />
-            </div>
-            {/* A switch and the slider it locks, framed together. */}
-            <div class="setting-group">
-              <Toggle label={t('set.crt')} desc={t('set.crt.desc')} checked={s.crt} onChange={(v) => set({ crt: v })} />
-              <Slider label={t('set.crtStrength')} value={s.crtIntensity} min={0.1} max={1} step={0.05} onChange={(v) => set({ crtIntensity: v })} format={pct} disabled={!s.crt} />
-            </div>
-            <Toggle label={t('set.flash')} desc={t('set.flash.desc')} checked={s.safeFlash} onChange={(v) => set({ safeFlash: v })} />
-            <Choice
-              label={t('set.speed')}
-              value={s.gameSpeed}
-              options={SPEEDS.map((v) => ({ value: v, label: `${v}x` }))}
-              onChange={(gameSpeed) => set({ gameSpeed })}
+          {/* Reduced motion turns these two off, so they sit under it. */}
+          <div class="setting-group">
+            <Toggle label={t('set.reduced')} desc={t('set.reduced.desc')} checked={s.reducedMotion} onChange={(v) => set({ reducedMotion: v })} />
+            <Toggle label={t('set.shake')} checked={s.screenShake} onChange={(v) => set({ screenShake: v })} disabled={s.reducedMotion} />
+            <Toggle label={t('set.bg')} checked={s.backgroundAnim} onChange={(v) => set({ backgroundAnim: v })} disabled={s.reducedMotion} />
+          </div>
+          {/* A switch and the slider it locks, framed together. */}
+          <div class="setting-group">
+            <Toggle label={t('set.crt')} desc={t('set.crt.desc')} checked={s.crt} onChange={(v) => set({ crt: v })} />
+            <Slider
+              label={t('set.crtStrength')}
+              value={s.crtIntensity}
+              min={0.1}
+              max={1}
+              step={0.05}
+              onChange={(v) => set({ crtIntensity: v })}
+              format={pct}
+              disabled={!s.crt}
             />
+          </div>
+          <Toggle label={t('set.flash')} desc={t('set.flash.desc')} checked={s.safeFlash} onChange={(v) => set({ safeFlash: v })} />
+          <Choice
+            label={t('set.speed')}
+            value={s.gameSpeed}
+            options={SPEEDS.map((v) => ({ value: v, label: `${v}x` }))}
+            onChange={(gameSpeed) => set({ gameSpeed })}
+          />
         </div>
         <div class={`tab-panel${tab === 'sound' ? '' : ' hidden'}`} inert={tab !== 'sound'}>
-            <div class="setting-group">
-              <Toggle label={t('set.mute')} checked={s.muted} onChange={(v) => set({ muted: v })} />
-              <Slider label={t('set.master')} value={s.masterVolume} min={0} max={1} step={0.05} onChange={(v) => set({ masterVolume: v })} format={pct} disabled={s.muted} />
-              <Slider label={t('set.sfx')} value={s.sfxVolume} min={0} max={1} step={0.05} onChange={(v) => set({ sfxVolume: v })} format={pct} disabled={s.muted} />
-              <Slider label={t('set.music')} value={s.musicVolume} min={0} max={1} step={0.05} onChange={(v) => set({ musicVolume: v })} format={pct} disabled={s.muted} />
-            </div>
-            <Toggle label={t('set.vibration')} desc={t('set.vibration.desc')} checked={s.haptics} onChange={(v) => set({ haptics: v })} />
-        </div>
-        <div class={`tab-panel${tab === 'stats' ? '' : ' hidden'}`} inert={tab !== 'stats'}>
-          {tab === 'stats' && <StatsPanel />}
+          <div class="setting-group">
+            <Toggle label={t('set.mute')} checked={s.muted} onChange={(v) => set({ muted: v })} />
+            <Slider
+              label={t('set.master')}
+              value={s.masterVolume}
+              min={0}
+              max={1}
+              step={0.05}
+              onChange={(v) => set({ masterVolume: v })}
+              format={pct}
+              disabled={s.muted}
+            />
+            <Slider
+              label={t('set.sfx')}
+              value={s.sfxVolume}
+              min={0}
+              max={1}
+              step={0.05}
+              onChange={(v) => set({ sfxVolume: v })}
+              format={pct}
+              disabled={s.muted}
+            />
+            <Slider
+              label={t('set.music')}
+              value={s.musicVolume}
+              min={0}
+              max={1}
+              step={0.05}
+              onChange={(v) => set({ musicVolume: v })}
+              format={pct}
+              disabled={s.muted}
+            />
+          </div>
+          <Toggle label={t('set.vibration')} desc={t('set.vibration.desc')} checked={s.haptics} onChange={(v) => set({ haptics: v })} />
         </div>
       </div>
     </Modal>
@@ -529,13 +550,17 @@ function Help({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<HelpTab>('goal');
   const tabs: HelpTab[] = ['goal', 'turn', 'end', 'ride', 'more'];
   return (
-    <Modal title={t('help.title')} onClose={onClose} wide>
+    <Modal title={t('help.title')} onClose={onClose} class="help-modal">
       <Tabs tabs={tabs.map((id) => ({ id, label: t(`help.tab.${id}` as Key) }))} active={tab} onChange={setTab} />
-      <div class="help-page">
-        <ArtIcon name={HELP_ART[tab]} scale={1} />
-        <p class="help-text">
-          <Rich text={t(`help.${tab}` as Key)} />
-        </p>
+      <div class="help-pages">
+        {tabs.map((id) => (
+          <div class={`help-page${id === tab ? '' : ' hidden'}`} inert={id !== tab}>
+            <ArtIcon name={HELP_ART[id]} scale={1} />
+            <p class="help-text">
+              <Rich text={t(`help.${id}` as Key)} />
+            </p>
+          </div>
+        ))}
       </div>
     </Modal>
   );
