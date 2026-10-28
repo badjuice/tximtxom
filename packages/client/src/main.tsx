@@ -6,6 +6,7 @@ import { greetConsole } from './easterEgg';
 import { Table } from './game/table';
 import { initNet } from './net';
 import { applyCssSettings, onSettings, updateSettings } from './settings';
+import { initStats } from './stats';
 import { store } from './store';
 import './styles.css';
 import { App } from './ui/App';
@@ -37,6 +38,7 @@ async function boot() {
   await table.init(document.getElementById('stage')!);
   if (import.meta.env.DEV) Object.assign(window, { __table: table, __send: send, __lang: (lang: 'en' | 'pt') => updateSettings({ lang }) });
   initController(table);
+  initStats();
 
   let lastSettings = '';
   onSettings(() => {

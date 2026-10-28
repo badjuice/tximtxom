@@ -3,6 +3,7 @@ import { makeCard, parseCards, type Suit } from '@tximtxom/shared';
 import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE } from '../net';
 import { CARD_BACKS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
+import { formatCount, locale, refreshGlobalRounds, useStats } from '../stats';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, Fit, Modal, Rich, Slider, Tabs, Toggle, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
@@ -297,7 +298,7 @@ function Formations({ onClose }: { onClose: () => void }) {
 
 // ------------------------------------------------------------------ settings
 
-type SetTab = 'general' | 'controls' | 'cards' | 'motion' | 'sound';
+type SetTab = 'general' | 'controls' | 'cards' | 'motion' | 'sound' | 'stats';
 
 /** Keyboard shortcuts shown in the Controls tab. `hold` keys need a press and hold. */
 /** `keys` is shown as is; `mouse` is a translated mouse action in its place. */
@@ -373,6 +374,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
           { id: 'cards', label: t('set.tab.graphics') },
           { id: 'motion', label: t('set.tab.motion') },
           { id: 'sound', label: t('set.tab.sound') },
+          { id: 'stats', label: t('set.tab.stats') },
         ]}
         active={tab}
         onChange={setTab}
@@ -488,9 +490,67 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             </div>
             <Toggle label={t('set.vibration')} desc={t('set.vibration.desc')} checked={s.haptics} onChange={(v) => set({ haptics: v })} />
         </div>
+        <div class={`tab-panel${tab === 'stats' ? '' : ' hidden'}`} inert={tab !== 'stats'}>
+          {tab === 'stats' && <StatsPanel />}
+        </div>
       </div>
       <Credits />
     </Modal>
+  );
+}
+
+// ------------------------------------------------------------------ stats
+
+/** "2h 05m", "12m 30s", "45s". */
+function formatDuration(ms: number): string {
+  const sec = Math.floor(ms / 1000);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const two = (n: number) => String(n).padStart(2, '0');
+  if (h) return `${h}h ${two(m)}m`;
+  if (m) return `${m}m ${two(sec % 60)}s`;
+  return `${sec}s`;
+}
+
+function StatsPanel() {
+  useSettings(); // redraw on a language change
+  const { mine, global } = useStats();
+  useEffect(refreshGlobalRounds, []);
+  const pct = (n: number, of: number) => (of ? ` (${Math.round((100 * n) / of)}%)` : '');
+  const tile = (label: Key, value: string, big?: boolean) => (
+    <div class={`stat-tile${big ? ' big' : ''}`}>
+      <span class="stat-value">{value}</span>
+      <span class="stat-label">{t(label)}</span>
+    </div>
+  );
+  const count = (n: number | null) => (n === null ? '–' : formatCount(n));
+  return (
+    <div class="stats">
+      <h3 class="stats-title">{t('st.you')}</h3>
+      <div class="stat-grid">
+        {tile('st.time', formatDuration(mine.timePlayed), true)}
+        {tile('st.rounds', formatCount(mine.roundsPlayed), true)}
+        {tile('st.roundsWon', formatCount(mine.roundsWon) + pct(mine.roundsWon, mine.roundsPlayed))}
+        {tile('st.games', formatCount(mine.gamesPlayed))}
+        {tile('st.gamesWon', formatCount(mine.gamesWon) + pct(mine.gamesWon, mine.gamesPlayed))}
+        {tile('st.best', mine.bestRound === null ? '–' : `${mine.bestRound} ${t('pts')}`)}
+        {tile('st.ended', formatCount(mine.roundsEnded))}
+        {tile('st.tximtxoms', formatCount(mine.tximtxoms))}
+        {tile('st.formations', formatCount(mine.formations))}
+        {tile('st.rides', formatCount(mine.rides))}
+        {tile('st.visits', formatCount(mine.visits))}
+      </div>
+      <p class="center muted small">
+        {t('st.since', { date: new Date(mine.since).toLocaleDateString(locale()) })} · {t('st.note')}
+      </p>
+      <h3 class="stats-title">{t('st.everyone')}</h3>
+      <div class="stat-grid">
+        {tile('st.players', count(global.players))}
+        {tile('st.visits', count(global.visits))}
+        {tile('st.allRounds', count(global.rounds))}
+      </div>
+      {global.offline && <p class="center muted small">{t('st.offline')}</p>}
+    </div>
   );
 }
 

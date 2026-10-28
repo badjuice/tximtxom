@@ -3,6 +3,7 @@ import { makeCard, NAME_MAX, ROOM_CODE_LENGTH, type Suit } from '@tximtxom/share
 import { play, unlockAudio } from '../audio';
 import { t } from '../i18n';
 import { createRoom, joinRoom, linkedRoom, rejoinRoom, saveName, savedName, savedRoom } from '../net';
+import { formatCount, useStats } from '../stats';
 import { store, useStore } from '../store';
 import { Button, Credits, TopMenu, WaveText } from './common';
 import { EditionCard } from './EditionCard';
@@ -147,6 +148,18 @@ function FanCard(props: {
   );
 }
 
+/** "1,234 players · 5,678 visits", top left, once both counts are in. */
+function PlayerCounter() {
+  const { global } = useStats();
+  if (global.players === null || global.visits === null) return null;
+  return (
+    <p class="player-counter">
+      <span class="live-dot" aria-hidden="true" />
+      {t('st.counter', { players: formatCount(global.players), visits: formatCount(global.visits) })}
+    </p>
+  );
+}
+
 export function Title() {
   const connected = useStore((s) => s.connected);
   const [name, setName] = useState(savedName());
@@ -247,6 +260,7 @@ export function Title() {
   return (
     <main class="title-screen">
       <TopMenu />
+      <PlayerCounter />
       <h1 class="logo" ref={logo} style={logoBorn ? undefined : { visibility: 'hidden' }}>
         <WaveText text="TximTxom" amp={12} />
       </h1>

@@ -6,6 +6,7 @@ import type { DropTarget, SpawnHints, Table } from './game/table';
 import { cardShort, cardSpoken, kindName, t, tError } from './i18n';
 import { act, fetchHistory } from './net';
 import { getSettings, onSettings, rollRandomBack, updateSettings } from './settings';
+import { recordEvent } from './stats';
 import { banner, callout, SEAT_COLORS, type Staged, store, toast } from './store';
 
 let table: Table;
@@ -193,6 +194,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   const hints: SpawnHints = new Map();
   for (const { e } of fresh) {
     handleEvent(e, g, hints);
+    recordEvent(e, g, room);
     trackSeen(e, g);
   }
   trackSeen(null, g);
