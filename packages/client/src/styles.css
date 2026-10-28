@@ -57,6 +57,13 @@ body {
   inset: 0;
   z-index: 1;
 }
+/* Clip, not just hidden: a hidden box can still be scrolled by the browser
+   (focusing something past its edge), which shifted the table in Firefox
+   when the vertical tab bar narrowed the window. */
+#stage,
+#app {
+  overflow: clip;
+}
 #stage canvas {
   display: block;
 }
@@ -350,6 +357,9 @@ input[type='text'] {
 .wave .w > span {
   display: inline-block;
   animation: letter-idle 1.3s ease-in-out calc(var(--i) * -0.37s) infinite alternate;
+  /* Always its own layer: a hop starting or ending doesn't re-rasterise it
+     and nudge it sideways by a sub-pixel. */
+  will-change: translate, rotate;
 }
 @keyframes letter-idle {
   from {
@@ -3041,14 +3051,11 @@ input.rename {
 .plate-stats {
   white-space: nowrap;
 }
+/* Wide screens: a wider panel, still one rule per row, so each description
+   fits on a line or two next to its switch. */
 @media (min-width: 1100px) {
   .lobby-rules {
     width: min(780px, 60vw);
-  }
-  .rules-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
   }
 }
 

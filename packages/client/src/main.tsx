@@ -39,6 +39,10 @@ async function boot() {
   if (import.meta.env.DEV) Object.assign(window, { __table: table, __send: send, __lang: (lang: 'en' | 'pt') => updateSettings({ lang }) });
   initController(table);
   initStats();
+  // The page itself never scrolls; undo it if the browser does (see #app in styles.css).
+  addEventListener('scroll', () => {
+    if (scrollX || scrollY) scrollTo(0, 0);
+  });
 
   let lastSettings = '';
   onSettings(() => {

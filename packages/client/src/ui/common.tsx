@@ -17,6 +17,27 @@ const HOP_MS = 300;
 const HOP_GAP_MS = 90;
 const WAVE_STEP_MS = HOP_MS + HOP_GAP_MS;
 
+/** A hop of `amp` px as keyframes on whole pixels only: the arc is sampled per
+ *  frame, rounded, and held until the next pixel. Easing through fractions
+ *  redrew the pixel font at sub-pixel offsets every frame, so it shimmered. */
+const hopFrames = new Map<number, Keyframe[]>();
+function hop(amp: number): Keyframe[] {
+  let frames = hopFrames.get(amp);
+  if (frames) return frames;
+  frames = [];
+  const samples = Math.round(HOP_MS / 16);
+  let last = NaN;
+  for (let i = 0; i <= samples; i++) {
+    const f = i / samples;
+    const y = Math.round(amp * Math.sin(Math.PI * f));
+    if (y === last && i < samples) continue;
+    frames.push({ offset: f, translate: `0 ${-y}px`, easing: 'step-end' });
+    last = y;
+  }
+  hopFrames.set(amp, frames);
+  return frames;
+}
+
 // One clock drives every wave on screen; each wave keeps its own position.
 const waves = new Map<HTMLElement, { pos: number; amp: number }>();
 let waveTimer: ReturnType<typeof setInterval> | null = null;
@@ -28,7 +49,7 @@ function waveTick(): void {
     // Positions 0..n-1 hop a letter; position n is the quiet beat before starting over.
     w.pos = (w.pos + 1) % (letters.length + 1);
     const letter = letters[w.pos] as HTMLElement | undefined;
-    letter?.animate([{ translate: '0 0', easing: 'ease-out' }, { translate: `0 -${w.amp}px`, easing: 'ease-in' }, { translate: '0 0' }], { duration: HOP_MS });
+    letter?.animate(hop(Math.round(w.amp)), { duration: HOP_MS });
   }
 }
 

@@ -630,8 +630,9 @@ export async function send(action: Action): Promise<boolean> {
     nope();
     return false;
   }
-  // "That is not a valid formation": the same Nope! as a ride that doesn't fit, plus the bar shake.
-  if (!r.ok && action.type === 'lay') {
+  // "That is not a valid formation", or a TximTxom called without one: the
+  // same Nope! as a ride that doesn't fit, plus the bar shake.
+  if (!r.ok && (action.type === 'lay' || action.type === 'tximtxom')) {
     nope();
     store.set((s) => ({ shake: s.shake + 1 }));
     return false;
