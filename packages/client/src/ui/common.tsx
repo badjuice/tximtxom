@@ -82,11 +82,49 @@ function words(text: string): { text: string; start: number }[] {
   return out;
 }
 
-/** Text whose letters wobble and hop in turn. Longer text than `max` stays still. */
-export function WaveText({ text, max = WAVE_MAX, amp = 3 }: { text: string; max?: number; amp?: number }) {
+// "TximTxom" in any text: its letters glow in a shifting rainbow and wave.
+const TXIMTXOM = /TximTxom/g;
+
+/** Index ranges of every "TximTxom" in `text`. */
+function tximtxomRanges(text: string): [number, number][] {
+  return [...text.matchAll(TXIMTXOM)].map((m) => [m.index!, m.index! + m[0].length]);
+}
+
+/** One letter of "TximTxom": `ti` is its place in the word (the pattern and wave follow it). */
+const TxLetter = ({ ch, ti }: { ch: string; ti: number }) => (
+  <span class="ttx-l" style={{ '--ti': ti }}>
+    {ch}
+  </span>
+);
+
+/** `text` with every "TximTxom" in it glowing and waving. */
+export function withTximTxom(text: string): ComponentChildren {
+  if (!text.includes('TximTxom')) return text;
+  const parts: ComponentChildren[] = [];
+  let last = 0;
+  for (const [a, b] of tximtxomRanges(text)) {
+    if (a > last) parts.push(text.slice(last, a));
+    parts.push(
+      <span class="ttx">
+        {[...text.slice(a, b)].map((ch, i) => (
+          <TxLetter ch={ch} ti={i} />
+        ))}
+      </span>,
+    );
+    last = b;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return <>{parts}</>;
+}
+
+/** Text whose letters wobble and hop in turn. Longer text than `max` stays still.
+ *  `plain` keeps "TximTxom" in its own colours (the title screen logo). */
+export function WaveText({ text, max = WAVE_MAX, amp = 3, plain }: { text: string; max?: number; amp?: number; plain?: boolean }) {
   const on = text.length <= max;
   const ref = useWave(amp, on);
-  if (!on) return <>{text}</>;
+  if (!on) return <>{plain ? text : withTximTxom(text)}</>;
+  const ranges = plain ? [] : tximtxomRanges(text);
+  const inWord = (i: number) => ranges.find(([a, b]) => i >= a && i < b);
   return (
     <span class="wave">
       <span class="sr-only">{text}</span>
@@ -96,9 +134,10 @@ export function WaveText({ text, max = WAVE_MAX, amp = 3 }: { text: string; max?
           <>
             {wi > 0 && ' '}
             <span class="w">
-              {[...w.text].map((ch, j) => (
-                <span style={{ '--i': w.start + j }}>{ch}</span>
-              ))}
+              {[...w.text].map((ch, j) => {
+                const word = inWord(w.start + j);
+                return <span style={{ '--i': w.start + j }}>{word ? <TxLetter ch={ch} ti={w.start + j - word[0]} /> : ch}</span>;
+              })}
             </span>
           </>
         ))}
@@ -157,11 +196,11 @@ export function CardText({ text }: { text: string }) {
   const parts: ComponentChildren[] = [];
   let last = 0;
   for (const m of text.matchAll(CARD_IN_TEXT)) {
-    if (m.index! > last) parts.push(text.slice(last, m.index));
+    if (m.index! > last) parts.push(withTximTxom(text.slice(last, m.index)));
     parts.push(<span class={`hcard suit-${SUIT_OF_SYMBOL[m[2]]}`}>{m[0]}</span>);
     last = m.index! + m[0].length;
   }
-  if (last < text.length) parts.push(text.slice(last));
+  if (last < text.length) parts.push(withTximTxom(text.slice(last)));
   return <>{parts}</>;
 }
 
@@ -171,7 +210,7 @@ const HOLD_MS = 850;
  * A button that only fires after being held down (mouse, touch, or its
  * keyboard key). Used for moves that end a round or the game.
  */
-export function HoldButton(props: { color: Color; label: string; sub?: string; enabled: boolean; onConfirm: () => void; hotkey?: string; title?: string; class?: string }) {
+export function HoldButton(props: { color: Color; label: string; sub?: string; enabled: boolean; onConfirm: () => void; hotkey?: string; title?: string; class?: string; drop?: string }) {
   const [progress, setProgress] = useState(0);
   const start = useRef<number | null>(null);
   const raf = useRef(0);
@@ -229,6 +268,7 @@ export function HoldButton(props: { color: Color; label: string; sub?: string; e
     <button
       type="button"
       class={`btn btn-${props.color} hold ${props.class ?? ''}`}
+      data-drop={props.drop}
       disabled={!props.enabled}
       title={props.title}
       aria-label={`${props.label}. ${t('act.hold')}`}
@@ -547,11 +587,11 @@ export function MiniButton(props: {
 /** Shows `children` (default: `text`) in the space its longest translation needs. */
 export function Fit({ text, children, block }: { text: string; children?: ComponentChildren; block?: boolean }) {
   const others = otherTexts(text);
-  if (!others.length) return <>{children ?? text}</>;
+  if (!others.length) return <>{children ?? withTximTxom(text)}</>;
   // `block`: a wrapping line of text, kept as tall as its longest translation.
   return (
     <span class={`fixed-label${block ? ' block' : ''}`}>
-      <span>{children ?? text}</span>
+      <span>{children ?? withTximTxom(text)}</span>
       {others.map((s) => (
         <span class="ghost" aria-hidden="true">
           {s}
@@ -598,7 +638,7 @@ export function TopMenu() {
 export function Credits() {
   return (
     <p class="credits">
-      TximTxom v{VERSION} ·{' '}
+      {withTximTxom('TximTxom')} v{VERSION} ·{' '}
       <a href={AUTHOR_URL} target="_blank" rel="noopener">
         github.com/badjuice
       </a>
@@ -613,10 +653,10 @@ export function Rich({ text }: { text: string }) {
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
-    if (m.index > last) parts.push(text.slice(last, m.index));
-    parts.push(<b class={`hl hl-${m[1]}`}>{m[2]}</b>);
+    if (m.index > last) parts.push(withTximTxom(text.slice(last, m.index)));
+    parts.push(<b class={`hl hl-${m[1]}`}>{withTximTxom(m[2])}</b>);
     last = re.lastIndex;
   }
-  if (last < text.length) parts.push(text.slice(last));
+  if (last < text.length) parts.push(withTximTxom(text.slice(last)));
   return <>{parts}</>;
 }

@@ -354,6 +354,51 @@ input[type='text'] {
 .wave .w {
   white-space: nowrap;
 }
+/* "TximTxom" wherever it's written (not the title logo): a rainbow glows
+   through its letters and shifts, and the letters ride a wave. The wave
+   steps in whole pixels so the pixel font stays crisp. */
+.ttx {
+  white-space: nowrap;
+}
+.ttx-l {
+  display: inline-block;
+  background: linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #8867a5, #fe5f55);
+  background-size: 800% 100%;
+  background-position: calc(var(--ti) * 14.28%) 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  animation:
+    ttx-glow 2.4s linear infinite,
+    ttx-wave 0.8s steps(4, jump-none) calc(var(--ti) * -0.1s) infinite alternate;
+}
+@keyframes ttx-glow {
+  from {
+    filter: hue-rotate(0deg) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.35));
+  }
+  to {
+    filter: hue-rotate(360deg) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.35));
+  }
+}
+@keyframes ttx-wave {
+  from {
+    translate: 0 -2px;
+  }
+  to {
+    translate: 0 2px;
+  }
+}
+.reduced-motion .ttx-l {
+  animation: none;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+}
+/* Stays readable in high contrast: the rainbow, but no glow or wave. */
+.high-contrast .ttx-l {
+  animation: none;
+  filter: none;
+}
 .wave .w > span {
   display: inline-block;
   animation: letter-idle 1.3s ease-in-out calc(var(--i) * -0.37s) infinite alternate;
@@ -795,6 +840,14 @@ input[type='text'] {
   top: 50%;
   width: 8px;
   border-top: 2px solid #4f6a70;
+}
+/* Settings: a little denser, so every tab fits without scrolling. */
+.settings-modal .toggle {
+  min-height: 46px;
+  padding: 4px 10px;
+}
+.settings-modal .tabs {
+  margin-bottom: 6px;
 }
 .toggle-text {
   flex: 1;
@@ -2558,6 +2611,39 @@ input[type='text'] {
   min-height: 56px;
   font-size: 1.15em;
 }
+/* A card that can end the round is being dragged: Txi jog lights up to take
+   it (buttons are otherwise greyed during a drag), and swells when it's over. */
+.hold.drop-ready:disabled {
+  filter: none;
+  cursor: grabbing;
+  animation: drop-ready 0.9s ease-in-out infinite alternate;
+}
+@keyframes drop-ready {
+  from {
+    box-shadow:
+      0 4px 0 var(--shadow),
+      0 0 0 0 rgba(234, 192, 88, 0.6);
+  }
+  to {
+    box-shadow:
+      0 4px 0 var(--shadow),
+      0 0 0 6px rgba(234, 192, 88, 0.6);
+  }
+}
+.hold.drop-over:disabled {
+  animation: none;
+  scale: 1.08;
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+  box-shadow:
+    0 4px 0 var(--shadow),
+    0 0 18px 6px rgba(234, 192, 88, 0.7);
+  transition: scale 0.12s;
+}
+.reduced-motion .hold.drop-ready:disabled {
+  animation: none;
+  outline: 3px solid var(--gold);
+}
 .corner {
   display: flex;
   pointer-events: auto;
@@ -2607,6 +2693,29 @@ input[type='text'] {
 }
 
 /* --- round summary / game over */
+/* Four short columns: a narrower modal keeps them close together. */
+.summary-modal.wide {
+  width: min(680px, 96vw);
+}
+.summary-modal .score-table {
+  width: auto;
+  min-width: 75%;
+  margin: 0 auto;
+  border-spacing: 0 3px;
+}
+.summary-modal .score-table td:first-child {
+  width: 1%;
+  white-space: nowrap;
+}
+.summary-modal .score-table td {
+  padding: 3px 8px;
+}
+.summary-modal .score-table td.cards {
+  min-height: 0;
+}
+.summary-modal .modal-body > p {
+  margin: 0 0 4px;
+}
 .summary-modal .score-table th {
   text-align: left;
   color: var(--muted);
@@ -3339,6 +3448,41 @@ input.rename {
   mask: var(--icon) center / contain no-repeat;
 }
 /* Read-only rules aren't locked, just not yours to change: they keep their colours. */
+/* Mid-game rules: a compact two-column list, no scrolling. */
+.rules-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rules-summary li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 10px 3px 4px;
+  background: var(--panel-in);
+  border-radius: 8px;
+}
+.rs-name {
+  flex: 1;
+  min-width: 0;
+}
+.rs-on {
+  color: var(--green);
+}
+.rs-off {
+  color: var(--red);
+}
+.rs-val {
+  color: var(--gold);
+}
+@media (max-width: 520px) {
+  .rules-summary {
+    grid-template-columns: 1fr;
+  }
+}
 .rules-view .toggle.disabled {
   opacity: 1;
   cursor: default;
@@ -3488,6 +3632,16 @@ input.rename {
   gap: 2px 12px;
   margin: 0;
 }
+/* Two label / number pairs per row where there's room. */
+.stat-list.two {
+  grid-template-columns: 1fr auto 1fr auto;
+  column-gap: 16px;
+}
+@media (max-width: 520px) {
+  .stat-list.two {
+    grid-template-columns: 1fr auto;
+  }
+}
 .stat-list dt {
   color: var(--muted);
 }
@@ -3614,9 +3768,6 @@ input.rename {
 }
 
 /* Changelog: one section per version; each line marked by kind. */
-.changelog-modal .modal-body {
-  max-height: 70vh;
-}
 .cl-legend {
   display: flex;
   flex-wrap: wrap;
@@ -3625,28 +3776,36 @@ input.rename {
   margin: 0 0 8px;
   font-size: 0.85em;
 }
-.cl-release {
-  margin-bottom: 12px;
+/* One release at a time: arrows either side of its version. */
+.cl-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
 }
-.cl-release h3 {
-  margin: 0 0 4px;
+.cl-nav h3 {
+  flex: 1;
+  margin: 0;
   color: var(--gold);
   display: flex;
   gap: 8px;
   align-items: center;
+  justify-content: center;
 }
-.cl-release ul {
+/* The changes in two columns where there's room, so long releases fit. */
+.cl-items {
   list-style: none;
-  margin: 0;
+  margin: 0 0 8px;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  columns: 2 300px;
+  column-gap: 8px;
 }
-.cl-release li {
+.cl-items li {
   display: flex;
   gap: 8px;
   align-items: baseline;
+  margin-bottom: 3px;
+  break-inside: avoid;
   background: var(--panel-in);
   border-radius: 6px;
   padding: 4px 8px;
@@ -3703,4 +3862,21 @@ input.rename {
 .confirm-pop-buttons {
   display: flex;
   gap: 6px;
+}
+
+/* Phones: the last few pixels so Settings and the longest releases fit unscrolled. */
+@media (max-width: 520px) {
+  .settings-modal .modal-body {
+    padding-block: 2px;
+  }
+  .settings-modal .toggle {
+    min-height: 44px;
+  }
+  .cl-items li {
+    font-size: 0.82em;
+    padding: 3px 6px;
+  }
+  .cl-legend {
+    margin-bottom: 4px;
+  }
 }

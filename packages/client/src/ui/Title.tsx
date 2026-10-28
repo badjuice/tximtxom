@@ -376,7 +376,7 @@ export function Title() {
       </div>
       <PlayerCounter />
       <h1 class="logo" ref={logo} style={logoBorn ? undefined : { visibility: 'hidden' }}>
-        <WaveText text="TximTxom" amp={12} />
+        <WaveText text="TximTxom" amp={12} plain />
       </h1>
       <div class="logo-fan" aria-hidden="true">
         {/* Fixed DOM order; each Ace slides to its slot, so a reorder animates. */}

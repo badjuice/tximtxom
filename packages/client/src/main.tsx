@@ -33,6 +33,7 @@ async function boot() {
     onBadDrop: badDrop,
     blocked: () => store.get().overlay !== null,
     onDragChange: (card) => store.set({ dragging: card !== null, dragCard: card }),
+    onOverTxiJog: (overTxiJog) => store.set({ overTxiJog }),
   });
   table.onLayout = (layout) => store.set({ layout });
   await table.init(document.getElementById('stage')!);
@@ -47,8 +48,8 @@ async function boot() {
   let lastSettings = '';
   onSettings(() => {
     // Only rebuild textures/layout when a visual setting changed.
-    const { highContrast, cardBack, clockwise, uiScale, historyOpen } = JSON.parse(localStorage.getItem('tximtxom.settings') ?? '{}');
-    const key = JSON.stringify([highContrast, cardBack, clockwise, uiScale, historyOpen]);
+    const { highContrast, cardBack, clockwise, uiScale, textScale, historyOpen } = JSON.parse(localStorage.getItem('tximtxom.settings') ?? '{}');
+    const key = JSON.stringify([highContrast, cardBack, clockwise, uiScale, textScale, historyOpen]);
     if (key !== lastSettings) {
       lastSettings = key;
       table.refreshAll();

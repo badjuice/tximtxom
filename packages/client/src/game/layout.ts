@@ -9,6 +9,8 @@ export const ART_H = 60;
 export const CARD_H = 95;
 export const CARD_W = (CARD_H * ART_W) / ART_H;
 export const ART_SCALE = CARD_H / ART_H;
+/** The furthest the hand moves up to make room for the HUD under it. */
+const MAX_LIFT = 90;
 
 export interface Point {
   x: number;
@@ -53,6 +55,8 @@ export function computeLayout(
   uiScale = 1,
   /** Sixth Sense: leave room for the Peek button between the piles. */
   widePiles = false,
+  /** Text size setting: the HTML under and beside the hand grows with it. */
+  textScale = 1,
 ): Layout {
   const portrait = screenH > screenW * 1.05;
   let w: number, h: number;
@@ -73,6 +77,19 @@ export function computeLayout(
   const hand = portrait
     ? { x: w / 2, y: h - 430, spacing: 90, cardScale: 1.6 * Math.min(k, 1.05) }
     : { x: w / 2, y: h - 215, spacing: 100 * k, cardScale: 1.5 * k };
+  // The HUD under the hand (sort bar, status line, buttons) is HTML: its size is
+  // in screen pixels and doesn't shrink with the table. On short screens (a
+  // 768 px laptop in a browser) or with bigger text, lift the hand and the piles
+  // so it all fits instead of overlapping.
+  const ts = Math.max(1, textScale);
+  const halfCard = (CARD_H * hand.cardScale) / 2;
+  let lift = 0;
+  if (!portrait) {
+    const hudPx = 150 * ts; // sort bar + status line + action bar, and the gaps
+    const maxY = h - hudPx / scale - halfCard - 22;
+    lift = Math.min(MAX_LIFT, Math.max(0, hand.y - maxY));
+    hand.y -= lift;
+  }
 
   // Opponent anchors in visual order. Counter-clockwise (default): the next
   // player sits to your right, then across, then to your left.
@@ -101,6 +118,13 @@ export function computeLayout(
     }
   };
 
+  // Your plate sits left of the hand, clear of its first card however wide the text makes it.
+  const myPlateX = () => {
+    const firstCardLeft = hand.x - 3 * hand.spacing - (CARD_W * hand.cardScale) / 2;
+    const halfPlate = (172 * ts) / 2 / scale + 14; // .plate width, plus its tags
+    return Math.max(halfPlate + 6, Math.min(hand.x - 4 * hand.spacing - 60, firstCardLeft - 10 - halfPlate));
+  };
+
   const seats: SeatAnchor[] = [];
   for (let s = 0; s < n; s++) {
     const rel = (s - mySeat + n) % n;
@@ -109,12 +133,13 @@ export function computeLayout(
           x: hand.x,
           y: hand.y,
           side: 'top',
-          plate: shortPortrait ? { x: 85, y: 500 } : portrait ? { x: w / 2, y: hand.y - 140 } : { x: hand.x - 4 * hand.spacing - 60, y: hand.y + 10 },
+          plate: shortPortrait ? { x: 85, y: 500 } : portrait ? { x: w / 2, y: hand.y - 140 } : { x: myPlateX(), y: hand.y + 10 },
         }
       : anchor(ordered[rel - 1]);
   }
 
-  const pileY = shortPortrait ? 500 : portrait ? Math.max(560, h * 0.42) : 315;
+  // Lifted hand: the piles go up with it, keeping their gap above it.
+  const pileY = shortPortrait ? 500 : portrait ? Math.max(560, h * 0.42) : 315 - Math.max(0, lift - 30);
   const gap = (portrait ? 95 : 80) + (widePiles ? 45 : 0);
   const draw = { x: w / 2 - gap, y: pileY };
   const discard = { x: w / 2 + gap, y: pileY };
@@ -136,7 +161,7 @@ export function computeLayout(
     endCard: shortPortrait ? { x: w - 72, y: pileY } : portrait ? { x: w / 2, y: pileY + 215 } : { x: w - 300, y: pileY },
     reveal: portrait
       ? { x: 20, y: 400, w: w - 40, h: h - 400 - 620, cardScale: 0.95 }
-      : { x: 250, y: 175, w: w - 640, h: 260, cardScale: 0.85 },
+      : { x: 250, y: 175, w: w - 640, h: Math.min(260, hand.y - halfCard - 185), cardScale: 0.85 },
     actionBar: portrait ? { x: w / 2, y: h - 95 } : { x: w / 2, y: h - 30 },
   };
 }

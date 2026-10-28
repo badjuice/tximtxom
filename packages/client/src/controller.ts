@@ -510,7 +510,8 @@ export function canDrop(card: Card, target: DropTarget): boolean {
   const hand = g.players[me].hand ?? [];
   if (g.phase === 'playing' && g.turn === me) {
     // Txi jog: the card goes under the discard pile, and the pile onto the draw pile.
-    if (target.kind === 'drawPile') {
+    // Dropping a hand card while holding a drawn one keeps the drawn card in its place.
+    if (target.kind === 'drawPile' || target.kind === 'txiJog') {
       if (g.step === 'drawn') return (card === g.drawn || hand.includes(card)) && (g.mustEnd || canEndWith(card));
       if (g.step === 'tookDiscard') return hand.includes(card) && card !== g.taken && canEndWith(card);
       return false;
@@ -566,8 +567,8 @@ function swapTaken(): void {
 export function drop(card: Card, target: DropTarget): void {
   const g = store.get().room?.game;
   if (!g) return;
-  // Dragging a card onto the draw pile is as deliberate as holding the Txi jog button.
-  if (target.kind === 'drawPile') {
+  // Dragging a card onto the draw pile or the Txi jog button is as deliberate as holding it.
+  if (target.kind === 'drawPile' || target.kind === 'txiJog') {
     void send({ type: 'endRound', card });
     return;
   }

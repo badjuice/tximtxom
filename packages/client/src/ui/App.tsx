@@ -93,14 +93,28 @@ function Callout() {
   const c = useStore((s) => s.callout);
   if (!c) return null;
   const n = c.text.length;
+  const tx = c.text.indexOf('TximTxom'); // its letters glow like everywhere else
   const spin = ((c.id * 47) % 90) - 45; // a different starting angle each time
   return (
     <div class={`callout${c.small ? ' small' : ''}`} key={c.id} style={{ '--c': c.color, '--life': `${c.ms}ms`, '--spin': `${spin}deg` }} aria-hidden="true">
       <div class="callout-square" />
       <div class="callout-text">
-        {[...c.text].map((ch, i) => (
-          <span style={{ '--i': i, '--pop': `${(0.17 * i) / Math.max(1, n)}s` }}>{ch === ' ' ? '\u00a0' : ch}</span>
-        ))}
+        {[...c.text].map((ch, i) => {
+          const ti = tx >= 0 && i >= tx && i < tx + 8 ? i - tx : -1;
+          return (
+            <span style={{ '--i': i, '--pop': `${(0.17 * i) / Math.max(1, n)}s` }}>
+              {ti >= 0 ? (
+                <span class="ttx-l" style={{ '--ti': ti }}>
+                  {ch}
+                </span>
+              ) : ch === ' ' ? (
+                '\u00a0'
+              ) : (
+                ch
+              )}
+            </span>
+          );
+        })}
       </div>
     </div>
   );

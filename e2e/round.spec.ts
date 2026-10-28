@@ -8,6 +8,8 @@ async function open(page: Page) {
   page.setDefaultTimeout(60_000);
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.click('#loading button');
+  // The main menu first: Play opens the name and room panel.
+  await page.click('.menu-play');
   await page.waitForSelector('text=Create room');
 }
 

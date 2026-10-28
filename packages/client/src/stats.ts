@@ -39,6 +39,8 @@ export interface MyStats {
   totalPoints: number;
   /** Highest total you went bust with, or null if you never did. */
   recordBust: number | null;
+  /** Lowest your points total has ever been in a game, or null before the first round. */
+  lowestTotal: number | null;
   /** Time spent at the table during a game, in ms. */
   timePlayed: number;
   /** Page loads of the game on this device. */
@@ -81,6 +83,7 @@ const EMPTY: MyStats = {
   worstRound: null,
   totalPoints: 0,
   recordBust: null,
+  lowestTotal: null,
   timePlayed: 0,
   visits: 0,
   since: Date.now(),
@@ -173,6 +176,7 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
         worstRound: s.worstRound === null ? pts : Math.max(s.worstRound, pts),
         totalPoints: s.totalPoints + pts,
         recordBust: total > g.rules.threshold ? Math.max(s.recordBust ?? total, total) : s.recordBust,
+        lowestTotal: s.lowestTotal === null ? total : Math.min(s.lowestTotal, total),
       }));
       break;
     }

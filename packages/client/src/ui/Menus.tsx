@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'preact/hooks';
 import { makeCard, parseCards, type Suit } from '@tximtxom/shared';
+import { play } from '../audio';
 import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE } from '../net';
 import { CARD_BACKS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
-import { Button, Choice, Credits, Fit, Modal, Rich, Slider, Tabs, Toggle, WaveText } from './common';
+import { Button, Choice, Credits, Fit, Modal, Rich, Slider, Tabs, Toggle, WaveText, withTximTxom } from './common';
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
-import { RulesForm } from './RulesForm';
+import { RulesSummary } from './RulesForm';
 import { StatsMenu, StatsPanel } from './Stats';
 import { CardBackIcon, CardIcon, ArtIcon, RandomBackIcon, Wins } from './sprites';
 
@@ -89,10 +90,26 @@ function LeaveConfirm({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** Every change to the game, newest first, marked new / changed / fixed / removed. */
+/** Every change to the game, one release at a time (newest first), each
+ *  change marked new / changed / fixed / removed. Arrows page through them. */
 function Changelog({ onClose }: { onClose: () => void }) {
   const { lang } = useSettings();
   const kinds: ChangeKind[] = ['new', 'change', 'fix', 'removed'];
+  const [i, setI] = useState(0);
+  const rel = CHANGELOG[i];
+  const go = (to: number) => {
+    if (to < 0 || to >= CHANGELOG.length) return;
+    play('button', { volume: 0.4, rate: to > i ? 0.9 : 1.15 });
+    setI(to);
+  };
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') go(i - 1);
+      else if (e.key === 'ArrowRight') go(i + 1);
+    };
+    addEventListener('keydown', k);
+    return () => removeEventListener('keydown', k);
+  }, [i]);
   return (
     <Modal title={t('cl.title')} onClose={onClose} wide class="changelog-modal">
       <p class="cl-legend">
@@ -102,24 +119,29 @@ function Changelog({ onClose }: { onClose: () => void }) {
           </span>
         ))}
       </p>
-      {CHANGELOG.map((rel, i) => (
-        <section class="cl-release">
-          <h3>
-            v{rel.version} <span class="muted">· {rel.date}</span>
-            {i === 0 && <span class="tag">{t('cl.current')}</span>}
-          </h3>
-          <ul>
-            {rel.items.map((it) => (
-              <li class={`k-${it.kind}`}>
-                <span class="cl-icon" title={t(`cl.${it.kind}` as Key)} aria-label={t(`cl.${it.kind}` as Key)}>
-                  {KIND_ICON[it.kind]}
-                </span>
-                <span>{lang === 'pt' ? it.pt : it.en}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      <div class="cl-nav">
+        <button type="button" class="cyc-arrow" disabled={i === 0} aria-label={t('cl.newer')} onClick={() => go(i - 1)}>
+          <span class="cyc-tri left" />
+        </button>
+        <h3>
+          v{rel.version} <span class="muted">· {rel.date}</span>
+          {i === 0 && <span class="tag">{t('cl.current')}</span>}
+        </h3>
+        <button type="button" class="cyc-arrow" disabled={i === CHANGELOG.length - 1} aria-label={t('cl.older')} onClick={() => go(i + 1)}>
+          <span class="cyc-tri right" />
+        </button>
+      </div>
+      <ul class="cl-items">
+        {rel.items.map((it) => (
+          <li class={`k-${it.kind}`}>
+            <span class="cl-icon" title={t(`cl.${it.kind}` as Key)} aria-label={t(`cl.${it.kind}` as Key)}>
+              {KIND_ICON[it.kind]}
+            </span>
+            <span>{withTximTxom(lang === 'pt' ? it.pt : it.en)}</span>
+          </li>
+        ))}
+      </ul>
+      <Credits />
     </Modal>
   );
 }
@@ -130,7 +152,7 @@ function ActiveRules({ onClose }: { onClose: () => void }) {
   if (!rules) return null;
   return (
     <Modal title={t('top.rules')} onClose={onClose} wide class="rules-view">
-      <RulesForm rules={rules} readOnly onChange={() => {}} />
+      <RulesSummary rules={rules} />
     </Modal>
   );
 }
@@ -494,7 +516,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
           {tab === 'stats' && <StatsPanel />}
         </div>
       </div>
-      <Credits />
     </Modal>
   );
 }

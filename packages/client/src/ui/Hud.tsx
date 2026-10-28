@@ -3,7 +3,7 @@ import { type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, 
 import { type BarButton, canDrop, cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { drawPileTop, revealGroups } from '../game/scene';
-import { type Key, kindName, t } from '../i18n';
+import { cardShort, type Key, kindName, t } from '../i18n';
 import { leaveRoom, playAgain, startGame } from '../net';
 import { updateSettings, useSettings } from '../settings';
 import { copyReport } from '../report';
@@ -351,6 +351,10 @@ export function ActionBar() {
   // While a card is held in a drag, no button may fire (a drop is coming).
   const dragging = useStore((s) => s.dragging);
   const on = (b: BarButton) => b.enabled && !dragging;
+  // A card that can end the round is being dragged: the Txi jog button takes it.
+  const dragCard = useStore((s) => s.dragCard);
+  const overTxiJog = useStore((s) => s.overTxiJog);
+  const txiJogTakes = dragCard !== null && canDrop(dragCard, { kind: 'txiJog' });
 
   // Keyboard shortcuts for the everyday buttons (the hold buttons handle their own keys).
   useEffect(() => {
@@ -395,7 +399,19 @@ export function ActionBar() {
           )}
         </div>
         <div class="corner right">
-          {bar.txiJog && <HoldButton color="red" label={bar.txiJog.label} enabled={on(bar.txiJog)} onConfirm={bar.txiJog.onClick} hotkey="R" title={bar.txiJog.title} class="special" />}
+          {bar.txiJog && (
+            <HoldButton
+              color="red"
+              label={txiJogTakes ? t('act.txiJog', { card: cardShort(dragCard) }) : bar.txiJog.label}
+              sub={txiJogTakes ? t('act.dropHere') : undefined}
+              enabled={on(bar.txiJog)}
+              onConfirm={bar.txiJog.onClick}
+              hotkey="R"
+              title={bar.txiJog.title}
+              class={`special${txiJogTakes ? ' drop-ready' : ''}${txiJogTakes && overTxiJog ? ' drop-over' : ''}`}
+              drop="txiJog"
+            />
+          )}
         </div>
       </div>
     </div>

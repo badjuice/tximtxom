@@ -30,6 +30,8 @@ export interface ClientState {
   dragging: boolean;
   /** The card being dragged, if any. */
   dragCard: number | null;
+  /** The dragged card is over the Txi jog button. */
+  overTxiJog: boolean;
   /** The loading screen is gone and the player sees the menu. */
   entered: boolean;
   layout: Layout | null;
@@ -70,6 +72,7 @@ export const store = createStore<ClientState>({
   shake: 0,
   dragging: false,
   dragCard: null,
+  overTxiJog: false,
   entered: false,
   layout: null,
   history: [],

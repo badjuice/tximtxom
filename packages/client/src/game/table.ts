@@ -8,7 +8,7 @@ import { CARD_H, CARD_W, computeLayout, type Layout, type Point } from './layout
 import { Particles, Shake } from './particles';
 import { type DesiredCard, describeScene, drawPileTop, GREEN, handDropTop, reorderedHand } from './scene';
 
-export type DropTarget = { kind: 'discard' } | { kind: 'drawPile' } | { kind: 'handCard'; card: Card } | { kind: 'formation'; id: number } | { kind: 'table' };
+export type DropTarget = { kind: 'discard' } | { kind: 'drawPile' } | { kind: 'txiJog' } | { kind: 'handCard'; card: Card } | { kind: 'formation'; id: number } | { kind: 'table' };
 
 export interface TableHandlers {
   onTapHand(card: Card): void;
@@ -25,6 +25,8 @@ export interface TableHandlers {
   blocked(): boolean;
   /** A card drag started (the card) or ended (null). */
   onDragChange(card: Card | null): void;
+  /** The dragged card moved onto (true) or off (false) the Txi jog button. */
+  onOverTxiJog(over: boolean): void;
 }
 
 export interface TableInput {
@@ -124,6 +126,7 @@ export class Table {
     addEventListener('pointerup', (e) => this.onPointerUp(e));
     addEventListener('pointercancel', () => {
       if (this.drag?.active) this.handlers.onDragChange(null);
+      this.setOverTxiJog(false);
       this.drag = null;
       this.sync();
     });
@@ -143,7 +146,7 @@ export class Table {
     const viewport = `${innerWidth - historyInset()}x${innerHeight}`;
     const resized = this.viewport !== '' && viewport !== this.viewport;
     this.viewport = viewport;
-    this.layout = computeLayout(innerWidth - historyInset(), innerHeight, g?.players.length ?? 2, g?.you ?? 0, s.clockwise, s.uiScale, !!g?.rules.sixthSense);
+    this.layout = computeLayout(innerWidth - historyInset(), innerHeight, g?.players.length ?? 2, g?.you ?? 0, s.clockwise, s.uiScale, !!g?.rules.sixthSense, s.textScale);
     this.world.scale.set(this.layout.scale);
     this.world.position.set(this.layout.offsetX, this.layout.offsetY);
     this.onLayout(this.layout);
@@ -410,8 +413,25 @@ export class Table {
         this.drag.active = true;
         this.handlers.onDragChange(this.drag.card);
       }
-      if (this.drag.active) this.sync();
+      if (this.drag.active) {
+        this.setOverTxiJog(this.overTxiJog(e));
+        this.sync();
+      }
     }
+  }
+
+  private wasOverTxiJog = false;
+  private setOverTxiJog(over: boolean): void {
+    if (over === this.wasOverTxiJog) return;
+    this.wasOverTxiJog = over;
+    this.handlers.onOverTxiJog(over);
+  }
+
+  /** Is the pointer over the Txi jog button? It lives in the page, over the canvas. */
+  private overTxiJog(e: PointerEvent): boolean {
+    const r = document.querySelector('[data-drop="txiJog"]')?.getBoundingClientRect();
+    const pad = 8; // a little slack around it, as with the piles
+    return !!r && e.clientX >= r.left - pad && e.clientX <= r.right + pad && e.clientY >= r.top - pad && e.clientY <= r.bottom + pad;
   }
 
   private onPointerDown(e: PointerEvent): void {
@@ -445,11 +465,15 @@ export class Table {
       return;
     }
     this.handlers.onDragChange(null);
+    const onTxiJog = this.overTxiJog(e);
+    this.setOverTxiJog(false);
     const p = this.toVirtual(e);
     // Dropped on something that takes it?
     const under = this.hit(p, (d) => d.card !== drag.card && (d.role === 'discardTop' || d.role === 'hand' || d.role === 'formation'));
     let target: DropTarget | null = null;
-    if (under?.role === 'discardTop' || (!under && this.overEmptyDiscard(p))) target = { kind: 'discard' };
+    // The Txi jog button sits over the table, so it comes first.
+    if (onTxiJog) target = { kind: 'txiJog' };
+    else if (under?.role === 'discardTop' || (!under && this.overEmptyDiscard(p))) target = { kind: 'discard' };
     else if (under?.role === 'hand' && under.card !== null) target = { kind: 'handCard', card: under.card };
     else if (under?.role === 'formation' && under.card !== null) {
       const id = this.formationAtCard(under.card);
