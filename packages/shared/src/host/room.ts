@@ -57,6 +57,8 @@ export interface Member {
   wins?: number;
   /** Said they're ready, in the lobby. */
   ready?: boolean;
+  /** Has the Infected achievement. */
+  infected?: boolean;
 }
 
 /** One line of the host's action log, kept for bug reports. */
@@ -161,11 +163,11 @@ export class Room {
   }
 
   /** `preferred` is the character this player used last time; they get it back if nobody has it. */
-  addHuman(name: string, clientId: string, preferred?: string): Member {
+  addHuman(name: string, clientId: string, preferred?: string, infected?: boolean): Member {
     const known = (HUMAN_JOKERS as readonly string[]).includes(preferred ?? '');
     const taken = this.members.some((x) => x.avatar === preferred);
     const art = known && !taken ? preferred! : (this.freeHumanArt() ?? 'villager');
-    const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: art, clientId };
+    const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: art, clientId, infected: !!infected };
     this.members.push(m);
     if (!this.hostId) this.hostId = m.id;
     return m;
@@ -357,6 +359,7 @@ export class Room {
       connected: x.isBot || !!x.clientId,
       wins: x.wins ?? 0,
       ready: this.isReady(x),
+      infected: !!x.infected,
     }));
     return {
       code: this.code,

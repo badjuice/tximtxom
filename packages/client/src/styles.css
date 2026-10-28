@@ -354,6 +354,108 @@ input[type='text'] {
 .wave .w {
   white-space: nowrap;
 }
+/* "TximTxom" wherever it's written (not the title logo): rainbow colours flow
+   through it from left to right, and the letters ride a wave. A dark pixel
+   outline keeps every colour readable on any background (red and blue buttons
+   included). The wave moves in whole pixels so the pixel font stays crisp. */
+.ttx {
+  white-space: nowrap;
+}
+.ttx-l {
+  display: inline-block;
+  color: #ff6b5e;
+  text-shadow:
+    1px 0 0 #1b2426,
+    -1px 0 0 #1b2426,
+    0 1px 0 #1b2426,
+    0 -1px 0 #1b2426,
+    0 2px 0 rgba(0, 0, 0, 0.45);
+  will-change: translate;
+  /* Each letter runs the same cycles a little behind the one before it, so the
+     colours travel left to right and the wave rolls along the word. */
+  animation:
+    ttx-colors 2.4s linear calc(var(--ti) * 0.15s - 2.4s) infinite,
+    ttx-wave 1.2s linear calc(var(--ti) * 0.15s - 1.2s) infinite;
+}
+@keyframes ttx-colors {
+  0%,
+  100% {
+    color: #ff6b5e;
+  }
+  17% {
+    color: #ffae3d;
+  }
+  33% {
+    color: #ffe066;
+  }
+  50% {
+    color: #6ee7a8;
+  }
+  67% {
+    color: #4fc3ff;
+  }
+  83% {
+    color: #b98cff;
+  }
+}
+/* One full sine period, held at whole pixels. */
+@keyframes ttx-wave {
+  0%,
+  100% {
+    translate: 0 0;
+    animation-timing-function: step-end;
+  }
+  12.5% {
+    translate: 0 -2px;
+    animation-timing-function: step-end;
+  }
+  25% {
+    translate: 0 -3px;
+    animation-timing-function: step-end;
+  }
+  37.5% {
+    translate: 0 -2px;
+    animation-timing-function: step-end;
+  }
+  50% {
+    translate: 0 0;
+    animation-timing-function: step-end;
+  }
+  62.5% {
+    translate: 0 2px;
+    animation-timing-function: step-end;
+  }
+  75% {
+    translate: 0 3px;
+    animation-timing-function: step-end;
+  }
+  87.5% {
+    translate: 0 2px;
+    animation-timing-function: step-end;
+  }
+}
+/* Reduced motion: a still rainbow, each letter frozen at its own colour. */
+.reduced-motion .ttx-l {
+  animation: ttx-colors 2.4s linear calc(var(--ti) * 0.15s - 2.4s) infinite paused;
+}
+.wave .w > span {
+  -webkit-text-stroke: 0.07em rgba(14, 22, 24, 0.85);
+  paint-order: stroke fill;
+}
+.logo .wave .w > span:nth-child(odd) {
+  color: var(--red);
+}
+.logo .wave .w > span:nth-child(even) {
+  color: var(--blue);
+  text-shadow:
+    0 6px 0 var(--blue-d),
+    0 10px 0 rgba(0, 0, 0, 0.4);
+}
+/* Balatro-style text: every letter wobbles gently on its own phase; the
+   hops on top are driven from WaveText (they animate translate, this rotate). */
+.wave .w {
+  white-space: nowrap;
+}
 /* "TximTxom" wherever it's written (not the title logo): a rainbow glows
    through its letters and shifts, and the letters ride a wave. The wave
    steps in whole pixels so the pixel font stays crisp. */
@@ -415,6 +517,9 @@ input[type='text'] {
   }
 }
 /* Four Aces fanned like a hand: each card turns around a point below the row. */
+.logo-fan.away {
+  display: none;
+}
 .logo-fan {
   position: relative;
   z-index: 3; /* a held Ace passes over the panel */
@@ -562,29 +667,13 @@ input[type='text'] {
   min-height: 72px;
   font-size: 2em;
 }
-.main-menu .menu-main,
-.main-menu .soon-wrap {
+.main-menu .menu-main {
   grid-column: span 2;
 }
 .main-menu .menu-minor {
   grid-column: span 3;
   min-height: 40px;
   font-size: 0.95em;
-}
-/* Achievements: locked until they exist. */
-.soon-wrap {
-  position: relative;
-  display: flex;
-}
-.soon-wrap .btn {
-  flex: 1;
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.soon-wrap .btn-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 /* A small padlock drawn in CSS: a shackle over a body. */
 .lock {
@@ -607,32 +696,6 @@ input[type='text'] {
   border: 0.1em solid currentColor;
   border-bottom: none;
   border-radius: 0.25em 0.25em 0 0;
-}
-.soon-hint {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 50%;
-  translate: -50% -4px;
-  z-index: 6;
-  width: max-content;
-  max-width: min(240px, 80vw);
-  padding: 6px 10px;
-  font-size: 0.85em;
-  text-align: center;
-  color: var(--text);
-  background: var(--panel-d);
-  border: 2px solid var(--gold);
-  border-radius: 8px;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 0.15s,
-    translate 0.15s;
-}
-.soon-hint.on {
-  opacity: 1;
-  translate: -50% 0;
 }
 .title-panel .play-back {
   align-self: center;
@@ -660,10 +723,6 @@ input[type='text'] {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-.lobby-rules {
-  width: min(560px, 94vw);
-  flex: 1;
 }
 .room-code {
   font: inherit;
@@ -737,33 +796,26 @@ input[type='text'] {
 .x:hover {
   color: #ff8a82;
 }
-.lobby-side {
+/* How to play, Formations and Rules: a column beside the room panel, or a row above it. */
+.lobby-links {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-.lobby-top {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-/* Narrow enough to stay clear of the language and Settings corner. */
-.lobby-links {
-  display: grid;
-  grid-template-columns: repeat(2, 170px);
   gap: 8px;
+  width: 170px;
+  align-self: flex-start;
 }
-/* The two lobby columns stop fitting side by side below ~990px. */
-@media (max-width: 989px) {
+@media (max-width: 700px) {
   .lobby {
     padding-top: calc(64px + var(--safe-top));
   }
-  .lobby-top {
-    display: contents;
-  }
   .lobby-links {
     order: -1;
-    grid-template-columns: 1fr 1fr;
+    flex-direction: row;
+    width: min(380px, 94vw);
+  }
+  .lobby-links .btn {
+    flex: 1;
+    min-width: 0;
   }
 }
 .bot-row {
@@ -790,6 +842,35 @@ input[type='text'] {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+/* The room's Rules window: two columns where there's room, so every rule fits unscrolled. */
+.modal.lobby-rules-modal {
+  width: min(940px, 96vw);
+}
+@media (min-width: 900px) {
+  .lobby-rules-modal .rules-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+/* Short screens (a laptop): the room panel tightens so it fits without scrolling. */
+@media (max-height: 760px) {
+  .lobby {
+    padding-block: calc(10px + var(--safe-top)) calc(10px + var(--safe-bottom));
+  }
+  .player-list {
+    gap: 4px;
+  }
+  .player-list li {
+    height: 44px;
+    padding-block: 2px;
+  }
+  .lobby-room {
+    gap: 6px;
+  }
+  .room-code {
+    font-size: 3em;
+  }
 }
 .toggle {
   display: flex;
@@ -3174,13 +3255,6 @@ input.rename {
 .plate-stats {
   white-space: nowrap;
 }
-/* Wide screens: a wider panel, still one rule per row, so each description
-   fits on a line or two next to its switch. */
-@media (min-width: 1100px) {
-  .lobby-rules {
-    width: min(780px, 60vw);
-  }
-}
 
 @media (max-width: 700px) {
   .action-bar {
@@ -3881,4 +3955,163 @@ input.rename {
   .settings-modal .toggle {
     min-height: 44px;
   }
+}
+
+/* ---------------------------------------------------------- achievements */
+
+/* Two columns of cards: art, name, what to do and a quiet line of flavour. */
+.modal.ach-modal {
+  width: min(760px, 96vw);
+}
+.ach-count {
+  margin: 0 0 8px;
+  text-align: center;
+  color: var(--gold);
+}
+.ach-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 6px;
+}
+.ach-list li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--panel-in);
+  border-radius: 8px;
+  box-shadow: inset 0 -3px 0 var(--panel-d);
+}
+.ach-list li.got {
+  box-shadow:
+    inset 0 -3px 0 var(--panel-d),
+    inset 3px 0 0 var(--gold);
+}
+.ach-list li > .sprite {
+  flex: none;
+}
+.ach-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+.ach-name {
+  color: var(--gold);
+}
+.locked .ach-name {
+  color: var(--muted);
+}
+.ach-desc {
+  font-size: 0.9em;
+}
+.ach-flavor {
+  font-size: 0.78em;
+  font-style: italic;
+  color: var(--muted);
+  opacity: 0.75;
+}
+/* A locked card: grey, with a padlock, or a question mark for a secret one. */
+.sprite.ach-blank {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 48px;
+  background: var(--grey);
+  border: 2px solid #b8c4c6;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 2px var(--grey-d);
+  color: #d4dcdd;
+  font-size: 1.6em;
+}
+.ach-blank .lock {
+  font-size: 1.4em;
+  margin-top: 0.15em;
+}
+.ach-q {
+  text-shadow: 0 2px 0 var(--grey-d);
+}
+/* The unlock toast, top middle, over everything. */
+.ach-toast {
+  position: fixed;
+  left: 50%;
+  top: calc(10px + var(--safe-top));
+  z-index: 60;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: max-content;
+  max-width: min(420px, 92vw);
+  padding: 8px 14px 8px 10px;
+  background: var(--panel-d);
+  border: 2px solid var(--gold);
+  border-radius: 10px;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
+  translate: -50% 0;
+  animation: ach-toast 3.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  pointer-events: none;
+}
+.ach-toast > .sprite {
+  flex: none;
+}
+.ach-toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ach-toast-head {
+  color: var(--gold);
+  font-size: 0.85em;
+}
+@keyframes ach-toast {
+  0% {
+    translate: -50% -140%;
+  }
+  10%,
+  88% {
+    translate: -50% 0;
+    opacity: 1;
+  }
+  100% {
+    translate: -50% -140%;
+    opacity: 0;
+  }
+}
+.reduced-motion .ach-toast {
+  animation: fade 0.2s both;
+}
+
+/* Cards and card art can be picked up for fun (grab.ts). Touch drags them too,
+   except in the scrolling History, where a swipe scrolls. */
+.sprite.tilt {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+.history-list .sprite.tilt {
+  touch-action: auto;
+}
+.sprite.grabbed {
+  position: fixed;
+  z-index: 1000;
+  margin: 0;
+  animation: none; /* the idle sway would override the drag's translate and rotate */
+  pointer-events: none;
+  cursor: grabbing;
+  scale: 1.12;
+  filter: drop-shadow(0 12px 0 rgba(0, 0, 0, 0.35));
+  transition: scale 0.15s;
+}
+.sprite.grabbed.settling {
+  scale: 1;
+  transition:
+    translate 0.38s cubic-bezier(0.2, 1.5, 0.4, 1),
+    rotate 0.38s cubic-bezier(0.2, 1.5, 0.4, 1),
+    scale 0.25s,
+    filter 0.3s;
+  filter: none;
 }

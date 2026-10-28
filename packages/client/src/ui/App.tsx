@@ -5,6 +5,7 @@ import { getSettings, updateSettings, useSettings } from '../settings';
 import { t } from '../i18n';
 import { store, useStore } from '../store';
 import { WaveText } from './common';
+import { AchievementToast } from './Achievements';
 import { HistoryPanel } from './History';
 import { Hud } from './Hud';
 import { Lobby } from './Lobby';
@@ -73,6 +74,7 @@ export function App() {
       <Banner />
       <Callout />
       <Toast />
+      <AchievementToast />
       <Hint />
       <Announcer />
       {!connected && room && (

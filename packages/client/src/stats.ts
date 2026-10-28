@@ -53,6 +53,8 @@ export interface GlobalStats {
   players: number | null;
   visits: number | null;
   rounds: number | null;
+  /** Players with the Infected achievement. */
+  infected: number | null;
   /** The counting service could not be reached. */
   offline: boolean;
 }
@@ -98,7 +100,7 @@ function load(): MyStats {
 }
 
 let mine = load();
-let global: GlobalStats = { players: null, visits: null, rounds: null, offline: false };
+let global: GlobalStats = { players: null, visits: null, rounds: null, infected: null, offline: false };
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
 
@@ -123,18 +125,42 @@ const NAMESPACE = 'badjuice.github.io';
 // Dev builds and test browsers read the counters but never add to them.
 const COUNTING = !import.meta.env.DEV && !navigator.webdriver;
 
-async function abacus(op: 'hit' | 'get', key: 'players' | 'visits' | 'rounds'): Promise<void> {
+type Counter = 'players' | 'visits' | 'rounds' | 'infected';
+
+/** Reads or adds one to a global counter; resolves to its value, or null when offline. */
+async function abacus(op: 'hit' | 'get', key: Counter): Promise<number | null> {
   if (op === 'hit' && !COUNTING) op = 'get';
+  let value: unknown = null;
   try {
     const res = await fetch(`${ABACUS}/${op}/${NAMESPACE}/tximtxom-${key}`);
     // A counter nobody has hit yet doesn't exist: that's a zero.
-    const value = res.status === 404 ? 0 : res.ok ? (await res.json()).value : null;
-    global = typeof value === 'number' ? { ...global, [key]: value, offline: false } : { ...global, offline: true };
+    value = res.status === 404 ? 0 : res.ok ? (await res.json()).value : null;
   } catch {
     // Offline or blocked: the counter stays hidden.
-    global = { ...global, offline: true };
   }
+  global = typeof value === 'number' ? { ...global, [key]: value, offline: false } : { ...global, offline: true };
   notify();
+  return typeof value === 'number' ? value : null;
+}
+
+/** Fetches how many players are Infected (shown with the achievements). */
+export function refreshInfected(): void {
+  void abacus('get', 'infected');
+}
+
+/** Counts this device as Infected. */
+export function countInfected(): void {
+  void abacus('hit', 'infected');
+}
+
+/**
+ * Patient zero: the first player to start a game, before anyone else has the
+ * Infected achievement, gets it. True when that's you. The counter only ever
+ * goes up, so of two players starting at once only the one who reaches 1 wins.
+ */
+export async function claimPatientZero(): Promise<boolean> {
+  if (!COUNTING || (await abacus('get', 'infected')) !== 0) return false;
+  return (await abacus('hit', 'infected')) === 1;
 }
 
 /** Fetches the global rounds count (only shown in the Stats tab). */

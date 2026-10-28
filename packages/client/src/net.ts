@@ -4,6 +4,7 @@
 // - server: a Socket.IO server hosts rooms. Used when the build sets
 //   VITE_SERVER_URL ("/" means the same origin, as in `npm run dev:server`).
 import type { Socket } from 'socket.io-client';
+import { hasAchievement } from './achievements';
 import { type Action, type ClientToServer, type GameEvent, IDLE_REASON, type JoinResult, randomCode, type Request, type Rules, sanitizeRules, type ServerToClient } from '@tximtxom/shared';
 import { Guest, hasSavedHostRoom, Host, type P2PEvents, type Result } from './p2p';
 import { t, tError } from './i18n';
@@ -154,7 +155,7 @@ async function initServerMode(): Promise<void> {
     // menu shows first, and rejoinRoom does it.)
     const s = loadSession();
     if (s && store.get().room) {
-      socket!.emit('room:join', { code: s.code, name: savedName(), token: s.token }, (res) => {
+      socket!.emit('room:join', { code: s.code, name: savedName(), token: s.token, infected: hasAchievement('infected') }, (res) => {
         if (!res.ok) {
           clearSession();
           store.set({ room: null });
@@ -176,7 +177,7 @@ export async function rejoinRoom(): Promise<void> {
   const s = loadSession();
   if (!s) return;
   if (MODE === 'server') {
-    const res = await call<JoinResult>({ event: 'room:join', msg: { code: s.code, name: savedName(), token: s.token } });
+    const res = await call<JoinResult>({ event: 'room:join', msg: { code: s.code, name: savedName(), token: s.token, infected: hasAchievement('infected') } });
     if (!res.ok) {
       clearSession();
       toast(t('err.roomGone'), 'error');
@@ -188,10 +189,10 @@ export async function rejoinRoom(): Promise<void> {
       toast(t('err.reopening'));
       host = await Host.resume(p2pEvents);
       if (!host) throw new Error('gone');
-      const r = host.request({ event: 'room:join', msg: { code: s.code, name: savedName(), token: s.token } });
+      const r = host.request({ event: 'room:join', msg: { code: s.code, name: savedName(), token: s.token, infected: hasAchievement('infected') } });
       if (!r.ok) throw new Error(r.error);
     } else if (!s.host) {
-      await connectGuest(s.code, { code: s.code, name: savedName(), token: s.token });
+      await connectGuest(s.code, { code: s.code, name: savedName(), token: s.token, infected: hasAchievement('infected') });
     } else {
       throw new Error('gone');
     }
@@ -202,14 +203,14 @@ export async function rejoinRoom(): Promise<void> {
   }
 }
 
-async function connectGuest(code: string, join: { code: string; name: string; token?: string; avatar?: string }): Promise<Result> {
+async function connectGuest(code: string, join: { code: string; name: string; token?: string; avatar?: string; infected?: boolean }): Promise<Result> {
   guest?.stop();
   const g = await Guest.connect(code, p2pEvents);
   guest = g;
   const res = await g.request({ event: 'room:join', msg: join });
   if (res.ok) {
     const token = (res as unknown as JoinResult).token;
-    g.onReconnect = () => void g.request({ event: 'room:join', msg: { code, name: savedName(), token } });
+    g.onReconnect = () => void g.request({ event: 'room:join', msg: { code, name: savedName(), token, infected: hasAchievement('infected') } });
   } else {
     g.stop();
     guest = null;
@@ -282,7 +283,7 @@ export async function createRoom(name: string, rules: Partial<Rules> | undefined
       return { ok: false as const, error: 'offline' };
     }
   }
-  const r = await call<JoinResult>({ event: 'room:create', msg: { name, rules, avatar: savedAvatar() } });
+  const r = await call<JoinResult>({ event: 'room:create', msg: { name, rules, avatar: savedAvatar(), infected: hasAchievement('infected') } });
   if (r.ok) saveSession(r, MODE === 'p2p');
   return r;
 }
@@ -291,7 +292,7 @@ export async function joinRoom(code: string, name: string) {
   localStorage.setItem(NAME_KEY, name);
   if (MODE === 'p2p') {
     try {
-      const r = await connectGuest(code, { code, name, avatar: savedAvatar() });
+      const r = await connectGuest(code, { code, name, avatar: savedAvatar(), infected: hasAchievement('infected') });
       if (!r.ok) {
         toast(tError(r.error), 'error');
         return r;
@@ -303,7 +304,7 @@ export async function joinRoom(code: string, name: string) {
       return { ok: false as const, error: 'not found' };
     }
   }
-  const r = await call<JoinResult>({ event: 'room:join', msg: { code, name, avatar: savedAvatar() } });
+  const r = await call<JoinResult>({ event: 'room:join', msg: { code, name, avatar: savedAvatar(), infected: hasAchievement('infected') } });
   if (r.ok) saveSession(r, false);
   return r;
 }

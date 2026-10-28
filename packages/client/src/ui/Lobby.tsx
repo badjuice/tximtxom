@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'preact/hooks';
-import { DEFAULT_RULES, MAX_PLAYERS, MIN_PLAYERS, NAME_MAX, type Rules } from '@tximtxom/shared';
+import { MAX_PLAYERS, MIN_PLAYERS, NAME_MAX } from '@tximtxom/shared';
 import { play } from '../audio';
 import { t } from '../i18n';
-import { addBot, cycleAvatar, kick, renamePlayer, setReady, setRules, startGame } from '../net';
+import { addBot, cycleAvatar, kick, renamePlayer, setReady, startGame } from '../net';
 import { store, useStore } from '../store';
 import { Button, TopMenu, WaveText } from './common';
 import { SEAT_COLORS } from './Hud';
-import { RulesForm } from './RulesForm';
 import { Icon, ArtIcon, Wins } from './sprites';
 
 const PencilIcon = () => (
@@ -45,9 +44,6 @@ async function fillWithBots(missing: number) {
 async function removeBots(ids: string[]) {
   for (const id of ids) await kick(id);
 }
-
-/** True when every rule is at its default (the reset button has nothing to do). */
-const isDefault = (r: Rules) => (Object.keys(DEFAULT_RULES) as (keyof Rules)[]).every((k) => r[k] === DEFAULT_RULES[k]);
 
 /** Focuses the rename box once, when it appears (not on every re-render). */
 const focusOnMount = (el: HTMLInputElement | null) => {
@@ -220,32 +216,18 @@ export function Lobby() {
         </p>
       </section>
 
-      <div class="lobby-side">
-        {/* Above the rules on wide screens; on phones right after the room panel. */}
-        <div class="lobby-top">
-          <div class="lobby-links">
-            <Button color="green" onClick={() => store.set({ overlay: 'help' })}>
-              {t('title.howToPlay')}
-            </Button>
-            <Button color="blue" onClick={() => store.set({ overlay: 'formations' })}>
-              {t('top.formations')}
-            </Button>
-          </div>
-        </div>
-        <section class="panel lobby-rules">
-          <h2>
-            <WaveText text={isHost ? t('lobby.rules') : t('lobby.rulesByHost')} max={28} />
-          </h2>
-          <RulesForm rules={room.rules} readOnly={!isHost} onChange={(r) => void setRules(r)} />
-          {isHost && (
-            <div class="rules-reset">
-              <Button color="orange" disabled={isDefault(room.rules)} onClick={() => void setRules(DEFAULT_RULES)}>
-                {t('lobby.resetRules')}
-              </Button>
-            </div>
-          )}
-        </section>
-      </div>
+      {/* Beside the room on wide screens; above it on narrow ones. The rules open in their own window. */}
+      <nav class="lobby-links">
+        <Button color="green" onClick={() => store.set({ overlay: 'help' })}>
+          {t('title.howToPlay')}
+        </Button>
+        <Button color="blue" onClick={() => store.set({ overlay: 'formations' })}>
+          {t('top.formations')}
+        </Button>
+        <Button color="red" onClick={() => store.set({ overlay: 'rules' })}>
+          {t('top.rules')}
+        </Button>
+      </nav>
     </main>
   );
 }

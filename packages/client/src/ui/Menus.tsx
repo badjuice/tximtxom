@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'preact/hooks';
-import { makeCard, parseCards, type Suit } from '@tximtxom/shared';
+import { DEFAULT_RULES, makeCard, parseCards, type Rules, type Suit } from '@tximtxom/shared';
 import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
-import { leaveRoom, MODE } from '../net';
+import { leaveRoom, MODE, setRules } from '../net';
 import { CARD_BACKS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, Fit, Modal, Rich, Slider, Tabs, Toggle, WaveText, withTximTxom } from './common';
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
-import { RulesSummary } from './RulesForm';
+import { CONTACT_EMAIL, ISSUES_URL, VERSION } from '../version';
+import { RulesForm, RulesSummary } from './RulesForm';
+import { AchievementsMenu } from './Achievements';
 import { StatsMenu } from './Stats';
 import { CardBackIcon, CardIcon, ArtIcon, RandomBackIcon, Wins } from './sprites';
 
@@ -33,6 +35,8 @@ export function Overlays() {
       return <LanguageMenu onClose={close} />;
     case 'stats':
       return <StatsMenu onClose={close} />;
+    case 'achievements':
+      return <AchievementsMenu onClose={close} />;
     default:
       return null;
   }
@@ -95,7 +99,26 @@ function Changelog({ onClose }: { onClose: () => void }) {
   const { lang } = useSettings();
   const kinds: ChangeKind[] = ['new', 'change', 'fix', 'removed'];
   return (
-    <Modal title={t('cl.title')} onClose={onClose} wide class="changelog-modal">
+    <Modal
+      title={t('cl.title')}
+      onClose={onClose}
+      wide
+      class="changelog-modal"
+      footer={
+        <>
+          {/* A new GitHub issue, with the version and browser filled in. */}
+          <Button
+            color="purple"
+            onClick={() => open(`${ISSUES_URL}?body=${encodeURIComponent(`\n\n---\nTximTxom v${VERSION} · ${navigator.userAgent}`)}`, '_blank', 'noopener')}
+          >
+            {t('cl.issue')}
+          </Button>
+          <Button color="blue" onClick={() => (location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`TximTxom v${VERSION}`)}`)}>
+            {t('cl.contact')}
+          </Button>
+        </>
+      }
+    >
       <p class="cl-legend">
         {kinds.map((k) => (
           <span class={`cl-kind k-${k}`}>
@@ -126,13 +149,35 @@ function Changelog({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** The rules of the game being played, read-only. */
+/** True when every rule is at its default (the reset button has nothing to do). */
+const isDefault = (r: Rules) => (Object.keys(DEFAULT_RULES) as (keyof Rules)[]).every((k) => r[k] === DEFAULT_RULES[k]);
+
+/** The rules. In a game, a compact read-only list; in the room, every rule with its
+ *  description, which the host can change. */
 function ActiveRules({ onClose }: { onClose: () => void }) {
-  const rules = useStore((s) => s.room?.game?.rules ?? s.room?.rules);
-  if (!rules) return null;
+  const room = useStore((s) => s.room);
+  if (!room) return null;
+  if (room.game)
+    return (
+      <Modal title={t('top.rules')} onClose={onClose} wide class="rules-view">
+        <RulesSummary rules={room.game.rules} />
+      </Modal>
+    );
+  const isHost = room.hostId === room.youId;
   return (
-    <Modal title={t('top.rules')} onClose={onClose} wide class="rules-view">
-      <RulesSummary rules={rules} />
+    <Modal
+      title={isHost ? t('lobby.rules') : t('lobby.rulesByHost')}
+      onClose={onClose}
+      class="lobby-rules-modal"
+      footer={
+        isHost && (
+          <Button color="red" disabled={isDefault(room.rules)} onClick={() => void setRules(DEFAULT_RULES)}>
+            {t('lobby.resetRules')}
+          </Button>
+        )
+      }
+    >
+      <RulesForm rules={room.rules} readOnly={!isHost} onChange={(r) => void setRules(r)} />
     </Modal>
   );
 }
@@ -302,7 +347,7 @@ function Formations({ onClose }: { onClose: () => void }) {
 
 // ------------------------------------------------------------------ settings
 
-type SetTab = 'general' | 'controls' | 'cards' | 'motion' | 'sound';
+type SetTab = 'general' | 'controls' | 'access' | 'cards' | 'motion' | 'sound';
 
 /** Keyboard shortcuts shown in the Controls tab. `hold` keys need a press and hold. */
 /** `keys` is shown as is; `mouse` is a translated mouse action in its place. */
@@ -360,6 +405,8 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
   const s = useSettings();
   const [tab, setTab] = useState<SetTab>('general');
   const set = (p: Partial<Settings>) => updateSettings(p);
+  // Touch-only screens have no keyboard or mouse: no Controls tab.
+  const keyboard = !matchMedia('(hover: none)').matches;
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   return (
     <Modal
@@ -376,7 +423,8 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
       <Tabs
         tabs={[
           { id: 'general', label: t('set.tab.general') },
-          { id: 'controls', label: t('set.tab.controls') },
+          ...(keyboard ? [{ id: 'controls' as const, label: t('set.tab.controls') }] : []),
+          { id: 'access', label: t('set.tab.access') },
           { id: 'cards', label: t('set.tab.graphics') },
           { id: 'motion', label: t('set.tab.motion') },
           { id: 'sound', label: t('set.tab.sound') },
@@ -406,8 +454,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             onChange={(v) => set({ clockwise: v === 'cw' })}
           />
           <Toggle label={t('set.announce')} desc={t('set.announce.desc')} checked={s.announce} onChange={(v) => set({ announce: v })} />
-        </div>
-        <div class={`tab-panel${tab === 'controls' ? '' : ' hidden'}`} inert={tab !== 'controls'}>
           <Choice
             label={t('set.sortBy')}
             desc={t('set.sortBy.desc')}
@@ -419,27 +465,35 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             onChange={(sortBy) => set({ sortBy })}
           />
           <Toggle label={t('set.autoSort')} desc={t('sort.autoTitle')} checked={s.autoSort} onChange={(v) => set({ autoSort: v })} />
+        </div>
+        <div class={`tab-panel${tab === 'access' ? '' : ' hidden'}`} inert={tab !== 'access'}>
           <Toggle label={t('set.confirm')} desc={t('set.confirm.desc')} checked={s.confirmMoves} onChange={(v) => set({ confirmMoves: v })} />
           <Toggle label={t('set.lefty')} desc={t('set.lefty.desc')} checked={s.leftHanded} onChange={(v) => set({ leftHanded: v })} />
-          <h3 class="keys-title">{t('set.keyboard')}</h3>
-          <div class="keys-cols">
-            {[KEYS.slice(0, Math.ceil(KEYS.length / 2)), KEYS.slice(Math.ceil(KEYS.length / 2))].map((col) => (
-              <dl class="keys-list">
-                {col.map((k) => (
-                  <>
-                    <dt>
-                      {k.hold && <span class="muted small">{t('set.hold')} </span>}
-                      <kbd class="kbd">{k.mouse ? t(k.mouse) : k.keys}</kbd>
-                    </dt>
-                    <dd>{t(k.label)}</dd>
-                  </>
-                ))}
-              </dl>
-            ))}
-          </div>
-        </div>
-        <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
           <Toggle label={t('set.highContrast')} desc={t('set.highContrast.desc')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />
+          <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />
+          <Toggle label={t('set.flash')} desc={t('set.flash.desc')} checked={s.safeFlash} onChange={(v) => set({ safeFlash: v })} />
+        </div>
+        {keyboard && (
+          <div class={`tab-panel${tab === 'controls' ? '' : ' hidden'}`} inert={tab !== 'controls'}>
+            <h3 class="keys-title">{t('set.keyboard')}</h3>
+            <div class="keys-cols">
+              {[KEYS.slice(0, Math.ceil(KEYS.length / 2)), KEYS.slice(Math.ceil(KEYS.length / 2))].map((col) => (
+                <dl class="keys-list">
+                  {col.map((k) => (
+                    <>
+                      <dt>
+                        {k.hold && <span class="muted small">{t('set.hold')} </span>}
+                        <kbd class="kbd">{k.mouse ? t(k.mouse) : k.keys}</kbd>
+                      </dt>
+                      <dd>{t(k.label)}</dd>
+                    </>
+                  ))}
+                </dl>
+              ))}
+            </div>
+          </div>
+        )}
+        <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
           <div class="toggle">
             <span class="toggle-text">
               <span class="toggle-label">
@@ -469,7 +523,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
           </div>
           <Toggle label={t('set.smoothing')} desc={t('set.smoothing.desc')} checked={s.smooth === 'all'} onChange={(v) => set({ smooth: v ? 'all' : 'off' })} />
           <Slider label={t('set.size')} value={s.uiScale} min={0.8} max={1.2} step={0.05} onChange={(v) => set({ uiScale: v })} format={pct} />
-          <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />
         </div>
         <div class={`tab-panel${tab === 'motion' ? '' : ' hidden'}`} inert={tab !== 'motion'}>
           {/* Reduced motion turns these two off, so they sit under it. */}
@@ -492,7 +545,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
               disabled={!s.crt}
             />
           </div>
-          <Toggle label={t('set.flash')} desc={t('set.flash.desc')} checked={s.safeFlash} onChange={(v) => set({ safeFlash: v })} />
           <Choice
             label={t('set.speed')}
             value={s.gameSpeed}

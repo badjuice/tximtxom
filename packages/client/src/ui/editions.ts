@@ -15,7 +15,8 @@ const VERT = `
 attribute vec2 pos;
 varying vec2 uv;
 void main() {
-  uv = vec2(pos.x * 0.5 + 0.5, 0.5 - pos.y * 0.5);
+  // Upside down: readPixels returns the bottom row first, so the art's top row comes out first.
+  uv = vec2(pos.x * 0.5 + 0.5, 0.5 + pos.y * 0.5);
   gl_Position = vec4(pos, 0.0, 1.0);
 }`;
 
@@ -136,6 +137,8 @@ interface Entry {
   tilt: [number, number];
   landedAt: number;
   spawning: { start: number; ms: number; seed: number; done: () => void } | null;
+  /** The last frame, read back from WebGL. */
+  pixels: ImageData | null;
 }
 
 let gl: WebGLRenderingContext | null = null;
@@ -249,8 +252,11 @@ function draw(now: number): void {
     const since = (now - e.landedAt) / 1000;
     g.uniform1f(uniforms.flash, reduced ? 0 : Math.max(0, 1 - since / 0.45));
     g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
-    e.ctx.clearRect(0, 0, w, h);
-    e.ctx.drawImage(glCanvas, 0, 0);
+    // Read back as plain RGBA rather than drawImage(glCanvas): some GPU-accelerated
+    // browsers swap red and blue on that copy (blue diamonds that turn orange).
+    if (!e.pixels || e.pixels.width !== w || e.pixels.height !== h) e.pixels = new ImageData(w, h);
+    g.readPixels(0, 0, w, h, g.RGBA, g.UNSIGNED_BYTE, new Uint8Array(e.pixels.data.buffer));
+    e.ctx.putImageData(e.pixels, 0, 0);
   }
 }
 
@@ -266,7 +272,7 @@ function loop(now: number): void {
  */
 export function attachEdition(canvas: HTMLCanvasElement, face: string) {
   const ctx = canvas.getContext('2d')!;
-  const e: Entry = { canvas, ctx, tex: null, texSize: [1, 1], edition: null, tilt: [0, 0], landedAt: 0, spawning: null };
+  const e: Entry = { canvas, ctx, tex: null, texSize: [1, 1], edition: null, tilt: [0, 0], landedAt: 0, spawning: null, pixels: null };
   entries.add(e);
   void cardTexture(e, face);
   if (!frame) frame = requestAnimationFrame(loop);

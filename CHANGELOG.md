@@ -5,6 +5,17 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.29.0 (2026-10-28)
+- ✨ Achievements! Eleven to unlock, some of them secret. A toast at the top of the screen tells you when you get one.
+- ✨ Pick up the cards in the menus and windows (rules, characters, achievements, card backs) and swing them around, just for fun.
+- ✨ The Changelog has buttons to report an issue on GitHub or to contact me.
+- ✨ Stats show the date and time you started playing.
+- 🔧 TximTxom's colours flow from left to right, with a dark outline so it reads on any background, and its letters ride a wave.
+- 🔧 In the room, the rules open in their own window from a red Rules button, next to How to play and Formations. The room no longer scrolls.
+- 🔧 Settings has an Accessibility tab. Controls only lists the keyboard and mouse, and is hidden on touch screens. Sorting moved to General.
+- 🐛 The Aces only show on the main menu, not behind the Play panel.
+- 🐛 The Aces could appear in the wrong colours while materialising on some browsers.
+
 ## 0.28.0 (2026-10-28)
 - ✨ A new main menu in the style of Balatro: Play, Stats, Achievements (coming soon), Settings, Changelog and How to play.
 - ✨ Stats: time in games, rounds and games played, won and lost, win streaks, best and worst round, lowest total, record bust, cards drawn and a chart of your formations.

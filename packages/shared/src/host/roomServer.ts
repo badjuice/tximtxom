@@ -132,7 +132,7 @@ export class RoomServer {
         this.disconnect(clientId);
         const room = this.makeRoom(this.newCode());
         room.setRules(req.msg?.rules ?? {});
-        const m = room.addHuman(cleanName(req.msg?.name), clientId, req.msg?.avatar);
+        const m = room.addHuman(cleanName(req.msg?.name), clientId, req.msg?.avatar, req.msg?.infected === true);
         this.clientRoom.set(clientId, room);
         room.connect(m, clientId);
         return { ok: true, code: room.code, token: m.token, playerId: m.id };
@@ -150,8 +150,10 @@ export class RoomServer {
         } else {
           if (room.game) return { ok: false, error: 'That game has already started' };
           if (room.isFull) return { ok: false, error: 'That room is full' };
-          m = room.addHuman(cleanName(req.msg?.name), clientId, req.msg?.avatar);
+          m = room.addHuman(cleanName(req.msg?.name), clientId, req.msg?.avatar, req.msg?.infected === true);
         }
+        // Caught it somewhere else since taking this seat.
+        if (req.msg?.infected === true) m.infected = true;
         this.clientRoom.set(clientId, room);
         room.connect(m, clientId);
         return { ok: true, code: room.code, token: m.token, playerId: m.id };

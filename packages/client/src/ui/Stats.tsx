@@ -159,6 +159,7 @@ function StatsPanel() {
                 ['stats.taken', formatCount(s.cardsTaken)],
                 ['stats.discarded', formatCount(s.cardsDiscarded)],
                 ['stats.visits', formatCount(s.visits)],
+                ['stats.since', new Date(s.since).toLocaleString(locale(), { dateStyle: 'medium', timeStyle: 'short' })],
               ]}
             />
             <StatList
@@ -171,7 +172,7 @@ function StatsPanel() {
             />
           </div>
           <p class="center muted small">
-            {t('stats.since', { date: new Date(s.since).toLocaleDateString(locale()) })} · {t('stats.note')}
+            {t('stats.note')}
             {global.offline && ` ${t('stats.offline')}`}
           </p>
         </div>

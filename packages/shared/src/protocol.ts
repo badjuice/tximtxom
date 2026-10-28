@@ -12,6 +12,8 @@ export interface LobbyPlayer {
   wins: number;
   /** Ready to start (bots and the host always are). */
   ready: boolean;
+  /** Has the Infected achievement: anyone at a table with them catches it. */
+  infected: boolean;
 }
 
 /** Everything a client needs, sent after every change. */
@@ -36,8 +38,8 @@ export interface JoinResult {
 }
 
 export interface ClientToServer {
-  'room:create': (msg: { name: string; rules?: Partial<Rules>; avatar?: string }, ack: Ack<JoinResult>) => void;
-  'room:join': (msg: { code: string; name: string; token?: string; avatar?: string }, ack: Ack<JoinResult>) => void;
+  'room:create': (msg: { name: string; rules?: Partial<Rules>; avatar?: string; infected?: boolean }, ack: Ack<JoinResult>) => void;
+  'room:join': (msg: { code: string; name: string; token?: string; avatar?: string; infected?: boolean }, ack: Ack<JoinResult>) => void;
   'room:rules': (msg: { rules: Partial<Rules> }, ack: Ack) => void;
   'room:addBot': (ack: Ack) => void;
   'room:kick': (msg: { playerId: string }, ack: Ack) => void;

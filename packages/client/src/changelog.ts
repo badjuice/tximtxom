@@ -19,6 +19,21 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.29.0',
+    date: '2026-10-28',
+    items: [
+      n('Achievements! Eleven to unlock, some of them secret. A toast at the top of the screen tells you when you get one.', 'Conquistas! Onze para desbloquear, algumas secretas. Um aviso no topo do ecrã diz-te quando ganhas uma.'),
+      n('Pick up the cards in the menus and windows (rules, characters, achievements, card backs) and swing them around, just for fun.', 'Pega nas cartas dos menus e janelas (regras, personagens, conquistas, costas) e atira-as por aí, só por diversão.'),
+      n('The Changelog has buttons to report an issue on GitHub or to contact me.', 'As Alterações têm botões para reportar um problema no GitHub ou para me contactar.'),
+      n('Stats show the date and time you started playing.', 'As estatísticas mostram a data e a hora em que começaste a jogar.'),
+      c('TximTxom\'s colours flow from left to right, with a dark outline so it reads on any background, and its letters ride a wave.', 'As cores do TximTxom correm da esquerda para a direita, com um contorno escuro para se ler em qualquer fundo, e as letras ondulam.'),
+      c('In the room, the rules open in their own window from a red Rules button, next to How to play and Formations. The room no longer scrolls.', 'Na sala, as regras abrem numa janela própria com um botão Regras vermelho, ao lado do Como jogar e das Formações. A sala já não desliza.'),
+      c('Settings has an Accessibility tab. Controls only lists the keyboard and mouse, and is hidden on touch screens. Sorting moved to General.', 'As Definições têm um separador Acessibilidade. Os Controlos só mostram o teclado e o rato, e não aparecem em ecrãs táteis. A ordenação passou para Geral.'),
+      f('The Aces only show on the main menu, not behind the Play panel.', 'Os Ases só aparecem no menu principal, não atrás do painel Jogar.'),
+      f('The Aces could appear in the wrong colours while materialising on some browsers.', 'Em alguns navegadores, os Ases podiam aparecer com as cores erradas enquanto se materializavam.'),
+    ],
+  },
+  {
     version: '0.28.0',
     date: '2026-10-28',
     items: [

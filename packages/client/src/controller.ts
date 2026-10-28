@@ -6,6 +6,7 @@ import type { DropTarget, SpawnHints, Table } from './game/table';
 import { cardShort, cardSpoken, kindName, t, tError } from './i18n';
 import { act, fetchHistory } from './net';
 import { getSettings, onSettings, rollRandomBack, updateSettings } from './settings';
+import { achievementEvent } from './achievements';
 import { recordEvent } from './stats';
 import { banner, callout, SEAT_COLORS, type Staged, store, toast } from './store';
 
@@ -195,6 +196,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   for (const { e } of fresh) {
     handleEvent(e, g, hints);
     recordEvent(e, g, room);
+    achievementEvent(e, g);
     trackSeen(e, g);
   }
   trackSeen(null, g);

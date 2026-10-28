@@ -19,12 +19,14 @@ export function EditionCard({ card, scale = 1, edition, spawn, onBorn }: { card:
   const { w, h } = cardSize(scale);
   const dpr = Math.min(2, devicePixelRatio || 1);
 
+  // Keyed on the face, not the card object: a parent making a new Card each render mustn't restart it.
+  const face = faceFrame(card, highContrast);
   useEffect(() => {
-    const c = attachEdition(canvas.current!, faceFrame(card, highContrast));
+    const c = attachEdition(canvas.current!, face);
     ctl.current = c;
     c.setEdition(edition, false); // already there: no landing flash
     return () => c.detach();
-  }, [card, highContrast]);
+  }, [face]);
   useEffect(() => ctl.current?.setEdition(edition), [edition]);
   useEffect(() => {
     if (typeof spawn !== 'number') return;

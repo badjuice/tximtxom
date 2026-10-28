@@ -3,6 +3,7 @@ import { makeCard, NAME_MAX, ROOM_CODE_LENGTH, type Suit } from '@tximtxom/share
 import { play, unlockAudio } from '../audio';
 import { t } from '../i18n';
 import { createRoom, joinRoom, linkedRoom, rejoinRoom, saveName, savedName, savedRoom, savedRoomExpiry } from '../net';
+import { unlock } from '../achievements';
 import { formatCount, useStats } from '../stats';
 import { store, useStore } from '../store';
 import { Button, Credits, MiniButton, WaveText } from './common';
@@ -190,38 +191,9 @@ function PlayerCounter() {
   );
 }
 
-/** Grey and locked until achievements exist; hovering, focusing or tapping it says so. */
-function SoonButton({ children }: { children: string }) {
-  const [hint, setHint] = useState(false);
-  return (
-    <span class="soon-wrap" onPointerEnter={() => setHint(true)} onPointerLeave={() => setHint(false)}>
-      <button
-        type="button"
-        class="btn btn-grey menu-soon"
-        aria-disabled="true"
-        aria-describedby="soon-hint"
-        onFocus={() => setHint(true)}
-        onBlur={() => setHint(false)}
-        onClick={() => {
-          play('button', { volume: 0.5, rate: 0.7 });
-          setHint(true);
-        }}
-      >
-        <span class="btn-label">
-          <span class="lock" aria-hidden="true" />
-          {children}
-        </span>
-      </button>
-      <span id="soon-hint" role="tooltip" class={`soon-hint${hint ? ' on' : ''}`}>
-        {t('menu.soon')}
-      </span>
-    </span>
-  );
-}
-
 /** Balatro's main menu: Play first and biggest, the rest in order of importance. */
 function MainMenu({ onPlay }: { onPlay: () => void }) {
-  const open = (overlay: 'stats' | 'settings' | 'changelog' | 'help') => () => store.set({ overlay });
+  const open = (overlay: 'stats' | 'achievements' | 'settings' | 'changelog' | 'help') => () => store.set({ overlay });
   return (
     <nav class="main-menu panel" aria-label={t('menu.play')}>
       <Button color="blue" big class="menu-play" onClick={onPlay}>
@@ -230,11 +202,13 @@ function MainMenu({ onPlay }: { onPlay: () => void }) {
       <Button color="green" class="menu-main" onClick={open('stats')}>
         {t('menu.stats')}
       </Button>
-      <SoonButton>{t('menu.achievements')}</SoonButton>
+      <Button color="purple" class="menu-main" onClick={open('achievements')}>
+        {t('menu.achievements')}
+      </Button>
       <Button color="orange" class="menu-main" onClick={open('settings')}>
         {t('title.settings')}
       </Button>
-      <Button color="purple" class="menu-minor" onClick={open('changelog')}>
+      <Button color="grey" class="menu-minor" onClick={open('changelog')}>
         {t('title.changelog')}
       </Button>
       <Button color="red" class="menu-minor" onClick={open('help')}>
@@ -291,6 +265,7 @@ export function Title() {
             delete fanPending[suit];
             fanEditions = { ...fanEditions, [suit]: ed };
             setEditions(fanEditions);
+            if (FAN.every((x) => fanEditions[x])) unlock('scholar');
             play(EDITION_SOUND[ed], { volume: 0.8 });
           },
           delay + i++ * 450,
@@ -378,7 +353,8 @@ export function Title() {
       <h1 class="logo" ref={logo} style={logoBorn ? undefined : { visibility: 'hidden' }}>
         <WaveText text="TximTxom" amp={12} plain />
       </h1>
-      <div class="logo-fan" aria-hidden="true">
+      {/* Only on the main menu; kept mounted on the Play panel so the Aces don't deal again. */}
+      <div class={`logo-fan${playing ? ' away' : ''}`} aria-hidden="true">
         {/* Fixed DOM order; each Ace slides to its slot, so a reorder animates. */}
         {FAN.map((suit) => (
           <FanCard
