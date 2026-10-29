@@ -4,7 +4,7 @@ import { play, unlockAudio } from '../audio';
 import { t } from '../i18n';
 import { createRoom, joinRoom, linkedRoom, rejoinRoom, saveName, savedName, savedRoom, savedRoomExpiry } from '../net';
 import { unlock } from '../achievements';
-import { formatCount, useStats } from '../stats';
+import { formatCount, refreshGlobalRounds, useStats } from '../stats';
 import { store, useStore } from '../store';
 import { Button, Credits, MiniButton, WaveText } from './common';
 import { EditionCard } from './EditionCard';
@@ -37,6 +37,8 @@ function reordered(order: Suit[], suit: Suit, x: number): Suit[] {
 // The fan's order, rearranged by dragging like a hand. Kept through overlays and
 // language changes, back to the start on leaving the title screen.
 let fanOrder = [...FAN];
+/** Aces tapped this visit (Tip Tap: all four). */
+const tapped = new Set<Suit>();
 
 // Each time the Aces are dealt onto the title screen, each one may get an edition.
 const EDITION_SOUND = {
@@ -157,6 +159,8 @@ function FanCard(props: {
         } else {
           play('card1', { volume: 0.5, rate: 0.9 + slot * 0.08 });
           setHops((n) => n + 1);
+          tapped.add(suit);
+          if (tapped.size === FAN.length) unlock('tipTap');
         }
       }}
       onPointerCancel={() => {
@@ -176,16 +180,32 @@ function FanCard(props: {
   );
 }
 
-/** "1,234 players · 5,678 visits", top left, once both counts are in. */
+/** Swapping languages: an "A" tile overlapping a "文" tile, in pixels. */
+const LanguageIcon = () => (
+  <svg class="lang-icon" viewBox="0 0 18 15" width="22" height="18" shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="0" y="0" width="10" height="10" rx="1" fill="#fff" />
+    <path d="M4 2h2v1h-2zM3 3h1v1h-1zM6 3h1v1h-1zM3 4h1v1h-1zM6 4h1v1h-1zM3 5h4v1h-4zM3 6h1v1h-1zM6 6h1v1h-1zM3 7h1v1h-1zM6 7h1v1h-1z" fill="#1f3f8f" />
+    <rect x="8" y="5" width="10" height="10" rx="1" fill="#eac058" stroke="#1f3f8f" stroke-width="1" />
+    <path d="M12 7h1v1h-1zM10 8h6v1h-6zM11 9h1v1h-1zM14 9h1v1h-1zM12 10h2v1h-2zM12 11h2v1h-2zM11 12h1v1h-1zM14 12h1v1h-1zM10 13h1v1h-1zM15 13h1v1h-1z" fill="#1f3f8f" />
+  </svg>
+);
+
+/** Taps on the name and version at the bottom that reveal the counter. */
+const COUNTER_TAPS = 10;
+
+/** "1,234 players · 5,678 visits · 9,012 rounds played", dropping in at the top left
+ *  once revealed (and once the counts are in). */
 function PlayerCounter() {
   const { global } = useStats();
+  useEffect(refreshGlobalRounds, []);
   if (global.players === null || global.visits === null) return null;
   return (
-    <p class="player-counter">
+    <p class="player-counter" role="status">
       <span class="live-dot" aria-hidden="true" />
       {t('stats.counter', {
         players: formatCount(global.players),
         visits: formatCount(global.visits),
+        rounds: global.rounds === null ? '–' : formatCount(global.rounds),
       })}
     </p>
   );
@@ -240,6 +260,13 @@ export function Title() {
   const [busy, setBusy] = useState(false);
   // The main menu, or the Play panel (straight to it from an invite link or a seat to take back).
   const [playing, setPlaying] = useState(code !== '');
+  // The counter is hidden until the name at the bottom is tapped ten times, and
+  // hides again once you leave the main menu.
+  const [taps, setTaps] = useState(0);
+  const counter = taps >= COUNTER_TAPS && !playing;
+  useEffect(() => {
+    if (playing) setTaps(0);
+  }, [playing]);
   useEffect(() => {
     if (!playing) return;
     const onKey = (e: KeyboardEvent) => {
@@ -291,7 +318,10 @@ export function Title() {
       const ed = rollEdition();
       if (ed) picks[suit] = ed;
     }
-    land(picks, ACES_AFTER + SPAWN_STEP * (FAN.length - 1) + 700 + 300);
+    const delay = ACES_AFTER + SPAWN_STEP * (FAN.length - 1) + 700 + 300;
+    land(picks, delay);
+    // Every Ace stayed plain: Pretty Basic, once they're all on the table.
+    if (!Object.keys(picks).length) timers.current.push(setTimeout(() => unlock('prettyBasic'), delay));
   }, [entered]);
   useEffect(() => {
     let typed = '';
@@ -346,10 +376,11 @@ export function Title() {
     <main class="title-screen">
       <div class="top-menu">
         <MiniButton color="blue" onClick={() => store.set({ overlay: 'language' })} label={t('language')}>
+          <LanguageIcon />
           {t('language')}
         </MiniButton>
       </div>
-      <PlayerCounter />
+      {counter && <PlayerCounter />}
       <h1 class="logo" ref={logo} style={logoBorn ? undefined : { visibility: 'hidden' }}>
         <WaveText text="TximTxom" amp={12} plain />
       </h1>
@@ -425,7 +456,13 @@ export function Title() {
         </form>
       )}
 
-      <Credits />
+      <Credits
+        onNameTap={() => {
+          if (playing || taps >= COUNTER_TAPS) return;
+          if (taps + 1 === COUNTER_TAPS) play('highlight1', { volume: 0.6 });
+          setTaps(taps + 1);
+        }}
+      />
     </main>
   );
 }

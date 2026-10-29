@@ -6,7 +6,6 @@ import { greetConsole } from './easterEgg';
 import { Table } from './game/table';
 import { initNet } from './net';
 import { applyCssSettings, onSettings, updateSettings } from './settings';
-import { initAchievements } from './achievements';
 import { initGrab } from './grab';
 import { initStats } from './stats';
 import { store } from './store';
@@ -42,7 +41,6 @@ async function boot() {
   if (import.meta.env.DEV) Object.assign(window, { __table: table, __send: send, __lang: (lang: 'en' | 'pt') => updateSettings({ lang }) });
   initController(table);
   initStats();
-  initAchievements();
   initGrab();
   // The page itself never scrolls; undo it if the browser does (see #app in styles.css).
   addEventListener('scroll', () => {

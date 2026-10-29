@@ -8,8 +8,14 @@ attribute vec2 aPos;
 void main() { gl_Position = vec4(aPos, 0.0, 1.0); }
 `;
 
+// High precision where the GPU has it: phones run mediump by default, and the
+// noise below turns flat at that precision.
 const FRAG = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 uniform vec2 uRes;
 uniform float uTime;
 uniform float uSpinTime;
@@ -17,8 +23,10 @@ uniform vec3 uC1;
 uniform vec3 uC2;
 uniform vec3 uC3;
 
+// No sin() of big numbers (it falls apart at mediump): Inigo Quilez's multiply hash.
 float hash(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  p = 50.0 * fract(p * 0.3183099 + vec2(0.71, 0.113));
+  return fract(p.x * p.y * (p.x + p.y));
 }
 
 // Smooth value noise in 0..1.
@@ -154,8 +162,9 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) colours[i][j] += (target[i][j] - colours[i][j]) * Math.min(1, dt * 4);
     spinBoost = Math.max(0, spinBoost - dt * 1.5);
     if (animate) {
-      time += dt * (1 + spinBoost * 2);
-      spinTime += dt * (1 + spinBoost * 6);
+      // Wrapped, so the shader's numbers stay small (and precise) however long the tab is open.
+      time = (time + dt * (1 + spinBoost * 2)) % 2000;
+      spinTime = (spinTime + dt * (1 + spinBoost * 6)) % (20 * Math.PI * 100);
     }
     // When static, only redraw occasionally (colour changes) to save battery.
     if (!animate && ++frameSkip % 10 !== 0) return;

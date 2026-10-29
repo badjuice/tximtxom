@@ -57,6 +57,8 @@ export interface ClientToServer {
   'room:leave': () => void;
   /** The player clicked or typed: keeps the room from closing as idle. */
   'room:ping': (ack: Ack) => void;
+  /** You caught the Infected achievement here: the rest of the table catches it at the next round start. */
+  'room:infected': (ack: Ack) => void;
   'game:action': (action: Action, ack: Ack) => void;
   /** The full move log of the current game. */
   'game:history': (ack: Ack<{ events: { id: number; e: GameEvent }[] }>) => void;

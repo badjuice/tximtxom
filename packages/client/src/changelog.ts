@@ -19,6 +19,28 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.30.0',
+    date: '2026-10-29',
+    items: [
+      n('Three new achievements: Tip Tap (tap each Ace on the main menu), and two secret ones.', 'Três conquistas novas: Tip Tap (toca em cada Ás do menu principal), e duas secretas.'),
+      n('Rule names light up in their colour wherever they\'re mentioned, and the coloured words in How to play wave.', 'Os nomes das regras acendem-se na sua cor onde quer que sejam mencionados, e as palavras coloridas do Como jogar ondulam.'),
+      n('Formations: tap a rule card to read its rule. Card values are shown as cards.', 'Formações: toca numa carta de regra para a leres. Os valores das cartas aparecem como cartas.'),
+      n('Stats: your longest game, and a bar of where your cards came from (Draw Pile or Discard Pile).', 'Estatísticas: o teu jogo mais longo, e uma barra de onde vieram as tuas cartas (Monte ou Descarte).'),
+      n('The Language button has an icon.', 'O botão Idioma tem um ícone.'),
+      c('The player counter is hidden. Rumour has it the name at the bottom of the main menu knows something. It now counts rounds played too.', 'O contador de jogadores está escondido. Diz-se que o nome no fundo do menu principal sabe alguma coisa. Agora também conta as rondas jogadas.'),
+      c('Infected now spreads at the start of every round, to everyone at the table who doesn\'t have it yet.', 'O Infetado agora espalha-se no início de cada ronda, a todos os que estão à mesa e ainda não o têm.'),
+      c('How to play, Stats and Settings are wider, with their tabs in one row. Stats\' third tab is just Cards, and Visits and Playing since moved to Overview.', 'O Como jogar, as Estatísticas e as Definições são mais largos, com os separadores numa linha. O terceiro separador das Estatísticas é só Cartas, e as Visitas e o A jogar desde passaram para a Vista geral.'),
+      c('Achievement toasts stay a little longer, so there\'s time to read them. That\'s Nuts! is now Dirty Hands.', 'Os avisos de conquistas ficam um pouco mais, para dar tempo de os ler. Que Maluquice! passou a Mãos Sujas.'),
+      c('Taking a ride is explained in How to play instead of Formations.', 'Apanhar boleia é explicado no Como jogar em vez das Formações.'),
+      f('TximTxom\'s wave wasn\'t moving.', 'A onda do TximTxom não se mexia.'),
+      f('The swirly background could be broken on phones.', 'O fundo em espiral podia aparecer estragado nos telemóveis.'),
+      f('Hovering the formation chart in Stats showed hints in the top left corner. It shows each formation\'s share instead.', 'Passar por cima do gráfico de formações nas Estatísticas mostrava dicas no canto superior esquerdo. Agora mostra a percentagem de cada formação.'),
+      f('In the room, the Settings button could cover the other buttons on some screen sizes.', 'Na sala, o botão Definições podia tapar os outros botões em alguns tamanhos de ecrã.'),
+      f('Locks on locked achievements are the size of the question mark.', 'Os cadeados das conquistas bloqueadas têm o tamanho do ponto de interrogação.'),
+      r('Cards discarded and the counts for everyone are gone from Stats.', 'As cartas descartadas e as contagens de todos saíram das Estatísticas.'),
+    ],
+  },
+  {
     version: '0.29.0',
     date: '2026-10-28',
     items: [

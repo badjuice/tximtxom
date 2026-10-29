@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import type { FormationKind } from '@tximtxom/shared';
 import { type Key, t } from '../i18n';
 import { useSettings } from '../settings';
-import { formatCount, locale, type MyStats, refreshGlobalRounds, useStats } from '../stats';
+import { formatCount, locale, type MyStats, useStats } from '../stats';
 import { Modal, Tabs, WaveText } from './common';
 
 /** "2h 05m", "12m 30s", "45s". */
@@ -27,7 +27,7 @@ const KINDS: { kind: FormationKind; color: string }[] = [
   { kind: 'straight', color: 'red' },
 ];
 
-/** Balatro's hand stats: one bar per formation, longest for the most shown. */
+/** Balatro's hand stats: one bar per formation, longest for the most shown, with its count and share. */
 function FormationChart({ s }: { s: MyStats }) {
   const max = Math.max(1, ...KINDS.map(({ kind }) => s.kinds[kind]));
   const total = KINDS.reduce((n, { kind }) => n + s.kinds[kind], 0);
@@ -36,7 +36,7 @@ function FormationChart({ s }: { s: MyStats }) {
       {KINDS.map(({ kind, color }) => {
         const n = s.kinds[kind];
         return (
-          <div class="f-chart-row" role="row" title={`${t(kind as Key)}: ${formatCount(n)} (${pct(n, total)})`}>
+          <div class="f-chart-row" role="row">
             <span class={`level-tag tag-${color}`} role="rowheader">
               <WaveText text={t(kind as Key)} />
             </span>
@@ -44,12 +44,35 @@ function FormationChart({ s }: { s: MyStats }) {
               <span class="f-chart-bar" style={{ width: `${(100 * n) / max}%` }} />
             </span>
             <span class="f-chart-n" role="cell">
-              {formatCount(n)}
+              {formatCount(n)} <span class="muted">({pct(n, total)})</span>
             </span>
           </div>
         );
       })}
     </div>
+  );
+}
+
+/** Where your cards came from: the Draw Pile in blue, the Discard Pile in red. */
+function PileBar({ s }: { s: MyStats }) {
+  const total = s.cardsDrawn + s.cardsTaken;
+  const drawn = total ? (100 * s.cardsDrawn) / total : 50;
+  return (
+    <section class="stat-box">
+      <h4>{t('stats.pilesTitle')}</h4>
+      <div class="pile-bar" role="img" aria-label={`${t('stats.drawn')}: ${formatCount(s.cardsDrawn)}, ${t('stats.taken')}: ${formatCount(s.cardsTaken)}`}>
+        <span class={`pile-draw${total ? '' : ' empty'}`} style={{ width: `${drawn}%` }} />
+        <span class={`pile-take${total ? '' : ' empty'}`} style={{ width: `${100 - drawn}%` }} />
+      </div>
+      <div class="pile-legend">
+        <span class="pile-key draw">
+          {t('stats.drawn')}: <b>{formatCount(s.cardsDrawn)}</b> <span class="muted">({pct(s.cardsDrawn, total)})</span>
+        </span>
+        <span class="pile-key take">
+          {t('stats.taken')}: <b>{formatCount(s.cardsTaken)}</b> <span class="muted">({pct(s.cardsTaken, total)})</span>
+        </span>
+      </div>
+    </section>
   );
 }
 
@@ -70,23 +93,23 @@ function StatList({ title, rows }: { title: Key; rows: [Key, string][] }) {
   );
 }
 
-type StatsTab = 'overview' | 'play' | 'more';
+type StatsTab = 'overview' | 'play' | 'cards';
 
 /** Your stats in three tabs, stacked so switching never resizes the modal. */
 function StatsPanel() {
   useSettings(); // redraw on a language change
-  const { mine: s, global } = useStats();
+  const { mine: s } = useStats();
   const [tab, setTab] = useState<StatsTab>('overview');
-  useEffect(refreshGlobalRounds, []);
   const favourite = KINDS.reduce((a, b) => (s.kinds[b.kind] > s.kinds[a.kind] ? b : a)).kind;
   const pts = (n: number | null) => maybe(n, ` ${t('pts')}`);
+  const since = new Date(s.since).toLocaleString(locale(), { dateStyle: 'medium', timeStyle: 'short' });
   return (
     <div class="stats">
       <Tabs
         tabs={[
           { id: 'overview', label: t('stats.tab.overview') },
           { id: 'play', label: t('stats.tab.play') },
-          { id: 'more', label: t('stats.tab.more') },
+          { id: 'cards', label: t('stats.tab.cards') },
         ]}
         active={tab}
         onChange={setTab}
@@ -121,6 +144,9 @@ function StatsPanel() {
               <dd>{formatCount(s.rides)}</dd>
             </dl>
           </section>
+          <p class="center muted small">
+            {t('stats.visits')}: {formatCount(s.visits)} · {t('stats.since')}: {since}
+          </p>
         </div>
         <div class={`tab-panel${tab === 'play' ? '' : ' hidden'}`} inert={tab !== 'play'}>
           <div class="stat-cols">
@@ -144,37 +170,16 @@ function StatsPanel() {
                 ['stats.gamesLost', formatCount(s.gamesLost)],
                 ['stats.streak', formatCount(s.winStreak)],
                 ['stats.bestStreak', formatCount(s.bestStreak)],
+                ['stats.longestGame', s.longestGame ? t('stats.nRounds', { n: s.longestGame }) : '–'],
                 ['stats.lowestTotal', pts(s.lowestTotal)],
                 ['stats.recordBust', pts(s.recordBust)],
               ]}
             />
           </div>
         </div>
-        <div class={`tab-panel${tab === 'more' ? '' : ' hidden'}`} inert={tab !== 'more'}>
-          <div class="stat-cols">
-            <StatList
-              title="stats.cardsTitle"
-              rows={[
-                ['stats.drawn', formatCount(s.cardsDrawn)],
-                ['stats.taken', formatCount(s.cardsTaken)],
-                ['stats.discarded', formatCount(s.cardsDiscarded)],
-                ['stats.visits', formatCount(s.visits)],
-                ['stats.since', new Date(s.since).toLocaleString(locale(), { dateStyle: 'medium', timeStyle: 'short' })],
-              ]}
-            />
-            <StatList
-              title="stats.everyone"
-              rows={[
-                ['stats.players', maybe(global.players)],
-                ['stats.visits', maybe(global.visits)],
-                ['stats.allRounds', maybe(global.rounds)],
-              ]}
-            />
-          </div>
-          <p class="center muted small">
-            {t('stats.note')}
-            {global.offline && ` ${t('stats.offline')}`}
-          </p>
+        <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
+          <PileBar s={s} />
+          <p class="center muted small">{t('stats.note')}</p>
         </div>
       </div>
     </div>
@@ -184,7 +189,7 @@ function StatsPanel() {
 /** The Stats screen, from the main menu. */
 export function StatsMenu({ onClose }: { onClose: () => void }) {
   return (
-    <Modal title={t('stats.title')} onClose={onClose} class="stats-modal">
+    <Modal title={t('stats.title')} onClose={onClose} wide class="stats-modal">
       <StatsPanel />
     </Modal>
   );

@@ -117,6 +117,37 @@ export function withTximTxom(text: string): ComponentChildren {
   return <>{parts}</>;
 }
 
+/** Rules worth pointing out when prose names them, with the tone of their card
+ *  (Peek and Bust at are left out: those words also turn up as plain words). */
+const RULE_REFS: [Key, string][] = [
+  ['rule.softcore', 'support'],
+  ['rule.superposition', 'support'],
+  ['rule.smeared', 'support'],
+  ['rule.autoRide', 'support'],
+  ['rule.rideOrder', 'neutral'],
+  ['rule.notice', 'info'],
+  ['rule.timer', 'info'],
+  ['rule.penalty10', 'punish'],
+  ['rule.doubleDown', 'punish'],
+];
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** `text` with "TximTxom" glowing and waving, and rule names in their colour with a shine across them. */
+export function withHighlights(text: string): ComponentChildren {
+  const tones = new Map(RULE_REFS.map(([k, tone]) => [t(k), tone]));
+  const re = new RegExp(`TximTxom|${[...tones.keys()].map(escape).join('|')}`, 'g');
+  const parts: ComponentChildren[] = [];
+  let last = 0;
+  for (const m of text.matchAll(re)) {
+    if (m.index! > last) parts.push(text.slice(last, m.index));
+    parts.push(m[0] === 'TximTxom' ? withTximTxom(m[0]) : <span class={`rule-ref tone-${tones.get(m[0])}`}>{m[0]}</span>);
+    last = m.index! + m[0].length;
+  }
+  if (!parts.length) return text;
+  if (last < text.length) parts.push(text.slice(last));
+  return <>{parts}</>;
+}
+
 /** Text whose letters wobble and hop in turn. Longer text than `max` stays still.
  *  `plain` keeps "TximTxom" in its own colours (the title screen logo). */
 export function WaveText({ text, max = WAVE_MAX, amp = 3, plain }: { text: string; max?: number; amp?: number; plain?: boolean }) {
@@ -196,11 +227,11 @@ export function CardText({ text }: { text: string }) {
   const parts: ComponentChildren[] = [];
   let last = 0;
   for (const m of text.matchAll(CARD_IN_TEXT)) {
-    if (m.index! > last) parts.push(withTximTxom(text.slice(last, m.index)));
+    if (m.index! > last) parts.push(withHighlights(text.slice(last, m.index)));
     parts.push(<span class={`hcard suit-${SUIT_OF_SYMBOL[m[2]]}`}>{m[0]}</span>);
     last = m.index! + m[0].length;
   }
-  if (last < text.length) parts.push(withTximTxom(text.slice(last)));
+  if (last < text.length) parts.push(withHighlights(text.slice(last)));
   return <>{parts}</>;
 }
 
@@ -635,10 +666,14 @@ export function TopMenu() {
 }
 
 /** "TximTxom v0.12.0 · github.com/badjuice" */
-export function Credits() {
+/** `onNameTap`: taps on the name and version (the title screen counts them). */
+export function Credits({ onNameTap }: { onNameTap?: () => void }) {
   return (
     <p class="credits">
-      {withTximTxom('TximTxom')} v{VERSION} ·{' '}
+      <span class="credits-name" onClick={onNameTap}>
+        {withTximTxom('TximTxom')} v{VERSION}
+      </span>{' '}
+      ·{' '}
       <a href={AUTHOR_URL} target="_blank" rel="noopener">
         github.com/badjuice
       </a>
@@ -653,10 +688,15 @@ export function Rich({ text }: { text: string }) {
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
-    if (m.index > last) parts.push(withTximTxom(text.slice(last, m.index)));
-    parts.push(<b class={`hl hl-${m[1]}`}>{withTximTxom(m[2])}</b>);
+    if (m.index > last) parts.push(withHighlights(text.slice(last, m.index)));
+    // The coloured keywords wave, like Balatro's highlighted words.
+    parts.push(
+      <b class={`hl hl-${m[1]}`}>
+        <WaveText text={m[2]} max={80} />
+      </b>,
+    );
     last = re.lastIndex;
   }
-  if (last < text.length) parts.push(withTximTxom(text.slice(last)));
+  if (last < text.length) parts.push(withHighlights(text.slice(last)));
   return <>{parts}</>;
 }

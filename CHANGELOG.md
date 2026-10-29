@@ -5,6 +5,24 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.30.0 (2026-10-29)
+- ✨ Three new achievements: Tip Tap (tap each Ace on the main menu), and two secret ones.
+- ✨ Rule names light up in their colour wherever they're mentioned, and the coloured words in How to play wave.
+- ✨ Formations: tap a rule card to read its rule. Card values are shown as cards.
+- ✨ Stats: your longest game, and a bar of where your cards came from (Draw Pile or Discard Pile).
+- ✨ The Language button has an icon.
+- 🔧 The player counter is hidden. Rumour has it the name at the bottom of the main menu knows something. It now counts rounds played too.
+- 🔧 Infected now spreads at the start of every round, to everyone at the table who doesn't have it yet.
+- 🔧 How to play, Stats and Settings are wider, with their tabs in one row. Stats' third tab is just Cards, and Visits and Playing since moved to Overview.
+- 🔧 Achievement toasts stay a little longer, so there's time to read them. That's Nuts! is now Dirty Hands.
+- 🔧 Taking a ride is explained in How to play instead of Formations.
+- 🐛 TximTxom's wave wasn't moving.
+- 🐛 The swirly background could be broken on phones.
+- 🐛 Hovering the formation chart in Stats showed hints in the top left corner. It shows each formation's share instead.
+- 🐛 In the room, the Settings button could cover the other buttons on some screen sizes.
+- 🐛 Locks on locked achievements are the size of the question mark.
+- 🗑️ Cards discarded and the counts for everyone are gone from Stats.
+
 ## 0.29.0 (2026-10-28)
 - ✨ Achievements! Eleven to unlock, some of them secret. A toast at the top of the screen tells you when you get one.
 - ✨ Pick up the cards in the menus and windows (rules, characters, achievements, card backs) and swing them around, just for fun.

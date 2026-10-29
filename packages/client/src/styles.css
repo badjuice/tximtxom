@@ -398,39 +398,71 @@ input[type='text'] {
     color: #b98cff;
   }
 }
-/* One full sine period, held at whole pixels. */
+/* One full sine period, a fifth of the text's height either way, in 16 steps held at whole pixels. */
 @keyframes ttx-wave {
   0%,
   100% {
     translate: 0 0;
     animation-timing-function: step-end;
   }
+  6.25% {
+    translate: 0 round(-0.077em, 1px);
+    animation-timing-function: step-end;
+  }
   12.5% {
-    translate: 0 -2px;
+    translate: 0 round(-0.141em, 1px);
+    animation-timing-function: step-end;
+  }
+  18.75% {
+    translate: 0 round(-0.185em, 1px);
     animation-timing-function: step-end;
   }
   25% {
-    translate: 0 -3px;
+    translate: 0 round(-0.2em, 1px);
+    animation-timing-function: step-end;
+  }
+  31.25% {
+    translate: 0 round(-0.185em, 1px);
     animation-timing-function: step-end;
   }
   37.5% {
-    translate: 0 -2px;
+    translate: 0 round(-0.141em, 1px);
+    animation-timing-function: step-end;
+  }
+  43.75% {
+    translate: 0 round(-0.077em, 1px);
     animation-timing-function: step-end;
   }
   50% {
     translate: 0 0;
     animation-timing-function: step-end;
   }
+  56.25% {
+    translate: 0 round(0.077em, 1px);
+    animation-timing-function: step-end;
+  }
   62.5% {
-    translate: 0 2px;
+    translate: 0 round(0.141em, 1px);
+    animation-timing-function: step-end;
+  }
+  68.75% {
+    translate: 0 round(0.185em, 1px);
     animation-timing-function: step-end;
   }
   75% {
-    translate: 0 3px;
+    translate: 0 round(0.2em, 1px);
+    animation-timing-function: step-end;
+  }
+  81.25% {
+    translate: 0 round(0.185em, 1px);
     animation-timing-function: step-end;
   }
   87.5% {
-    translate: 0 2px;
+    translate: 0 round(0.141em, 1px);
+    animation-timing-function: step-end;
+  }
+  93.75% {
+    translate: 0 round(0.077em, 1px);
     animation-timing-function: step-end;
   }
 }
@@ -455,51 +487,6 @@ input[type='text'] {
    hops on top are driven from WaveText (they animate translate, this rotate). */
 .wave .w {
   white-space: nowrap;
-}
-/* "TximTxom" wherever it's written (not the title logo): a rainbow glows
-   through its letters and shifts, and the letters ride a wave. The wave
-   steps in whole pixels so the pixel font stays crisp. */
-.ttx {
-  white-space: nowrap;
-}
-.ttx-l {
-  display: inline-block;
-  background: linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #8867a5, #fe5f55);
-  background-size: 800% 100%;
-  background-position: calc(var(--ti) * 14.28%) 0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  animation:
-    ttx-glow 2.4s linear infinite,
-    ttx-wave 0.8s steps(4, jump-none) calc(var(--ti) * -0.1s) infinite alternate;
-}
-@keyframes ttx-glow {
-  from {
-    filter: hue-rotate(0deg) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.35));
-  }
-  to {
-    filter: hue-rotate(360deg) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.35));
-  }
-}
-@keyframes ttx-wave {
-  from {
-    translate: 0 -2px;
-  }
-  to {
-    translate: 0 2px;
-  }
-}
-.reduced-motion .ttx-l {
-  animation: none;
-  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
-}
-/* Stays readable in high contrast: the rainbow, but no glow or wave. */
-.high-contrast .ttx-l {
-  animation: none;
-  filter: none;
 }
 .wave .w > span {
   display: inline-block;
@@ -2996,14 +2983,52 @@ input[type='text'] {
 .f-tximtxom .f-cards .sprite.card {
   transition: transform 0.25s;
 }
-.f-ride {
+/* Card values: each card with its points under it. */
+.f-points {
   display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 0.85em;
-  color: var(--muted);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  margin: 0 0 10px;
 }
-
+.fp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.fp-cards {
+  display: flex;
+}
+.fp-cards > .sprite + .sprite {
+  margin-left: -12px;
+}
+.fp-n {
+  font-size: 0.85em;
+  color: var(--gold);
+}
+/* A rule card on the Formations screen: tap it to read the rule below the list. */
+.f-rule {
+  flex: none;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.f-rule.on {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.f-row.off .f-rule {
+  opacity: 1;
+}
+.f-rule-note {
+  min-height: 2.6em;
+  margin: 8px 0 0;
+  font-size: 0.85em;
+  text-align: center;
+}
 /* --- help */
 /* Every page sits in one grid cell, so the tallest sets the height and switching never resizes. */
 .help-pages {
@@ -3635,7 +3660,8 @@ input.rename {
 .credits a {
   color: var(--blue);
 }
-/* Global player and visit counts, opposite the Settings button. */
+/* Global counts, top left: hidden until the name at the bottom is tapped ten
+   times, then dropping in like a toast. Compact, like the in-game top buttons. */
 .player-counter {
   position: absolute;
   top: calc(12px + var(--safe-top));
@@ -3643,16 +3669,27 @@ input.rename {
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 40px;
+  gap: 6px;
+  min-height: 26px;
   margin: 0;
-  padding: 0 12px;
-  max-width: calc(100% - 100px);
-  font-size: 0.9em;
+  padding: 2px 8px;
+  max-width: calc(100% - 130px);
+  font-size: 0.8em;
   color: var(--muted);
   background: var(--panel-in);
-  border-radius: 8px;
-  box-shadow: 0 3px 0 var(--panel-d);
+  border-radius: 6px;
+  box-shadow: 0 2px 0 var(--panel-d);
+  animation: counter-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes counter-in {
+  from {
+    translate: 0 calc(-100% - 20px);
+  }
+}
+.credits-name {
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .live-dot {
   flex: none;
@@ -4028,8 +4065,9 @@ input.rename {
   font-size: 1.6em;
 }
 .ach-blank .lock {
-  font-size: 1.4em;
-  margin-top: 0.15em;
+  /* As tall as the question mark on a secret card. */
+  font-size: 0.75em;
+  margin-top: 0.25em;
 }
 .ach-q {
   text-shadow: 0 2px 0 var(--grey-d);
@@ -4051,7 +4089,7 @@ input.rename {
   border-radius: 10px;
   box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
   translate: -50% 0;
-  animation: ach-toast 3.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation: ach-toast 4.8s cubic-bezier(0.2, 1.4, 0.4, 1) both;
   pointer-events: none;
 }
 .ach-toast > .sprite {
@@ -4070,8 +4108,8 @@ input.rename {
   0% {
     translate: -50% -140%;
   }
-  10%,
-  88% {
+  8%,
+  92% {
     translate: -50% 0;
     opacity: 1;
   }
@@ -4114,4 +4152,87 @@ input.rename {
     scale 0.25s,
     filter 0.3s;
   filter: none;
+}
+
+/* The room's Settings button sits in the top right corner: below ~960px the
+   room panel and its links reach it, so they start under it. */
+@media (max-width: 959px) {
+  .lobby {
+    padding-top: calc(64px + var(--safe-top));
+  }
+}
+
+/* A rule named in prose: its card's tone colour with a white shine sweeping across now and then. */
+.rule-ref {
+  --rc: var(--gold);
+  background: linear-gradient(100deg, var(--rc) 42%, #fff 50%, var(--rc) 58%) 100% 0 / 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.55));
+  animation: rule-shine 3.2s linear infinite;
+}
+.rule-ref.tone-support {
+  --rc: #6ee7a8;
+}
+.rule-ref.tone-info {
+  --rc: #6fcfff;
+}
+.rule-ref.tone-punish {
+  --rc: #ff8a82;
+}
+@keyframes rule-shine {
+  0% {
+    background-position: 100% 0;
+  }
+  45%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+.reduced-motion .rule-ref {
+  animation: none;
+}
+
+/* Stats, Cards tab: one bar split between the Draw Pile (blue) and the Discard Pile (red). */
+.pile-bar {
+  display: flex;
+  gap: 2px;
+  height: 18px;
+  margin: 6px 0;
+}
+.pile-bar > span {
+  min-width: 4px;
+  transition: width 0.4s;
+}
+.pile-draw {
+  background: var(--blue);
+  border-radius: 4px 0 0 4px;
+}
+.pile-take {
+  background: var(--red);
+  border-radius: 0 4px 4px 0;
+}
+.pile-bar > .empty {
+  background: var(--panel-d);
+}
+.pile-legend {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 0.9em;
+}
+.pile-key::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 2px;
+  background: var(--blue);
+}
+.pile-key.take::before {
+  background: var(--red);
 }

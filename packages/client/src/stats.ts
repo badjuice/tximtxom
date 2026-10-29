@@ -31,7 +31,8 @@ export interface MyStats {
   cardsDrawn: number;
   /** Cards picked up from the discard pile. */
   cardsTaken: number;
-  cardsDiscarded: number;
+  /** Most rounds in one game you played to the end. */
+  longestGame: number;
   /** Fewest and most points in one round, or null before the first round. */
   bestRound: number | null;
   worstRound: number | null;
@@ -79,7 +80,7 @@ const EMPTY: MyStats = {
   rides: 0,
   cardsDrawn: 0,
   cardsTaken: 0,
-  cardsDiscarded: 0,
+  longestGame: 0,
   bestRound: null,
   worstRound: null,
   totalPoints: 0,
@@ -211,9 +212,6 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
     case 'take':
       if (e.seat === me) bump((s) => ({ cardsTaken: s.cardsTaken + 1 }));
       break;
-    case 'discard':
-      if (e.seat === me) bump((s) => ({ cardsDiscarded: s.cardsDiscarded + 1 }));
-      break;
     case 'end':
       if (e.seat === me && e.kind === 'manual') bump((s) => ({ roundsEnded: s.roundsEnded + 1 }));
       break;
@@ -241,6 +239,7 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
           gamesLost: s.gamesLost + (won ? 0 : 1),
           winStreak,
           bestStreak: Math.max(s.bestStreak, winStreak),
+          longestGame: Math.max(s.longestGame, g.round),
         };
       });
       break;

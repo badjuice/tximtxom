@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'preact/hooks';
+import { play } from '../audio';
 import { DEFAULT_RULES, makeCard, parseCards, type Rules, type Suit } from '@tximtxom/shared';
 import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE, setRules } from '../net';
 import { CARD_BACKS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
-import { Button, Choice, Credits, Fit, Modal, Rich, Slider, Tabs, Toggle, WaveText, withTximTxom } from './common';
+import { Button, Choice, Credits, Fit, Modal, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { CONTACT_EMAIL, ISSUES_URL, VERSION } from '../version';
@@ -138,7 +139,7 @@ function Changelog({ onClose }: { onClose: () => void }) {
                 <span class="cl-icon" title={t(`cl.${it.kind}` as Key)} aria-label={t(`cl.${it.kind}` as Key)}>
                   {KIND_ICON[it.kind]}
                 </span>
-                <span>{withTximTxom(lang === 'pt' ? it.pt : it.en)}</span>
+                <span>{withHighlights(lang === 'pt' ? it.pt : it.en)}</span>
               </li>
             ))}
           </ul>
@@ -287,12 +288,43 @@ function useTximTxomExample(superposition: boolean) {
   return Array.from({ length: 7 }, (_, i) => makeCard(((start - 1 + i) % 13) + 1, suit));
 }
 
+/** The rule behind each rule card on the Formations screen. */
+const RULE_OF_CARD: Record<string, Key> = { softcore: 'rule.softcore', mixed: 'rule.smeared', ace: 'rule.superposition' };
+
+/** What each card is worth: an Ace 1, number cards as printed, J 11, Q 12, K 13. */
+function PointValues({ narrow }: { narrow: boolean }) {
+  const sc = narrow ? 0.3 : 0.4;
+  const values: [number[], string][] = [
+    [[makeCard(1, 3)], '1'],
+    [[makeCard(2, 0), makeCard(10, 1)], `2–10 ${t('f.faceValue')}`],
+    [[makeCard(11, 2)], '11'],
+    [[makeCard(12, 3)], '12'],
+    [[makeCard(13, 0)], '13'],
+  ];
+  return (
+    <div class="f-points">
+      {values.map(([cards, pts]) => (
+        <span class="fp">
+          <span class="fp-cards">
+            {cards.map((c) => (
+              <CardIcon card={c} scale={sc} />
+            ))}
+          </span>
+          <b class="fp-n">{pts}</b>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function Formations({ onClose }: { onClose: () => void }) {
   const rules = useStore((s) => s.room?.game?.rules ?? s.room?.rules);
   const softcore = !!rules?.softcore;
   const superposition = !!rules?.superposition;
   const smeared = !!rules?.smeared;
   const tximtxom = useTximTxomExample(superposition);
+  // The rule card last tapped: its rule shows under the list.
+  const [rule, setRule] = useState<string | null>(null);
   // Smaller example cards on phones so the list fits without scrolling.
   const narrow = innerWidth <= 700 || innerHeight <= 500;
   const row = (name: string, color: string, cards: number[], desc: string, opts: { off?: boolean; joker?: string } = {}) => (
@@ -306,14 +338,32 @@ function Formations({ onClose }: { onClose: () => void }) {
         ))}
       </span>
       <span class="f-desc">
-        {opts.joker && <ArtIcon name={opts.joker} scale={0.3} />}
-        {desc}
+        {opts.joker && (
+          <button
+            type="button"
+            class={`f-rule${rule === opts.joker ? ' on' : ''}`}
+            aria-label={t(RULE_OF_CARD[opts.joker])}
+            aria-expanded={rule === opts.joker}
+            onClick={() => {
+              play('button', { volume: 0.5 });
+              setRule(rule === opts.joker ? null : opts.joker!);
+            }}
+          >
+            <ArtIcon name={opts.joker} scale={0.3} />
+          </button>
+        )}
+        <span>
+          <Rich text={desc} />
+        </span>
       </span>
     </div>
   );
   return (
     <Modal title={t('f.title')} onClose={onClose} wide>
-      <p class="center muted f-lead">{t('f.lead')}</p>
+      <p class="center f-lead">
+        <Rich text={t('f.lead')} />
+      </p>
+      <PointValues narrow={narrow} />
       <div class="f-grid">
         {row(t('pair'), 'blue', EX.pair, softcore ? t('f.pair') : t('f.pairOff'), { off: !softcore, joker: 'softcore' })}
         {row(t('trio'), 'blue', EX.trio, t('f.trio'))}
@@ -333,13 +383,21 @@ function Formations({ onClose }: { onClose: () => void }) {
             <CardIcon card={c} scale={narrow ? 0.34 : 0.5} />
           ))}
         </span>
-        <span class="f-desc">{smeared ? t('f.tximtxomSmeared') : t('f.tximtxomDesc')}</span>
-      </div>
-      <p class="f-ride">
-        <ArtIcon name="ride" scale={0.34} />
-        <span>
-          <b class="hl hl-g">{t('f.ride')}</b> {smeared ? t('f.rideDescSmeared') : t('f.rideDesc')}
+        <span class="f-desc">
+          <span>
+            <Rich text={smeared ? t('f.tximtxomSmeared') : t('f.tximtxomDesc')} />
+          </span>
         </span>
+      </div>
+      {/* Always there, so opening a rule doesn't move anything: the hint until a rule card is tapped. */}
+      <p class="f-rule-note" role="status">
+        {rule ? (
+          <>
+            <b>{withHighlights(t(RULE_OF_CARD[rule]))}</b> {t(`${RULE_OF_CARD[rule]}.desc` as Key)}
+          </>
+        ) : (
+          <span class="muted">{t('f.ruleHint')}</span>
+        )}
       </p>
     </Modal>
   );
@@ -412,6 +470,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
     <Modal
       title={t('set.title')}
       onClose={onClose}
+      wide
       class="settings-modal"
       footer={
         // Next to Back, so they can be reached from every tab.
@@ -602,7 +661,7 @@ function Help({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<HelpTab>('goal');
   const tabs: HelpTab[] = ['goal', 'turn', 'end', 'ride', 'more'];
   return (
-    <Modal title={t('help.title')} onClose={onClose} class="help-modal">
+    <Modal title={t('help.title')} onClose={onClose} wide class="help-modal">
       <Tabs tabs={tabs.map((id) => ({ id, label: t(`help.tab.${id}` as Key) }))} active={tab} onChange={setTab} />
       <div class="help-pages">
         {tabs.map((id) => (

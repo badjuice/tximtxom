@@ -4,7 +4,7 @@
 // - server: a Socket.IO server hosts rooms. Used when the build sets
 //   VITE_SERVER_URL ("/" means the same origin, as in `npm run dev:server`).
 import type { Socket } from 'socket.io-client';
-import { hasAchievement } from './achievements';
+import { hasAchievement, onUnlock } from './achievements';
 import { type Action, type ClientToServer, type GameEvent, IDLE_REASON, type JoinResult, randomCode, type Request, type Rules, sanitizeRules, type ServerToClient } from '@tximtxom/shared';
 import { Guest, hasSavedHostRoom, Host, type P2PEvents, type Result } from './p2p';
 import { t, tError } from './i18n';
@@ -234,6 +234,10 @@ export function initNet(): void {
     void request({ event: 'room:ping' });
   };
   addEventListener('pointerdown', ping, { capture: true, passive: true });
+  // Caught Infected while in a room: the host passes it on at the next round start.
+  onUnlock((id) => {
+    if (id === 'infected' && store.get().room) void request({ event: 'room:infected' });
+  });
   addEventListener('keydown', ping, { capture: true, passive: true });
   // While in a room the saved code stays fresh; closing the tab counts as leaving.
   setInterval(() => {

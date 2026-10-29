@@ -43,6 +43,7 @@ export type Request =
   | { event: 'room:debug' }
   | { event: 'room:leave' }
   | { event: 'room:ping' }
+  | { event: 'room:infected' }
   | { event: 'game:action'; msg: Action }
   | { event: 'game:history' };
 
@@ -128,6 +129,15 @@ export class RoomServer {
     switch (req.event) {
       case 'room:ping':
         return this.ctx(clientId) ? { ok: true } : { ok: false, error: 'Not in a room' };
+      case 'room:infected': {
+        const c = this.ctx(clientId);
+        if (!c) return { ok: false, error: 'Not in a room' };
+        if (!c.member.infected) {
+          c.member.infected = true;
+          c.room.broadcast();
+        }
+        return { ok: true };
+      }
       case 'room:create': {
         this.disconnect(clientId);
         const room = this.makeRoom(this.newCode());

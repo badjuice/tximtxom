@@ -196,7 +196,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   for (const { e } of fresh) {
     handleEvent(e, g, hints);
     recordEvent(e, g, room);
-    achievementEvent(e, g);
+    achievementEvent(e, g, room);
     trackSeen(e, g);
   }
   trackSeen(null, g);

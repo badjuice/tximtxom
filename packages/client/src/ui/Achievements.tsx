@@ -1,15 +1,19 @@
 import { useEffect } from 'preact/hooks';
-import { type Achievement, ACHIEVEMENTS, useAchievementToast, useUnlocked } from '../achievements';
+import { type Achievement, ACHIEVEMENTS, TOAST_MS, useAchievementToast, useUnlocked } from '../achievements';
 import { type Key, t } from '../i18n';
 import { formatCount, refreshInfected, useStats } from '../stats';
-import { Modal, WaveText, withTximTxom } from './common';
-import { ArtIcon } from './sprites';
+import { Modal, WaveText, withHighlights } from './common';
+import { ArtIcon, CardBackIcon } from './sprites';
+
+/** The achievement's art: a rule or character card, or a card from the deck. */
+const Art = ({ a, scale }: { a: Achievement; scale: number }) =>
+  a.art.startsWith('cards:') ? <CardBackIcon back={a.art.slice(6)} scale={scale} /> : <ArtIcon name={a.art} scale={scale} />;
 
 const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => t(`ach.${a.id}.${part}` as Key);
 
 /** Its art once unlocked; until then a grey card with a lock, or a question mark if it's a secret. */
 function AchievementIcon({ a, got }: { a: Achievement; got: boolean }) {
-  if (got) return <ArtIcon name={a.art} scale={0.5} />;
+  if (got) return <Art a={a} scale={0.5} />;
   return (
     <span class="sprite ach-blank tilt" aria-hidden="true">
       {a.secret ? <span class="ach-q">?</span> : <span class="lock" />}
@@ -36,9 +40,9 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
             <li class={got ? 'got' : 'locked'}>
               <AchievementIcon a={a} got={got} />
               <span class="ach-text">
-                <span class="ach-name">{hidden ? t('ach.secret') : withTximTxom(text(a, 'name'))}</span>
-                <span class="ach-desc">{hidden ? t('ach.secretDesc') : withTximTxom(text(a, 'desc'))}</span>
-                {!hidden && <span class="ach-flavor">{withTximTxom(text(a, 'flavor'))}</span>}
+                <span class="ach-name">{hidden ? t('ach.secret') : withHighlights(text(a, 'name'))}</span>
+                <span class="ach-desc">{hidden ? t('ach.secretDesc') : withHighlights(text(a, 'desc'))}</span>
+                {!hidden && <span class="ach-flavor">{withHighlights(text(a, 'flavor'))}</span>}
               </span>
             </li>
           );
@@ -54,13 +58,13 @@ export function AchievementToast() {
   const a = ACHIEVEMENTS.find((x) => x.id === id);
   if (!a) return null;
   return (
-    <div class="ach-toast" key={a.id} role="status">
-      <ArtIcon name={a.art} scale={0.42} />
+    <div class="ach-toast" key={a.id} role="status" style={{ animationDuration: `${TOAST_MS}ms` }}>
+      <Art a={a} scale={0.42} />
       <span class="ach-toast-text">
         <span class="ach-toast-head">
           <WaveText text={t('ach.unlocked')} />
         </span>
-        <span>{withTximTxom(text(a, 'desc'))}</span>
+        <span>{withHighlights(text(a, 'desc'))}</span>
       </span>
     </div>
   );
