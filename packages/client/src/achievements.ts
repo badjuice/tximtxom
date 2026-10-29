@@ -7,7 +7,7 @@ import type { GameEvent, GameView, RoomView, Rules } from '@tximtxom/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
 import { store } from './store';
-import { claimPatientZero, countInfected, creditCarrier, myStats, onStats } from './stats';
+import { claimPatientZero, countInfected, creditCarrier, type MyStats, myStats, onStats } from './stats';
 
 const CARRIER_KEY = 'tximtxom.carrier';
 const newCarrierId = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
@@ -32,6 +32,7 @@ export type AchievementId =
   | 'tipTap' | 'dealtIn' | 'lowRoller' | 'champion' | 'competitor' | 'tximtxom' | 'bitter' | 'busted' | 'likeIce' | 'nuts'
   | 'ragequit' | 'chips10' | 'chips100' | 'chips1000' | 'roundWins10' | 'gameWins10' | 'fullParty' | 'midas' | 'firstLoser'
   | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | `rule_${RuleAch}`
+  | 'closeCall' | 'flawless' | 'comeback' | 'generous' | `${Track}${number}`
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd';
 
 /** One achievement per rule, for playing a round with it on: its card art, and whether it's on. */
@@ -51,6 +52,27 @@ export const RULE_ACHIEVEMENTS = {
 export type RuleAch = keyof typeof RULE_ACHIEVEMENTS;
 const RULE_ACH_IDS = Object.keys(RULE_ACHIEVEMENTS) as RuleAch[];
 
+/** Running counts with a row of achievements each (5, 25 and 100), from your stats. */
+export const TRACKS = {
+  roundsWon: { art: 'ace', count: (s: MyStats) => s.roundsWon },
+  gamesWon: { art: 'princess', count: (s: MyStats) => s.gamesWon },
+  formations: { art: 'softcore', count: (s: MyStats) => s.formations },
+  straights: { art: 'mixed', count: (s: MyStats) => s.kinds.straight },
+  quads: { art: 'double', count: (s: MyStats) => s.kinds.quad },
+  ridesTaken: { art: 'ride', count: (s: MyStats) => s.rides },
+  ridesGiven: { art: 'autoride', count: (s: MyStats) => s.ridesGiven },
+  txiJogs: { art: 'txijog', count: (s: MyStats) => s.roundsEnded },
+  draws: { art: 'turn', count: (s: MyStats) => s.cardsDrawn },
+} satisfies Record<string, { art: string; count: (s: MyStats) => number }>;
+export type Track = keyof typeof TRACKS;
+const GOALS: [number, Rarity][] = [
+  [5, 'common'],
+  [25, 'uncommon'],
+  [100, 'epic'],
+];
+/** Goals an older achievement already covers (Midas is 5 games won, Bus Pass 25 rides): no second card for them. */
+const COVERED: Partial<Record<Track, number[]>> = { gamesWon: [5], ridesTaken: [25] };
+
 /** How hard it is to get, shown as the colour down the card's side. Secret ones are red. */
 export type Rarity = 'common' | 'uncommon' | 'epic' | 'legendary' | 'secret';
 
@@ -67,6 +89,11 @@ export interface Achievement {
   rainbow?: boolean;
   /** One of the per-rule achievements: its text is made from the rule's name. */
   rule?: RuleAch;
+  /** Unlocked when this running count reaches `goal`; the card shows how far along it is (and keeps counting). */
+  track?: Track;
+  goal?: number;
+  /** Made from its track ("Hitchhiker II"): the tier's number, from 1. */
+  tier?: number;
 }
 
 /** Common to legendary, then the secret ones. */
@@ -85,17 +112,27 @@ const ALL: Achievement[] = [
   { id: 'competitor', art: 'barbarian', rarity: 'uncommon' },
   { id: 'fullHand', art: 'txijog', rarity: 'uncommon' },
   { id: 'fullParty', art: 'turn', rarity: 'uncommon' },
-  { id: 'roundWins10', art: 'squire', rarity: 'uncommon' },
-  { id: 'busPass', art: 'ride', rarity: 'uncommon' },
+  { id: 'roundWins10', art: 'squire', rarity: 'uncommon', track: 'roundsWon', goal: 10 },
+  { id: 'busPass', art: 'ride', rarity: 'uncommon', track: 'ridesTaken', goal: 25 },
+  { id: 'generous', art: 'villager', rarity: 'uncommon' },
   { id: 'addicted', art: 'timer', rarity: 'uncommon' },
   { id: 'chips100', art: 'ranger', rarity: 'uncommon', soon: true },
-  { id: 'gameWins10', art: 'boar', rarity: 'epic' },
-  { id: 'midas', art: 'ziku', rarity: 'epic' },
+  { id: 'gameWins10', art: 'boar', rarity: 'epic', track: 'gamesWon', goal: 10 },
+  { id: 'midas', art: 'ziku', rarity: 'epic', track: 'gamesWon', goal: 5 },
+  { id: 'closeCall', art: 'bust', rarity: 'epic' },
+  { id: 'comeback', art: 'boar', rarity: 'epic' },
   { id: 'bitter', art: 'snail', rarity: 'epic' },
   { id: 'likeIce', art: 'fantasma', rarity: 'epic' },
   { id: 'nuts', art: 'crab', rarity: 'epic' },
   { id: 'badTiming', art: 'autoride', rarity: 'epic' },
   { id: 'tximtxom', art: 'tximtxom', rarity: 'legendary' },
+  { id: 'flawless', art: 'kabaleru', rarity: 'legendary' },
+  // The running counts, each track's goals in a row.
+  ...(Object.keys(TRACKS) as Track[]).flatMap((track) =>
+    GOALS.filter(([goal]) => !COVERED[track]?.includes(goal)).map(
+      ([goal, rarity], i): Achievement => ({ id: `${track}${goal}`, art: TRACKS[track].art, rarity, track, goal, tier: i + 1 }),
+    ),
+  ),
   { id: 'allRules', art: 'bikingu', rarity: 'legendary' },
   { id: 'chips1000', art: 'kabaleru', rarity: 'legendary', soon: true },
   ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `rule_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'common', rule })),
@@ -185,6 +222,13 @@ export const useAchievementToast = () => useAchievementState(() => showing);
 
 let triedPatientZero = false;
 
+/** Where this round's events start in the game's log. */
+function lastDealIndex(g: GameView): number {
+  let i = g.events.length - 1;
+  while (i > 0 && g.events[i].e.t !== 'deal') i--;
+  return Math.max(0, i);
+}
+
 /** Checks one game event for achievements. Called once per event, as it happens. */
 export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): void {
   const me = g.you;
@@ -213,6 +257,12 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       const r = g.results.at(-1);
       if (!r) return;
       if (r.points[me] === Math.min(...r.points)) unlock('lowRoller');
+      // Three different players riding on one formation of yours, this round.
+      const mine = new Set(g.events.flatMap((x) => (x.e.t === 'lay' && x.e.seat === me ? [x.e.formationId] : [])));
+      const riders = new Map<number, Set<number>>();
+      for (const { e: x } of g.events.slice(lastDealIndex(g)))
+        if (x.t === 'ride' && mine.has(x.formationId) && x.seat !== me) riders.set(x.formationId, (riders.get(x.formationId) ?? new Set()).add(x.seat));
+      if ([...riders.values()].some((r) => r.size >= 3)) unlock('generous');
       // All seven formed, but someone else ended the round first.
       if (r.ender !== null && r.ender !== me && r.leftovers[me].length === 0) unlock('badTiming');
       if (r.totals[me] === 69 && r.totals[me] > threshold) unlock('nuts');
@@ -231,9 +281,15 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
         unlock('champion');
         if (g.players.some((p, i) => i !== me && !p.isBot)) unlock('competitor');
         if (total < 0) unlock('likeIce');
+        // Every round of the game (three at least) won too.
+        if (g.results.length >= 3 && g.results.every((r) => r.points[me] === Math.min(...r.points))) unlock('flawless');
+        // Out in front on points (the worst place to be) at some point, and still won.
+        if (g.players.length > 1 && g.results.some((r) => r.totals.every((x, i) => i === me || r.totals[me] > x))) unlock('comeback');
       } else if (total > threshold) unlock('busted');
       else unlock('firstLoser');
       if (g.players.length > 1 && g.players.every((p) => !p.isBot)) unlock('fullParty');
+      // Right on the limit, and not over it.
+      if (total === threshold) unlock('closeCall');
       break;
     }
   }
@@ -243,10 +299,7 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
 export function initAchievements(): void {
   const check = () => {
     const s = myStats();
-    if (s.roundsWon >= 10) unlock('roundWins10');
-    if (s.gamesWon >= 5) unlock('midas');
-    if (s.gamesWon >= 10) unlock('gameWins10');
-    if (s.rides >= 25) unlock('busPass');
+    for (const a of ACHIEVEMENTS) if (a.track && a.goal && TRACKS[a.track].count(s) >= a.goal) unlock(a.id);
     if (s.timePlayed >= 60 * 60 * 1000) unlock('addicted');
   };
   check();

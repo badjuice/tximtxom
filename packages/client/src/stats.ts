@@ -30,6 +30,8 @@ export interface MyStats {
   /** Most cards in one straight you showed. */
   longestStraight: number;
   rides: number;
+  /** Rides other players took on your formations. */
+  ridesGiven: number;
   cardsDrawn: number;
   /** Cards picked up from the discard pile. */
   cardsTaken: number;
@@ -83,6 +85,7 @@ const EMPTY: MyStats = {
   kinds: { pair: 0, trio: 0, quad: 0, straight: 0 },
   longestStraight: 0,
   rides: 0,
+  ridesGiven: 0,
   cardsDrawn: 0,
   cardsTaken: 0,
   longestGame: 0,
@@ -243,9 +246,13 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
           longestStraight: e.kind === 'straight' ? Math.max(s.longestStraight, e.cards.length) : s.longestStraight,
         }));
       break;
-    case 'ride':
+    case 'ride': {
       if (e.seat === me) bump((s) => ({ rides: s.rides + 1 }));
+      // Someone else riding on a formation you showed.
+      const shown = g.events.find((x) => x.e.t === 'lay' && x.e.formationId === e.formationId)?.e;
+      if (shown?.t === 'lay' && shown.seat === me && e.seat !== me) bump((s) => ({ ridesGiven: s.ridesGiven + 1 }));
       break;
+    }
     case 'gameOver': {
       const won = e.winners.includes(me);
       bump((s) => {

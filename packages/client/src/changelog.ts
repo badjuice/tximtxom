@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.37.0',
+    date: '2026-10-29',
+    items: [
+      n('Progress achievements at 5, 25 and 100: rounds won, games won, formations, straights, quads, rides taken, rides given, Txi jogs and cards drawn. Each card shows how far along you are, and keeps counting past its goal.', 'Conquistas de progresso aos 5, 25 e 100: rondas ganhas, jogos ganhos, formações, escadas, quadras, boleias apanhadas, boleias dadas, Txi jogs e cartas tiradas. Cada carta mostra quanto falta, e continua a contar depois do objetivo.'),
+      n('New achievements: Close Call, Flawless, Comeback and Generous.', 'Novas conquistas: Por Um Triz, Imbatível, Reviravolta e Generoso.'),
+      c('Roundhouse, Card Shark, Midas and Bus Pass show their progress too.', 'Ronda a Ronda, Tubarão, Midas e Passe Social também mostram o progresso.'),
+      n('Stats count the rides other players take on your formations.', 'As estatísticas contam as boleias que os outros apanham nas tuas formações.'),
+    ],
+  },
+  {
     version: '0.36.2',
     date: '2026-10-29',
     items: [

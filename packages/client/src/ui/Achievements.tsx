@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { type Achievement, ACHIEVEMENTS, carrierId, type Rarity, type RuleAch, TOAST_MS, useAchievementToast, useUnlocked } from '../achievements';
+import { type Achievement, ACHIEVEMENTS, carrierId, type Rarity, type RuleAch, TOAST_MS, TRACKS, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
 import { formatCount, refreshInfected, refreshSpread, useStats } from '../stats';
@@ -26,7 +26,26 @@ function ruleName(rule: RuleAch): string {
   return t(key[rule] ?? (`rule.${rule}` as Key));
 }
 
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
+
+/** How far along a running count is: a bar, and "37 / 50" (past the goal it keeps counting: "137 / 100"). */
+function Progress({ count, goal }: { count: number; goal: number }) {
+  return (
+    <span class="ach-track" role="progressbar" aria-valuemin={0} aria-valuemax={goal} aria-valuenow={Math.min(count, goal)}>
+      <span class="ach-track-fill" style={{ width: `${Math.min(100, (100 * count) / goal)}%` }} />
+      <span class="ach-track-text">
+        {formatCount(count)} / {formatCount(goal)}
+      </span>
+    </span>
+  );
+}
+
 const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => {
+  // A track's tier: "Hitchhiker II", "Take 100 rides", and no flavour line.
+  if (a.track && a.tier) {
+    if (part === 'name') return `${t(`ach.track.${a.track}.name` as Key)} ${ROMAN[a.tier]}`;
+    return part === 'desc' ? t(`ach.track.${a.track}.desc` as Key, { n: a.goal! }) : '';
+  }
   if (!a.rule) return t(`ach.${a.id}.${part}` as Key);
   const name = ruleName(a.rule);
   return part === 'name' ? name : part === 'desc' ? t('ach.rule.desc', { rule: name }) : t('ach.rule.flavor');
@@ -54,7 +73,7 @@ const INFECTED_TAPS = 10;
 
 export function AchievementsMenu({ onClose }: { onClose: () => void }) {
   const unlocked = useUnlocked();
-  const { global } = useStats();
+  const { global, mine } = useStats();
   // The Infected counts are a secret too: tap your Infected card ten times to see
   // them, until the window closes.
   const [taps, setTaps] = useState(0);
@@ -107,7 +126,8 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
               <span class="ach-text">
                 <span class="ach-name">{hidden ? t('ach.secret') : got ? <Name a={a} /> : text(a, 'name')}</span>
                 <span class="ach-desc">{hidden ? t('ach.secretDesc') : withHighlights(text(a, 'desc'))}</span>
-                {!hidden && <span class="ach-flavor">{withHighlights(text(a, 'flavor'))}</span>}
+                {!hidden && text(a, 'flavor') && <span class="ach-flavor">{withHighlights(text(a, 'flavor'))}</span>}
+                {a.track && a.goal && <Progress count={TRACKS[a.track].count(mine)} goal={a.goal} />}
               </span>
             </li>
           );

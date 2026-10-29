@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.37.0 (2026-10-29)
+- ✨ Progress achievements at 5, 25 and 100: rounds won, games won, formations, straights, quads, rides taken, rides given, Txi jogs and cards drawn. Each card shows how far along you are, and keeps counting past its goal.
+- ✨ New achievements: Close Call, Flawless, Comeback and Generous.
+- 🔧 Roundhouse, Card Shark, Midas and Bus Pass show their progress too.
+- ✨ Stats count the rides other players take on your formations.
+
 ## 0.36.2 (2026-10-29)
 - 🔧 Rulebook wears legendary gold. The rainbow frame is saved for a later achievement.
 

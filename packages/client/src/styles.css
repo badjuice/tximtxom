@@ -4312,6 +4312,7 @@ input.rename {
 .ach-text {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-width: 0;
   line-height: 1.15;
 }
@@ -4323,6 +4324,39 @@ input.rename {
 }
 .ach-desc {
   font-size: 0.9em;
+}
+.ach-track {
+  position: relative;
+  display: block;
+  align-self: stretch;
+  height: 14px;
+  margin-top: 3px;
+  border-radius: 4px;
+  background: var(--panel-d);
+  overflow: hidden;
+}
+.ach-track-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--rarity, var(--gold));
+}
+.locked .ach-track-fill {
+  background: #6b7780;
+}
+.ach-track-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  color: #fff;
+  text-shadow:
+    1px 0 0 #000,
+    -1px 0 0 #000,
+    0 1px 0 #000,
+    0 -1px 0 #000;
 }
 .ach-flavor {
   font-size: 0.78em;
