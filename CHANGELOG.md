@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.36.1 (2026-10-29)
+- 🔧 Rulebook is a legendary achievement, still in its rainbow frame.
+
 ## 0.36.0 (2026-10-29)
 - ✨ New achievements: New Look, Distracted, one for playing a round with each rule, and Rulebook for playing with every rule, framed in moving rainbow colours.
 - 🔧 Unlocked achievements shine like the rules: their names and cards glint in their rarity's colour.
