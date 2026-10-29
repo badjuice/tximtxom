@@ -1,4 +1,5 @@
 import { type Card, type GameView, rankOf, suitOf } from '@tximtxom/shared';
+import { SEAT_COLORS } from '../seatColors';
 import type { Staged } from '../store';
 import type { CardTarget } from './cardView';
 import { CARD_H, CARD_W, fan, type Layout, type Point } from './layout';
@@ -26,6 +27,8 @@ export interface FormationGroup {
   w: number;
   active: boolean;
   cards: { card: Card; x: number; y: number; rider: number | null }[];
+  /** Cards other players added to it on rides. */
+  rides: number;
 }
 
 export interface SceneInput {
@@ -84,6 +87,7 @@ export function revealGroups(game: GameView, layout: Layout): FormationGroup[] {
       y,
       w,
       active: open,
+      rides: f.rides.length,
       cards: f.cards.map((card, i) => ({ card, x: x + cw / 2 + i * step, y: y + ch / 2, rider: riderOf.get(card) ?? null })),
     };
     groups.push(g);
@@ -393,7 +397,9 @@ export function describeScene(input: SceneInput): DesiredCard[] {
             z: 60 + i,
             faceUp: true,
             wobble: true,
-            glow: c.rider !== null ? GREEN : grp.active ? GOLD : null,
+            // A card added on a ride wears the rider's colour; the open formation glows gold.
+            border: c.rider !== null ? parseInt(SEAT_COLORS[c.rider].slice(1), 16) : null,
+            glow: c.rider === null && grp.active ? GOLD : null,
           },
         });
       });

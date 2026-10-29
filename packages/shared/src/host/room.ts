@@ -175,8 +175,10 @@ export class Room {
   }
 
   addBot(): Member {
-    // The next bot character not already at the table.
-    const persona = this.freePersona() ?? BOT_PERSONAS[0];
+    // A random bot character not already at the table (name and look go together).
+    const taken = new Set(this.members.map((x) => x.avatar));
+    const free = BOT_PERSONAS.filter((p) => !taken.has(p.avatar));
+    const persona = free.length ? free[Math.floor(Math.random() * free.length)] : BOT_PERSONAS[0];
     const m: Member = { id: randomId(8), token: '', name: persona.name, isBot: true, avatar: persona.avatar, clientId: null };
     this.members.push(m);
     return m;

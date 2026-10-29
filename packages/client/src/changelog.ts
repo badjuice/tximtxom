@@ -19,6 +19,17 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.32.0',
+    date: '2026-10-29',
+    items: [
+      c('Shown formations are labelled in their owner\'s colour instead of with their name, so labels no longer overlap. A +2 after the name counts the cards others added on rides.', 'As formações mostradas têm a etiqueta na cor do dono em vez do nome, para as etiquetas não se taparem. Um +2 depois do nome conta as cartas que outros juntaram de boleia.'),
+      c('Cards added on a ride have a border in the colour of the player who added them.', 'As cartas juntadas de boleia têm uma borda na cor de quem as juntou.'),
+      c('Bots join as a random character instead of always the same ones in the same order.', 'Os bots entram com uma personagem aleatória em vez de serem sempre os mesmos pela mesma ordem.'),
+      c('Nope! sometimes says Nuh-uh! instead, and very rarely something else.', 'O Nope! às vezes diz Nuh-uh!, e muito raramente outra coisa.'),
+      c('Totals in the score tables end in pts.', 'Os totais nas tabelas de pontos acabam em pts.'),
+    ],
+  },
+  {
     version: '0.31.2',
     date: '2026-10-29',
     items: [

@@ -27,6 +27,8 @@ export interface CardTarget {
   wobble?: boolean;
   /** Glowing outline. */
   glow?: number | null;
+  /** A steady coloured border (a ride card, in its rider's colour). */
+  border?: number | null;
   /** Held by the pointer: stays upright, no lean or tilt. */
   dragged?: boolean;
 }
@@ -314,6 +316,8 @@ export class CardView extends Container {
       this.outline
         .roundRect(-CARD_W / 2 - 2, -CARD_H / 2 - 2, CARD_W + 4, CARD_H + 4, 6)
         .stroke({ width: 2, color: t.glow, alpha: pulse });
+    } else if (t.border != null) {
+      this.outline.roundRect(-CARD_W / 2 - 2, -CARD_H / 2 - 2, CARD_W + 4, CARD_H + 4, 6).stroke({ width: 3, color: t.border });
     }
   }
 }

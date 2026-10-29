@@ -1567,15 +1567,23 @@ input[type='text'] {
   position: absolute;
   transform: translate(-50%, -100%);
   font-size: 0.8em;
-  background: rgba(30, 43, 45, 0.85);
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+  background: var(--seat, rgba(30, 43, 45, 0.85));
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
   border-radius: 6px;
   padding: 0 8px;
   white-space: nowrap;
   pointer-events: none;
 }
+/* The formation open for riding: a gold ring around its label. */
 .formation-label.active {
-  background: var(--orange);
-  color: #2a1a00;
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.fl-rides {
+  margin-left: 5px;
+  color: #fff;
 }
 .formation-label.end {
   background: var(--red);
@@ -2433,9 +2441,6 @@ input[type='text'] {
 }
 .plate.active {
   border-color: var(--gold);
-}
-.formation-label {
-  border-bottom: 2px solid var(--seat, transparent);
 }
 
 /* --- piles & sixth sense */

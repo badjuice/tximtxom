@@ -5,6 +5,13 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.32.0 (2026-10-29)
+- 🔧 Shown formations are labelled in their owner's colour instead of with their name, so labels no longer overlap. A +2 after the name counts the cards others added on rides.
+- 🔧 Cards added on a ride have a border in the colour of the player who added them.
+- 🔧 Bots join as a random character instead of always the same ones in the same order.
+- 🔧 Nope! sometimes says Nuh-uh! instead, and very rarely something else.
+- 🔧 Totals in the score tables end in pts.
+
 ## 0.31.2 (2026-10-29)
 - ✨ Achievements have a progress bar.
 

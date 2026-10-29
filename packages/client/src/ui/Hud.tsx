@@ -283,8 +283,15 @@ function FormationLabels({ g, L }: { g: GameView; L: Layout }) {
   return (
     <>
       {groups.map((grp) => (
-        <div class={`formation-label${grp.active ? ' active' : ''}`} style={{ ...toScreen(L, { x: grp.x + grp.w / 2, y: grp.y - 4 }), '--seat': SEAT_COLORS[grp.owner] }}>
-          {grp.owner === g.you ? t('you') : g.players[grp.owner].name} · {kindName(grp.kind)}
+        // In its owner's colour, so no name is needed (long names overlapped);
+        // "+2" counts the cards other players added on rides.
+        <div
+          class={`formation-label${grp.active ? ' active' : ''}`}
+          style={{ ...toScreen(L, { x: grp.x + grp.w / 2, y: grp.y - 4 }), '--seat': SEAT_COLORS[grp.owner] }}
+          aria-label={`${grp.owner === g.you ? t('you') : g.players[grp.owner].name}: ${kindName(grp.kind)}${grp.rides ? ` +${grp.rides}` : ''}`}
+        >
+          {kindName(grp.kind)}
+          {grp.rides > 0 && <b class="fl-rides">+{grp.rides}</b>}
         </div>
       ))}
     </>
@@ -479,7 +486,9 @@ function RoundSummary({ g }: { g: GameView }) {
                     </span>
                   )}
                 </td>
-                <td class="num total">{r.totals[i]}</td>
+                <td class="num total">
+                  {r.totals[i]} {t('pts')}
+                </td>
               </tr>
             );
           })}
@@ -558,7 +567,9 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
                 {who(i)}
                 <Wins n={room.players.find((x) => x.id === g.players[i].id)?.wins ?? 0} />
               </td>
-              <td class="num total">{g.players[i].total}</td>
+              <td class="num total">
+                {g.players[i].total} {t('pts')}
+              </td>
               <td>{g.players[i].total > g.rules.threshold ? t('go.bust') : ''}</td>
             </tr>
           ))}

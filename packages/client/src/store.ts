@@ -3,7 +3,7 @@ import type { Card, GameEvent, RoomView } from '@tximtxom/shared';
 import type { Layout } from './game/layout';
 
 /** One colour per seat, used on plates, callouts and in the history. */
-export const SEAT_COLORS = ['#009dff', '#fe5f55', '#fda200', '#4bc292'];
+export { SEAT_COLORS } from './seatColors';
 
 /** A move picked on screen but not sent yet (sent on "End Turn"). */
 export type Staged =
