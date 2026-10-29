@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Card } from '@tximtxom/shared';
 import { getSettings, useSettings } from '../settings';
 import { attachEdition, type Edition } from './editions';
-import { CardIcon, cardSize, faceFrame } from './sprites';
+import { CardIcon, cardArtVersion, cardSize, faceFrame } from './sprites';
 
 const SPAWN_MS = 700;
 
@@ -21,12 +21,14 @@ export function EditionCard({ card, scale = 1, edition, spawn, onBorn }: { card:
 
   // Keyed on the face, not the card object: a parent making a new Card each render mustn't restart it.
   const face = faceFrame(card, highContrast);
+  // A new card style redraws it too.
+  const art = cardArtVersion();
   useEffect(() => {
     const c = attachEdition(canvas.current!, face);
     ctl.current = c;
     c.setEdition(edition, false); // already there: no landing flash
     return () => c.detach();
-  }, [face]);
+  }, [face, art]);
   useEffect(() => ctl.current?.setEdition(edition), [edition]);
   useEffect(() => {
     if (typeof spawn !== 'number') return;

@@ -56,6 +56,8 @@ export interface GlobalStats {
   rounds: number | null;
   /** Players with the Infected achievement. */
   infected: number | null;
+  /** Players who caught Infected from you. */
+  spread: number | null;
   /** The counting service could not be reached. */
   offline: boolean;
 }
@@ -101,7 +103,7 @@ function load(): MyStats {
 }
 
 let mine = load();
-let global: GlobalStats = { players: null, visits: null, rounds: null, infected: null, offline: false };
+let global: GlobalStats = { players: null, visits: null, rounds: null, infected: null, spread: null, offline: false };
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
 
@@ -126,19 +128,21 @@ const NAMESPACE = 'badjuice.github.io';
 // Dev builds and test browsers read the counters but never add to them.
 const COUNTING = !import.meta.env.DEV && !navigator.webdriver;
 
-type Counter = 'players' | 'visits' | 'rounds' | 'infected';
+type Counter = 'players' | 'visits' | 'rounds' | 'infected' | 'spread';
 
-/** Reads or adds one to a global counter; resolves to its value, or null when offline. */
-async function abacus(op: 'hit' | 'get', key: Counter): Promise<number | null> {
+/** Reads or adds one to a global counter; resolves to its value, or null when offline.
+ *  `spread` counters are one per carrier id (`id`); only your own is kept in `global`. */
+async function abacus(op: 'hit' | 'get', key: Counter, id?: string): Promise<number | null> {
   if (op === 'hit' && !COUNTING) op = 'get';
   let value: unknown = null;
   try {
-    const res = await fetch(`${ABACUS}/${op}/${NAMESPACE}/tximtxom-${key}`);
+    const res = await fetch(`${ABACUS}/${op}/${NAMESPACE}/tximtxom-${key}${id ? `-${id}` : ''}`);
     // A counter nobody has hit yet doesn't exist: that's a zero.
     value = res.status === 404 ? 0 : res.ok ? (await res.json()).value : null;
   } catch {
     // Offline or blocked: the counter stays hidden.
   }
+  if (key === 'spread' && op === 'hit') return typeof value === 'number' ? value : null;
   global = typeof value === 'number' ? { ...global, [key]: value, offline: false } : { ...global, offline: true };
   notify();
   return typeof value === 'number' ? value : null;
@@ -147,6 +151,16 @@ async function abacus(op: 'hit' | 'get', key: Counter): Promise<number | null> {
 /** Fetches how many players are Infected (shown with the achievements). */
 export function refreshInfected(): void {
   void abacus('get', 'infected');
+}
+
+/** Fetches how many players caught Infected from you (carrier `id`). */
+export function refreshSpread(id: string): void {
+  void abacus('get', 'spread', id);
+}
+
+/** You caught Infected from the player with carrier `id`: it counts towards theirs. */
+export function creditCarrier(id: string): void {
+  void abacus('hit', 'spread', id);
 }
 
 /** Counts this device as Infected. */

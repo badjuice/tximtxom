@@ -3,7 +3,7 @@ import type { FormationKind } from '@tximtxom/shared';
 import { type Key, t } from '../i18n';
 import { useSettings } from '../settings';
 import { formatCount, locale, type MyStats, useStats } from '../stats';
-import { Modal, Tabs, WaveText } from './common';
+import { Modal, Tabs, WaveText, withTximTxom } from './common';
 
 /** "2h 05m", "12m 30s", "45s". */
 function formatDuration(ms: number): string {
@@ -115,7 +115,7 @@ function StatsPanel() {
         onChange={setTab}
       />
       <div class="tab-body stacked">
-        <div class={`tab-panel${tab === 'overview' ? '' : ' hidden'}`} inert={tab !== 'overview'}>
+        <div class={`tab-panel stats-overview${tab === 'overview' ? '' : ' hidden'}`} inert={tab !== 'overview'}>
           <div class="stat-hero">
             <div class="stat-tile big">
               <span class="stat-value">{formatDuration(s.timePlayed)}</span>
@@ -138,13 +138,13 @@ function StatsPanel() {
               <dd>{s.formations ? t(favourite as Key) : '–'}</dd>
               <dt>{t('stats.longestStraight')}</dt>
               <dd>{s.longestStraight ? t('stats.nCards', { n: s.longestStraight }) : '–'}</dd>
-              <dt>{t('stats.tximtxoms')}</dt>
+              <dt>{withTximTxom(t('stats.tximtxoms'))}</dt>
               <dd>{formatCount(s.tximtxoms)}</dd>
               <dt>{t('stats.rides')}</dt>
               <dd>{formatCount(s.rides)}</dd>
             </dl>
           </section>
-          <p class="center muted small">
+          <p class="center muted small stats-foot">
             {t('stats.visits')}: {formatCount(s.visits)} · {t('stats.since')}: {since}
           </p>
         </div>

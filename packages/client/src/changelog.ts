@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.31.0',
+    date: '2026-10-29',
+    items: [
+      n('A Style tab in Settings: switch the card art to the smooth cards of Kenney\'s Boardgame Pack, with 15 new card backs, and pick the game\'s font from five.', 'Um separador Estilo nas Definições: muda a arte das cartas para as cartas suaves do Boardgame Pack da Kenney, com 15 costas novas, e escolhe a letra do jogo entre cinco.'),
+      n('Infected now also counts how many players caught it from you. Both counts are a secret: you know where to look once you have it.', 'O Infetado agora também conta quantos jogadores o apanharam de ti. As duas contagens são secretas: quando o tiveres, sabes onde procurar.'),
+      c('Stats\' Overview fits without scrolling: the big numbers sit beside the formations.', 'A Vista geral das Estatísticas cabe sem deslizar: os números grandes ficam ao lado das formações.'),
+      f('TximTxoms in Stats wasn\'t colourful or animated.', 'O TximTxoms nas Estatísticas não tinha cor nem animação.'),
+    ],
+  },
+  {
     version: '0.30.0',
     date: '2026-10-29',
     items: [

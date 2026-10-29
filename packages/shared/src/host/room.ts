@@ -59,6 +59,7 @@ export interface Member {
   ready?: boolean;
   /** Has the Infected achievement. */
   infected?: boolean;
+  carrier?: string;
 }
 
 /** One line of the host's action log, kept for bug reports. */
@@ -360,6 +361,7 @@ export class Room {
       wins: x.wins ?? 0,
       ready: this.isReady(x),
       infected: !!x.infected,
+      carrier: x.infected ? x.carrier : undefined,
     }));
     return {
       code: this.code,

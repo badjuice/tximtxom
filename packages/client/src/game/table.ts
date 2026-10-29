@@ -1,7 +1,7 @@
 import { Application, Assets, CanvasSource, Container, type Spritesheet, type Texture } from 'pixi.js';
 import type { Card, GameView } from '@tximtxom/shared';
 import { upscaled, UPSCALE } from '../pixelArt';
-import { getSettings, historyInset, onSettings } from '../settings';
+import { CARD_ATLAS, type CardStyle, getSettings, historyInset, onSettings } from '../settings';
 import type { Staged } from '../store';
 import { type CardTarget, type CardTextures, CardView } from './cardView';
 import { CARD_H, CARD_W, computeLayout, type Layout, type Point } from './layout';
@@ -99,20 +99,19 @@ export class Table {
     });
     host.appendChild(this.app.canvas);
 
-    const sheet = (await Assets.load(`${import.meta.env.BASE_URL}assets/cards.json`)) as Spritesheet;
-    // The art enlarged with hard pixel edges first: smoothing it then softens
-    // only the edges between pixels, not each pixel into its neighbours.
-    const big = new CanvasSource({
-      resource: upscaled(sheet.textureSource.resource as HTMLImageElement | ImageBitmap),
-      resolution: UPSCALE,
-      autoGenerateMipmaps: true,
+    this.tex = await this.loadCards(getSettings().cardStyle);
+    // A new card style: its atlas, then every card redrawn with it.
+    let style = getSettings().cardStyle;
+    onSettings(() => {
+      if (getSettings().cardStyle === style) return;
+      style = getSettings().cardStyle;
+      void this.loadCards(style).then((tex) => {
+        if (style !== getSettings().cardStyle) return;
+        this.tex = tex;
+        for (const v of this.views.values()) v.setTextures(tex);
+        this.refreshAll();
+      });
     });
-    for (const tex of Object.values(sheet.textures)) tex.source = big;
-    // Crisp pixel art, unless the player asked to smooth everything.
-    const filter = () => (big.scaleMode = getSettings().smooth === 'all' ? 'linear' : 'nearest');
-    filter();
-    onSettings(filter);
-    this.tex = { get: (name: string) => sheet.textures[name] as Texture };
 
     this.cards.sortableChildren = true;
     this.world.addChild(this.cards, this.particles);
@@ -182,6 +181,34 @@ export class Table {
     }
     if (g && (g.players.length !== prevPlayers || g.you !== prevYou || g.rules.sixthSense !== prevSixth)) this.relayout();
     else this.sync();
+  }
+
+  private cardSheets: Partial<Record<CardStyle, Promise<CardTextures>>> = {};
+  /** A card style's textures, loaded once. */
+  private loadCards(style: CardStyle): Promise<CardTextures> {
+    return (this.cardSheets[style] ??= (async () => {
+      const sheet = (await Assets.load(`${import.meta.env.BASE_URL}assets/${CARD_ATLAS[style]}.json`)) as Spritesheet;
+      if (style === 'pixel') {
+        // The art enlarged with hard pixel edges first: smoothing it then softens
+        // only the edges between pixels, not each pixel into its neighbours.
+        const big = new CanvasSource({
+          resource: upscaled(sheet.textureSource.resource as HTMLImageElement | ImageBitmap),
+          resolution: UPSCALE,
+          autoGenerateMipmaps: true,
+        });
+        for (const tex of Object.values(sheet.textures)) tex.source = big;
+        // Crisp pixel art, unless the player asked to smooth everything.
+        const filter = () => (big.scaleMode = getSettings().smooth === 'all' ? 'linear' : 'nearest');
+        filter();
+        onSettings(filter);
+      } else {
+        // Smooth art, three times the pixel cards' size (the atlas's scale): always smoothed.
+        sheet.textureSource.scaleMode = 'linear';
+        sheet.textureSource.autoGenerateMipmaps = true;
+        sheet.textureSource.updateMipmaps();
+      }
+      return { get: (name: string) => sheet.textures[name] as Texture };
+    })());
   }
 
   /** Re-render textures after settings changes (deck contrast, card back). */

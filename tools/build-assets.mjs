@@ -1,7 +1,7 @@
 // Builds TximTxom's assets from Kenney packs (CC0, https://kenney.nl) into
 // packages/client/public/assets, in the same atlas format the game loads.
 //
-// Usage: npm run assets [cards]   (expects the packs unzipped in .cache/kenney/<pack>/, see README)
+// Usage: npm run assets [cards|boardCards|art|icons|ui|audio]   (expects the packs unzipped in .cache/kenney/<pack>/, see README)
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -12,7 +12,17 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace
 const KENNEY = path.join(ROOT, '.cache/kenney');
 const OUT = path.join(ROOT, 'packages/client/public/assets');
 
-const PACKS = ['playing-cards-pack', 'tiny-dungeon', 'board-game-icons', 'casino-audio', 'interface-sounds', 'impact-sounds', 'music-jingles', 'rpg-audio', 'ui-pack', 'game-icons', 'digital-audio'];
+// The packs each part needs.
+const NEEDS = {
+  cards: ['playing-cards-pack'],
+  boardCards: ['boardgame-pack'],
+  art: ['tiny-dungeon', 'board-game-icons'],
+  icons: ['board-game-icons'],
+  ui: ['game-icons'],
+  audio: ['casino-audio', 'interface-sounds', 'impact-sounds', 'music-jingles', 'rpg-audio', 'ui-pack', 'digital-audio'],
+};
+const only = process.argv[2]; // e.g. `node tools/build-assets.mjs cards`
+const PACKS = [...new Set(Object.entries(NEEDS).flatMap(([part, packs]) => (!only || only === part ? packs : [])))];
 for (const p of PACKS) {
   if (!fs.existsSync(path.join(KENNEY, p))) {
     console.error(`Missing ${path.join(KENNEY, p)}. Download it from https://kenney.nl/assets/${p} and unzip it there.`);
@@ -88,6 +98,76 @@ async function cards() {
   const back = await load('card_back');
   for (const [k, rgb] of Object.entries(BACKS)) entries.push([k, await png(recolour(back, FIELD, rgb))]);
   await buildAtlas('cards', entries, AW, AH);
+}
+
+// ---------------------------------------------------------------- board game cards
+
+// Kenney's Boardgame Pack: smooth 140x190 cards, a second card style. Built 3x
+// the pixel cards' size (126x180, same shape) with the same frame names, so the
+// game can swap one atlas for the other.
+const BOARD = path.join(KENNEY, 'boardgame-pack/PNG/Cards');
+const BOARD_SCALE = 3;
+const BW = AW * BOARD_SCALE;
+const BH = AH * BOARD_SCALE;
+const BOARD_SUITS = { H: 'Hearts', C: 'Clubs', D: 'Diamonds', S: 'Spades' };
+const BOARD_BACKS = ['blue', 'red', 'green'].flatMap((c) => [1, 2, 3, 4, 5].map((i) => `${c}${i}`));
+
+async function boardLoad(file) {
+  return sharp(path.join(BOARD, `${file}.png`))
+    .resize(BW, BH, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 }, kernel: 'lanczos3' })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+}
+
+/** High contrast: the red or black ink becomes the suit's own colour, edges blended as they were. */
+function boardInk({ data, info }, suit) {
+  const out = Buffer.from(data);
+  const [, to] = HC[suit];
+  const red = suit === 'H' || suit === 'D';
+  for (let i = 0; i < out.length; i += 4) {
+    if (!data[i + 3]) continue;
+    const [r, g, b] = [data[i], data[i + 1], data[i + 2]];
+    // How much ink is in the pixel (0 on white paper, 1 on solid ink).
+    let ink;
+    if (red) ink = r - g > 24 ? Math.min(1, (255 - g) / (255 - 74)) : 0;
+    else ink = Math.abs(r - g) < 12 && Math.abs(g - b) < 12 && r < 225 ? Math.min(1, (255 - r) / 255) : 0;
+    if (!ink) continue;
+    for (let c = 0; c < 3; c++) out[i + c] = Math.round(255 + (to[c] - 255) * ink);
+  }
+  return { data: out, info };
+}
+
+/** A blank front: the Ace of Hearts with everything inside its border painted white. */
+function boardBlank({ data, info }) {
+  const out = Buffer.from(data);
+  const { width: w, height: h } = info;
+  const inset = 7;
+  for (let y = inset; y < h - inset; y++) {
+    for (let x = inset; x < w - inset; x++) {
+      const i = (y * w + x) * 4;
+      if (out[i + 3] > 200) out[i] = out[i + 1] = out[i + 2] = 255;
+    }
+  }
+  return { data: out, info };
+}
+
+async function boardCards() {
+  const entries = [];
+  for (const deck of ['n', 'hc']) {
+    for (const s of ['H', 'C', 'D', 'S']) {
+      for (const r of RANKS) {
+        let img = await boardLoad(`card${BOARD_SUITS[s]}${r}`);
+        if (deck === 'hc') img = boardInk(img, s);
+        entries.push([`${deck}_${r}${s}`, await png(img)]);
+      }
+    }
+  }
+  entries.push(['base', await png(boardBlank(await boardLoad('cardHeartsA')))]);
+  const joker = await png(await boardLoad('cardJoker'));
+  entries.push(['joker_red', joker], ['joker_black', joker]);
+  for (const b of BOARD_BACKS) entries.push([`back_${b}`, await png(await boardLoad(`cardBack_${b}`))]);
+  await buildAtlas('cards-board', entries, BW, BH, BOARD_SCALE);
 }
 
 // ---------------------------------------------------------------- art (avatars, rule art)
@@ -325,7 +405,7 @@ async function audio() {
 }
 
 // Simple grid atlas packer: every frame is w x h.
-async function buildAtlas(name, entries, w, h) {
+async function buildAtlas(name, entries, w, h, scale = 1) {
   const cols = 16;
   const rows = Math.ceil(entries.length / cols);
   const frames = {};
@@ -340,15 +420,17 @@ async function buildAtlas(name, entries, w, h) {
   const height = rows * h;
   await sharp({ create: { width, height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
     .composite(composites)
-    .png({ compressionLevel: 9, palette: true, effort: 10 })
+    // Pixel art fits a palette; smooth art keeps every colour.
+    .png(scale === 1 ? { compressionLevel: 9, palette: true, effort: 10 } : { compressionLevel: 9 })
     .toFile(path.join(OUT, `${name}.png`));
-  const json = { frames, meta: { image: `${name}.png`, size: { w: width, h: height }, scale: 1 } };
+  // `scale`: pixels per art pixel, so Pixi sizes the frames like the pixel cards.
+  const json = { frames, meta: { image: `${name}.png`, size: { w: width, h: height }, scale } };
   fs.writeFileSync(path.join(OUT, `${name}.json`), JSON.stringify(json));
   console.log(`atlas ${name}: ${entries.length} frames, ${width}x${height}`);
 }
 
-const only = process.argv[2]; // e.g. `node tools/build-assets.mjs cards`
 if (!only || only === 'cards') await cards();
+if (!only || only === 'boardCards') await boardCards();
 if (!only || only === 'art') await art();
 if (!only || only === 'icons') await icons();
 if (!only || only === 'ui') await uiIcons();

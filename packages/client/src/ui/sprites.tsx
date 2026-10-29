@@ -2,7 +2,7 @@ import type { ComponentChildren } from 'preact';
 import { type Card, cardCode } from '@tximtxom/shared';
 import { cardSpoken } from '../i18n';
 import { upscaled } from '../pixelArt';
-import { useSettings } from '../settings';
+import { CARD_ATLAS, type CardStyle, getSettings, onSettings, updateSettings, useSettings } from '../settings';
 
 interface Frame {
   x: number;
@@ -21,19 +21,47 @@ interface Atlas {
 
 const atlases: Record<string, Atlas> = {};
 
+async function loadAtlas(file: string, pixelArt = true): Promise<Atlas> {
+  const json = await (await fetch(`${import.meta.env.BASE_URL}assets/${file}.json`)).json();
+  const frames: Record<string, Frame> = {};
+  for (const [k, v] of Object.entries<{ frame: Frame }>(json.frames)) frames[k] = v.frame;
+  const url = `${import.meta.env.BASE_URL}assets/${json.meta.image}`;
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  // Smooth art is big enough already: only pixel art gets enlarged.
+  const blob = pixelArt ? await new Promise<Blob | null>((resolve) => upscaled(img).toBlob(resolve)) : null;
+  const bigUrl = blob ? URL.createObjectURL(blob) : url;
+  return { url, bigUrl, w: json.meta.size.w, h: json.meta.size.h, frames };
+}
+
+/** Each card style's atlas, once loaded; `atlases.cards` is the one in use. */
+const cardAtlases: Partial<Record<CardStyle, Promise<Atlas>>> = {};
+let cardStyleShown: CardStyle | null = null;
+let cardsVersion = 0;
+/** Goes up each time the card art changes, for whatever drew the old art. */
+export const cardArtVersion = () => cardsVersion;
+
+async function showCardStyle(style: CardStyle): Promise<void> {
+  cardAtlases[style] ??= loadAtlas(CARD_ATLAS[style], style === 'pixel');
+  const atlas = await cardAtlases[style]!;
+  if (getSettings().cardStyle !== style) return;
+  atlases.cards = atlas;
+  cardStyleShown = style;
+  cardsVersion++;
+}
+
 export async function loadSpriteAtlases(): Promise<void> {
-  for (const name of ['cards', 'art', 'icons']) {
-    const json = await (await fetch(`${import.meta.env.BASE_URL}assets/${name}.json`)).json();
-    const frames: Record<string, Frame> = {};
-    for (const [k, v] of Object.entries<{ frame: Frame }>(json.frames)) frames[k] = v.frame;
-    const url = `${import.meta.env.BASE_URL}assets/${json.meta.image}`;
-    const img = new Image();
-    img.src = url;
-    await img.decode();
-    const blob = await new Promise<Blob | null>((resolve) => upscaled(img).toBlob(resolve));
-    const bigUrl = blob ? URL.createObjectURL(blob) : url;
-    atlases[name] = { url, bigUrl, w: json.meta.size.w, h: json.meta.size.h, frames };
-  }
+  await Promise.all([
+    ...['art', 'icons'].map(async (name) => (atlases[name] = await loadAtlas(name))),
+    showCardStyle(getSettings().cardStyle),
+  ]);
+  // A new card style: everything redraws once its atlas is in.
+  onSettings(() => {
+    const style = getSettings().cardStyle;
+    if (style === cardStyleShown) return;
+    void showCardStyle(style).then(() => cardStyleShown === style && updateSettings({}));
+  });
 }
 
 /** Where a frame sits in an atlas image (for drawing it outside CSS, e.g. into a canvas). */

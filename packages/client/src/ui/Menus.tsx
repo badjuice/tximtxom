@@ -3,9 +3,9 @@ import { play } from '../audio';
 import { DEFAULT_RULES, makeCard, parseCards, type Rules, type Suit } from '@tximtxom/shared';
 import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE, setRules } from '../net';
-import { CARD_BACKS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
+import { CARD_STYLES, cardBacks, currentBack, FONTS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
-import { Button, Choice, Credits, Fit, Modal, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
+import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { CONTACT_EMAIL, ISSUES_URL, VERSION } from '../version';
@@ -405,7 +405,7 @@ function Formations({ onClose }: { onClose: () => void }) {
 
 // ------------------------------------------------------------------ settings
 
-type SetTab = 'general' | 'controls' | 'access' | 'cards' | 'motion' | 'sound';
+type SetTab = 'general' | 'controls' | 'access' | 'style' | 'cards' | 'motion' | 'sound';
 
 /** Keyboard shortcuts shown in the Controls tab. `hold` keys need a press and hold. */
 /** `keys` is shown as is; `mouse` is a translated mouse action in its place. */
@@ -427,6 +427,43 @@ const KEYS: { keys?: string; mouse?: Key; label: Key; hold?: boolean }[] = [
 
 /** Balatro's game speeds, slowest first. */
 const SPEEDS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
+
+/** "Blue 3" for `back_blue3`, "Red" for `back_red`. */
+function backName(b: string): string {
+  const [, colour, n] = /^back_([a-z]+)(\d*)$/.exec(b) ?? [];
+  return colour ? `${t(`colour.${colour}` as Key)}${n ? ` ${n}` : ''}` : b;
+}
+
+/** Card art, card back and font, each on a cycler like the game speed, over a preview of the cards. */
+function StyleTab() {
+  const s = useSettings();
+  const backs = cardBacks(s.cardStyle);
+  const back = s.cardBack === 'random' ? 'random' : currentBack();
+  return (
+    <>
+      <div class="style-preview" aria-hidden="true">
+        <CardIcon card={makeCard(1, 3)} scale={0.8} />
+        <CardIcon card={makeCard(13, 0)} scale={0.8} />
+        {back === 'random' ? <RandomBackIcon backs={backs} scale={0.8} /> : <CardBackIcon back={back} scale={0.8} />}
+        <p class="style-sample">{withHighlights(t('set.fontSample'))}</p>
+      </div>
+      <Choice
+        label={t('set.cardStyle')}
+        desc={t(`set.cardStyle.${s.cardStyle}.by` as Key)}
+        value={s.cardStyle}
+        options={CARD_STYLES.map((v) => ({ value: v, label: t(`set.cardStyle.${v}` as Key) }))}
+        onChange={(cardStyle) => updateSettings({ cardStyle, cardBack: s.cardBack === 'random' ? 'random' : cardBacks(cardStyle)[0] })}
+      />
+      <Choice
+        label={t('set.cardBack')}
+        value={back}
+        options={[...backs.map((b) => ({ value: b, label: backName(b) })), { value: 'random', label: t('set.cardBack.random') }]}
+        onChange={(cardBack) => updateSettings({ cardBack })}
+      />
+      <Choice label={t('set.font')} desc={t('set.font.by', { author: FONTS.find((f) => f.id === s.font)?.author ?? '' })} value={s.font} options={FONTS.map((f) => ({ value: f.id, label: f.name }))} onChange={(font) => updateSettings({ font })} />
+    </>
+  );
+}
 
 /** Reset to defaults asks first, in a small prompt over the button. */
 function ResetButton() {
@@ -484,6 +521,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
           { id: 'general', label: t('set.tab.general') },
           ...(keyboard ? [{ id: 'controls' as const, label: t('set.tab.controls') }] : []),
           { id: 'access', label: t('set.tab.access') },
+          { id: 'style', label: t('set.tab.style') },
           { id: 'cards', label: t('set.tab.graphics') },
           { id: 'motion', label: t('set.tab.motion') },
           { id: 'sound', label: t('set.tab.sound') },
@@ -552,34 +590,10 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         )}
+        <div class={`tab-panel${tab === 'style' ? '' : ' hidden'}`} inert={tab !== 'style'}>
+          <StyleTab />
+        </div>
         <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
-          <div class="toggle">
-            <span class="toggle-text">
-              <span class="toggle-label">
-                <Fit text={t('set.cardBack')} />
-              </span>
-            </span>
-            <span class="backs">
-              {CARD_BACKS.map((b) => (
-                <button
-                  class={`back-pick${s.cardBack === b ? ' on' : ''}`}
-                  aria-pressed={s.cardBack === b}
-                  aria-label={b.replace('back_', '')}
-                  onClick={() => set({ cardBack: b })}
-                >
-                  <CardBackIcon back={b} scale={0.42} />
-                </button>
-              ))}
-              <button
-                class={`back-pick random${s.cardBack === 'random' ? ' on' : ''}`}
-                aria-pressed={s.cardBack === 'random'}
-                title={t('set.cardBack.random')}
-                onClick={() => set({ cardBack: 'random' })}
-              >
-                <RandomBackIcon backs={CARD_BACKS} scale={0.42} />
-              </button>
-            </span>
-          </div>
           <Toggle label={t('set.smoothing')} desc={t('set.smoothing.desc')} checked={s.smooth === 'all'} onChange={(v) => set({ smooth: v ? 'all' : 'off' })} />
           <Slider label={t('set.size')} value={s.uiScale} min={0.8} max={1.2} step={0.05} onChange={(v) => set({ uiScale: v })} format={pct} />
         </div>

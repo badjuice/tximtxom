@@ -1,8 +1,9 @@
 # Fonts
 
-Alternative fonts, kept for a future font option in Settings. None of them is
-loaded by the game yet (the game font is `../m6x11plus.woff2`). Files are as
-downloaded from DaFont on 2026-10-28.
+Alternative fonts, picked in Settings > Style (the default game font is
+`../m6x11plus.woff2`). Each is only loaded when chosen; letters a font lacks
+(the card suits, some dashes) come from m6x11. Files are as downloaded from
+DaFont on 2026-10-28.
 
 | Folder | Font | Author | Source | Licence |
 | --- | --- | --- | --- | --- |
@@ -20,5 +21,5 @@ Notes:
 - Superstar ships two files. Its author recommends the MB03 version
   (`superstar_memesbruh03.ttf`); the "orig" one (`superstarorig_memesbruh03.ttf`)
   says "Original design by someone else", so use the MB03 one.
-- When a font is added to the game, credit it in the README's Credits and in the
-  game's credits, and convert it to `.woff2` for the web.
+- The game credits each font's author under the Font choice; the README's
+  Credits list them too. They're used as TTF (small enough not to need `.woff2`).

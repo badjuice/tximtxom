@@ -14,6 +14,8 @@ export interface LobbyPlayer {
   ready: boolean;
   /** Has the Infected achievement: anyone at a table with them catches it. */
   infected: boolean;
+  /** An infected player's anonymous carrier id: whoever catches it from them counts it towards theirs. */
+  carrier?: string;
 }
 
 /** Everything a client needs, sent after every change. */
@@ -38,8 +40,8 @@ export interface JoinResult {
 }
 
 export interface ClientToServer {
-  'room:create': (msg: { name: string; rules?: Partial<Rules>; avatar?: string; infected?: boolean }, ack: Ack<JoinResult>) => void;
-  'room:join': (msg: { code: string; name: string; token?: string; avatar?: string; infected?: boolean }, ack: Ack<JoinResult>) => void;
+  'room:create': (msg: { name: string; rules?: Partial<Rules>; avatar?: string; infected?: boolean; carrier?: string }, ack: Ack<JoinResult>) => void;
+  'room:join': (msg: { code: string; name: string; token?: string; avatar?: string; infected?: boolean; carrier?: string }, ack: Ack<JoinResult>) => void;
   'room:rules': (msg: { rules: Partial<Rules> }, ack: Ack) => void;
   'room:addBot': (ack: Ack) => void;
   'room:kick': (msg: { playerId: string }, ack: Ack) => void;
@@ -58,7 +60,7 @@ export interface ClientToServer {
   /** The player clicked or typed: keeps the room from closing as idle. */
   'room:ping': (ack: Ack) => void;
   /** You caught the Infected achievement here: the rest of the table catches it at the next round start. */
-  'room:infected': (ack: Ack) => void;
+  'room:infected': (msg: { carrier?: string }, ack: Ack) => void;
   'game:action': (action: Action, ack: Ack) => void;
   /** The full move log of the current game. */
   'game:history': (ack: Ack<{ events: { id: number; e: GameEvent }[] }>) => void;

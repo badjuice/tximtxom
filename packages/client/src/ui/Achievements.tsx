@@ -1,7 +1,8 @@
-import { useEffect } from 'preact/hooks';
-import { type Achievement, ACHIEVEMENTS, TOAST_MS, useAchievementToast, useUnlocked } from '../achievements';
+import { useState } from 'preact/hooks';
+import { type Achievement, ACHIEVEMENTS, carrierId, TOAST_MS, useAchievementToast, useUnlocked } from '../achievements';
+import { play } from '../audio';
 import { type Key, t } from '../i18n';
-import { formatCount, refreshInfected, useStats } from '../stats';
+import { formatCount, refreshInfected, refreshSpread, useStats } from '../stats';
 import { Modal, WaveText, withHighlights } from './common';
 import { ArtIcon, CardBackIcon } from './sprites';
 
@@ -21,23 +22,45 @@ function AchievementIcon({ a, got }: { a: Achievement; got: boolean }) {
   );
 }
 
+/** Taps on your Infected card that show the Infected counts. */
+const INFECTED_TAPS = 10;
+
 export function AchievementsMenu({ onClose }: { onClose: () => void }) {
   const unlocked = useUnlocked();
   const { global } = useStats();
-  useEffect(refreshInfected, []);
+  // The Infected counts are a secret too: tap your Infected card ten times to see
+  // them, until the window closes.
+  const [taps, setTaps] = useState(0);
+  const counts = taps >= INFECTED_TAPS;
+  const tapInfected = () => {
+    if (counts) return;
+    if (taps + 1 === INFECTED_TAPS) {
+      play('highlight1', { volume: 0.6 });
+      refreshInfected();
+      refreshSpread(carrierId());
+    }
+    setTaps(taps + 1);
+  };
   const n = ACHIEVEMENTS.filter((a) => unlocked[a.id]).length;
   return (
     <Modal title={t('ach.title')} onClose={onClose} class="ach-modal">
       <p class="ach-count">
         {t('ach.count', { n, total: ACHIEVEMENTS.length })}
-        {global.infected !== null && global.infected > 0 && <span class="muted"> · {t('ach.infectedCount', { n: formatCount(global.infected) })}</span>}
+        {counts && global.infected !== null && (
+          <span class="ach-infected">
+            {'\u00a0· '}
+            {t('ach.infectedCount', { n: formatCount(global.infected) })}
+            {' · '}
+            {t('ach.spreadCount', { n: formatCount(global.spread ?? 0) })}
+          </span>
+        )}
       </p>
       <ul class="ach-list">
         {ACHIEVEMENTS.map((a) => {
           const got = !!unlocked[a.id];
           const hidden = a.secret && !got;
           return (
-            <li class={got ? 'got' : 'locked'}>
+            <li class={got ? 'got' : 'locked'} onClick={got && a.id === 'infected' ? tapInfected : undefined}>
               <AchievementIcon a={a} got={got} />
               <span class="ach-text">
                 <span class="ach-name">{hidden ? t('ach.secret') : withHighlights(text(a, 'name'))}</span>

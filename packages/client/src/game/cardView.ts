@@ -107,6 +107,12 @@ export class CardView extends Container {
     this.zIndex = target.z;
   }
 
+  /** Draw with another card style's textures (the next refreshTextures picks them up). */
+  setTextures(tex: CardTextures): void {
+    this.tex = tex;
+    this.shadow.texture = tex.get('base');
+  }
+
   /** Snap to a start position (e.g. "came from the draw pile"). */
   spawnAt(x: number, y: number, scale?: number, rot = 0): void {
     this.x = x;

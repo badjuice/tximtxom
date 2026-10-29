@@ -43,9 +43,14 @@ export type Request =
   | { event: 'room:debug' }
   | { event: 'room:leave' }
   | { event: 'room:ping' }
-  | { event: 'room:infected' }
+  | { event: 'room:infected'; msg?: { carrier?: string } }
   | { event: 'game:action'; msg: Action }
   | { event: 'game:history' };
+
+/** A carrier id: a short random token, or nothing. */
+function cleanCarrier(id: unknown): string | undefined {
+  return typeof id === 'string' && /^[a-z0-9]{6,24}$/.test(id) ? id : undefined;
+}
 
 function cleanName(name: unknown): string {
   const s = String(name ?? '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
@@ -134,6 +139,7 @@ export class RoomServer {
         if (!c) return { ok: false, error: 'Not in a room' };
         if (!c.member.infected) {
           c.member.infected = true;
+          c.member.carrier = cleanCarrier(req.msg?.carrier);
           c.room.broadcast();
         }
         return { ok: true };
@@ -143,6 +149,7 @@ export class RoomServer {
         const room = this.makeRoom(this.newCode());
         room.setRules(req.msg?.rules ?? {});
         const m = room.addHuman(cleanName(req.msg?.name), clientId, req.msg?.avatar, req.msg?.infected === true);
+        if (m.infected) m.carrier = cleanCarrier(req.msg?.carrier);
         this.clientRoom.set(clientId, room);
         room.connect(m, clientId);
         return { ok: true, code: room.code, token: m.token, playerId: m.id };
@@ -163,7 +170,10 @@ export class RoomServer {
           m = room.addHuman(cleanName(req.msg?.name), clientId, req.msg?.avatar, req.msg?.infected === true);
         }
         // Caught it somewhere else since taking this seat.
-        if (req.msg?.infected === true) m.infected = true;
+        if (req.msg?.infected === true) {
+          m.infected = true;
+          m.carrier = cleanCarrier(req.msg?.carrier);
+        }
         this.clientRoom.set(clientId, room);
         room.connect(m, clientId);
         return { ok: true, code: room.code, token: m.token, playerId: m.id };

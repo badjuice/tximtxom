@@ -1,18 +1,32 @@
 import { useEffect, useState } from 'preact/hooks';
 
-export type CardBack = 'back_red' | 'back_blue' | 'back_yellow' | 'back_green' | 'back_black' | 'back_purple';
-export const CARD_BACKS: CardBack[] = ['back_red', 'back_blue', 'back_yellow', 'back_green', 'back_black', 'back_purple'];
+/** The card art: Kenney's pixel cards, or the smooth cards of his Boardgame Pack. */
+export type CardStyle = 'pixel' | 'board';
+export const CARD_STYLES: CardStyle[] = ['pixel', 'board'];
+/** The atlas each style's cards are in. */
+export const CARD_ATLAS: Record<CardStyle, string> = { pixel: 'cards', board: 'cards-board' };
 
-let randomBack: CardBack = CARD_BACKS[Math.floor(Math.random() * CARD_BACKS.length)];
+/** A card back frame in the style's atlas (`back_red`, `back_blue3`...). */
+export type CardBack = string;
+const BACKS: Record<CardStyle, CardBack[]> = {
+  pixel: ['back_red', 'back_blue', 'back_yellow', 'back_green', 'back_black', 'back_purple'],
+  board: ['blue', 'red', 'green'].flatMap((c) => [1, 2, 3, 4, 5].map((i) => `back_${c}${i}`)),
+};
+/** The backs of the card style in use. */
+export const cardBacks = (style = getSettings().cardStyle): CardBack[] => BACKS[style];
+
+let randomBack: CardBack = BACKS.pixel[0];
 /** Backs not yet dealt on in this round of picks; every back comes up once before any repeats. */
-let backBag: CardBack[] = [...CARD_BACKS];
+let backBag: CardBack[] = [];
 /** Picks the next random back for a new deal: never the one just used. */
 export function rollRandomBack(): void {
-  if (!backBag.length) backBag = [...CARD_BACKS];
+  const all = cardBacks();
+  backBag = backBag.filter((b) => all.includes(b));
+  if (!backBag.length) backBag = [...all];
   const pick = backBag.filter((b) => b !== randomBack);
   // Only the current back is left in the bag: it goes back in with the next set.
   if (!pick.length) {
-    backBag = CARD_BACKS.filter((b) => b !== randomBack);
+    backBag = all.filter((b) => b !== randomBack);
     return rollRandomBack();
   }
   randomBack = pick[Math.floor(Math.random() * pick.length)];
@@ -21,7 +35,40 @@ export function rollRandomBack(): void {
 /** The back to draw right now. */
 export function currentBack(): CardBack {
   const b = getSettings().cardBack;
-  return b === 'random' ? randomBack : b;
+  const all = cardBacks();
+  if (b === 'random') {
+    if (!all.includes(randomBack)) rollRandomBack();
+    return randomBack;
+  }
+  return all.includes(b) ? b : all[0];
+}
+
+/** The game's font, or one of the alternatives (assets/fonts). */
+export type FontId = 'm6x11' | 'grapeSoda' | 'cutePixel' | 'superstar' | 'digitalDisco';
+/** `author` is credited under the choice (see assets/fonts/README.md). */
+export const FONTS: { id: FontId; name: string; author: string; file: string }[] = [
+  { id: 'm6x11', name: 'm6x11', author: 'Daniel Linssen', file: 'm6x11plus.woff2' },
+  { id: 'grapeSoda', name: 'Grape Soda', author: 'jeti (CC BY 4.0)', file: 'fonts/grape-soda/GrapeSoda.ttf' },
+  { id: 'cutePixel', name: 'CutePixel', author: 'zK4rim', file: 'fonts/cutepixel/CutePixel.ttf' },
+  { id: 'superstar', name: 'Superstar', author: 'memesbruh03', file: 'fonts/superstar/superstar_memesbruh03.ttf' },
+  { id: 'digitalDisco', name: 'Digital Disco', author: 'jeti (CC BY 4.0)', file: 'fonts/digital-disco/DigitalDisco.ttf' },
+];
+
+/** Fonts asked for, and fonts ready to use; the page switches once its font is in. */
+const fontsAsked = new Set<FontId>(['m6x11']);
+const fontsReady = new Set<FontId>(['m6x11']);
+function loadFont(id: FontId): void {
+  const f = FONTS.find((x) => x.id === id);
+  if (!f || fontsAsked.has(id)) return;
+  fontsAsked.add(id);
+  new FontFace(`tt-${id}`, `url(${import.meta.env.BASE_URL}assets/${f.file})`)
+    .load()
+    .then((face) => {
+      document.fonts.add(face);
+      fontsReady.add(id);
+      applyCssSettings();
+    })
+    .catch(() => fontsAsked.delete(id));
 }
 
 /** Per-player settings, saved on this device. */
@@ -29,8 +76,10 @@ export interface Settings {
   // Cards & colour
   highContrast: boolean;
   bigLabels: boolean;
+  cardStyle: CardStyle;
   /** `random` deals each round on a new back. */
   cardBack: CardBack | 'random';
+  font: FontId;
   /** Anti-aliasing: off, or on (the edges of tilted table cards and all the pixel art). */
   smooth: 'off' | 'all';
   // Layout
@@ -71,7 +120,9 @@ const prefersContrast = typeof matchMedia !== 'undefined' && matchMedia('(prefer
 export const DEFAULT_SETTINGS: Settings = {
   highContrast: prefersContrast,
   bigLabels: false,
+  cardStyle: 'pixel',
   cardBack: 'back_red',
+  font: 'm6x11',
   smooth: 'all',
   clockwise: false,
   uiScale: 1,
@@ -172,5 +223,9 @@ export function applyCssSettings(): void {
   root.classList.toggle('history-open', current.historyOpen);
   root.classList.toggle('lefty', current.leftHanded);
   root.classList.toggle('smooth-all', current.smooth === 'all');
+  root.classList.toggle('cards-board', current.cardStyle === 'board');
+  // Missing letters (suits, dashes) fall back to the game's own font.
+  loadFont(current.font);
+  root.style.setProperty('--font', current.font !== 'm6x11' && fontsReady.has(current.font) ? `tt-${current.font}, m6x11` : 'm6x11');
   root.lang = current.lang === 'pt' ? 'pt-PT' : 'en';
 }

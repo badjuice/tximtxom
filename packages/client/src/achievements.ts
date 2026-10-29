@@ -6,7 +6,26 @@
 import type { GameEvent, GameView, RoomView } from '@tximtxom/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
-import { claimPatientZero, countInfected } from './stats';
+import { claimPatientZero, countInfected, creditCarrier } from './stats';
+
+const CARRIER_KEY = 'tximtxom.carrier';
+const newCarrierId = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
+/** Used when storage is blocked: a new id each visit. */
+let carrierFallback = '';
+/** This device's anonymous carrier id: a random token, so the players who catch
+ *  Infected from you can be counted without knowing who you are. */
+export function carrierId(): string {
+  try {
+    let id = localStorage.getItem(CARRIER_KEY);
+    if (!id || !/^[a-z0-9]{12}$/.test(id)) {
+      id = newCarrierId();
+      localStorage.setItem(CARRIER_KEY, id);
+    }
+    return id;
+  } catch {
+    return (carrierFallback ||= newCarrierId());
+  }
+}
 
 export type AchievementId =
   'tipTap' | 'dealtIn' | 'lowRoller' | 'champion' | 'competitor' | 'tximtxom' | 'bitter' | 'busted' | 'likeIce' | 'nuts' | 'infected' | 'scholar' | 'prettyBasic';
@@ -123,7 +142,13 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
     case 'deal':
       unlock('dealtIn');
       // Every round start, Infected passes to anyone at the table who doesn't have it yet.
-      if (room.players.some((p) => p.id !== room.youId && p.infected)) unlock('infected');
+      const carriers = room.players.filter((p) => p.id !== room.youId && p.infected);
+      if (carriers.length) {
+        // Caught it just now: it counts for one of the players you caught it from.
+        const ids = carriers.flatMap((p) => p.carrier ?? []);
+        if (!unlocked.infected && ids.length) creditCarrier(ids[Math.floor(Math.random() * ids.length)]);
+        unlock('infected');
+      }
       else if (!unlocked.infected && !triedPatientZero) {
         triedPatientZero = true;
         void claimPatientZero().then((first) => first && unlock('infected', true));

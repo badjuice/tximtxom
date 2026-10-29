@@ -21,7 +21,7 @@
   --crt: 0.5;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
-  font-family: 'm6x11', ui-monospace, monospace;
+  font-family: var(--font, 'm6x11'), ui-monospace, monospace;
   color: var(--text);
   -webkit-font-smoothing: none;
   font-smooth: never;
@@ -4235,4 +4235,54 @@ input.rename {
 }
 .pile-key.take::before {
   background: var(--red);
+}
+
+/* The Boardgame Pack cards are smooth art, not pixels. */
+.cards-board .sprite.card,
+.cards-board .sprite.card .sprite {
+  image-rendering: auto;
+}
+
+/* Settings, Style: the cards and a line of text as they'll look. */
+.style-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 10px;
+  background: var(--panel-in);
+  border-radius: 10px;
+  box-shadow: 0 3px 0 var(--panel-d);
+}
+.style-sample {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  text-align: center;
+}
+
+/* Stats, Overview: on wide screens the big numbers stack beside the formations,
+   so the whole tab fits without scrolling. */
+@media (min-width: 700px) {
+  .tab-body.stacked > .tab-panel.stats-overview {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0 8px;
+    align-items: start;
+  }
+  .stats-overview .stat-hero {
+    grid-template-columns: 1fr;
+    margin-bottom: 0;
+  }
+  .stats-overview .stats-foot {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The Infected counts, once revealed: slime green, dropping in. */
+.ach-infected {
+  color: var(--green);
+  display: inline-block;
+  animation: counter-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }

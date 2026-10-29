@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.31.0 (2026-10-29)
+- ✨ A Style tab in Settings: switch the card art to the smooth cards of Kenney's Boardgame Pack, with 15 new card backs, and pick the game's font from five.
+- ✨ Infected now also counts how many players caught it from you. Both counts are a secret: you know where to look once you have it.
+- 🔧 Stats' Overview fits without scrolling: the big numbers sit beside the formations.
+- 🐛 TximTxoms in Stats wasn't colourful or animated.
+
 ## 0.30.0 (2026-10-29)
 - ✨ Three new achievements: Tip Tap (tap each Ace on the main menu), and two secret ones.
 - ✨ Rule names light up in their colour wherever they're mentioned, and the coloured words in How to play wave.
