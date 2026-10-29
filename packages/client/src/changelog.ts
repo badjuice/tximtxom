@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.31.1',
+    date: '2026-10-29',
+    items: [
+      c('With reduced motion on, TximTxom no longer sits still: the whole word slowly fades from colour to colour.', 'Com o movimento reduzido ligado, o TximTxom já não fica parado: a palavra toda muda de cor devagar.'),
+    ],
+  },
+  {
     version: '0.31.0',
     date: '2026-10-29',
     items: [

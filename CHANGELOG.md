@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.31.1 (2026-10-29)
+- 🔧 With reduced motion on, TximTxom no longer sits still: the whole word slowly fades from colour to colour.
+
 ## 0.31.0 (2026-10-29)
 - ✨ A Style tab in Settings: switch the card art to the smooth cards of Kenney's Boardgame Pack, with 15 new card backs, and pick the game's font from five.
 - ✨ Infected now also counts how many players caught it from you. Both counts are a secret: you know where to look once you have it.
