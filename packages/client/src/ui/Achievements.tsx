@@ -55,6 +55,10 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           </span>
         )}
       </p>
+      <div class="ach-progress" role="progressbar" aria-valuemin={0} aria-valuemax={ACHIEVEMENTS.length} aria-valuenow={n} aria-label={t('ach.title')}>
+        <span class="ach-progress-fill" style={{ width: `${(100 * n) / ACHIEVEMENTS.length}%` }} />
+        <span class="ach-progress-text">{Math.round((100 * n) / ACHIEVEMENTS.length)}%</span>
+      </div>
       <ul class="ach-list">
         {ACHIEVEMENTS.map((a) => {
           const got = !!unlocked[a.id];

@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.31.2',
+    date: '2026-10-29',
+    items: [
+      n('Achievements have a progress bar.', 'As conquistas têm uma barra de progresso.'),
+    ],
+  },
+  {
     version: '0.31.1',
     date: '2026-10-29',
     items: [

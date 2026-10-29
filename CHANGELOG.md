@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.31.2 (2026-10-29)
+- ✨ Achievements have a progress bar.
+
 ## 0.31.1 (2026-10-29)
 - 🔧 With reduced motion on, TximTxom no longer sits still: the whole word slowly fades from colour to colour.
 
