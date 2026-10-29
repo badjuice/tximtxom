@@ -4257,6 +4257,55 @@ input.rename {
 .ach-list li.got.rarity-secret {
   --rarity: var(--red);
 }
+/* The rainbow one: a moving rainbow frame instead of its rarity's colour. The border
+   takes the inset frame's place, so the padding gives back its width. */
+.ach-list li.got.rainbow {
+  border: 3px solid transparent;
+  padding: 3px 7px;
+  background:
+    linear-gradient(var(--panel-in), var(--panel-in)) padding-box,
+    linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #a26bf2, #fe5f55) 0 0 / 200% 100% border-box;
+  box-shadow: inset 0 -3px 0 var(--panel-d);
+  animation: rainbow-slide 3s linear infinite;
+}
+.rule-ref.rainbow-text {
+  background: linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #a26bf2, #fe5f55) 0 0 / 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: rainbow-slide 3s linear infinite;
+}
+@keyframes rainbow-slide {
+  to {
+    background-position: 200% 0;
+  }
+}
+.reduced-motion .ach-list li.got.rainbow,
+.reduced-motion .rule-ref.rainbow-text {
+  animation: none;
+}
+/* The legend's squares in the rarity colours. */
+.ach-legend {
+  justify-content: center;
+  margin: 0 0 8px;
+}
+.lg.rarity-common {
+  --tone: #009dff;
+}
+.lg.rarity-uncommon {
+  --tone: #4bc292;
+}
+.lg.rarity-epic {
+  --tone: #a26bf2;
+}
+.lg.rarity-legendary {
+  --tone: var(--gold);
+}
+.lg.rarity-secret {
+  --tone: var(--red);
+}
+.lg.rarity-locked {
+  --tone: #6b7780;
+}
 .ach-list li > .sprite {
   flex: none;
 }

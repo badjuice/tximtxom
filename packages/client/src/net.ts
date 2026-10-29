@@ -343,7 +343,11 @@ export const renamePlayer = (playerId: string, name: string) => {
   if (playerId === store.get().room?.youId) localStorage.setItem(NAME_KEY, name);
   return call({ event: 'room:rename', msg: { playerId, name } });
 };
-export const cycleAvatar = (playerId: string) => call({ event: 'room:avatar', msg: { playerId } });
+export const cycleAvatar = (playerId: string) => {
+  // A new look for yourself (avatars only change in the lobby).
+  if (playerId === store.get().room?.youId) unlock('newLook');
+  return call({ event: 'room:avatar', msg: { playerId } });
+};
 
 export function leaveRoom(): void {
   // A guest leaving a game in progress keeps the seat (a bot plays it): the

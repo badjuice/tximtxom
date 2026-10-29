@@ -133,12 +133,12 @@ const RULE_TONES: Record<string, string> = {
 
 /** Art on a card: a player's character or a rule's picture. Unknown names (old saves) show the default character.
  *  `rule`: a rule's card, with a shine crossing it diagonally in the rule's colour, in step with its name's. */
-export function ArtIcon({ name, scale = 0.5, title, rule }: { name: string; scale?: number; title?: string; rule?: boolean }) {
+export function ArtIcon({ name, scale = 0.5, title, rule, shine }: { name: string; scale?: number; title?: string; rule?: boolean; shine?: string }) {
   const frame = atlases.art?.frames[name] ? name : 'villager';
   return (
     <span
-      class={`sprite joker tilt${rule ? ` rule-card tone-${RULE_TONES[name] ?? 'neutral'}` : ''}`}
-      style={spriteStyle('art', frame, fit('art', scale))}
+      class={`sprite joker tilt${rule ? ` rule-card tone-${RULE_TONES[name] ?? 'neutral'}` : shine ? ' rule-card' : ''}`}
+      style={shine ? { ...spriteStyle('art', frame, fit('art', scale)), '--rc': shine } : spriteStyle('art', frame, fit('art', scale))}
       title={title}
       aria-hidden={title ? undefined : 'true'}
       role={title ? 'img' : undefined}

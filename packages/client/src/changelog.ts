@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.36.0',
+    date: '2026-10-29',
+    items: [
+      n('New achievements: New Look, Distracted, one for playing a round with each rule, and Rulebook for playing with every rule, framed in moving rainbow colours.', 'Novas conquistas: Visual Novo, Distraído, uma por jogar uma ronda com cada regra, e Livro de Regras por jogar com todas, numa moldura de arco-íris animada.'),
+      c('Unlocked achievements shine like the rules: their names and cards glint in their rarity\'s colour.', 'As conquistas desbloqueadas brilham como as regras: os nomes e as cartas reluzem na cor da raridade.'),
+      c('A legend at the top of Achievements explains the rarity colours, in place of the hint when pointing at a card.', 'Uma legenda no topo das Conquistas explica as cores da raridade, em vez da dica ao apontar para uma carta.'),
+    ],
+  },
+  {
     version: '0.35.2',
     date: '2026-10-29',
     items: [

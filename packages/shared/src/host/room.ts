@@ -58,6 +58,8 @@ export interface Member {
   /** Games lost without busting, and games lost by busting. */
   silvers?: number;
   busts?: number;
+  /** Moves the turn timer made for them, out of time. */
+  timeouts?: number;
   /** Said they're ready, in the lobby. */
   ready?: boolean;
   /** Has the Infected achievement. */
@@ -371,6 +373,7 @@ export class Room {
       wins: x.wins ?? 0,
       silvers: x.silvers ?? 0,
       busts: x.busts ?? 0,
+      timeouts: x.timeouts ?? 0,
       ready: this.isReady(x),
       infected: !!x.infected,
       carrier: x.infected ? x.carrier : undefined,
@@ -470,6 +473,8 @@ export class Room {
     this.turnTimer = null;
     this.timerKey = '';
     for (const seat of seats) {
+      const m = this.game && this.members.find((x) => x.id === this.game!.players[seat]?.id);
+      if (m) m.timeouts = (m.timeouts ?? 0) + 1;
       for (let i = 0; i < 20 && this.game; i++) {
         const a = this.game.phase === 'playing' ? timeoutMove(this.game, seat) : botAction(this.game, seat);
         if (!a || a.type === 'ready') break;

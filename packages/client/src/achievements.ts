@@ -3,9 +3,10 @@
 // a time. Infected is the odd one: it passes between players who share a room
 // (see `infected` in the room protocol), and the very first player to start a
 // game gets it from nobody (see claimPatientZero in stats.ts).
-import type { GameEvent, GameView, RoomView } from '@tximtxom/shared';
+import type { GameEvent, GameView, RoomView, Rules } from '@tximtxom/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
+import { store } from './store';
 import { claimPatientZero, countInfected, creditCarrier, myStats, onStats } from './stats';
 
 const CARRIER_KEY = 'tximtxom.carrier';
@@ -30,8 +31,25 @@ export function carrierId(): string {
 export type AchievementId =
   | 'tipTap' | 'dealtIn' | 'lowRoller' | 'champion' | 'competitor' | 'tximtxom' | 'bitter' | 'busted' | 'likeIce' | 'nuts'
   | 'ragequit' | 'chips10' | 'chips100' | 'chips1000' | 'roundWins10' | 'gameWins10' | 'fullParty' | 'midas' | 'firstLoser'
-  | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand'
+  | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | `rule_${RuleAch}`
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd';
+
+/** One achievement per rule, for playing a round with it on: its card art, and whether it's on. */
+export const RULE_ACHIEVEMENTS = {
+  bust100: { art: 'bust', on: (r: Rules) => r.threshold === 100 },
+  softcore: { art: 'softcore', on: (r: Rules) => r.softcore },
+  superposition: { art: 'ace', on: (r: Rules) => r.superposition },
+  smeared: { art: 'mixed', on: (r: Rules) => r.smeared },
+  inTurns: { art: 'ride', on: (r: Rules) => r.rideOrder === 'roundRobin' },
+  autoRide: { art: 'autoride', on: (r: Rules) => r.autoRide },
+  sixthSense: { art: 'peek', on: (r: Rules) => r.sixthSense },
+  notice: { art: 'notice', on: (r: Rules) => r.noMoreFormationsNotice },
+  penalty10: { art: 'penalty', on: (r: Rules) => r.penalty10 },
+  doubleDown: { art: 'double', on: (r: Rules) => r.doubleDown },
+  timer: { art: 'timer', on: (r: Rules) => r.turnTimer > 0 },
+} satisfies Record<string, { art: string; on: (r: Rules) => boolean }>;
+export type RuleAch = keyof typeof RULE_ACHIEVEMENTS;
+const RULE_ACH_IDS = Object.keys(RULE_ACHIEVEMENTS) as RuleAch[];
 
 /** How hard it is to get, shown as the colour down the card's side. Secret ones are red. */
 export type Rarity = 'common' | 'uncommon' | 'epic' | 'legendary' | 'secret';
@@ -45,6 +63,10 @@ export interface Achievement {
   secret?: boolean;
   /** Not in the game yet (needs chips): left out of the list. */
   soon?: boolean;
+  /** Framed in moving rainbow colours instead of its rarity's. */
+  rainbow?: boolean;
+  /** One of the per-rule achievements: its text is made from the rule's name. */
+  rule?: RuleAch;
 }
 
 /** Common to legendary, then the secret ones. */
@@ -57,6 +79,8 @@ const ALL: Achievement[] = [
   { id: 'firstLoser', art: 'bearded', rarity: 'common' },
   { id: 'ragequit', art: 'bat', rarity: 'common' },
   { id: 'rtfm', art: 'help', rarity: 'common' },
+  { id: 'newLook', art: 'magiku', rarity: 'common' },
+  { id: 'distracted', art: 'frei', rarity: 'common' },
   { id: 'chips10', art: 'guard', rarity: 'common', soon: true },
   { id: 'competitor', art: 'barbarian', rarity: 'uncommon' },
   { id: 'fullHand', art: 'txijog', rarity: 'uncommon' },
@@ -71,8 +95,10 @@ const ALL: Achievement[] = [
   { id: 'likeIce', art: 'fantasma', rarity: 'epic' },
   { id: 'nuts', art: 'crab', rarity: 'epic' },
   { id: 'badTiming', art: 'autoride', rarity: 'epic' },
+  { id: 'allRules', art: 'bikingu', rarity: 'epic', rainbow: true },
   { id: 'tximtxom', art: 'tximtxom', rarity: 'legendary' },
   { id: 'chips1000', art: 'kabaleru', rarity: 'legendary', soon: true },
+  ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `rule_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'common', rule })),
   { id: 'infected', art: 'slime', rarity: 'secret', secret: true },
   { id: 'scholar', art: 'elder', rarity: 'secret', secret: true },
   { id: 'prettyBasic', art: 'cards:base', rarity: 'secret', secret: true },
@@ -167,6 +193,9 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
   switch (e.t) {
     case 'deal':
       unlock('dealtIn');
+      // Each rule on in this round, and all of them once they've all been played.
+      for (const rule of RULE_ACH_IDS) if (RULE_ACHIEVEMENTS[rule].on(g.rules)) unlock(`rule_${rule}`);
+      if (RULE_ACH_IDS.every((rule) => unlocked[`rule_${rule}`])) unlock('allRules');
       // Every round start, Infected passes to anyone at the table who doesn't have it yet.
       const carriers = room.players.filter((p) => p.id !== room.youId && p.infected);
       if (carriers.length) {
@@ -222,4 +251,25 @@ export function initAchievements(): void {
   };
   check();
   onStats(check);
+  let room: RoomView | null = null;
+  store.subscribe(() => {
+    const next = store.get().room;
+    if (next === room) return;
+    room = next;
+    achievementRoom(room);
+  });
+}
+
+/** Moves the turn timer made for you, in the room's last view: Distracted when it goes up. */
+let myTimeouts: number | null = null;
+
+/** Checks each new room view for achievements that aren't game events. */
+export function achievementRoom(room: RoomView | null): void {
+  const me = room?.players.find((p) => p.id === room.youId);
+  if (!me) {
+    myTimeouts = null;
+    return;
+  }
+  if (myTimeouts !== null && me.timeouts > myTimeouts) unlock('distracted');
+  myTimeouts = me.timeouts;
 }

@@ -1,20 +1,47 @@
 import { useState } from 'preact/hooks';
-import { type Achievement, ACHIEVEMENTS, carrierId, TOAST_MS, useAchievementToast, useUnlocked } from '../achievements';
+import { type Achievement, ACHIEVEMENTS, carrierId, type Rarity, type RuleAch, TOAST_MS, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
 import { formatCount, refreshInfected, refreshSpread, useStats } from '../stats';
 import { Modal, WaveText, withHighlights } from './common';
 import { ArtIcon, CardBackIcon } from './sprites';
 
-/** The achievement's art: a rule or character card, or a card from the deck. */
-const Art = ({ a, scale }: { a: Achievement; scale: number }) =>
-  a.art.startsWith('cards:') ? <CardBackIcon back={a.art.slice(6)} scale={scale} /> : <ArtIcon name={a.art} scale={scale} />;
+/** Each rarity's colour, as the shine on unlocked achievements (lighter than the frame, to read as light). */
+const RARITY_SHINE: Record<Rarity, string> = { common: '#6fcfff', uncommon: '#6ee7a8', epic: '#c9a3ff', legendary: '#eac058', secret: '#ff8a82' };
+const RARITIES: Rarity[] = ['common', 'uncommon', 'epic', 'legendary', 'secret'];
 
-const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => t(`ach.${a.id}.${part}` as Key);
+/** The achievement's art: a rule or character card, or a card from the deck. `shine`: the rarity's glint across it. */
+const Art = ({ a, scale, shine }: { a: Achievement; scale: number; shine?: boolean }) =>
+  a.art.startsWith('cards:') ? (
+    <CardBackIcon back={a.art.slice(6)} scale={scale} />
+  ) : (
+    <ArtIcon name={a.art} scale={scale} shine={shine ? RARITY_SHINE[a.rarity] : undefined} />
+  );
+
+/** A rule's name as its achievement's name ("Bust at 100", "Ride order: In turns"). */
+function ruleName(rule: RuleAch): string {
+  if (rule === 'bust100') return `${t('rule.bust')} 100`;
+  if (rule === 'inTurns') return `${t('rule.rideOrder')}: ${t('rule.inTurns')}`;
+  const key: Record<string, Key> = { notice: 'rule.notice', timer: 'rule.timer' };
+  return t(key[rule] ?? (`rule.${rule}` as Key));
+}
+
+const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => {
+  if (!a.rule) return t(`ach.${a.id}.${part}` as Key);
+  const name = ruleName(a.rule);
+  return part === 'name' ? name : part === 'desc' ? t('ach.rule.desc', { rule: name }) : t('ach.rule.flavor');
+};
+
+/** An unlocked achievement's name, shining in its rarity's colour (rainbow for the rainbow ones). */
+const Name = ({ a }: { a: Achievement }) => (
+  <span class={`rule-ref${a.rainbow ? ' rainbow-text' : ''}`} style={{ '--rc': RARITY_SHINE[a.rarity] }}>
+    {text(a, 'name')}
+  </span>
+);
 
 /** Its art once unlocked; until then a grey card with a lock, or a question mark if it's a secret. */
 function AchievementIcon({ a, got }: { a: Achievement; got: boolean }) {
-  if (got) return <Art a={a} scale={0.5} />;
+  if (got) return <Art a={a} scale={0.5} shine />;
   return (
     <span class="sprite ach-blank tilt" aria-hidden="true">
       {a.secret ? <span class="ach-q">?</span> : <span class="lock" />}
@@ -59,19 +86,26 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
         <span class="ach-progress-fill" style={{ width: `${(100 * n) / ACHIEVEMENTS.length}%` }} />
         <span class="ach-progress-text">{Math.round((100 * n) / ACHIEVEMENTS.length)}%</span>
       </div>
+      {/* What the colours round the cards mean, as the rules' legend does. */}
+      <p class="rules-legend ach-legend">
+        {RARITIES.map((r) => (
+          <span class={`lg rarity-${r}`}>{t(`ach.rarity.${r}`)}</span>
+        ))}
+        <span class="lg rarity-locked">{t('ach.locked')}</span>
+      </p>
       <ul class="ach-list">
         {ACHIEVEMENTS.map((a) => {
           const got = !!unlocked[a.id];
           const hidden = a.secret && !got;
           return (
             <li
-              class={`${got ? 'got' : 'locked'} rarity-${a.rarity}`}
-              title={got ? t(`ach.rarity.${a.rarity}`) : t('ach.locked')}
+              class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}`}
+              title={got ? undefined : t('ach.locked')}
               onClick={got && a.id === 'infected' ? tapInfected : undefined}
             >
               <AchievementIcon a={a} got={got} />
               <span class="ach-text">
-                <span class="ach-name">{hidden ? t('ach.secret') : withHighlights(text(a, 'name'))}</span>
+                <span class="ach-name">{hidden ? t('ach.secret') : got ? <Name a={a} /> : text(a, 'name')}</span>
                 <span class="ach-desc">{hidden ? t('ach.secretDesc') : withHighlights(text(a, 'desc'))}</span>
                 {!hidden && <span class="ach-flavor">{withHighlights(text(a, 'flavor'))}</span>}
               </span>

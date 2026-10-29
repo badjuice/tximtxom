@@ -13,6 +13,8 @@ export interface LobbyPlayer {
   /** Games lost without busting (silver badge), and lost by busting. */
   silvers: number;
   busts: number;
+  /** Moves the turn timer has made for them so far, when they ran out of time. */
+  timeouts: number;
   /** Ready to start (bots and the host always are). */
   ready: boolean;
   /** Has the Infected achievement: anyone at a table with them catches it. */
