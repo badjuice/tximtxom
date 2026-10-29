@@ -13,6 +13,8 @@ export interface MyStats {
   /** Scored rounds where you had the fewest points (ties count), and the rest. */
   roundsWon: number;
   roundsLost: number;
+  /** Games you left before they ended. */
+  gamesLeft: number;
   gamesPlayed: number;
   gamesWon: number;
   gamesLost: number;
@@ -69,6 +71,7 @@ const EMPTY: MyStats = {
   roundsPlayed: 0,
   roundsWon: 0,
   roundsLost: 0,
+  gamesLeft: 0,
   gamesPlayed: 0,
   gamesWon: 0,
   gamesLost: 0,
@@ -293,6 +296,20 @@ export function initStats(): void {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') save();
   });
+}
+
+/** Your stats right now. */
+export const myStats = (): MyStats => mine;
+
+/** Calls `l` whenever any stat changes. */
+export function onStats(l: () => void): () => void {
+  listeners.add(l);
+  return () => listeners.delete(l);
+}
+
+/** You left a game before it ended. */
+export function recordLeftGame(): void {
+  bump((s) => ({ gamesLeft: s.gamesLeft + 1 }));
 }
 
 /** Preact hook: your stats and the global counters, live. */

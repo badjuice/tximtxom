@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'preact/hooks';
+import { unlock } from '../achievements';
 import { play } from '../audio';
 import { DEFAULT_RULES, makeCard, parseCards, type Rules, type Suit } from '@tximtxom/shared';
 import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE, setRules } from '../net';
 import { CARD_STYLES, cardBacks, currentBack, FONTS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
-import { Button, Choice, Credits, Modal, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
+import { Button, Choice, Credits, Modal, Seen, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { CONTACT_EMAIL, ISSUES_URL, VERSION } from '../version';
@@ -146,6 +147,8 @@ function Changelog({ onClose }: { onClose: () => void }) {
         </section>
       ))}
       <Credits />
+      {/* Scrolled all the way down: Nerd. */}
+      <Seen onSeen={() => unlock('nerd')} />
     </Modal>
   );
 }
@@ -720,9 +723,23 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
 type HelpTab = 'goal' | 'turn' | 'end' | 'ride' | 'more';
 const HELP_ART: Record<HelpTab, string> = { goal: 'help', turn: 'turn', end: 'bust', ride: 'ride', more: 'tximtxom' };
 
+/** How to Play tabs read so far, kept between visits (RTFM: all of them). */
+const HELP_READ = 'tximtxom.helpRead';
+function readHelp(tab: HelpTab, all: HelpTab[]): void {
+  try {
+    const read = new Set<string>(JSON.parse(localStorage.getItem(HELP_READ) ?? '[]'));
+    read.add(tab);
+    localStorage.setItem(HELP_READ, JSON.stringify([...read]));
+    if (all.every((x) => read.has(x))) unlock('rtfm');
+  } catch {
+    // Storage blocked: no RTFM.
+  }
+}
+
 function Help({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<HelpTab>('goal');
   const tabs: HelpTab[] = ['goal', 'turn', 'end', 'ride', 'more'];
+  useEffect(() => readHelp(tab, tabs), [tab]);
   return (
     <Modal title={t('help.title')} onClose={onClose} wide class="help-modal">
       <Tabs tabs={tabs.map((id) => ({ id, label: t(`help.tab.${id}` as Key) }))} active={tab} onChange={setTab} />

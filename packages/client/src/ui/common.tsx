@@ -539,6 +539,19 @@ export function Tabs<T extends string>(props: { tabs: { id: T; label: string }[]
   );
 }
 
+/** An empty marker that calls `onSeen` once it scrolls into view. */
+export function Seen({ onSeen }: { onSeen: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && onSeen());
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return <div ref={ref} class="seen-marker" aria-hidden="true" />;
+}
+
 /** Balatro-style panel in a dimmed overlay. Esc / backdrop closes it. */
 export function Modal(props: { title: string; onClose?: () => void; children: ComponentChildren; wide?: boolean; footer?: ComponentChildren; class?: string; corner?: ComponentChildren }) {
   const ref = useRef<HTMLDivElement>(null);

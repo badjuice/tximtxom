@@ -102,6 +102,7 @@ function FanCard(props: {
   }, [props.edition]);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const [hops, setHops] = useState(0);
+  const hop = useRef<HTMLSpanElement>(null);
   // Not there yet: no hover, no taps (a tap would remount it and skip the spawn).
   const [born, setBorn] = useState(props.spawn === undefined);
   const start = useRef<{
@@ -159,6 +160,13 @@ function FanCard(props: {
         } else {
           play('card1', { volume: 0.5, rate: 0.9 + slot * 0.08 });
           setHops((n) => n + 1);
+          // Restart the hop in place: remounting the card would redraw it without its edition for a frame.
+          const el = hop.current;
+          if (el) {
+            el.classList.remove('fan-hop');
+            void el.offsetWidth;
+            el.classList.add('fan-hop');
+          }
           tapped.add(suit);
           if (tapped.size === FAN.length) unlock('tipTap');
         }
@@ -169,10 +177,9 @@ function FanCard(props: {
         props.onDrop(suit, null);
       }}
     >
-      {/* Keyed so each tap restarts the hop. */}
-      <span class={hops ? 'fan-hop' : ''} key={hops}>
+      <span ref={hop}>
         <span class="edition-juice" ref={juice}>
-          {/* A tap remounts the card for the hop: it must not materialise again. */}
+          {/* Once tapped it must not materialise again. */}
           <EditionCard card={makeCard(1, suit)} scale={FAN_SCALE} edition={props.edition} spawn={hops ? undefined : props.spawn} onBorn={() => setBorn(true)} />
         </span>
       </span>

@@ -64,7 +64,11 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           const got = !!unlocked[a.id];
           const hidden = a.secret && !got;
           return (
-            <li class={got ? 'got' : 'locked'} onClick={got && a.id === 'infected' ? tapInfected : undefined}>
+            <li
+              class={`${got ? 'got' : 'locked'} rarity-${a.rarity}`}
+              title={got ? t(`ach.rarity.${a.rarity}`) : undefined}
+              onClick={got && a.id === 'infected' ? tapInfected : undefined}
+            >
               <AchievementIcon a={a} got={got} />
               <span class="ach-text">
                 <span class="ach-name">{hidden ? t('ach.secret') : withHighlights(text(a, 'name'))}</span>

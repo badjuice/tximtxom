@@ -5,6 +5,17 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.34.0 (2026-10-29)
+- ✨ New achievements: Ragequit, 2nd Place First Loser, RTFM, Full Party!, Roundhouse, Bus Pass, Addicted, Card Shark, Midas, Bad Timing, and a secret one.
+- ✨ Achievements show their rarity down the side: blue common, green uncommon, purple epic, gold legendary, red secret. Grey until unlocked.
+- ✨ History: copy one finished round, or the whole game, as a compact log.
+- ✨ A Full Hand or a TximTxom stays pinned on screen after its banner, with who did it.
+- ✨ Stats count the games you left early. Percentages now sit in parentheses beside wins and losses.
+- 🔧 Penalty +10 and Double Down pardon an ender with 0 points.
+- 🔧 History only follows new moves while you are at the bottom. Reopening it jumps back to the newest move.
+- 🔧 "-10! Full hand" is now "Full Hand! -10".
+- 🐛 Tapping the Aces on the main menu quickly no longer flashes them without their edition.
+
 ## 0.33.0 (2026-10-29)
 - ✨ Silver and bust badges: at the end of a game everyone who lost without busting gets silver, and whoever busted gets the skull. Each badge names itself when you point at it, with its count beside it.
 - ✨ The Scoreboard has three tabs: this round, every round of this game, and the badges of every game played at the table. It no longer scrolls.

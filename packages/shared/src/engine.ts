@@ -495,7 +495,9 @@ function scoreRound(state: GameState, reveal: RevealState): void {
   if (ender !== null && reveal.endKind === 'manual' && (state.rules.doubleDown || state.rules.penalty10)) {
     const others = points.filter((_, i) => i !== ender);
     const strictlyLowest = others.every((p) => points[ender] < p);
-    if (!strictlyLowest) {
+    // An ender with nothing in hand (0 points) is pardoned: tying at 0 is no reason for a fine.
+    const pardoned = points[ender] === 0;
+    if (!strictlyLowest && !pardoned) {
       if (state.rules.doubleDown) points[ender] *= 2;
       if (state.rules.penalty10) points[ender] += PENALTY_POINTS;
       penalties.push({ seat: ender, doubled: state.rules.doubleDown, plus10: state.rules.penalty10 });

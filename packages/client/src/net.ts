@@ -4,7 +4,8 @@
 // - server: a Socket.IO server hosts rooms. Used when the build sets
 //   VITE_SERVER_URL ("/" means the same origin, as in `npm run dev:server`).
 import type { Socket } from 'socket.io-client';
-import { carrierId, hasAchievement, onUnlock } from './achievements';
+import { carrierId, hasAchievement, onUnlock, unlock } from './achievements';
+import { recordLeftGame } from './stats';
 
 /** Sent when joining: whether you're Infected, and your carrier id if so. */
 const infection = () => (hasAchievement('infected') ? { infected: true, carrier: carrierId() } : { infected: false });
@@ -331,7 +332,12 @@ export const cycleAvatar = (playerId: string) => call({ event: 'room:avatar', ms
 export function leaveRoom(): void {
   // A guest leaving a game in progress keeps the seat (a bot plays it): the
   // menu's Join can take it back. The host's room closes with them.
-  const keepSeat = !!store.get().room?.game && store.get().room?.game?.phase !== 'gameOver' && !host;
+  const midGame = !!store.get().room?.game && store.get().room?.game?.phase !== 'gameOver';
+  const keepSeat = midGame && !host;
+  if (midGame && store.get().room?.game?.you != null) {
+    recordLeftGame();
+    unlock('ragequit');
+  }
   void request({ event: 'room:leave' });
   host?.close('The host closed the room');
   guest?.stop();

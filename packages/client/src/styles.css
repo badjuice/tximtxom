@@ -1858,6 +1858,44 @@ input[type='text'] {
   }
 }
 
+.glory {
+  position: fixed;
+  left: 16px;
+  top: 52px;
+  z-index: 17;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 6px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: 3px solid var(--seat);
+  box-shadow: 0 4px 0 var(--panel-d);
+  font-size: 1.2em;
+  line-height: 1.1;
+  animation: glory-in 0.4s ease-out;
+}
+.glory > span {
+  display: flex;
+  flex-direction: column;
+}
+.glory-who {
+  color: var(--seat);
+}
+.glory-what {
+  color: var(--green);
+}
+.glory.tx .glory-what {
+  color: var(--gold);
+}
+@keyframes glory-in {
+  from {
+    transform: translateX(-120%);
+  }
+}
+.reduced-motion .glory {
+  animation: none;
+}
 .banner {
   position: fixed;
   left: 50%;
@@ -2016,6 +2054,28 @@ input[type='text'] {
 .history-head h2 {
   margin: 0;
   font-size: 1.3em;
+}
+.history-head h2 {
+  margin-right: auto;
+}
+.hcopy {
+  font: inherit;
+  font-size: 0.8em;
+  color: var(--text);
+  background: var(--panel-d);
+  border: 0;
+  border-radius: 6px;
+  padding: 2px 8px;
+  margin: 0 6px;
+  cursor: pointer;
+}
+.hcopy:hover {
+  background: var(--blue);
+}
+.hscore-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .history-list {
   list-style: none;
@@ -4060,18 +4120,32 @@ input.rename {
   gap: 6px;
 }
 .ach-list li {
+  /* Rarity down the left side; grey until unlocked. */
+  --rarity: #6b7780;
   display: flex;
   gap: 10px;
   align-items: center;
   padding: 6px 10px;
   background: var(--panel-in);
   border-radius: 8px;
-  box-shadow: inset 0 -3px 0 var(--panel-d);
-}
-.ach-list li.got {
   box-shadow:
     inset 0 -3px 0 var(--panel-d),
-    inset 3px 0 0 var(--gold);
+    inset 4px 0 0 var(--rarity);
+}
+.ach-list li.got.rarity-common {
+  --rarity: #009dff;
+}
+.ach-list li.got.rarity-uncommon {
+  --rarity: #4bc292;
+}
+.ach-list li.got.rarity-epic {
+  --rarity: #a26bf2;
+}
+.ach-list li.got.rarity-legendary {
+  --rarity: var(--gold);
+}
+.ach-list li.got.rarity-secret {
+  --rarity: var(--red);
 }
 .ach-list li > .sprite {
   flex: none;

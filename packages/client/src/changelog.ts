@@ -19,6 +19,21 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.34.0',
+    date: '2026-10-29',
+    items: [
+      n('New achievements: Ragequit, 2nd Place First Loser, RTFM, Full Party!, Roundhouse, Bus Pass, Addicted, Card Shark, Midas, Bad Timing, and a secret one.', 'Novas conquistas: Ragequit, 2.º Lugar 1.º a Perder, RTFM, Casa Cheia!, Ronda a Ronda, Passe Social, Viciado, Tubarão, Midas, Na Hora Errada, e uma secreta.'),
+      n('Achievements show their rarity down the side: blue common, green uncommon, purple epic, gold legendary, red secret. Grey until unlocked.', 'As conquistas mostram a raridade de lado: azul comum, verde invulgar, roxo épica, dourado lendária, vermelho secreta. Cinzento até desbloquear.'),
+      n('History: copy one finished round, or the whole game, as a compact log.', 'Histórico: copia uma ronda acabada, ou o jogo todo, num registo compacto.'),
+      n('A Full Hand or a TximTxom stays pinned on screen after its banner, with who did it.', 'Uma Mão Cheia ou um TximTxom fica afixado no ecrã depois do aviso, com quem o fez.'),
+      n('Stats count the games you left early. Percentages now sit in parentheses beside wins and losses.', 'As estatísticas contam os jogos abandonados. As percentagens aparecem entre parênteses ao lado das vitórias e derrotas.'),
+      c('Penalty +10 and Double Down pardon an ender with 0 points.', 'A Multa +10 e a Dobra perdoam quem fez Txi jog com 0 pontos.'),
+      c('History only follows new moves while you are at the bottom. Reopening it jumps back to the newest move.', 'O Histórico só segue as novas jogadas quando estás no fundo. Ao reabrir volta à mais recente.'),
+      c('"-10! Full hand" is now "Full Hand! -10".', '"-10! Mão cheia" passa a "Mão Cheia! -10".'),
+      f('Tapping the Aces on the main menu quickly no longer flashes them without their edition.', 'Tocar depressa nos Ases do menu principal já não os mostra por um instante sem a edição.'),
+    ],
+  },
+  {
     version: '0.33.0',
     date: '2026-10-29',
     items: [

@@ -12,6 +12,7 @@ import { store } from './store';
 import './styles.css';
 import { App } from './ui/App';
 import { Button } from './ui/common';
+import { initAchievements } from './achievements';
 import { t } from './i18n';
 import { loadSpriteAtlases } from './ui/sprites';
 
@@ -42,6 +43,7 @@ async function boot() {
   if (import.meta.env.DEV) Object.assign(window, { __table: table, __send: send, __lang: (lang: 'en' | 'pt') => updateSettings({ lang }) });
   initController(table);
   initStats();
+  initAchievements();
   initGrab();
   // The page itself never scrolls; undo it if the browser does (see #app in styles.css).
   addEventListener('scroll', () => {

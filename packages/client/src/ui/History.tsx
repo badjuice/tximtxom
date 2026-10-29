@@ -3,7 +3,9 @@ import { useEffect, useRef } from 'preact/hooks';
 import { type Card, type GameEvent, type GameView, suitOf } from '@tximtxom/shared';
 import { cardShort, cardSpoken, type Key, kindName, lang, t } from '../i18n';
 import { updateSettings, useSettings } from '../settings';
-import { useStore } from '../store';
+import { historyText } from '../historyLog';
+import { copyText } from '../report';
+import { toast, useStore } from '../store';
 import { SEAT_COLORS } from './Hud';
 import { ArtIcon } from './sprites';
 
@@ -30,7 +32,7 @@ interface Line {
   body: ComponentChildren;
 }
 
-function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: Record<number, Card>): Line[] {
+function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: Record<number, Card>, onCopy: (round: number) => void): Line[] {
   const N = (s: number | null) =>
     s === null ? (
       '—'
@@ -129,7 +131,12 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
           seat: null,
           body: (
             <>
-              <div class="hscore-title">{t('h.scores', { n: e.round })}</div>
+              <div class="hscore-title">
+                {t('h.scores', { n: e.round })}
+                <button class="hcopy" onClick={() => onCopy(e.round)}>
+                  {t('h.copyRound')}
+                </button>
+              </div>
               <ul class="hscores">
                 {r.points.map((p, i) => (
                   <li>
@@ -172,13 +179,23 @@ export function HistoryPanel() {
   const myDraws = useStore((st) => st.myDraws);
   const g = useStore((st) => st.room?.game);
   const list = useRef<HTMLOListElement>(null);
-  const lines = g ? describe(history, g, myDraws) : [];
+  /** Following the newest moves: off while you scroll up to read older ones. */
+  const atBottom = useRef(true);
+  const copy = (round?: number) => {
+    if (!g) return;
+    void copyText(historyText(history, g, myDraws, round)).then((ok) => toast(ok ? t('h.copied') : t('h.copyFailed'), ok ? 'info' : 'error'));
+  };
+  const lines = g ? describe(history, g, myDraws, copy) : [];
   void lang();
 
-  // Stick to the bottom as new moves arrive.
+  // Opening the panel always starts at the newest move.
+  useEffect(() => {
+    atBottom.current = true;
+  }, [s.historyOpen]);
+  // New moves keep it at the bottom, unless you scrolled up.
   useEffect(() => {
     const el = list.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (el && atBottom.current) el.scrollTop = el.scrollHeight;
   }, [lines.length, s.historyOpen]);
 
   if (!g || !s.historyOpen) return null;
@@ -186,11 +203,21 @@ export function HistoryPanel() {
     <aside class="history panel" aria-label={t('h.title')}>
       <div class="history-head">
         <h2>{t('h.title')}</h2>
+        <button class="hcopy" onClick={() => copy()}>
+          {t('h.copyGame')}
+        </button>
         <button class="x" aria-label={t('close')} onClick={() => updateSettings({ historyOpen: false })}>
           ×
         </button>
       </div>
-      <ol class="history-list" ref={list}>
+      <ol
+        class="history-list"
+        ref={list}
+        onScroll={(ev) => {
+          const el = ev.currentTarget;
+          atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+        }}
+      >
         {lines.map((l) => (
           <li class={`hline ${l.kind}${l.seat !== null && l.seat === g.you ? ' mine' : ''}`} key={l.id}>
             {l.body}

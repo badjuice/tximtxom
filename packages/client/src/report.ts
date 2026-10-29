@@ -27,7 +27,11 @@ export async function buildReport(): Promise<string> {
 
 /** Copies the report; falls back to a hidden textarea where the clipboard API is blocked. */
 export async function copyReport(): Promise<boolean> {
-  const text = await buildReport();
+  return copyText(await buildReport());
+}
+
+/** Puts `text` on the clipboard; true if it worked. */
+export async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
     return true;

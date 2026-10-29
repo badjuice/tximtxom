@@ -17,6 +17,8 @@ function formatDuration(ms: number): string {
 }
 
 const pct = (n: number, of: number) => (of ? `${Math.round((100 * n) / of)}%` : '–');
+/** "12 (40%)". */
+const withPct = (n: number, of: number) => `${formatCount(n)} (${pct(n, of)})`;
 const maybe = (n: number | null, unit = '') => (n === null ? '–' : `${formatCount(n)}${unit}`);
 
 /** Formation tags in the colours of the Formations screen: sets blue, straights red. */
@@ -154,8 +156,9 @@ function StatsPanel() {
               title="stats.roundsTitle"
               rows={[
                 ['stats.rounds', formatCount(s.roundsPlayed)],
-                ['stats.roundsWon', `${formatCount(s.roundsWon)} · ${pct(s.roundsWon, s.roundsWon + s.roundsLost)}`],
-                ['stats.roundsLost', formatCount(s.roundsLost)],
+                ['stats.roundsWon', withPct(s.roundsWon, s.roundsWon + s.roundsLost)],
+                ['stats.roundsLost', withPct(s.roundsLost, s.roundsWon + s.roundsLost)],
+                ['stats.gamesLeft', withPct(s.gamesLeft, s.gamesPlayed + s.gamesLeft)],
                 ['stats.ended', formatCount(s.roundsEnded)],
                 ['stats.best', pts(s.bestRound)],
                 ['stats.worst', pts(s.worstRound)],
@@ -166,8 +169,8 @@ function StatsPanel() {
               title="stats.gamesTitle"
               rows={[
                 ['stats.games', formatCount(s.gamesPlayed)],
-                ['stats.gamesWon', `${formatCount(s.gamesWon)} · ${pct(s.gamesWon, s.gamesPlayed)}`],
-                ['stats.gamesLost', formatCount(s.gamesLost)],
+                ['stats.gamesWon', withPct(s.gamesWon, s.gamesPlayed)],
+                ['stats.gamesLost', withPct(s.gamesLost, s.gamesPlayed)],
                 ['stats.streak', formatCount(s.winStreak)],
                 ['stats.bestStreak', formatCount(s.bestStreak)],
                 ['stats.longestGame', s.longestGame ? t('stats.nRounds', { n: s.longestGame }) : '–'],

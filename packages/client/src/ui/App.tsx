@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { deselectAll, getHandOrder, setAnnouncer, tapDrawn, tapHand } from '../controller';
 import { getSettings, updateSettings, useSettings } from '../settings';
 import { t } from '../i18n';
-import { store, useStore } from '../store';
+import { SEAT_COLORS, store, useStore } from '../store';
 import { WaveText, withHighlights } from './common';
 import { AchievementToast } from './Achievements';
 import { HistoryPanel } from './History';
@@ -68,6 +68,7 @@ export function App() {
       {inGame && <HistoryPanel />}
       <Overlays />
       <Banner />
+      {inGame && <Glory />}
       <Callout />
       <Toast />
       <AchievementToast />
@@ -114,6 +115,30 @@ function Callout() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/** A full hand or a TximTxom stays pinned on screen after its banner: who did it,
+ *  until the next round (a TximTxom: until the room leaves the game). */
+function Glory() {
+  const g = useStore((s) => s.room?.game);
+  const banner = useStore((s) => s.banner);
+  if (!g) return null;
+  const deals = g.events.map((x, i) => (x.e.t === 'deal' ? i : 0));
+  const e = g.events.slice(Math.max(...deals, 0)).find((x) => (x.e.t === 'end' && x.e.bonus) || x.e.t === 'tximtxom')?.e;
+  // Its banner says it first.
+  if (!e || (e.t !== 'end' && e.t !== 'tximtxom') || e.seat === null || banner) return null;
+  const seat = e.seat;
+  const who = seat === g.you ? t('you') : (g.players[seat]?.name ?? '');
+  const tximtxom = e.t === 'tximtxom';
+  return (
+    <div class={`glory${tximtxom ? ' tx' : ''}`} style={{ '--seat': SEAT_COLORS[seat] }} role="status">
+      <ArtIcon name={tximtxom ? 'tximtxom' : 'ride'} scale={0.4} />
+      <span>
+        <b class="glory-who">{who}</b>
+        <span class="glory-what">{tximtxom ? <WaveText text="TximTxom!" /> : t('b.fullHand')}</span>
+      </span>
     </div>
   );
 }

@@ -6,7 +6,7 @@
 import type { GameEvent, GameView, RoomView } from '@tximtxom/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
-import { claimPatientZero, countInfected, creditCarrier } from './stats';
+import { claimPatientZero, countInfected, creditCarrier, myStats, onStats } from './stats';
 
 const CARRIER_KEY = 'tximtxom.carrier';
 const newCarrierId = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
@@ -28,32 +28,57 @@ export function carrierId(): string {
 }
 
 export type AchievementId =
-  'tipTap' | 'dealtIn' | 'lowRoller' | 'champion' | 'competitor' | 'tximtxom' | 'bitter' | 'busted' | 'likeIce' | 'nuts' | 'infected' | 'scholar' | 'prettyBasic';
+  | 'tipTap' | 'dealtIn' | 'lowRoller' | 'champion' | 'competitor' | 'tximtxom' | 'bitter' | 'busted' | 'likeIce' | 'nuts'
+  | 'ragequit' | 'chips10' | 'chips100' | 'chips1000' | 'roundWins10' | 'gameWins10' | 'fullParty' | 'midas' | 'firstLoser'
+  | 'addicted' | 'busPass' | 'rtfm' | 'badTiming'
+  | 'infected' | 'scholar' | 'prettyBasic' | 'nerd';
+
+/** How hard it is to get, shown as the colour down the card's side. Secret ones are red. */
+export type Rarity = 'common' | 'uncommon' | 'epic' | 'legendary' | 'secret';
 
 export interface Achievement {
   id: AchievementId;
   /** Card art (art atlas) shown once it's unlocked; `cards:<frame>` for one from the cards atlas. */
   art: string;
+  rarity: Rarity;
   /** Hidden until unlocked: no name, no description. */
   secret?: boolean;
+  /** Not in the game yet (needs chips): left out of the list. */
+  soon?: boolean;
 }
 
-/** In the order they tend to unlock; the secret ones last. */
-export const ACHIEVEMENTS: Achievement[] = [
-  { id: 'tipTap', art: 'notice' },
-  { id: 'dealtIn', art: 'villager' },
-  { id: 'lowRoller', art: 'ace' },
-  { id: 'champion', art: 'princess' },
-  { id: 'competitor', art: 'barbarian' },
-  { id: 'tximtxom', art: 'tximtxom' },
-  { id: 'bitter', art: 'snail' },
-  { id: 'busted', art: 'bust' },
-  { id: 'likeIce', art: 'fantasma' },
-  { id: 'nuts', art: 'crab' },
-  { id: 'infected', art: 'slime', secret: true },
-  { id: 'scholar', art: 'elder', secret: true },
-  { id: 'prettyBasic', art: 'cards:base', secret: true },
+/** Common to legendary, then the secret ones. */
+const ALL: Achievement[] = [
+  { id: 'tipTap', art: 'notice', rarity: 'common' },
+  { id: 'dealtIn', art: 'villager', rarity: 'common' },
+  { id: 'lowRoller', art: 'ace', rarity: 'common' },
+  { id: 'champion', art: 'princess', rarity: 'common' },
+  { id: 'busted', art: 'bust', rarity: 'common' },
+  { id: 'firstLoser', art: 'bearded', rarity: 'common' },
+  { id: 'ragequit', art: 'bat', rarity: 'common' },
+  { id: 'rtfm', art: 'help', rarity: 'common' },
+  { id: 'chips10', art: 'guard', rarity: 'common', soon: true },
+  { id: 'competitor', art: 'barbarian', rarity: 'uncommon' },
+  { id: 'fullParty', art: 'turn', rarity: 'uncommon' },
+  { id: 'roundWins10', art: 'squire', rarity: 'uncommon' },
+  { id: 'busPass', art: 'ride', rarity: 'uncommon' },
+  { id: 'addicted', art: 'timer', rarity: 'uncommon' },
+  { id: 'chips100', art: 'ranger', rarity: 'uncommon', soon: true },
+  { id: 'gameWins10', art: 'boar', rarity: 'epic' },
+  { id: 'midas', art: 'ziku', rarity: 'epic' },
+  { id: 'bitter', art: 'snail', rarity: 'epic' },
+  { id: 'likeIce', art: 'fantasma', rarity: 'epic' },
+  { id: 'nuts', art: 'crab', rarity: 'epic' },
+  { id: 'badTiming', art: 'autoride', rarity: 'epic' },
+  { id: 'tximtxom', art: 'tximtxom', rarity: 'legendary' },
+  { id: 'chips1000', art: 'kabaleru', rarity: 'legendary', soon: true },
+  { id: 'infected', art: 'slime', rarity: 'secret', secret: true },
+  { id: 'scholar', art: 'elder', rarity: 'secret', secret: true },
+  { id: 'prettyBasic', art: 'cards:base', rarity: 'secret', secret: true },
+  { id: 'nerd', art: 'spider', rarity: 'secret', secret: true },
 ];
+/** The achievements you can get now. */
+export const ACHIEVEMENTS = ALL.filter((a) => !a.soon);
 
 const KEY = 'tximtxom.achievements';
 /** Time a toast is on screen (about 4 s to read it, plus sliding in and out),
@@ -158,6 +183,8 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       const r = g.results.at(-1);
       if (!r) return;
       if (r.points[me] === Math.min(...r.points)) unlock('lowRoller');
+      // All seven formed, but someone else ended the round first.
+      if (r.ender !== null && r.ender !== me && r.leftovers[me].length === 0) unlock('badTiming');
       if (r.totals[me] === 69 && r.totals[me] > threshold) unlock('nuts');
       break;
     }
@@ -172,8 +199,23 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
         if (g.players.some((p, i) => i !== me && !p.isBot)) unlock('competitor');
         if (total < 0) unlock('likeIce');
       } else if (total > threshold) unlock('busted');
+      else unlock('firstLoser');
+      if (g.players.length > 1 && g.players.every((p) => !p.isBot)) unlock('fullParty');
       break;
     }
   }
 }
 
+/** Achievements that come from your running stats, checked as they change. */
+export function initAchievements(): void {
+  const check = () => {
+    const s = myStats();
+    if (s.roundsWon >= 10) unlock('roundWins10');
+    if (s.gamesWon >= 5) unlock('midas');
+    if (s.gamesWon >= 10) unlock('gameWins10');
+    if (s.rides >= 25) unlock('busPass');
+    if (s.timePlayed >= 60 * 60 * 1000) unlock('addicted');
+  };
+  check();
+  onStats(check);
+}
