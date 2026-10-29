@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.35.2',
+    date: '2026-10-29',
+    items: [
+      c('Action buttons too narrow for their label say the short form ("Show", "Discard") instead of cutting it off.', 'Os botões de ação sem espaço para o texto mostram a forma curta ("Mostrar", "Descartar") em vez de o cortar.'),
+      c('With a turn timer, the clock starts again after each formation you show.', 'Com tempo por jogada, o relógio recomeça depois de cada formação mostrada.'),
+      c('The timer bar on the player card shows the seconds left in its middle.', 'A barra do tempo no cartão do jogador mostra os segundos que faltam ao meio.'),
+    ],
+  },
+  {
     version: '0.35.1',
     date: '2026-10-29',
     items: [

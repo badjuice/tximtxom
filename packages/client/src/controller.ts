@@ -687,6 +687,8 @@ export function confirmStaged(): void {
 
 export interface BarButton {
   label: string;
+  /** Said instead when `label` doesn't fit the button. */
+  short?: string;
   color: 'red' | 'blue' | 'orange' | 'green' | 'grey';
   enabled: boolean;
   onClick: () => void;
@@ -722,7 +724,7 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
         ...EMPTY,
         main: [
           { label: t('act.undo'), color: 'orange', enabled: true, onClick: undo, key: 'Backspace' },
-          { label: t('act.endTurn'), color: 'green', enabled: true, onClick: confirmStaged, key: 'E' },
+          { label: t('act.endTurn'), short: t('act.endTurn.short'), color: 'green', enabled: true, onClick: confirmStaged, key: 'E' },
         ],
         status: t('st.staged', { what: t('st.stagedDiscard', { card: cardShort(staged.card) }) }),
       };
@@ -744,6 +746,7 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
           { label: t('act.draw'), color: 'blue', enabled: g.drawCount > 0, onClick: () => void send({ type: 'draw' }), key: 'D' },
           {
             label: top !== null ? t('act.take', { card: cardShort(top) }) : t('act.take', { card: '' }),
+            short: t('act.take.short'),
             color: 'red',
             enabled: top !== null,
             onClick: () => void send({ type: 'takeDiscard' }),
@@ -767,8 +770,8 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
           ? []
           : [
               usingHand
-                ? { label: t('act.swap', { card: cardShort(sel) }), color: 'blue', enabled: true, onClick: () => stage({ type: 'swap', card: sel }), key: 'Enter' }
-                : { label: t('act.discard', { card: cardShort(drawn) }), color: 'blue', enabled: true, onClick: () => stage({ type: 'discardDrawn', card: drawn }), key: 'Enter' },
+                ? { label: t('act.swap', { card: cardShort(sel) }), short: t('act.swap.short'), color: 'blue', enabled: true, onClick: () => stage({ type: 'swap', card: sel }), key: 'Enter' }
+                : { label: t('act.discard', { card: cardShort(drawn) }), short: t('act.discard.short'), color: 'blue', enabled: true, onClick: () => stage({ type: 'discardDrawn', card: drawn }), key: 'Enter' },
             ],
         tximtxom: tximtxom(usingHand ? sel : drawn),
         txiJog: {
@@ -789,6 +792,7 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
       main: [
         {
           label: ok ? t('act.discard', { card: cardShort(sel) }) : t('act.pickCard'),
+          short: ok ? t('act.discard.short') : undefined,
           color: 'blue',
           enabled: ok,
           onClick: () => ok && stage({ type: 'swap', card: sel }),
@@ -822,6 +826,7 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
           main: [
             {
               label: card !== undefined ? t('act.ride', { card: cardShort(card) }) : t('act.pickCard'),
+              short: card !== undefined ? t('act.ride.short') : undefined,
               color: 'green',
               enabled: card !== undefined,
               onClick: () => card !== undefined && void send({ type: 'ride', card }),
@@ -850,8 +855,8 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
       return {
         ...EMPTY,
         main: [
-          { label: t('act.lay'), color: 'blue', enabled: selected.length >= 2, onClick: () => void send({ type: 'lay', cards: selected }), key: 'Enter' },
-          { label: t('act.done'), color: 'red', enabled: true, onClick: () => void send({ type: 'doneLaying' }), key: 'E', title: t('act.doneTitle'), hold: true },
+          { label: t('act.lay'), short: t('act.lay.short'), color: 'blue', enabled: selected.length >= 2, onClick: () => void send({ type: 'lay', cards: selected }), key: 'Enter' },
+          { label: t('act.done'), short: t('act.done.short'), color: 'red', enabled: true, onClick: () => void send({ type: 'doneLaying' }), key: 'E', title: t('act.doneTitle'), hold: true },
         ],
         status: g.noMoreFormations ? t('st.noMore') : t('st.select'),
       };

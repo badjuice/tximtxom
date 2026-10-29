@@ -239,13 +239,37 @@ export function CardText({ text }: { text: string }) {
   return <>{parts}</>;
 }
 
+/** A button's label that, when it doesn't fit, says `short` instead ("Show" for
+ *  "Show formation") rather than being cut off with an ellipsis. */
+export function ShortLabel({ text, short }: { text: string; short?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [shortOn, setShortOn] = useState(false);
+  const [resized, setResized] = useState(0);
+  useEffect(() => {
+    const r = () => setResized((n) => n + 1);
+    addEventListener('resize', r);
+    return () => removeEventListener('resize', r);
+  }, []);
+  // A new label (or window size) gets another try at the full text.
+  useLayoutEffect(() => setShortOn(false), [text, short, resized]);
+  useLayoutEffect(() => {
+    const box = ref.current?.parentElement;
+    if (!shortOn && short && box && box.scrollWidth > box.clientWidth + 1) setShortOn(true);
+  });
+  return (
+    <span ref={ref}>
+      <CardText text={shortOn && short ? short : text} />
+    </span>
+  );
+}
+
 const HOLD_MS = 850;
 
 /**
  * A button that only fires after being held down (mouse, touch, or its
  * keyboard key). Used for moves that end a round or the game.
  */
-export function HoldButton(props: { color: Color; label: string; sub?: string; enabled: boolean; onConfirm: () => void; hotkey?: string; title?: string; class?: string; drop?: string }) {
+export function HoldButton(props: { color: Color; label: string; short?: string; sub?: string; enabled: boolean; onConfirm: () => void; hotkey?: string; title?: string; class?: string; drop?: string }) {
   const [progress, setProgress] = useState(0);
   const start = useRef<number | null>(null);
   const raf = useRef(0);
@@ -322,7 +346,7 @@ export function HoldButton(props: { color: Color; label: string; sub?: string; e
       <span class="hold-fill" aria-hidden="true" />
       <span class="btn-label">
         <span>
-          <CardText text={props.label} />
+          <ShortLabel text={props.label} short={props.short} />
         </span>
         <small class="hold-sub">{props.sub ?? t('act.hold')}</small>
       </span>

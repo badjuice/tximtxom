@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.35.2 (2026-10-29)
+- 🔧 Action buttons too narrow for their label say the short form ("Show", "Discard") instead of cutting it off.
+- 🔧 With a turn timer, the clock starts again after each formation you show.
+- 🔧 The timer bar on the player card shows the seconds left in its middle.
+
 ## 0.35.1 (2026-10-29)
 - ✨ Joining or creating a room that takes a moment shows "Joining..." with the loading screen's spinning card, over a dimmed screen that waits until you're in.
 

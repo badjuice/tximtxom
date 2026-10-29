@@ -8,7 +8,7 @@ import { leaveRoom, playAgain, startGame } from '../net';
 import { updateSettings, useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, useStore } from '../store';
-import { Button, CardText, HoldButton, Label, MiniButton, Modal, UiIcon } from './common';
+import { Button, CardText, HoldButton, Label, MiniButton, Modal, ShortLabel, UiIcon } from './common';
 import { Badge, BADGE_KINDS, badgeCount, CardIcon, Icon, ArtIcon, Wins } from './sprites';
 
 function toScreen(L: Layout, p: Point) {
@@ -186,6 +186,10 @@ function TimerBar({ deadline, total }: { deadline: number; total: number }) {
   return (
     <div class="timer" role="timer" aria-label={`${Math.ceil(left)}s`}>
       <div class={`timer-fill${left < 8 ? ' low' : ''}`} style={{ width: `${(100 * left) / total}%` }} />
+      {/* The seconds left, in the middle of the bar. */}
+      <span class="timer-secs" aria-hidden="true">
+        {Math.ceil(left)}s
+      </span>
     </div>
   );
 }
@@ -397,10 +401,10 @@ export function ActionBar() {
         <div class="main-actions">
           {bar.main.map((b) =>
             b.hold ? (
-              <HoldButton color={b.color} label={b.label} enabled={on(b)} onConfirm={b.onClick} hotkey={b.key} title={b.title} />
+              <HoldButton color={b.color} label={b.label} short={b.short} enabled={on(b)} onConfirm={b.onClick} hotkey={b.key} title={b.title} />
             ) : (
               <Button color={b.color} disabled={!on(b)} onClick={b.onClick} kbd={b.key === 'Enter' ? '⏎' : b.key === 'Backspace' ? '⌫' : b.key} title={b.title} big>
-                <CardText text={b.label} />
+                <ShortLabel text={b.label} short={b.short} />
               </Button>
             ),
           )}

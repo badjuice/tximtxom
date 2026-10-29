@@ -158,6 +158,14 @@ const en = {
 
   // action bar
   'act.draw': 'Draw',
+  // Said instead of the full label on a button too narrow for it.
+  'act.take.short': 'Take',
+  'act.discard.short': 'Discard',
+  'act.swap.short': 'Swap',
+  'act.ride.short': 'Ride',
+  'act.lay.short': 'Show',
+  'act.done.short': 'Done',
+  'act.endTurn.short': 'End',
   'act.take': 'Take {card}',
   'act.discard': 'Discard {card}',
   'act.swap': 'Swap {card}',
@@ -759,6 +767,13 @@ const pt: Record<Key, string> = {
   'sort.autoTitle': 'Manter a mão ordenada quando entram e saem cartas',
 
   'act.draw': 'Tirar',
+  'act.take.short': 'Apanhar',
+  'act.discard.short': 'Descartar',
+  'act.swap.short': 'Trocar',
+  'act.ride.short': 'Boleia',
+  'act.lay.short': 'Mostrar',
+  'act.done.short': 'Acabar',
+  'act.endTurn.short': 'Acabar',
   'act.take': 'Apanhar {card}',
   'act.discard': 'Descartar {card}',
   'act.swap': 'Trocar {card}',

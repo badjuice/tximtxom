@@ -453,7 +453,8 @@ export class Room {
     const g = this.game;
     const secs = this.rules.turnTimer;
     const pending = secs > 0 && g && g.phase !== 'gameOver' ? this.pendingHumans() : [];
-    const key = pending.length && g ? `${g.phase}|${g.turn}|${g.reveal?.current}|${g.reveal?.ride?.formationId}|${pending}` : '';
+    // Each formation shown (nextFormationId) starts the clock again for whoever is still showing.
+    const key = pending.length && g ? `${g.phase}|${g.turn}|${g.reveal?.current}|${g.reveal?.ride?.formationId}|${g.nextFormationId}|${pending}` : '';
     if (key === this.timerKey) return;
     this.timerKey = key;
     if (this.turnTimer) clearTimeout(this.turnTimer);

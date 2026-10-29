@@ -1475,9 +1475,16 @@ input[type='text'] {
   position: absolute;
   left: 8px;
   right: 8px;
-  bottom: 2px;
-  height: 3px;
+  bottom: 3px;
+  height: 12px;
   margin: 0;
+}
+.plate .timer-secs {
+  font-size: 10px;
+}
+/* Room for the timer (and its seconds) under the points. */
+.plate:has(.timer) {
+  padding-bottom: 16px;
 }
 .wins {
   display: inline-flex;
@@ -1547,11 +1554,28 @@ input[type='text'] {
   text-shadow: none;
 }
 .timer {
-  height: 5px;
+  position: relative;
+  height: 14px;
   background: var(--panel-d);
-  border-radius: 3px;
+  border-radius: 4px;
   margin-top: 3px;
   overflow: hidden;
+}
+.timer-secs {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  color: #fff;
+  /* Readable over the green, the red and the empty part alike. */
+  text-shadow:
+    1px 0 0 #000,
+    -1px 0 0 #000,
+    0 1px 0 #000,
+    0 -1px 0 #000;
 }
 .timer-fill {
   height: 100%;
