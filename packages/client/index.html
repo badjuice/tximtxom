@@ -66,7 +66,7 @@
         opacity: 0;
         pointer-events: none;
       }
-      #loading .card {
+      :is(#loading, .joining) .card {
         position: relative;
         width: 84px;
         height: 120px;
@@ -76,27 +76,27 @@
           loading-turn 1.2s linear infinite,
           loading-float 1.2s ease-in-out infinite;
       }
-      #loading .face {
+      :is(#loading, .joining) .face {
         position: absolute;
         inset: 0;
         backface-visibility: hidden;
       }
-      #loading .back {
+      :is(#loading, .joining) .back {
         transform: rotateY(180deg);
       }
-      #loading .face > i {
+      :is(#loading, .joining) .face > i {
         position: absolute;
         inset: 0;
         background: url(assets/ui/loading.png) 0 0 / 672px 120px no-repeat;
         image-rendering: pixelated;
       }
-      #loading .face > .black {
+      :is(#loading, .joining) .face > .black {
         background-position-x: -84px;
         opacity: 0;
         /* Shows from the first time the front faces away until the second. */
         animation: loading-black 2.4s step-end infinite;
       }
-      #loading .back > i {
+      :is(#loading, .joining) .back > i {
         background-position-x: var(--back, -168px);
       }
       @keyframes loading-turn {
@@ -128,10 +128,10 @@
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        #loading .card {
+        :is(#loading, .joining) .card {
           animation: loading-pulse 1.2s ease-in-out infinite alternate;
         }
-        #loading .face > .black,
+        :is(#loading, .joining) .face > .black,
         #loading p .l {
           animation: none;
         }

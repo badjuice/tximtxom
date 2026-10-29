@@ -1865,6 +1865,40 @@ input[type='text'] {
   }
 }
 
+/* Connecting to a room: the loading screen's card (its styles are in index.html,
+   shared with #loading) over the dimmed screen, taking every tap meanwhile. */
+.joining {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  background: rgba(14, 24, 24, 0.78);
+  perspective: 500px;
+  pointer-events: auto;
+  cursor: progress;
+  outline: none;
+  user-select: none;
+  animation: fade 0.25s ease-out;
+}
+.joining p {
+  margin: 0;
+  font-size: 28px;
+  color: #fff;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+.reduced-motion .joining {
+  animation: none;
+}
+.reduced-motion .joining .card {
+  animation: loading-pulse 1.2s ease-in-out infinite alternate;
+}
+.reduced-motion .joining .face > .black {
+  animation: none;
+}
 .glory {
   position: fixed;
   left: 16px;

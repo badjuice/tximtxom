@@ -28,6 +28,8 @@ export interface ClientState {
   shake: number;
   /** A card is being dragged on the table: the action bar is locked meanwhile. */
   dragging: boolean;
+  /** Connecting to a room is taking a while: a screen like the loading one covers everything. */
+  joining: 'join' | 'create' | null;
   /** The card being dragged, if any. */
   dragCard: number | null;
   /** The dragged card is over the Txi jog button. */
@@ -70,6 +72,7 @@ export const store = createStore<ClientState>({
   banner: null,
   callout: null,
   shake: 0,
+  joining: null,
   dragging: false,
   dragCard: null,
   overTxiJog: false,

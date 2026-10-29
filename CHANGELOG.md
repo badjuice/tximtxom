@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.35.1 (2026-10-29)
+- ✨ Joining or creating a room that takes a moment shows "Joining..." with the loading screen's spinning card, over a dimmed screen that waits until you're in.
+
 ## 0.35.0 (2026-10-29)
 - ✨ New achievement: Full Hand, for ending a round with all 7 cards formed.
 - ✨ In Formations, a rule card opens its rule in a balloon pointing at the card.

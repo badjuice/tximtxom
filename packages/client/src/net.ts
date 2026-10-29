@@ -176,8 +176,7 @@ async function initP2PMode(): Promise<void> {
   store.set({ connected: true });
 }
 
-/** Back to the room this device had a seat in, after a refresh (the menu's Rejoin). */
-export async function rejoinRoom(): Promise<void> {
+async function rejoinRoomNow(): Promise<void> {
   const s = loadSession();
   if (!s) return;
   if (MODE === 'server') {
@@ -280,7 +279,7 @@ async function call<T extends object = object>(req: Request): Promise<({ ok: tru
 
 // ------------------------------------------------------------------ API
 
-export async function createRoom(name: string, rules: Partial<Rules> | undefined = savedRules()) {
+async function createRoomNow(name: string, rules: Partial<Rules> | undefined) {
   localStorage.setItem(NAME_KEY, name);
   if (MODE === 'p2p') {
     try {
@@ -296,7 +295,7 @@ export async function createRoom(name: string, rules: Partial<Rules> | undefined
   return r;
 }
 
-export async function joinRoom(code: string, name: string) {
+async function joinRoomNow(code: string, name: string) {
   localStorage.setItem(NAME_KEY, name);
   if (MODE === 'p2p') {
     try {
@@ -316,6 +315,23 @@ export async function joinRoom(code: string, name: string) {
   if (r.ok) saveSession(r, false);
   return r;
 }
+
+/** Waits for `work`; past JOINING_DELAY_MS the joining screen covers everything until it's done. */
+const JOINING_DELAY_MS = 400;
+async function joining<R>(kind: 'join' | 'create', work: () => Promise<R>): Promise<R> {
+  const id = setTimeout(() => store.set({ joining: kind }), JOINING_DELAY_MS);
+  try {
+    return await work();
+  } finally {
+    clearTimeout(id);
+    store.set({ joining: null });
+  }
+}
+
+/** Back to the room this device had a seat in, after a refresh (the menu's Rejoin). */
+export const rejoinRoom = () => joining('join', rejoinRoomNow);
+export const createRoom = (name: string, rules: Partial<Rules> | undefined = savedRules()) => joining('create', () => createRoomNow(name, rules));
+export const joinRoom = (code: string, name: string) => joining('join', () => joinRoomNow(code, name));
 
 export const setRules = (rules: Partial<Rules>) => call({ event: 'room:rules', msg: { rules } });
 export const addBot = () => call({ event: 'room:addBot' });

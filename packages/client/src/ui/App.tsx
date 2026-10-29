@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { deselectAll, getHandOrder, setAnnouncer, tapDrawn, tapHand } from '../controller';
 import { getSettings, updateSettings, useSettings } from '../settings';
 import { t } from '../i18n';
@@ -69,6 +69,7 @@ export function App() {
       <Overlays />
       <Banner />
       {inGame && <Glory />}
+      <Joining />
       <Callout />
       <Toast />
       <AchievementToast />
@@ -115,6 +116,45 @@ function Callout() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/** One of the loading screen's backs (after the two Jokers in its strip), new each time. */
+const randomLoadingBack = () => `${-(2 + Math.floor(Math.random() * 6)) * 84}px`;
+
+/** While connecting to a room takes a while: the loading screen's spinning card over the
+ *  dimmed screen, which takes every tap and key until the connection is through. */
+function Joining() {
+  const kind = useStore((s) => s.joining);
+  const back = useMemo(randomLoadingBack, [kind]);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!kind) return;
+    // Keys too: nothing behind it reacts while it's up.
+    const block = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    };
+    addEventListener('keydown', block, true);
+    ref.current?.focus();
+    return () => removeEventListener('keydown', block, true);
+  }, [kind]);
+  if (!kind) return null;
+  return (
+    <div class="joining" ref={ref} tabIndex={-1} role="status" aria-live="polite" style={{ '--back': back }}>
+      <div class="card" aria-hidden="true">
+        <div class="face">
+          <i />
+          <i class="black" />
+        </div>
+        <div class="face back">
+          <i />
+        </div>
+      </div>
+      <p>
+        <WaveText text={t(kind === 'create' ? 'joining.create' : 'joining.join')} />
+      </p>
     </div>
   );
 }

@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.35.1',
+    date: '2026-10-29',
+    items: [
+      n('Joining or creating a room that takes a moment shows "Joining..." with the loading screen\'s spinning card, over a dimmed screen that waits until you\'re in.', 'Entrar ou criar uma sala que demora mostra "A entrar..." com a carta a girar do ecrã de carregamento, sobre o ecrã escurecido, que espera até entrares.'),
+    ],
+  },
+  {
     version: '0.35.0',
     date: '2026-10-29',
     items: [
