@@ -71,7 +71,10 @@
         width: 84px;
         height: 120px;
         transform-style: preserve-3d;
-        animation: loading-turn 1.2s linear infinite;
+        /* One float up and down per turn, on the same beat: highest when it shows its back. */
+        animation:
+          loading-turn 1.2s linear infinite,
+          loading-float 1.2s ease-in-out infinite;
       }
       #loading .face {
         position: absolute;
@@ -102,6 +105,15 @@
         }
         to {
           transform: rotateY(360deg);
+        }
+      }
+      @keyframes loading-float {
+        0%,
+        100% {
+          translate: 0 2px;
+        }
+        50% {
+          translate: 0 -8px;
         }
       }
       @keyframes loading-black {

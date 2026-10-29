@@ -1,5 +1,6 @@
 import type { ComponentChildren } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { createPortal } from 'preact/compat';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { play } from '../audio';
 import { type Key, otherTexts, t, tEvery } from '../i18n';
 import { useSettings } from '../settings';
@@ -536,6 +537,52 @@ export function Tabs<T extends string>(props: { tabs: { id: T; label: string }[]
         </button>
       ))}
     </div>
+  );
+}
+
+/** A speech balloon over everything, its arrow pointing at `at` (the box of what was
+ *  tapped): above it when there's room, else below. Any tap, scroll or resize closes it,
+ *  except taps on `keep` (a selector: the things that open it handle their own taps). */
+export function HintBalloon({ at, onClose, keep, children }: { at: DOMRect; onClose: () => void; keep?: string; children: ComponentChildren }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left: number; top: number; arrow: number; below: boolean } | null>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const { width: w, height: h } = el.getBoundingClientRect();
+    const gap = 12;
+    const cx = at.left + at.width / 2;
+    const left = Math.max(8, Math.min(innerWidth - w - 8, cx - w / 2));
+    const below = at.top - h - gap < 8;
+    setPos({ left, top: below ? at.bottom + gap : at.top - h - gap, arrow: cx - left, below });
+  }, [at]);
+  useEffect(() => {
+    // Next tick: the tap that opened it mustn't close it.
+    const onDown = (e: PointerEvent) => {
+      if (!keep || !(e.target as Element | null)?.closest?.(keep)) onClose();
+    };
+    const id = setTimeout(() => {
+      addEventListener('pointerdown', onDown);
+      addEventListener('resize', onClose, { once: true });
+      addEventListener('scroll', onClose, { once: true, capture: true });
+    });
+    return () => {
+      clearTimeout(id);
+      removeEventListener('pointerdown', onDown);
+      removeEventListener('resize', onClose);
+      removeEventListener('scroll', onClose, { capture: true });
+    };
+  }, [onClose, keep]);
+  return createPortal(
+    <div
+      ref={ref}
+      class={`hint-balloon${pos?.below ? ' below' : ''}`}
+      role="status"
+      style={pos ? { left: `${pos.left}px`, top: `${pos.top}px`, '--arrow': `${pos.arrow}px` } : { visibility: 'hidden' }}
+    >
+      {children}
+    </div>,
+    document.getElementById('app') ?? document.body,
   );
 }
 

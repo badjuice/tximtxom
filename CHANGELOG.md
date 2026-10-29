@@ -5,6 +5,15 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.35.0 (2026-10-29)
+- ✨ New achievement: Full Hand, for ending a round with all 7 cards formed.
+- ✨ In Formations, a rule card opens its rule in a balloon pointing at the card.
+- 🔧 Every rule you can switch now starts off, so anything switched on was chosen. Formation notice was the one that started on.
+- 🔧 Bigger text on large screens. Medium and small screens keep their size, so windows still fit.
+- 🔧 Locked achievements say they are locked when you point at them; their rarity shows once unlocked.
+- 🔧 The loading card floats up and down as it spins.
+- 🐛 TximTxom glows in the rule texts in Formations.
+
 ## 0.34.2 (2026-10-29)
 - 🔧 Rule cards shine like their names: a glint in the rule's colour crosses each card from top left to bottom right.
 

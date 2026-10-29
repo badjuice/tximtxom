@@ -19,6 +19,19 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.35.0',
+    date: '2026-10-29',
+    items: [
+      n('New achievement: Full Hand, for ending a round with all 7 cards formed.', 'Nova conquista: Mão Cheia, por acabar uma ronda com as 7 cartas formadas.'),
+      n('In Formations, a rule card opens its rule in a balloon pointing at the card.', 'Nas Formações, uma carta de regra abre a regra num balão a apontar para a carta.'),
+      c('Every rule you can switch now starts off, so anything switched on was chosen. Formation notice was the one that started on.', 'Todas as regras que se ligam e desligam começam desligadas, por isso o que estiver ligado foi escolhido. O Aviso de formações era a única que começava ligada.'),
+      c('Bigger text on large screens. Medium and small screens keep their size, so windows still fit.', 'Texto maior em ecrãs grandes. Ecrãs médios e pequenos mantêm o tamanho, para as janelas continuarem a caber.'),
+      c('Locked achievements say they are locked when you point at them; their rarity shows once unlocked.', 'As conquistas bloqueadas dizem que estão bloqueadas quando lhes apontas; a raridade aparece ao desbloquear.'),
+      c('The loading card floats up and down as it spins.', 'A carta do ecrã de carregamento flutua enquanto gira.'),
+      f('TximTxom glows in the rule texts in Formations.', 'O TximTxom brilha nos textos das regras nas Formações.'),
+    ],
+  },
+  {
     version: '0.34.2',
     date: '2026-10-29',
     items: [

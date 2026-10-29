@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 import { unlock } from '../achievements';
 import { play } from '../audio';
 import { DEFAULT_RULES, makeCard, parseCards, type Rules, type Suit } from '@tximtxom/shared';
@@ -6,7 +6,7 @@ import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE, setRules } from '../net';
 import { CARD_STYLES, cardBacks, currentBack, FONTS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { store, useStore } from '../store';
-import { Button, Choice, Credits, Modal, Seen, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
+import { Button, Choice, Credits, HintBalloon, Modal, Seen, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
 import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { CONTACT_EMAIL, ISSUES_URL, VERSION } from '../version';
@@ -375,8 +375,10 @@ function Formations({ onClose }: { onClose: () => void }) {
   const superposition = !!rules?.superposition;
   const smeared = !!rules?.smeared;
   const tximtxom = useTximTxomExample(superposition);
-  // The rule card last tapped: its rule shows under the list.
+  // The rule card last tapped, and where it is: its rule shows in a balloon pointing at it.
   const [rule, setRule] = useState<string | null>(null);
+  const [at, setAt] = useState<DOMRect | null>(null);
+  const closeRule = useCallback(() => setRule(null), []);
   // Smaller example cards on phones so the list fits without scrolling.
   const narrow = innerWidth <= 700 || innerHeight <= 500;
   const row = (name: string, color: string, cards: number[], desc: string, opts: { off?: boolean; joker?: string } = {}) => (
@@ -396,8 +398,9 @@ function Formations({ onClose }: { onClose: () => void }) {
             class={`f-rule${rule === opts.joker ? ' on' : ''}`}
             aria-label={t(RULE_OF_CARD[opts.joker])}
             aria-expanded={rule === opts.joker}
-            onClick={() => {
+            onClick={(e) => {
               play('button', { volume: 0.5 });
+              setAt((e.currentTarget as HTMLElement).getBoundingClientRect());
               setRule(rule === opts.joker ? null : opts.joker!);
             }}
           >
@@ -441,16 +444,12 @@ function Formations({ onClose }: { onClose: () => void }) {
           </span>
         </span>
       </div>
-      {/* Always there, so opening a rule doesn't move anything: the hint until a rule card is tapped. */}
-      <p class="f-rule-note" role="status">
-        {rule ? (
-          <>
-            <b>{withHighlights(t(RULE_OF_CARD[rule]))}</b> {t(`${RULE_OF_CARD[rule]}.desc` as Key)}
-          </>
-        ) : (
-          <span class="muted">{t('f.ruleHint')}</span>
-        )}
-      </p>
+      <p class="f-rule-note muted">{t('f.ruleHint')}</p>
+      {rule && at && (
+        <HintBalloon at={at} onClose={closeRule} keep=".f-rule">
+          <b>{withHighlights(t(RULE_OF_CARD[rule]))}</b> {withHighlights(t(`${RULE_OF_CARD[rule]}.desc` as Key))}
+        </HintBalloon>
+      )}
     </Modal>
   );
 }

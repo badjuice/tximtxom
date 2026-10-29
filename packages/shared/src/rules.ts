@@ -30,7 +30,7 @@ export const DEFAULT_RULES: Rules = {
   softcore: false,
   superposition: false,
   autoRide: false,
-  noMoreFormationsNotice: true,
+  noMoreFormationsNotice: false,
   rideOrder: 'simultaneous',
   doubleDown: false,
   penalty10: false,

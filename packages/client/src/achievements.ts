@@ -30,7 +30,7 @@ export function carrierId(): string {
 export type AchievementId =
   | 'tipTap' | 'dealtIn' | 'lowRoller' | 'champion' | 'competitor' | 'tximtxom' | 'bitter' | 'busted' | 'likeIce' | 'nuts'
   | 'ragequit' | 'chips10' | 'chips100' | 'chips1000' | 'roundWins10' | 'gameWins10' | 'fullParty' | 'midas' | 'firstLoser'
-  | 'addicted' | 'busPass' | 'rtfm' | 'badTiming'
+  | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand'
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd';
 
 /** How hard it is to get, shown as the colour down the card's side. Secret ones are red. */
@@ -59,6 +59,7 @@ const ALL: Achievement[] = [
   { id: 'rtfm', art: 'help', rarity: 'common' },
   { id: 'chips10', art: 'guard', rarity: 'common', soon: true },
   { id: 'competitor', art: 'barbarian', rarity: 'uncommon' },
+  { id: 'fullHand', art: 'txijog', rarity: 'uncommon' },
   { id: 'fullParty', art: 'turn', rarity: 'uncommon' },
   { id: 'roundWins10', art: 'squire', rarity: 'uncommon' },
   { id: 'busPass', art: 'ride', rarity: 'uncommon' },
@@ -188,6 +189,9 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       if (r.totals[me] === 69 && r.totals[me] > threshold) unlock('nuts');
       break;
     }
+    case 'end':
+      if (e.bonus && e.seat === me) unlock('fullHand');
+      break;
     case 'tximtxom':
       if (e.seat === me) unlock('tximtxom');
       else if (g.round === 1) unlock('bitter');
