@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.36.2',
+    date: '2026-10-29',
+    items: [
+      c('Rulebook wears legendary gold. The rainbow frame is saved for a later achievement.', 'O Livro de Regras usa o dourado lendário. A moldura de arco-íris fica guardada para uma conquista futura.'),
+    ],
+  },
+  {
     version: '0.36.1',
     date: '2026-10-29',
     items: [

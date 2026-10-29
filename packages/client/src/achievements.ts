@@ -63,7 +63,7 @@ export interface Achievement {
   secret?: boolean;
   /** Not in the game yet (needs chips): left out of the list. */
   soon?: boolean;
-  /** Framed in moving rainbow colours instead of its rarity's. */
+  /** Framed in moving rainbow colours instead of its rarity's (kept for a future Completionist). */
   rainbow?: boolean;
   /** One of the per-rule achievements: its text is made from the rule's name. */
   rule?: RuleAch;
@@ -96,7 +96,7 @@ const ALL: Achievement[] = [
   { id: 'nuts', art: 'crab', rarity: 'epic' },
   { id: 'badTiming', art: 'autoride', rarity: 'epic' },
   { id: 'tximtxom', art: 'tximtxom', rarity: 'legendary' },
-  { id: 'allRules', art: 'bikingu', rarity: 'legendary', rainbow: true },
+  { id: 'allRules', art: 'bikingu', rarity: 'legendary' },
   { id: 'chips1000', art: 'kabaleru', rarity: 'legendary', soon: true },
   ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `rule_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'common', rule })),
   { id: 'infected', art: 'slime', rarity: 'secret', secret: true },

@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.36.2 (2026-10-29)
+- 🔧 Rulebook wears legendary gold. The rainbow frame is saved for a later achievement.
+
 ## 0.36.1 (2026-10-29)
 - 🔧 Rulebook is a legendary achievement, still in its rainbow frame.
 
