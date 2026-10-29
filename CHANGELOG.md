@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.34.1 (2026-10-29)
+- 🐛 Changing the language no longer flashes the main menu Aces without their edition.
+- 🐛 The Style preview keeps its cards in place while a new card style loads.
+- 🐛 "Reportar um problema" breaks onto two lines inside its button.
+- 🔧 Achievements wear their rarity colour all the way round.
+
 ## 0.34.0 (2026-10-29)
 - ✨ New achievements: Ragequit, 2nd Place First Loser, RTFM, Full Party!, Roundhouse, Bus Pass, Addicted, Card Shark, Midas, Bad Timing, and a secret one.
 - ✨ Achievements show their rarity down the side: blue common, green uncommon, purple epic, gold legendary, red secret. Grey until unlocked.

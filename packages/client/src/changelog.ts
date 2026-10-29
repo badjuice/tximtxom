@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.34.1',
+    date: '2026-10-29',
+    items: [
+      f('Changing the language no longer flashes the main menu Aces without their edition.', 'Mudar de língua já não mostra por um instante os Ases do menu sem a edição.'),
+      f('The Style preview keeps its cards in place while a new card style loads.', 'A pré-visualização do Estilo mantém as cartas no lugar enquanto um novo estilo carrega.'),
+      f('"Reportar um problema" breaks onto two lines inside its button.', 'O "Reportar um problema" passa para duas linhas dentro do botão.'),
+      c('Achievements wear their rarity colour all the way round.', 'As conquistas têm a cor da raridade à volta toda.'),
+    ],
+  },
+  {
     version: '0.34.0',
     date: '2026-10-29',
     items: [

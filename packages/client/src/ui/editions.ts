@@ -190,26 +190,41 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   return p;
 }
 
-/** The card's art (base plus face) as one texture. */
-async function cardTexture(e: Entry, face: string): Promise<void> {
+/** Each face's art, already composed and enlarged, by atlas image and face. A card
+ *  drawn again (a remount, say after a language change) gets its texture at once,
+ *  so it never shows a frame without its edition. */
+const arts = new Map<string, { art: HTMLCanvasElement; w: number; h: number }>();
+
+/** The card's art (base plus face) as one texture. Synchronous once the art is cached. */
+function cardTexture(e: Entry, face: string): void | Promise<void> {
   const base = atlasFrame('cards', 'base');
   const top = atlasFrame('cards', face);
   if (!base || !top || !setup()) return;
-  const img = await loadImage(base.url);
-  const art = document.createElement('canvas');
-  art.width = base.frame.w;
-  art.height = base.frame.h;
-  const c = art.getContext('2d')!;
-  c.imageSmoothingEnabled = false;
-  for (const f of [base.frame, top.frame]) c.drawImage(img, f.x, f.y, f.w, f.h, 0, 0, f.w, f.h);
+  const key = `${base.url}|${face}`;
+  const cached = arts.get(key);
+  if (cached) return applyArt(e, cached);
+  return loadImage(base.url).then((img) => {
+    const art = document.createElement('canvas');
+    art.width = base.frame.w;
+    art.height = base.frame.h;
+    const c = art.getContext('2d')!;
+    c.imageSmoothingEnabled = false;
+    for (const f of [base.frame, top.frame]) c.drawImage(img, f.x, f.y, f.w, f.h, 0, 0, f.w, f.h);
+    // Enlarged first, so "smooth everything" softens only the edges between pixels (see pixelArt.ts).
+    const made = { art: upscaled(art), w: art.width, h: art.height };
+    arts.set(key, made);
+    if (entries.has(e)) applyArt(e, made);
+  });
+}
+
+function applyArt(e: Entry, { art, w, h }: { art: HTMLCanvasElement; w: number; h: number }): void {
   const g = gl!;
   e.tex = g.createTexture();
   g.bindTexture(g.TEXTURE_2D, e.tex);
-  // Enlarged first, so "smooth everything" softens only the edges between pixels (see pixelArt.ts).
-  g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, upscaled(art));
+  g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, art);
   g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
   g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
-  e.texSize = [art.width, art.height];
+  e.texSize = [w, h];
 }
 
 function draw(now: number): void {
@@ -283,6 +298,10 @@ export function attachEdition(canvas: HTMLCanvasElement, face: string) {
       e.edition = ed;
       e.landedAt = land ? performance.now() : 0;
       if (!ed) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    },
+    /** Draws it now rather than on the next frame (once its texture is ready). */
+    drawNow() {
+      draw(performance.now());
     },
     setTilt(x: number, y: number) {
       e.tilt = [x, y];

@@ -17,6 +17,8 @@ interface Atlas {
   w: number;
   h: number;
   frames: Record<string, Frame>;
+  /** The decoded big image, kept so the browser keeps it ready to paint. */
+  img: HTMLImageElement;
 }
 
 const atlases: Record<string, Atlas> = {};
@@ -32,7 +34,11 @@ async function loadAtlas(file: string, pixelArt = true): Promise<Atlas> {
   // Smooth art is big enough already: only pixel art gets enlarged.
   const blob = pixelArt ? await new Promise<Blob | null>((resolve) => upscaled(img).toBlob(resolve)) : null;
   const bigUrl = blob ? URL.createObjectURL(blob) : url;
-  return { url, bigUrl, w: json.meta.size.w, h: json.meta.size.h, frames };
+  // Decoded (and held) before anything shows it, so sprites never paint empty while it loads.
+  const big = new Image();
+  big.src = bigUrl;
+  await big.decode().catch(() => {});
+  return { url, bigUrl, w: json.meta.size.w, h: json.meta.size.h, frames, img: big };
 }
 
 /** Each card style's atlas, once loaded; `atlases.cards` is the one in use. */
@@ -74,7 +80,12 @@ export function atlasFrame(atlas: string, frame: string): { url: string; frame: 
 function spriteStyle(atlas: string, frame: string, scale: number): Record<string, string> {
   const a = atlases[atlas];
   const f = a?.frames[frame];
-  if (!a || !f) return {};
+  if (!a || !f) {
+    // A frame this atlas doesn't have yet (say, a back from a card style still loading):
+    // keep the space a card takes, so nothing jumps when it arrives.
+    const base = a?.frames.base;
+    return base ? { width: `${base.w * scale}px`, height: `${base.h * scale}px` } : {};
+  }
   return {
     width: `${f.w * scale}px`,
     height: `${f.h * scale}px`,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { Card } from '@tximtxom/shared';
 import { getSettings, useSettings } from '../settings';
 import { attachEdition, type Edition } from './editions';
@@ -23,10 +23,13 @@ export function EditionCard({ card, scale = 1, edition, spawn, onBorn }: { card:
   const face = faceFrame(card, highContrast);
   // A new card style redraws it too.
   const art = cardArtVersion();
-  useEffect(() => {
+  // Before the browser paints: a remounted card (say, after a language change)
+  // draws its edition at once when its art is cached, with no plain frame first.
+  useLayoutEffect(() => {
     const c = attachEdition(canvas.current!, face);
     ctl.current = c;
     c.setEdition(edition, false); // already there: no landing flash
+    c.drawNow();
     return () => c.detach();
   }, [face, art]);
   useEffect(() => ctl.current?.setEdition(edition), [edition]);
