@@ -1,10 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
-import { play } from '../audio';
-import { getHandOrder, setAnnouncer, tapDrawn, tapHand } from '../controller';
+import { deselectAll, getHandOrder, setAnnouncer, tapDrawn, tapHand } from '../controller';
 import { getSettings, updateSettings, useSettings } from '../settings';
 import { t } from '../i18n';
 import { store, useStore } from '../store';
-import { WaveText } from './common';
+import { WaveText, withHighlights } from './common';
 import { AchievementToast } from './Achievements';
 import { HistoryPanel } from './History';
 import { Hud } from './Hud';
@@ -51,10 +50,7 @@ export function App() {
       const el = e.target as HTMLElement;
       if (el.closest?.('input, textarea')) return;
       e.preventDefault();
-      const s = store.get();
-      if (!s.room?.game || s.overlay || s.dragging || !s.selected.length || document.querySelector('.modal-backdrop')) return;
-      store.set({ selected: [] });
-      play('cancel', { volume: 0.5 });
+      deselectAll();
     };
     addEventListener('keydown', onKey);
     addEventListener('contextmenu', onMenu);
@@ -132,7 +128,7 @@ function Banner() {
         <div class="banner-text">
           <WaveText text={b.text} max={28} />
         </div>
-        {b.sub && <div class="banner-sub">{b.sub}</div>}
+        {b.sub && <div class="banner-sub">{withHighlights(b.sub)}</div>}
       </div>
     </div>
   );

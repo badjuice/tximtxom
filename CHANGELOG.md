@@ -5,6 +5,14 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.33.0 (2026-10-29)
+- ✨ Silver and bust badges: at the end of a game everyone who lost without busting gets silver, and whoever busted gets the skull. Each badge names itself when you point at it, with its count beside it.
+- ✨ The Scoreboard has three tabs: this round, every round of this game, and the badges of every game played at the table. It no longer scrolls.
+- ✨ Tap the empty table to let go of the cards you selected.
+- 🔧 BUST pulses in red at the end of the game.
+- 🔧 Rule names glow in their colour everywhere: the room's rules, the rules in a game, descriptions and banners.
+- 🔧 In the room, Leave room sits beside the title and Start game takes the whole row.
+
 ## 0.32.0 (2026-10-29)
 - 🔧 Shown formations are labelled in their owner's colour instead of with their name, so labels no longer overlap. A +2 after the name counts the cards others added on rides.
 - 🔧 Cards added on a ride have a border in the colour of the player who added them.

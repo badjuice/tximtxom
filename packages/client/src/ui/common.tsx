@@ -126,11 +126,14 @@ const RULE_REFS: [Key, string][] = [
   ['rule.autoRide', 'support'],
   ['rule.rideOrder', 'neutral'],
   ['rule.notice', 'info'],
-  ['rule.timer', 'info'],
+  ['rule.timer', 'neutral'],
   ['rule.penalty10', 'punish'],
   ['rule.doubleDown', 'punish'],
 ];
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** A rule's name in its tone's colour with a shine sweeping across, wherever rules are named. */
+export const RuleName = ({ name, tone }: { name: string; tone?: Tone | string }) => <span class={`rule-ref tone-${tone ?? 'neutral'}`}>{name}</span>;
 
 /** `text` with "TximTxom" glowing and waving, and rule names in their colour with a shine across them. */
 export function withHighlights(text: string): ComponentChildren {
@@ -153,7 +156,7 @@ export function withHighlights(text: string): ComponentChildren {
 export function WaveText({ text, max = WAVE_MAX, amp = 3, plain }: { text: string; max?: number; amp?: number; plain?: boolean }) {
   const on = text.length <= max;
   const ref = useWave(amp, on);
-  if (!on) return <>{plain ? text : withTximTxom(text)}</>;
+  if (!on) return <>{plain ? text : withHighlights(text)}</>;
   const ranges = plain ? [] : tximtxomRanges(text);
   const inWord = (i: number) => ranges.find(([a, b]) => i >= a && i < b);
   return (
@@ -340,7 +343,7 @@ export function Toggle(props: { label: string; desc?: string; checked: boolean; 
       {props.joker && <ArtIcon name={props.joker} scale={0.55} />}
       <span class="toggle-text">
         <span class="toggle-label">
-          <Fit text={props.label}>{props.joker ? <WaveText text={props.label} max={28} /> : props.label}</Fit>
+          <Fit text={props.label}>{props.joker ? <RuleName name={props.label} tone={props.tone} /> : props.label}</Fit>
         </span>
         {props.desc && (
           <span class="toggle-desc">
@@ -378,7 +381,7 @@ export function Choice<T extends string | number>(props: {
       {props.joker && <ArtIcon name={props.joker} scale={0.55} />}
       <span class="toggle-text">
         <span class="toggle-label">
-          <Fit text={props.label}>{props.joker ? <WaveText text={props.label} max={28} /> : props.label}</Fit>
+          <Fit text={props.label}>{props.joker ? <RuleName name={props.label} tone={props.tone} /> : props.label}</Fit>
         </span>
         {props.desc && (
           <span class="toggle-desc">
@@ -618,11 +621,11 @@ export function MiniButton(props: {
 /** Shows `children` (default: `text`) in the space its longest translation needs. */
 export function Fit({ text, children, block }: { text: string; children?: ComponentChildren; block?: boolean }) {
   const others = otherTexts(text);
-  if (!others.length) return <>{children ?? withTximTxom(text)}</>;
+  if (!others.length) return <>{children ?? withHighlights(text)}</>;
   // `block`: a wrapping line of text, kept as tall as its longest translation.
   return (
     <span class={`fixed-label${block ? ' block' : ''}`}>
-      <span>{children ?? withTximTxom(text)}</span>
+      <span>{children ?? withHighlights(text)}</span>
       {others.map((s) => (
         <span class="ghost" aria-hidden="true">
           {s}

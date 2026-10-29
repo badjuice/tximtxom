@@ -19,6 +19,18 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.33.0',
+    date: '2026-10-29',
+    items: [
+      n('Silver and bust badges: at the end of a game everyone who lost without busting gets silver, and whoever busted gets the skull. Each badge names itself when you point at it, with its count beside it.', 'Emblemas de prata e de Rabenta: no fim do jogo quem perdeu sem rabentar ganha prata, e quem rabentou leva a caveira. Cada emblema diz o nome quando lhe apontas, com a contagem ao lado.'),
+      n('The Scoreboard has three tabs: this round, every round of this game, and the badges of every game played at the table. It no longer scrolls.', 'A Pontuação tem três separadores: esta ronda, todas as rondas deste jogo, e os emblemas de todos os jogos da mesa. Já não desliza.'),
+      n('Tap the empty table to let go of the cards you selected.', 'Toca na mesa vazia para largar as cartas selecionadas.'),
+      c('BUST pulses in red at the end of the game.', 'O RABENTOU pulsa a vermelho no fim do jogo.'),
+      c('Rule names glow in their colour everywhere: the room\'s rules, the rules in a game, descriptions and banners.', 'Os nomes das regras brilham na sua cor em todo o lado: nas regras da sala, nas regras do jogo, nas descrições e nos avisos.'),
+      c('In the room, Leave room sits beside the title and Start game takes the whole row.', 'Na sala, o Sair da sala fica ao lado do título e o Começar jogo ocupa a linha toda.'),
+    ],
+  },
+  {
     version: '0.32.0',
     date: '2026-10-29',
     items: [

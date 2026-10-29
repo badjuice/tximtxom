@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { initAudio, unlockAudio } from './audio';
 import { startBackground } from './background';
-import { badDrop, canDrop, drop, initController, send, setHandOrder, tapDrawn, tapHand } from './controller';
+import { badDrop, canDrop, deselectAll, drop, initController, send, setHandOrder, tapDrawn, tapHand } from './controller';
 import { greetConsole } from './easterEgg';
 import { Table } from './game/table';
 import { initNet } from './net';
@@ -28,6 +28,7 @@ async function boot() {
     onTapDrawn: tapDrawn,
     onTapDrawPile: () => void send({ type: 'draw' }),
     onTapDiscard: () => void send({ type: 'takeDiscard' }),
+    onTapEmpty: deselectAll,
     onReorder: setHandOrder,
     canDrop,
     onDrop: drop,

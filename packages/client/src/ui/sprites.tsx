@@ -1,6 +1,6 @@
 import type { ComponentChildren } from 'preact';
-import { type Card, cardCode } from '@tximtxom/shared';
-import { cardSpoken } from '../i18n';
+import { type Card, cardCode, type LobbyPlayer } from '@tximtxom/shared';
+import { cardSpoken, type Key, t } from '../i18n';
 import { upscaled } from '../pixelArt';
 import { CARD_ATLAS, type CardStyle, getSettings, onSettings, updateSettings, useSettings } from '../settings';
 
@@ -130,15 +130,29 @@ export function Icon({ name, scale = 1, title, class: cls }: { name: string; sca
 }
 
 /** Games won, as a laurel badge with a count ("x2"). Nothing before the first win. */
-export function Wins({ n, scale = 0.6 }: { n: number; scale?: number }) {
-  if (!n) return null;
+/** The end-of-game badges: gold for a win, silver for a loss without busting, the skull for a bust. */
+export type BadgeKind = 'win' | 'silver' | 'bust';
+export const BADGE_KINDS: BadgeKind[] = ['win', 'silver', 'bust'];
+
+/** One badge with its count ("x2") beside it; its hint names the badge. Nothing when `n` is 0, unless `zero`. */
+export function Badge({ kind, n, scale = 0.6, zero }: { kind: BadgeKind; n: number; scale?: number; zero?: boolean }) {
+  if (!n && !zero) return null;
   return (
-    <span class="wins" title={`${n}`}>
-      <Icon name="win" scale={scale} />
-      {n > 1 && <b>x{n}</b>}
+    <span class={`wins badge-${kind}${n ? '' : ' none'}`} title={t(`badge.${kind}` as Key)}>
+      <Icon name={kind} scale={scale} />
+      <b>x{n}</b>
     </span>
   );
 }
+
+/** How many of a badge a player has (0 for someone no longer in the room). */
+export function badgeCount(p: LobbyPlayer | undefined, kind: BadgeKind): number {
+  if (!p) return 0;
+  return kind === 'win' ? p.wins : kind === 'silver' ? p.silvers : p.busts;
+}
+
+/** Games won: the gold badge. */
+export const Wins = ({ n, scale }: { n: number; scale?: number }) => <Badge kind="win" n={n} scale={scale} />;
 
 
 /** Card size in CSS pixels at a given scale (the same scale CardIcon takes). */

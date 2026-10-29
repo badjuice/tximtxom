@@ -85,9 +85,15 @@ export function Lobby() {
       {/* Language and Settings in the screen's top corner, as on the title screen. */}
       <TopMenu />
       <section class="panel lobby-room">
-        <h2>
-          <WaveText text={t('lobby.room')} />
-        </h2>
+        {/* Leave sits across from the title, so the main button below gets the whole row. */}
+        <div class="lobby-head">
+          <h2>
+            <WaveText text={t('lobby.room')} />
+          </h2>
+          <Button color="orange" onClick={() => store.set({ overlay: 'leave' })}>
+            {t('lobby.leave')}
+          </Button>
+        </div>
         <button class={`room-code${copied ? ' copied' : ''}`} onClick={share} aria-label={`${t('title.code')} ${room.code.split('').join(' ')}`}>
           <span class="code-text">{room.code}</span>
           {copied > 0 && (
@@ -189,9 +195,6 @@ export function Lobby() {
           ))}
         </ul>
         <div class="lobby-actions">
-          <Button color="orange" onClick={() => store.set({ overlay: 'leave' })}>
-            {t('lobby.leave')}
-          </Button>
           {isHost ? (
             <Button color="blue" big disabled={room.players.length < MIN_PLAYERS || !allReady} onClick={() => void startGame()}>
               {t('lobby.start')}

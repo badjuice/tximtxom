@@ -55,6 +55,9 @@ export interface Member {
   clientId: string | null;
   /** Games won in this room. Missing in old saves. */
   wins?: number;
+  /** Games lost without busting, and games lost by busting. */
+  silvers?: number;
+  busts?: number;
   /** Said they're ready, in the lobby. */
   ready?: boolean;
   /** Has the Infected achievement. */
@@ -330,11 +333,16 @@ export class Room {
     if (!res.ok) return res.error;
     this.game = res.state;
     if (before !== 'gameOver' && this.game.phase === 'gameOver') {
-      // Every winner (all of them on a tie) gets a win.
-      for (const s of this.game.winners) {
-        const m = this.members.find((x) => x.id === this.game!.players[s].id);
-        if (m) m.wins = (m.wins ?? 0) + 1;
-      }
+      // Badges: every winner (all of them on a tie) gets gold, the rest silver,
+      // or the bust badge if they went over the limit.
+      const g = this.game;
+      g.players.forEach((p, s) => {
+        const m = this.members.find((x) => x.id === p.id);
+        if (!m) return;
+        if (g.winners.includes(s)) m.wins = (m.wins ?? 0) + 1;
+        else if (p.total > g.rules.threshold) m.busts = (m.busts ?? 0) + 1;
+        else m.silvers = (m.silvers ?? 0) + 1;
+      });
     }
     this.touch();
     return null;
@@ -361,6 +369,8 @@ export class Room {
       avatar: x.avatar,
       connected: x.isBot || !!x.clientId,
       wins: x.wins ?? 0,
+      silvers: x.silvers ?? 0,
+      busts: x.busts ?? 0,
       ready: this.isReady(x),
       infected: !!x.infected,
       carrier: x.infected ? x.carrier : undefined,

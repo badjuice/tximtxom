@@ -10,6 +10,9 @@ export interface LobbyPlayer {
   connected: boolean;
   /** Games won in this room. */
   wins: number;
+  /** Games lost without busting (silver badge), and lost by busting. */
+  silvers: number;
+  busts: number;
   /** Ready to start (bots and the host always are). */
   ready: boolean;
   /** Has the Infected achievement: anyone at a table with them catches it. */

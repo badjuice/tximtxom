@@ -12,7 +12,7 @@ import { CONTACT_EMAIL, ISSUES_URL, VERSION } from '../version';
 import { RulesForm, RulesSummary } from './RulesForm';
 import { AchievementsMenu } from './Achievements';
 import { StatsMenu } from './Stats';
-import { CardBackIcon, CardIcon, ArtIcon, RandomBackIcon, Wins } from './sprites';
+import { ArtIcon, Badge, BADGE_KINDS, badgeCount, CardBackIcon, CardIcon, RandomBackIcon } from './sprites';
 
 export function Overlays() {
   const overlay = useStore((s) => s.overlay);
@@ -185,77 +185,126 @@ function ActiveRules({ onClose }: { onClose: () => void }) {
 
 // ------------------------------------------------------------------ scoreboard
 
+/** Rounds shown in the game's table: the latest ones, so it never needs scrolling. */
+const SB_ROUNDS = 15;
+
+type SbTab = 'round' | 'game' | 'session';
+
+/** The scores in three tabs: where everyone stands now, every round of this game,
+ *  and the badges of every game this table has played. */
 function Scoreboard({ onClose }: { onClose: () => void }) {
   const g = useStore((s) => s.room?.game);
   const lobby = useStore((s) => s.room?.players ?? []);
+  const [tab, setTab] = useState<SbTab>('round');
   if (!g) return null;
   const max = g.rules.threshold;
   const order = g.players.map((_, i) => i).sort((a, b) => g.players[a].total - g.players[b].total);
-  const rounds = g.results.slice(-10);
+  const rounds = g.results.slice(-SB_ROUNDS);
   const last = g.results.at(-1);
   const who = (i: number) => (i === g.you ? t('you') : g.players[i].name);
+  const member = (i: number) => lobby.find((x) => x.id === g.players[i].id);
+  const games = Math.max(0, ...lobby.map((p) => p.wins + p.silvers + p.busts));
   return (
-    <Modal title={t('sb.title')} onClose={onClose} wide>
-      <p class="center muted">{t('sb.lead', { n: max })}</p>
-      <div class="sb-rows">
-        {order.map((i, rank) => {
-          const p = g.players[i];
-          const pct = Math.min(100, (100 * Math.max(0, p.total)) / max);
-          const left = max - p.total;
-          return (
-            <div class={`sb-row${rank === 0 ? ' lead' : ''}`} style={{ '--seat': SEAT_COLORS[i] }}>
-              <span class="sb-rank">{rank + 1}</span>
-              <span class="sb-name">
-                {p.avatar ? <ArtIcon name={p.avatar} scale={0.3} /> : <span class="seat-dot" />}
-                {who(i)}
-                <Wins n={lobby.find((x) => x.id === p.id)?.wins ?? 0} scale={0.5} />
-                {g.dealer === i && <span class="dealer-chip">D</span>}
-              </span>
-              <span class="sb-total">{p.total}</span>
-              <span class="sb-meter">
-                <span class="sb-bar">
-                  <span class={`sb-fill${pct > 75 ? ' danger' : ''}`} style={{ width: `${pct}%` }} />
-                </span>
-                <span class="sb-left">{left < 0 ? t('sb.busted') : t('sb.toBust', { n: left })}</span>
-              </span>
-              {last && (
-                <span class={`sb-delta ${last.points[i] < 0 ? 'good' : last.points[i] === 0 ? 'zero' : ''}`} title={t('sb.lastRound')}>
-                  {last.points[i] > 0 ? `+${last.points[i]}` : last.points[i]}
-                </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {rounds.length > 0 ? (
-        <table class="sb-grid">
-          <thead>
-            <tr>
-              <th>{t('sb.rounds')}</th>
-              {rounds.map((r) => (
-                <th class="num">{r.round}</th>
+    <Modal title={t('sb.title')} onClose={onClose} wide class="sb-modal">
+      <Tabs
+        tabs={[
+          { id: 'round', label: t('sb.tab.round') },
+          { id: 'game', label: t('sb.tab.game') },
+          { id: 'session', label: t('sb.tab.session') },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
+      <div class="tab-body stacked">
+        <div class={`tab-panel${tab === 'round' ? '' : ' hidden'}`} inert={tab !== 'round'}>
+          <p class="center muted">{t('sb.lead', { n: max })}</p>
+          <div class="sb-rows">
+            {order.map((i, rank) => {
+              const p = g.players[i];
+              const pct = Math.min(100, (100 * Math.max(0, p.total)) / max);
+              const left = max - p.total;
+              return (
+                <div class={`sb-row${rank === 0 ? ' lead' : ''}`} style={{ '--seat': SEAT_COLORS[i] }}>
+                  <span class="sb-rank">{rank + 1}</span>
+                  <span class="sb-name">
+                    {p.avatar ? <ArtIcon name={p.avatar} scale={0.3} /> : <span class="seat-dot" />}
+                    {who(i)}
+                    {g.dealer === i && <span class="dealer-chip">D</span>}
+                  </span>
+                  <span class="sb-total">{p.total}</span>
+                  <span class="sb-meter">
+                    <span class="sb-bar">
+                      <span class={`sb-fill${pct > 75 ? ' danger' : ''}`} style={{ width: `${pct}%` }} />
+                    </span>
+                    <span class="sb-left">{left < 0 ? t('sb.busted') : t('sb.toBust', { n: left })}</span>
+                  </span>
+                  {last && (
+                    <span class={`sb-delta ${last.points[i] < 0 ? 'good' : last.points[i] === 0 ? 'zero' : ''}`} title={t('sb.lastRound')}>
+                      {last.points[i] > 0 ? `+${last.points[i]}` : last.points[i]}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div class={`tab-panel${tab === 'game' ? '' : ' hidden'}`} inert={tab !== 'game'}>
+          {rounds.length > 0 ? (
+            <>
+              <table class="sb-grid">
+                <thead>
+                  <tr>
+                    <th>{t('sb.rounds')}</th>
+                    {rounds.map((r) => (
+                      <th class="num">{r.round}</th>
+                    ))}
+                    <th class="num">{t('sum.total')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {order.map((i) => (
+                    <tr style={{ '--seat': SEAT_COLORS[i] }}>
+                      <td class="pname">
+                        <span class="seat-dot" />
+                        {who(i)}
+                      </td>
+                      {rounds.map((r) => (
+                        <td class={`num ${r.points[i] < 0 ? 'good' : r.points[i] === 0 ? 'zero' : 'bad'}${r.ender === i ? ' ender' : ''}`}>{r.points[i]}</td>
+                      ))}
+                      <td class="num total">
+                        {g.players[i].total} {t('pts')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {g.results.length > SB_ROUNDS && <p class="center muted small">{t('sb.latest', { n: SB_ROUNDS })}</p>}
+            </>
+          ) : (
+            <p class="center muted">{t('sb.noRounds')}</p>
+          )}
+        </div>
+        <div class={`tab-panel${tab === 'session' ? '' : ' hidden'}`} inert={tab !== 'session'}>
+          <p class="center muted">{games === 1 ? t('sb.games1') : games ? t('sb.games', { n: games }) : t('sb.noGames')}</p>
+          <table class="score-table sb-badges">
+            <tbody>
+              {order.map((i) => (
+                <tr style={{ '--seat': SEAT_COLORS[i] }}>
+                  <td class="pname">
+                    <span class="seat-dot" />
+                    {who(i)}
+                  </td>
+                  {BADGE_KINDS.map((kind) => (
+                    <td class="badge-cell">
+                      <Badge kind={kind} n={badgeCount(member(i), kind)} scale={0.6} zero />
+                    </td>
+                  ))}
+                </tr>
               ))}
-              <th class="num">{t('sum.total')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {order.map((i) => (
-              <tr style={{ '--seat': SEAT_COLORS[i] }}>
-                <td class="pname">
-                  <span class="seat-dot" />
-                  {who(i)}
-                </td>
-                {rounds.map((r) => (
-                  <td class={`num ${r.points[i] < 0 ? 'good' : r.points[i] === 0 ? 'zero' : 'bad'}${r.ender === i ? ' ender' : ''}`}>{r.points[i]}</td>
-                ))}
-                <td class="num total">{g.players[i].total}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p class="center muted">{t('sb.noRounds')}</p>
-      )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </Modal>
   );
 }

@@ -595,6 +595,14 @@ export function drop(card: Card, target: DropTarget): void {
   } else void send({ type: 'ride', card });
 }
 
+/** Lets go of every selected hand card: right-click, or a tap on empty table (touch screens). */
+export function deselectAll(): void {
+  const s = store.get();
+  if (!s.room?.game || s.overlay || s.dragging || !s.selected.length || document.querySelector('.modal-backdrop')) return;
+  store.set({ selected: [] });
+  play('cancel', { volume: 0.5 });
+}
+
 /** Balatro's "Nope!": a ride card that doesn't fit, or cards that aren't a formation. */
 function nope(): void {
   play('cancel');

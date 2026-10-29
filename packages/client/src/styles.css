@@ -821,10 +821,19 @@ input[type='text'] {
 }
 .lobby-actions {
   display: flex;
-  gap: 10px;
+  margin-top: 8px;
+}
+.lobby-actions .btn {
+  flex: 1;
+}
+.lobby-head {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
+  gap: 10px;
+}
+.lobby-head h2 {
+  margin: 0;
 }
 
 .rules-form {
@@ -4322,4 +4331,50 @@ input.rename {
   color: var(--green);
   display: inline-block;
   animation: counter-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+/* Badges: the count beside each in its own colour; a column per badge in tables. */
+.badge-silver b {
+  color: #c9d4da;
+}
+.badge-bust b {
+  color: var(--red);
+}
+.wins.none {
+  opacity: 0.35;
+}
+.score-table td.badge-cell,
+.sb-badges td.badge-cell {
+  width: 3.6em;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+.badge-cell .wins {
+  margin-left: 0;
+}
+
+/* BUST pulses and flashes red, to draw the eye to whoever busted. */
+.bust-tag {
+  display: inline-block;
+  font-weight: bold;
+  animation: bust-pulse 0.9s ease-in-out infinite;
+}
+@keyframes bust-pulse {
+  0%,
+  100% {
+    scale: 1;
+    color: #fff;
+  }
+  50% {
+    scale: 1.18;
+    color: var(--red);
+  }
+}
+.reduced-motion .bust-tag {
+  animation: bust-flash 1.8s ease-in-out infinite;
+}
+@keyframes bust-flash {
+  50% {
+    color: var(--red);
+  }
 }

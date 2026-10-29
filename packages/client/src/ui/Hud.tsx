@@ -9,7 +9,7 @@ import { updateSettings, useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, useStore } from '../store';
 import { Button, CardText, HoldButton, Label, MiniButton, Modal, UiIcon } from './common';
-import { CardIcon, Icon, ArtIcon, Wins } from './sprites';
+import { Badge, BADGE_KINDS, badgeCount, CardIcon, Icon, ArtIcon, Wins } from './sprites';
 
 function toScreen(L: Layout, p: Point) {
   return { left: `${L.offsetX + p.x * L.scale}px`, top: `${L.offsetY + p.y * L.scale}px` };
@@ -565,12 +565,17 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
               <td class="pname">
                 <span class="seat-dot" />
                 {who(i)}
-                <Wins n={room.players.find((x) => x.id === g.players[i].id)?.wins ?? 0} />
               </td>
+              {/* One column per badge, so they line up down the table. */}
+              {BADGE_KINDS.map((kind) => (
+                <td class="badge-cell">
+                  <Badge kind={kind} n={badgeCount(room.players.find((x) => x.id === g.players[i].id), kind)} scale={0.5} />
+                </td>
+              ))}
               <td class="num total">
                 {g.players[i].total} {t('pts')}
               </td>
-              <td>{g.players[i].total > g.rules.threshold ? t('go.bust') : ''}</td>
+              <td>{g.players[i].total > g.rules.threshold && <span class="bust-tag">{t('go.bust')}</span>}</td>
             </tr>
           ))}
         </tbody>

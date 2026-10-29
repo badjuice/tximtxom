@@ -183,6 +183,7 @@ const COLOURS = {
   purple: [136, 103, 165],
   grey: [58, 74, 77],
   gold: [234, 192, 88],
+  silver: [168, 184, 192],
 };
 
 // Tiny Dungeon character tiles. Bots first (rules.ts BOT_PERSONAS), then the art players pick from.
@@ -229,7 +230,17 @@ const RULE_ART = {
 };
 
 /** A white Board Game icon at `size` px, hard-edged so it reads as pixel art. */
+/** A skull in pixels, for the bust badge. */
+const SKULL = ['..#####..', '.#######.', '#########', '#..###..#', '#..###..#', '####.####', '.#######.', '..#####..', '..#.#.#..'];
+
+/** A white icon: a Board Game Icon by name, or a pixel glyph (rows of `#`). */
 async function whiteIcon(name, size) {
+  if (Array.isArray(name)) {
+    const px = Math.floor(size / name.length);
+    const off = Math.floor((size - px * name.length) / 2);
+    const rects = name.flatMap((row, y) => [...row].map((ch, x) => (ch === '#' ? `<rect x="${off + x * px}" y="${off + y * px}" width="${px}" height="${px}" fill="#fff"/>` : '')));
+    return sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" shape-rendering="crispEdges">${rects.join('')}</svg>`)).png().toBuffer();
+  }
   const { data, info } = await sharp(path.join(ICONS64, `${name}.png`)).resize(size, size, { kernel: 'lanczos3' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   for (let i = 0; i < data.length; i += 4) {
     data[i + 3] = data[i + 3] > 110 ? 255 : 0;
@@ -261,6 +272,8 @@ const BADGES = {
   host: ['crown_b', 'gold', 34],
   bot: ['character', 'blue', 34],
   win: ['award', 'gold', 29],
+  silver: ['award', 'silver', 29],
+  bust: [SKULL, 'red', 29],
 };
 
 async function icons() {

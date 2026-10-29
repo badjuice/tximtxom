@@ -21,6 +21,8 @@ export interface TableHandlers {
   onDrop(card: Card, target: DropTarget): void;
   /** A card was dropped on a formation it doesn't fit. */
   onBadDrop(card: Card, target: DropTarget): void;
+  /** A tap on the table away from any card you can use (deselects the hand). */
+  onTapEmpty(): void;
   /** True while something (modal, panel) blocks the table. */
   blocked(): boolean;
   /** A card drag started (the card) or ended (null). */
@@ -467,7 +469,7 @@ export class Table {
     const p = this.toVirtual(e);
     this.pointer = p;
     const d = this.hit(p, (x) => this.isInteractive(x));
-    if (!d) return;
+    if (!d) return this.handlers.onTapEmpty();
     if (((d.role === 'hand' || d.role === 'drawn') && d.card !== null) || (d.role === 'discardTop' && d.card !== null && this.canDragDiscard(d.card))) {
       this.drag = { card: d.card, start: p, x: p.x, y: p.y, active: false };
       e.preventDefault(); // a card dragged over the history panel must not select its text
