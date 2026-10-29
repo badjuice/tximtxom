@@ -106,7 +106,7 @@ export function RulesSummary({ rules }: { rules: Rules }) {
     <ul class="rules-summary">
       {rows.map(([art, name, state, tone]) => (
         <li>
-          <ArtIcon name={art} scale={0.3} />
+          <ArtIcon name={art} scale={0.3} rule />
           <span class="rs-name">
             <RuleName name={name} tone={tone} />
           </span>

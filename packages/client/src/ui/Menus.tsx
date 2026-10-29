@@ -401,7 +401,7 @@ function Formations({ onClose }: { onClose: () => void }) {
               setRule(rule === opts.joker ? null : opts.joker!);
             }}
           >
-            <ArtIcon name={opts.joker} scale={0.3} />
+            <ArtIcon name={opts.joker} scale={0.3} rule />
           </button>
         )}
         <span>

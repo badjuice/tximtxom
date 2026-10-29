@@ -4323,6 +4323,53 @@ input.rename {
   animation: none;
 }
 
+/* Rule cards: the same shine as their names, crossing the card from top left to
+   bottom right in the rule's colour, on the same beat. Above the art, under the hover shine. */
+.rule-card {
+  --rc: var(--gold);
+  position: relative;
+}
+.rule-card.tone-support {
+  --rc: #6ee7a8;
+}
+.rule-card.tone-info {
+  --rc: #6fcfff;
+}
+.rule-card.tone-punish {
+  --rc: #ff8a82;
+}
+.rule-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  pointer-events: none;
+  background: linear-gradient(
+      135deg,
+      transparent 44%,
+      color-mix(in srgb, var(--rc) 60%, transparent) 47%,
+      color-mix(in srgb, var(--rc) 35%, #fff) 50%,
+      color-mix(in srgb, var(--rc) 60%, transparent) 53%,
+      transparent 56%
+    )
+    100% 100% / 300% 300% no-repeat;
+  opacity: 0.85;
+  animation: rule-card-shine 3.2s linear infinite;
+}
+@keyframes rule-card-shine {
+  0% {
+    background-position: 100% 100%;
+  }
+  45%,
+  100% {
+    background-position: 0% 0%;
+  }
+}
+.reduced-motion .rule-card::before {
+  animation: none;
+  opacity: 0;
+}
+
 /* Stats, Cards tab: one bar split between the Draw Pile (blue) and the Discard Pile (red). */
 .pile-bar {
   display: flex;

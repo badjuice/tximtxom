@@ -340,7 +340,7 @@ export type Tone = 'punish' | 'info' | 'support';
 export function Toggle(props: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void; joker?: string; disabled?: boolean; tone?: Tone }) {
   return (
     <label class={`toggle${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`}>
-      {props.joker && <ArtIcon name={props.joker} scale={0.55} />}
+      {props.joker && <ArtIcon name={props.joker} scale={0.55} rule />}
       <span class="toggle-text">
         <span class="toggle-label">
           <Fit text={props.label}>{props.joker ? <RuleName name={props.label} tone={props.tone} /> : props.label}</Fit>
@@ -378,7 +378,7 @@ export function Choice<T extends string | number>(props: {
 }) {
   return (
     <div class={`toggle choice${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`} role="group" aria-label={props.label}>
-      {props.joker && <ArtIcon name={props.joker} scale={0.55} />}
+      {props.joker && <ArtIcon name={props.joker} scale={0.55} rule />}
       <span class="toggle-text">
         <span class="toggle-label">
           <Fit text={props.label}>{props.joker ? <RuleName name={props.label} tone={props.tone} /> : props.label}</Fit>

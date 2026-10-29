@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.34.2',
+    date: '2026-10-29',
+    items: [
+      c('Rule cards shine like their names: a glint in the rule\'s colour crosses each card from top left to bottom right.', 'As cartas das regras brilham como os nomes: um reflexo na cor da regra atravessa cada carta do canto superior esquerdo ao inferior direito.'),
+    ],
+  },
+  {
     version: '0.34.1',
     date: '2026-10-29',
     items: [

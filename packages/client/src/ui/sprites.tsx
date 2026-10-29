@@ -119,12 +119,25 @@ const tilt = {
 /** Card and art scales are relative to a 95 px tall card, whatever size the art is. */
 const fit = (atlas: string, scale: number) => (scale * 95) / (atlases[atlas]?.frames.base?.h ?? atlases[atlas]?.frames.help?.h ?? 95);
 
-/** Art on a card: a player's character or a rule's picture. Unknown names (old saves) show the default character. */
-export function ArtIcon({ name, scale = 0.5, title }: { name: string; scale?: number; title?: string }) {
+/** Each rule card's tone (as its name's colour in the rules). */
+const RULE_TONES: Record<string, string> = {
+  softcore: 'support',
+  ace: 'support',
+  mixed: 'support',
+  autoride: 'support',
+  peek: 'info',
+  notice: 'info',
+  penalty: 'punish',
+  double: 'punish',
+};
+
+/** Art on a card: a player's character or a rule's picture. Unknown names (old saves) show the default character.
+ *  `rule`: a rule's card, with a shine crossing it diagonally in the rule's colour, in step with its name's. */
+export function ArtIcon({ name, scale = 0.5, title, rule }: { name: string; scale?: number; title?: string; rule?: boolean }) {
   const frame = atlases.art?.frames[name] ? name : 'villager';
   return (
     <span
-      class="sprite joker tilt"
+      class={`sprite joker tilt${rule ? ` rule-card tone-${RULE_TONES[name] ?? 'neutral'}` : ''}`}
       style={spriteStyle('art', frame, fit('art', scale))}
       title={title}
       aria-hidden={title ? undefined : 'true'}

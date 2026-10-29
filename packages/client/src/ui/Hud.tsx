@@ -73,7 +73,7 @@ function TopBar({ g }: { g: GameView }) {
         </span>
         <span class="rule-cards">
           {activeRules(g.rules).map(([art, name, desc]) => (
-            <ArtIcon name={art} scale={0.26} title={`${t(name)}\n${t(desc)}`} />
+            <ArtIcon name={art} scale={0.26} title={`${t(name)}\n${t(desc)}`} rule />
           ))}
         </span>
         <button class="rules-btn" onClick={() => open('rules')}>

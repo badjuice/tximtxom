@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.34.2 (2026-10-29)
+- 🔧 Rule cards shine like their names: a glint in the rule's colour crosses each card from top left to bottom right.
+
 ## 0.34.1 (2026-10-29)
 - 🐛 Changing the language no longer flashes the main menu Aces without their edition.
 - 🐛 The Style preview keeps its cards in place while a new card style loads.
