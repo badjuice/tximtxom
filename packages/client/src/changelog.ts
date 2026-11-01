@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.10',
+    date: '2026-11-01',
+    items: [f("The Achievements button's golden glow now goes all the way round, bottom included.", "O brilho dourado do botão Conquistas agora dá a volta toda, incluindo em baixo.")],
+  },
+  {
     version: '0.49.9',
     date: '2026-11-01',
     items: [

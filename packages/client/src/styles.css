@@ -5557,21 +5557,22 @@ td.num.pts {
   visibility: hidden;
 }
 
-/* The main menu's Achievements button while any are New!: a golden pulse, on the sign's beat. */
+/* The main menu's Achievements button while any are New!: a golden pulse, on the sign's beat.
+   The ring is drawn twice, the second 5px lower, so it wraps the button's bottom ledge too. */
 .menu-main.has-new:has(.new-sign) {
   animation: ach-btn-glow 0.9s ease-in-out infinite alternate;
 }
 @keyframes ach-btn-glow {
   from {
-    box-shadow: 0 5px 0 var(--shadow), 0 0 0 2px #ffcf4a, 0 0 6px rgba(255, 207, 74, 0.4);
+    box-shadow: 0 5px 0 var(--shadow), 0 0 0 2px #ffcf4a, 0 5px 0 2px #ffcf4a, 0 3px 6px rgba(255, 207, 74, 0.4);
     filter: brightness(1);
   }
   to {
-    box-shadow: 0 5px 0 var(--shadow), 0 0 0 3px #ffe08a, 0 0 20px rgba(255, 207, 74, 0.95);
+    box-shadow: 0 5px 0 var(--shadow), 0 0 0 3px #ffe08a, 0 5px 0 3px #ffe08a, 0 3px 20px rgba(255, 207, 74, 0.95);
     filter: brightness(1.15);
   }
 }
 .reduced-motion .menu-main.has-new:has(.new-sign) {
   animation: none;
-  box-shadow: 0 5px 0 var(--shadow), 0 0 0 2px #ffcf4a, 0 0 10px rgba(255, 207, 74, 0.6);
+  box-shadow: 0 5px 0 var(--shadow), 0 0 0 2px #ffcf4a, 0 5px 0 2px #ffcf4a, 0 3px 10px rgba(255, 207, 74, 0.6);
 }

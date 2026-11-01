@@ -1,6 +1,6 @@
 {
   "name": "@tximtxom/client",
-  "version": "0.49.9",
+  "version": "0.49.10",
   "private": true,
   "type": "module",
   "scripts": {
