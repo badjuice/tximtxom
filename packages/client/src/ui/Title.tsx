@@ -7,7 +7,7 @@ import { unlock, useNewCount } from '../achievements';
 import { NewSign } from './Achievements';
 import { formatCount, refreshGlobalRounds, useStats } from '../stats';
 import { store, useStore } from '../store';
-import { Button, Credits, MiniButton, UiIcon, WaveText } from './common';
+import { Button, Credits, Fit, MiniButton, UiIcon, WaveText } from './common';
 import { EditionCard } from './EditionCard';
 import { EDITIONS, type Edition } from './editions';
 import { spawnElement } from './textSpawn';
@@ -232,7 +232,10 @@ function MainMenu({ onPlay }: { onPlay: () => void }) {
         {t('menu.stats')}
       </Button>
       <Button color="purple" class="menu-main has-new" onClick={open('achievements')}>
-        {t('menu.achievements')}
+        {/* Two children, so Button won't wave the label itself. */}
+        <Fit text={t('menu.achievements')}>
+          <WaveText text={t('menu.achievements')} />
+        </Fit>
         {newAch > 0 && <NewSign />}
       </Button>
       <Button color="orange" class="menu-main" onClick={open('settings')}>

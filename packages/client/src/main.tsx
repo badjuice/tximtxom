@@ -1,3 +1,4 @@
+import { wokeInRoom } from './power';
 import { assetUrl } from './version';
 import { render } from 'preact';
 import { initAudio, unlockAudio } from './audio';
@@ -5,7 +6,7 @@ import { startBackground } from './background';
 import { badDrop, canDrop, drop, initController, send, setHandOrder, tapDrawn, tapEmpty, tapHand } from './controller';
 import { greetConsole } from './easterEgg';
 import { Table } from './game/table';
-import { initNet } from './net';
+import { initNet, rejoinRoom, savedRoom } from './net';
 import { applyCssSettings, onSettings, updateSettings } from './settings';
 import { initGrab } from './grab';
 import { initStats } from './stats';
@@ -86,6 +87,8 @@ async function boot() {
     removeEventListener('keydown', start);
     unlockAudio();
     close();
+    // Back from sleep (power.ts) in a room: straight back to the seat.
+    if (wokeInRoom() && savedRoom()) void rejoinRoom();
   };
   addEventListener('keydown', start);
   render(

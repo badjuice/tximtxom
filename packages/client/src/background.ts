@@ -1,6 +1,7 @@
 // Swirling paint background: a slow spiral twist over warped value noise,
 // cut into three colour bands. It renders into a tiny canvas that CSS scales
 // up with `image-rendering: pixelated`, which gives the pixel look for free.
+import { frameRate } from './power';
 import { getSettings, onSettings } from './settings';
 
 const VERT = `
@@ -154,6 +155,8 @@ export function startBackground(canvas: HTMLCanvasElement): void {
   let frameSkip = 0;
   const frame = (now: number) => {
     requestAnimationFrame(frame);
+    // Capped by the FPS setting (a little early is fine: frames don't land exactly).
+    if (now - last < 1000 / frameRate() - 4) return;
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
     const s = getSettings();

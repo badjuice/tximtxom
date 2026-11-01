@@ -16,6 +16,10 @@ interface Particle {
 export class Particles extends Container {
   private list: Particle[] = [];
 
+  get empty(): boolean {
+    return this.list.length === 0;
+  }
+
   burst(x: number, y: number, opts: { count?: number; colors?: number[]; speed?: number; size?: number; gravity?: number; life?: number; spread?: number } = {}): void {
     const s = getSettings();
     if (s.reducedMotion) return;

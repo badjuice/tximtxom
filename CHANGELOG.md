@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.48.0 (2026-11-01)
+- ✨ Saves battery: left in the background (3 minutes, 5 in a room), the game goes to sleep. Come back and it reloads, straight into your room.
+- ✨ Settings > Graphics: Frame rate (Auto is 30 on phones, 60 on computers; also 15, 30, 60, 120) and Low power graphics.
+- 🔧 The music pauses while the tab is hidden; out of focus, everything runs at 10 frames per second. The table stops drawing when no cards are on it.
+- 🐛 The Achievements button's letters hop again.
+
 ## 0.47.0 (2026-11-01)
 - ✨ New achievement: Window Shopper, scroll to the end of the Achievements list.
 - 🔧 The Credits window is wider, and each section has an icon.

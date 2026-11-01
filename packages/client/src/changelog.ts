@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.48.0',
+    date: '2026-11-01',
+    items: [
+      n("Saves battery: left in the background (3 minutes, 5 in a room), the game goes to sleep. Come back and it reloads, straight into your room.", "Poupa bateria: deixado em segundo plano (3 minutos, 5 numa sala), o jogo adormece. Volta e ele recarrega, direto para a tua sala."),
+      n("Settings > Graphics: Frame rate (Auto is 30 on phones, 60 on computers; also 15, 30, 60, 120) and Low power graphics.", "Definições > Gráficos: Fotogramas por segundo (Auto é 30 nos telemóveis, 60 nos computadores; também 15, 30, 60, 120) e Gráficos de baixo consumo."),
+      c("The music pauses while the tab is hidden; out of focus, everything runs at 10 frames per second. The table stops drawing when no cards are on it.", "A música pára com o separador escondido; fora de foco, tudo corre a 10 fotogramas por segundo. A mesa deixa de desenhar quando não tem cartas."),
+      f("The Achievements button's letters hop again.", "As letras do botão Conquistas voltam a saltar."),
+    ],
+  },
+  {
     version: '0.47.0',
     date: '2026-11-01',
     items: [

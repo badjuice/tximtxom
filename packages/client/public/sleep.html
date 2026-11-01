@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TximTxom</title>
+    <link rel="icon" href="favicon.png" />
+    <!-- The game left in the background sleeps here (see src/power.ts) and goes back when looked at again. -->
+    <style>
+      @font-face {
+        font-family: m6x11;
+        src: url(assets/m6x11plus.woff2) format('woff2');
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #1f3a3d;
+        color: #fff;
+        font: 28px m6x11, monospace;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        cursor: pointer;
+      }
+      p {
+        margin: 8px 16px;
+      }
+      .hint {
+        color: #9fb4b6;
+        font-size: 0.75em;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <p id="t">TximTxom is resting</p>
+      <p class="hint" id="h">Paused to save battery. Tap to continue.</p>
+    </div>
+    <script>
+      try {
+        if (JSON.parse(localStorage.getItem('tximtxom.settings') || '{}').lang !== 'en') {
+          document.getElementById('t').textContent = 'O TximTxom está a descansar';
+          document.getElementById('h').textContent = 'Em pausa para poupar bateria. Toca para continuar.';
+        }
+      } catch {}
+      // Only back to a page of this site.
+      const to = new URL(new URLSearchParams(location.search).get('to') || './', location.href);
+      const back = () => location.replace(to.origin === location.origin ? to : new URL('./', location.href));
+      const looked = () => !document.hidden && document.hasFocus();
+      addEventListener('pointerdown', back);
+      addEventListener('keydown', back);
+      addEventListener('focus', () => looked() && back());
+      document.addEventListener('visibilitychange', () => looked() && back());
+    </script>
+  </body>
+</html>

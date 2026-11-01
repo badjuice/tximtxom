@@ -86,6 +86,10 @@ export interface Settings {
   font: FontId;
   /** Anti-aliasing: off, or on (the edges of tilted table cards and all the pixel art). */
   smooth: 'off' | 'all';
+  /** Frame rate cap; `auto` is 30 on touch screens and 60 elsewhere (see power.ts). */
+  fps: 'auto' | 15 | 30 | 60 | 120;
+  /** Asks the device for its power-saving graphics. Changes after reloading the page. */
+  lowPower: boolean;
   // Layout
   clockwise: boolean;
   uiScale: number;
@@ -132,6 +136,8 @@ export const DEFAULT_SETTINGS: Settings = {
   cardBack: 'back_red',
   font: 'm6x11',
   smooth: 'all',
+  fps: 'auto',
+  lowPower: true,
   clockwise: false,
   uiScale: 1,
   textScale: 1,

@@ -487,6 +487,9 @@ const KEYS: { keys?: string; mouse?: Key; label: Key; hold?: boolean }[] = [
 /** Balatro's game speeds, slowest first. */
 const SPEEDS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
 
+const FPS: Settings['fps'][] = ['auto', 15, 30, 60, 120];
+const fpsText = (v: Settings['fps']) => (v === 'auto' ? t('set.fps.autoDesc') : t('set.fps.desc', { n: v }));
+
 /** "Blue 3" for `back_blue3`, "Red" for `back_red`. */
 function backName(b: string): string {
   const [, colour, n] = /^back_([a-z]+)(\d*)$/.exec(b) ?? [];
@@ -673,6 +676,23 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
         <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
           <Toggle label={t('set.smoothing')} desc={says(s.smooth === 'all', 'set.smoothing.desc', 'set.smoothing.off')} checked={s.smooth === 'all'} onChange={(v) => set({ smooth: v ? 'all' : 'off' })} />
           <Slider label={t('set.size')} value={s.uiScale} min={0.8} max={1.2} step={0.05} onChange={(v) => set({ uiScale: v })} format={pct} />
+          <Choice
+            label={t('set.fps')}
+            desc={[fpsText(s.fps), ...FPS.filter((v) => v !== s.fps).map(fpsText)]}
+            value={s.fps}
+            options={FPS.map((v) => ({ value: v, label: v === 'auto' ? t('set.fps.auto') : String(v) }))}
+            onChange={(fps) => set({ fps })}
+          />
+          <Toggle
+            label={t('set.lowPower')}
+            desc={says(s.lowPower, 'set.lowPower.on', 'set.lowPower.off')}
+            checked={s.lowPower}
+            onChange={(v) => {
+              set({ lowPower: v });
+              // The graphics mode is picked when the game loads; outside a room, reload now.
+              if (!store.get().room) location.reload();
+            }}
+          />
         </div>
         <div class={`tab-panel${tab === 'motion' ? '' : ' hidden'}`} inert={tab !== 'motion'}>
           {/* Reduced motion turns these two off, so they sit under it. */}

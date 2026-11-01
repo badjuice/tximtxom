@@ -2,6 +2,7 @@ import { assetUrl } from '../version';
 import { Application, Assets, CanvasSource, Container, type Spritesheet, type Texture } from 'pixi.js';
 import type { Card, GameView } from '@tximtxom/shared';
 import { upscaled, UPSCALE } from '../pixelArt';
+import { frameRate, onFrameRate } from '../power';
 import { CARD_ATLAS, type CardStyle, getSettings, historyInset, onSettings } from '../settings';
 import type { Staged } from '../store';
 import { type CardTarget, type CardTextures, CardView } from './cardView';
@@ -78,6 +79,7 @@ export class Table {
   private discardMemory: Card[] = [];
   private drag: { card: Card; start: Point; x: number; y: number; active: boolean } | null = null;
   private time = 0;
+  private wasEmpty = false;
   private roles = new Map<string, DesiredCard>();
   private pendingHints: SpawnHints = new Map();
   /** Cards still waiting in the deck during a deal (view keys). */
@@ -98,7 +100,7 @@ export class Table {
       resolution: Math.min(2, window.devicePixelRatio || 1),
       autoDensity: true,
       roundPixels: false,
-      powerPreference: 'high-performance',
+      powerPreference: getSettings().lowPower ? 'low-power' : 'high-performance',
     });
     host.appendChild(this.app.canvas);
 
@@ -140,6 +142,9 @@ export class Table {
     this.relayout();
     addEventListener('resize', () => this.relayout());
     this.app.ticker.add((t) => this.tick(t.deltaMS / 1000));
+    onFrameRate(() => (this.app.ticker.maxFPS = frameRate()));
+    // Drawn from tick() instead, which skips an empty table.
+    this.app.ticker.remove(this.app.render, this.app);
   }
 
   relayout(): void {
@@ -619,5 +624,9 @@ export class Table {
     this.particles.update(dt);
     this.shake.update(dt);
     this.world.position.set(this.layout.offsetX + this.shake.x, this.layout.offsetY + this.shake.y);
+    // Nothing on the table (the menus): one last frame to clear it, then no drawing.
+    const empty = this.views.size === 0 && this.dying.length === 0 && this.particles.empty;
+    if (!empty || !this.wasEmpty) this.app.render();
+    this.wasEmpty = empty;
   }
 }

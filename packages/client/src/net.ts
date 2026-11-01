@@ -1,3 +1,4 @@
+import { goingToSleep } from './power';
 // Connection to the game. Two modes:
 // - peer-to-peer (default, used on GitHub Pages): the room creator's browser
 //   hosts the room; see p2p.ts.
@@ -237,7 +238,7 @@ export function initNet(): void {
   void (MODE === 'server' ? initServerMode() : initP2PMode());
   // Closing the host's tab pauses the game for everyone: ask first.
   addEventListener('beforeunload', (e) => {
-    if (host?.busy) e.preventDefault();
+    if (host?.busy && !goingToSleep()) e.preventDefault();
   });
   // Clicks and key presses tell the host a human is still here (at most every 30s).
   // Rooms with no human activity for 10 minutes close.
