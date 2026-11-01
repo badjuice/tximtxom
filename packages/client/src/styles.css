@@ -2709,7 +2709,7 @@ input[type='text'] {
   height: 14px;
 }
 .plate {
-  border-color: color-mix(in srgb, var(--seat, #4f6a70) 55%, #2b3c3f);
+  border-color: color-mix(in srgb, var(--seat, #4f6a70) 85%, #2b3c3f);
 }
 .plate.active {
   border-color: var(--gold);

@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.50.2 (2026-11-01)
+- 🔧 Seat colours are easier to tell apart: the orange seat is now purple (orange looked like the gold of the current turn), and plate borders are brighter.
+
 ## 0.50.1 (2026-11-01)
 - 🐛 Other players' formations leave their hand and fly to the table, instead of popping up out of nowhere.
 - 🐛 A ride card waits for its formation to land before it flies in.

@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.50.2',
+    date: '2026-11-01',
+    items: [c("Seat colours are easier to tell apart: the orange seat is now purple (orange looked like the gold of the current turn), and plate borders are brighter.", "As cores dos lugares distinguem-se melhor: o lugar laranja agora é roxo (o laranja parecia o dourado da vez), e as bordas das placas estão mais vivas.")],
+  },
+  {
     version: '0.50.1',
     date: '2026-11-01',
     items: [
