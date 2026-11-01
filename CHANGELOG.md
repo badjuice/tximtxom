@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.46.0 (2026-11-01)
+- ✨ A Credits button next to Language on the main menu: everyone who made the game possible, with links to their pages.
+- 🔧 A New! achievement's border pulses with the same glow as its sign.
+- 🐛 In Achievements only the list scrolls, its scrollbar starts at the first row, and the cards' right edge and glow are no longer cut off (phones included).
+
 ## 0.45.0 (2026-11-01)
 - ✨ New achievement: Least Worst, win a game where everyone busted in the last round.
 - 🐛 New! signs on achievements now clear: hover or tap the card and the sign fades away.

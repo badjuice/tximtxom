@@ -23,8 +23,8 @@ export const CHANGELOG: Release[] = [
     date: '2026-11-01',
     items: [
       n('A Credits button next to Language on the main menu: everyone who made the game possible, with links to their pages.', 'Um botão Créditos ao lado da Língua no menu principal: todos os que tornaram o jogo possível, com ligações para as suas páginas.'),
-      c('A New! achievement's border pulses with the same glow as its sign.', 'A borda de uma conquista Nova! pulsa com o mesmo brilho do sinal.'),
-      f('In Achievements only the list scrolls, its scrollbar starts at the first row, and the cards' right edge and glow are no longer cut off (phones included).', 'Nas Conquistas só a lista desliza, a barra começa na primeira linha, e o lado direito e o brilho dos cartões já não ficam cortados (também nos telemóveis).'),
+      c("A New! achievement's border pulses with the same glow as its sign.", 'A borda de uma conquista Nova! pulsa com o mesmo brilho do sinal.'),
+      f("In Achievements only the list scrolls, its scrollbar starts at the first row, and the cards' right edge and glow are no longer cut off (phones included).", 'Nas Conquistas só a lista desliza, a barra começa na primeira linha, e o lado direito e o brilho dos cartões já não ficam cortados (também nos telemóveis).'),
     ],
   },
   {
