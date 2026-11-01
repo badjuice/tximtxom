@@ -891,6 +891,32 @@ input[type='text'] {
 .toggle.disabled {
   cursor: not-allowed;
 }
+/* A rule that needs another: greyed out, with a sign across it naming that rule. */
+.toggle.locked {
+  position: relative;
+}
+.toggle.locked > :not(.lock-sign) {
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+.lock-sign {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 0 12px;
+  text-align: center;
+  color: #fff;
+  font-size: 1.05em;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+.lock-sign > * {
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 6px;
+  padding: 3px 12px;
+}
 /* Locked by another setting: text faded, and the switch flat grey whether on or off. */
 .toggle.disabled .toggle-text {
   opacity: 0.45;

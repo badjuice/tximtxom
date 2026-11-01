@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.39.0 (2026-11-01)
+- ✨ New rule, Mobius Strip: straights loop through the Ace, so it can sit in the middle (K-A-2). It needs Ace High.
+- ✨ A rule that needs another is greyed out until that one is on, with a sign saying which.
+- ✨ New achievement for playing with Mobius Strip. Ace High has a new flavour line.
+- 🔧 Settings explain what they do as they are set: "The table stays still", "Cards stay where you put them" and so on.
+
 ## 0.38.1 (2026-11-01)
 - ✨ New epic achievement: Self-Service, for taking a ride on your own straight.
 

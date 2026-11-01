@@ -50,6 +50,7 @@ function activeRules(r: GameView['rules']): [string, Key, Key][] {
   const out: [string, Key, Key][] = [];
   if (r.softcore) out.push(['softcore', 'rule.softcore', 'rule.softcore.desc']);
   if (r.superposition) out.push(['ace', 'rule.superposition', 'rule.superposition.desc']);
+  if (r.mobius) out.push(['ace', 'rule.mobius', 'rule.mobius.desc']);
   if (r.smeared) out.push(['mixed', 'rule.smeared', 'rule.smeared.desc']);
   if (r.rideOrder === 'roundRobin') out.push(['ride', 'rule.rideOrder', 'rule.rideOrder.desc']);
   if (r.autoRide) out.push(['autoride', 'rule.autoRide', 'rule.autoRide.desc']);

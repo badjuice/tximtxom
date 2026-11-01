@@ -9,7 +9,7 @@ export interface FormationInfo {
   cards: Card[];
 }
 
-type RuleFlags = Pick<Rules, 'softcore' | 'superposition'> & { smeared?: boolean };
+type RuleFlags = Pick<Rules, 'softcore' | 'superposition'> & { smeared?: boolean; mobius?: boolean };
 
 function setKind(n: number): FormationKind | null {
   return n === 2 ? 'pair' : n === 3 ? 'trio' : n === 4 ? 'quad' : null;
@@ -26,11 +26,33 @@ function straightOrder(cards: readonly Card[], aceHigh: boolean): Card[] | null 
 }
 
 /**
+ * Mobius Strip: the ranks run in a loop (... Q-K-A-2-3 ...), so a straight is
+ * any unbroken stretch of it. Cards in order from the start of the stretch, or null.
+ */
+function loopOrder(cards: readonly Card[]): Card[] | null {
+  const sorted = [...cards].sort((a, b) => rankOf(a) - rankOf(b));
+  const n = sorted.length;
+  let gap = -1;
+  for (let i = 0; i < n; i++) {
+    const step = (rankOf(sorted[(i + 1) % n]) - rankOf(sorted[i]) + 13) % 13;
+    if (step === 0) return null;
+    if (step !== 1) {
+      if (gap >= 0) return null;
+      gap = i;
+    }
+  }
+  // All 13 ranks: the loop is closed, start from the Ace.
+  if (gap < 0) return sorted;
+  return [...sorted.slice(gap + 1), ...sorted.slice(0, gap + 1)];
+}
+
+/**
  * Checks whether a group of cards is a legal formation.
  * - Sets: 3-4 cards of one rank (2-4 with Softcore).
  * - Straights: 3+ consecutive cards of ONE suit (any suits with Smeared). Ace is low (A-2-3); with
  *   Superposition it may instead be high (Q-K-A). Since an Ace takes exactly
- *   one value per straight, it can never sit in the middle and nothing wraps.
+ *   one value per straight, it can never sit in the middle and nothing wraps,
+ *   unless Mobius Strip (on top of Superposition) joins K and A (Q-K-A-2-3).
  */
 export function classifyFormation(cards: readonly Card[], rules: RuleFlags): FormationInfo | null {
   if (cards.length < 2 || new Set(cards).size !== cards.length) return null;
@@ -51,6 +73,10 @@ export function classifyFormation(cards: readonly Card[], rules: RuleFlags): For
   if (rules.superposition) {
     const high = straightOrder(cards, true);
     if (high) return { kind: 'straight', cards: high };
+    if (rules.mobius) {
+      const loop = loopOrder(cards);
+      if (loop) return { kind: 'straight', cards: loop };
+    }
   }
   return null;
 }

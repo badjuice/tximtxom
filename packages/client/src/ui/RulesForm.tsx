@@ -32,8 +32,18 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         desc={t('rule.superposition.desc')}
         joker="ace" tone="support"
         checked={rules.superposition}
-        onChange={(superposition) => onChange({ superposition })}
+        // Mobius Strip only works on top of it, so it goes off too.
+        onChange={(superposition) => onChange(superposition ? { superposition } : { superposition, mobius: false })}
         disabled={readOnly}
+      />
+      <Toggle
+        label={t('rule.mobius')}
+        desc={t('rule.mobius.desc')}
+        joker="ace" tone="support"
+        checked={rules.mobius}
+        onChange={(mobius) => onChange({ mobius })}
+        disabled={readOnly}
+        locked={rules.superposition ? undefined : t('rule.requires', { rule: t('rule.superposition') })}
       />
       <Toggle label={t('rule.smeared')} desc={t('rule.smeared.desc')} joker="mixed" tone="support" checked={rules.smeared} onChange={(smeared) => onChange({ smeared })} disabled={readOnly} />
       <Choice
@@ -93,6 +103,7 @@ export function RulesSummary({ rules }: { rules: Rules }) {
     ['bust', t('rule.bust'), <b class="rs-val">{rules.threshold}</b>],
     ['softcore', t('rule.softcore'), onOff(rules.softcore), 'support'],
     ['ace', t('rule.superposition'), onOff(rules.superposition), 'support'],
+    ['ace', t('rule.mobius'), onOff(rules.mobius), 'support'],
     ['mixed', t('rule.smeared'), onOff(rules.smeared), 'support'],
     ['ride', t('rule.rideOrder'), <b class="rs-val">{rules.rideOrder === 'roundRobin' ? t('rule.inTurns') : t('rule.together')}</b>],
     ['autoride', t('rule.autoRide'), onOff(rules.autoRide), 'support'],

@@ -48,6 +48,16 @@ describe('straights', () => {
     expect(classifyFormation(P('KH AH 2H'), superpos)).toBeNull();
     expect(classifyFormation(P('QH KH AH 2H 3H'), superpos)).toBeNull();
   });
+
+  it('Mobius Strip lets straights loop through the Ace, only on top of Ace High', () => {
+    const mobius = { ...superpos, mobius: true };
+    expect(classifyFormation(P('2H KH AH'), mobius)?.cards).toEqual(P('KH AH 2H'));
+    expect(classifyFormation(P('JH QH KH AH 2H 3H'), mobius)?.cards).toEqual(P('JH QH KH AH 2H 3H'));
+    expect(classifyFormation(P('KH AH 3H'), mobius)).toBeNull();
+    expect(classifyFormation(P('QH KH AH'), mobius)?.cards).toEqual(P('QH KH AH'));
+    expect(canRide(P('KH AH 2H'), P('QH')[0], mobius)?.cards).toEqual(P('QH KH AH 2H'));
+    expect(isTximTxom(P('JS QS KS AS 2S 3S 4S'), mobius)).toBe(true);
+  });
 });
 
 describe('Take a Ride', () => {

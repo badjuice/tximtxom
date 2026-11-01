@@ -8,6 +8,8 @@ export interface Rules {
   softcore: boolean;
   /** Aces can also be high (Q-K-A), but never in the middle of a straight. */
   superposition: boolean;
+  /** Needs Ace High: straights wrap round through the Ace, so it can sit in the middle (K-A-2). */
+  mobius: boolean;
   /** The server places ride cards for everyone. */
   autoRide: boolean;
   /** Tell a revealing player when nothing else can be formed (no other hints). */
@@ -29,6 +31,7 @@ export const DEFAULT_RULES: Rules = {
   threshold: 40,
   softcore: false,
   superposition: false,
+  mobius: false,
   autoRide: false,
   noMoreFormationsNotice: false,
   rideOrder: 'simultaneous',
@@ -39,6 +42,9 @@ export const DEFAULT_RULES: Rules = {
   smeared: false,
 };
 
+/** Rules that only work on top of another: off, and locked in the room, until that one is on. */
+export const RULE_REQUIRES: Partial<Record<keyof Rules, keyof Rules>> = { mobius: 'superposition' };
+
 export const THRESHOLD_OPTIONS = [40, 100] as const;
 export const TIMER_OPTIONS = [0, 30, 60] as const;
 
@@ -48,6 +54,7 @@ export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
     threshold: (THRESHOLD_OPTIONS as readonly number[]).includes(r.threshold) ? r.threshold : 40,
     softcore: !!r.softcore,
     superposition: !!r.superposition,
+    mobius: !!r.superposition && !!r.mobius,
     autoRide: !!r.autoRide,
     noMoreFormationsNotice: !!r.noMoreFormationsNotice,
     rideOrder: r.rideOrder === 'roundRobin' ? 'roundRobin' : 'simultaneous',

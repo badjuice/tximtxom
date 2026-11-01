@@ -123,6 +123,7 @@ export function withTximTxom(text: string): ComponentChildren {
 const RULE_REFS: [Key, string][] = [
   ['rule.softcore', 'support'],
   ['rule.superposition', 'support'],
+  ['rule.mobius', 'support'],
   ['rule.smeared', 'support'],
   ['rule.autoRide', 'support'],
   ['rule.rideOrder', 'neutral'],
@@ -362,9 +363,25 @@ export function HoldButton(props: { color: Color; label: string; short?: string;
 /** Rule colour groups: punishing (red), information (blue), support (green); none = neutral grey. */
 export type Tone = 'punish' | 'info' | 'support';
 
-export function Toggle(props: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void; joker?: string; disabled?: boolean; tone?: Tone }) {
+export function Toggle(props: {
+  label: string;
+  desc?: DescText;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  joker?: string;
+  disabled?: boolean;
+  tone?: Tone;
+  /** Needs another rule that's off: greyed out under a "Requires …" sign. */
+  locked?: string;
+}) {
+  const disabled = props.disabled || !!props.locked;
   return (
-    <label class={`toggle${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`}>
+    <label class={`toggle${disabled ? ' disabled' : ''}${props.locked ? ' locked' : ''}${props.tone ? ` tone-${props.tone}` : ''}`}>
+      {props.locked && (
+        <span class="lock-sign">
+          <WaveText text={props.locked} plain />
+        </span>
+      )}
       {props.joker && <ArtIcon name={props.joker} scale={0.55} rule />}
       <span class="toggle-text">
         <span class="toggle-label">
@@ -372,7 +389,7 @@ export function Toggle(props: { label: string; desc?: string; checked: boolean; 
         </span>
         {props.desc && (
           <span class="toggle-desc">
-            <Fit text={props.desc} block />
+            <Desc text={props.desc} />
           </span>
         )}
       </span>
@@ -380,7 +397,7 @@ export function Toggle(props: { label: string; desc?: string; checked: boolean; 
         type="checkbox"
         role="switch"
         checked={props.checked}
-        disabled={props.disabled}
+        disabled={disabled}
         onChange={(e) => {
           play('button', { volume: 0.5, rate: (e.target as HTMLInputElement).checked ? 1.2 : 0.9 });
           props.onChange((e.target as HTMLInputElement).checked);
@@ -393,7 +410,7 @@ export function Toggle(props: { label: string; desc?: string; checked: boolean; 
 
 export function Choice<T extends string | number>(props: {
   label: string;
-  desc?: string;
+  desc?: DescText;
   value: T;
   options: { value: T; label: string }[];
   onChange: (v: T) => void;
@@ -410,7 +427,7 @@ export function Choice<T extends string | number>(props: {
         </span>
         {props.desc && (
           <span class="toggle-desc">
-            <Fit text={props.desc} block />
+            <Desc text={props.desc} />
           </span>
         )}
       </span>
@@ -713,6 +730,31 @@ export function Fit({ text, children, block }: { text: string; children?: Compon
       {others.map((s) => (
         <span class="ghost" aria-hidden="true">
           {s}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** A description, or [the one showing, ...the others it can switch to] (all in the same space). */
+export type DescText = string | string[];
+
+/**
+ * A setting's description. One that changes with the setting ("Cards stay
+ * where you put them" / "Your hand sorts itself") keeps the height of its
+ * longest version, so switching moves nothing below it.
+ */
+export function Desc({ text }: { text: DescText }) {
+  const [shown, ...others] = Array.isArray(text) ? text : [text];
+  if (!others.length) return <Fit text={shown} block />;
+  return (
+    <span class="fixed-label block">
+      <span>
+        <Fit text={shown} block />
+      </span>
+      {others.map((s) => (
+        <span class="ghost" aria-hidden="true">
+          <Fit text={s} block />
         </span>
       ))}
     </span>

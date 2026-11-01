@@ -326,7 +326,7 @@ const EX = {
 };
 
 /** The TximTxom example walks through A-7, 2-8 … and changes suit each step. */
-function useTximTxomExample(superposition: boolean) {
+function useTximTxomExample(superposition: boolean, mobius: boolean) {
   const [step, setStep] = useState(0);
   const { reducedMotion } = useSettings();
   useEffect(() => {
@@ -334,7 +334,8 @@ function useTximTxomExample(superposition: boolean) {
     const id = setInterval(() => setStep((s) => s + 1), 1100);
     return () => clearInterval(id);
   }, [reducedMotion]);
-  const starts = superposition ? 8 : 7; // with Superposition, 8-9-10-J-Q-K-A too
+  // With Superposition, 8-9-10-J-Q-K-A too; with Mobius Strip, any 7 in a row round the loop.
+  const starts = mobius ? 13 : superposition ? 8 : 7;
   const start = (step % starts) + 1;
   const suit = (step % 4) as Suit;
   return Array.from({ length: 7 }, (_, i) => makeCard(((start - 1 + i) % 13) + 1, suit));
@@ -374,7 +375,8 @@ function Formations({ onClose }: { onClose: () => void }) {
   const softcore = !!rules?.softcore;
   const superposition = !!rules?.superposition;
   const smeared = !!rules?.smeared;
-  const tximtxom = useTximTxomExample(superposition);
+  const mobius = !!rules?.mobius;
+  const tximtxom = useTximTxomExample(superposition, mobius);
   // The rule card last tapped, and where it is: its rule shows in a balloon pointing at it.
   const [rule, setRule] = useState<string | null>(null);
   const [at, setAt] = useState<DOMRect | null>(null);
@@ -427,7 +429,7 @@ function Formations({ onClose }: { onClose: () => void }) {
         {row(t('f.mixed'), 'red', EX.mixed, smeared ? t('f.mixedOn') : t('f.mixedOff'), { off: !smeared, joker: 'mixed' })}
         {row(t('f.aceLow'), 'red', EX.aceLow, t('f.aceLowDesc'))}
         {row(t('f.aceHigh'), 'red', EX.aceHigh, superposition ? t('f.aceHighOn') : t('f.aceHighOff'), { off: !superposition, joker: 'ace' })}
-        {row(t('f.noWrap'), 'grey', EX.bad, t('f.noWrapDesc'), { off: true })}
+        {mobius ? row(t('f.loop'), 'red', EX.bad, t('f.loopDesc'), { joker: 'ace' }) : row(t('f.noWrap'), 'grey', EX.bad, t('f.noWrapDesc'), { off: true })}
       </div>
       <div class="f-row f-tximtxom">
         <span class="level-tag tag-orange">
@@ -554,6 +556,9 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
   // Touch-only screens have no keyboard or mouse: no Controls tab.
   const keyboard = !matchMedia('(hover: none)').matches;
   const pct = (v: number) => `${Math.round(v * 100)}%`;
+  // A description that says what the setting does as it stands; the other one keeps its space.
+  const says = (on: boolean, onKey: Key, offKey: Key) => (on ? [t(onKey), t(offKey)] : [t(offKey), t(onKey)]);
+  const speedText = (v: number) => (v === 1 ? t('set.speed.normal') : v < 1 ? t('set.speed.slow') : t('set.speed.fast', { n: v }));
   return (
     <Modal
       title={t('set.title')}
@@ -593,7 +598,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
           />
           <Choice
             label={t('set.seats')}
-            desc={t('set.seats.desc')}
+            desc={says(s.clockwise, 'set.seats.cw', 'set.seats.ccw')}
             value={s.clockwise ? 'cw' : 'ccw'}
             options={[
               { value: 'ccw', label: t('set.ccw') },
@@ -601,10 +606,10 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             ]}
             onChange={(v) => set({ clockwise: v === 'cw' })}
           />
-          <Toggle label={t('set.announce')} desc={t('set.announce.desc')} checked={s.announce} onChange={(v) => set({ announce: v })} />
+          <Toggle label={t('set.announce')} desc={says(s.announce, 'set.announce.on', 'set.announce.off')} checked={s.announce} onChange={(v) => set({ announce: v })} />
           <Choice
             label={t('set.sortBy')}
-            desc={t('set.sortBy.desc')}
+            desc={says(s.sortBy === 'rank', 'set.sortBy.rank', 'set.sortBy.suit')}
             value={s.sortBy}
             options={[
               { value: 'rank', label: t('sort.rank') },
@@ -612,15 +617,15 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
             ]}
             onChange={(sortBy) => set({ sortBy })}
           />
-          <Toggle label={t('set.autoSort')} desc={t('sort.autoTitle')} checked={s.autoSort} onChange={(v) => set({ autoSort: v })} />
+          <Toggle label={t('set.autoSort')} desc={says(s.autoSort, 'set.autoSort.on', 'set.autoSort.off')} checked={s.autoSort} onChange={(v) => set({ autoSort: v })} />
         </div>
         <div class={`tab-panel${tab === 'access' ? '' : ' hidden'}`} inert={tab !== 'access'}>
-          <Toggle label={t('set.confirm')} desc={t('set.confirm.desc')} checked={s.confirmMoves} onChange={(v) => set({ confirmMoves: v })} />
-          <Toggle label={t('set.tapDeselect')} desc={t('set.tapDeselect.desc')} checked={s.tapDeselect} onChange={(v) => set({ tapDeselect: v })} />
-          <Toggle label={t('set.lefty')} desc={t('set.lefty.desc')} checked={s.leftHanded} onChange={(v) => set({ leftHanded: v })} />
-          <Toggle label={t('set.highContrast')} desc={t('set.highContrast.desc')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />
+          <Toggle label={t('set.confirm')} desc={says(s.confirmMoves, 'set.confirm.desc', 'set.confirm.off')} checked={s.confirmMoves} onChange={(v) => set({ confirmMoves: v })} />
+          <Toggle label={t('set.tapDeselect')} desc={says(s.tapDeselect, 'set.tapDeselect.desc', 'set.tapDeselect.off')} checked={s.tapDeselect} onChange={(v) => set({ tapDeselect: v })} />
+          <Toggle label={t('set.lefty')} desc={says(s.leftHanded, 'set.lefty.desc', 'set.lefty.off')} checked={s.leftHanded} onChange={(v) => set({ leftHanded: v })} />
+          <Toggle label={t('set.highContrast')} desc={says(s.highContrast, 'set.highContrast.desc', 'set.highContrast.off')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />
           <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />
-          <Toggle label={t('set.flash')} desc={t('set.flash.desc')} checked={s.safeFlash} onChange={(v) => set({ safeFlash: v })} />
+          <Toggle label={t('set.flash')} desc={says(s.safeFlash, 'set.flash.desc', 'set.flash.off')} checked={s.safeFlash} onChange={(v) => set({ safeFlash: v })} />
         </div>
         {keyboard && (
           <div class={`tab-panel${tab === 'controls' ? '' : ' hidden'}`} inert={tab !== 'controls'}>
@@ -646,19 +651,19 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
           <StyleTab />
         </div>
         <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
-          <Toggle label={t('set.smoothing')} desc={t('set.smoothing.desc')} checked={s.smooth === 'all'} onChange={(v) => set({ smooth: v ? 'all' : 'off' })} />
+          <Toggle label={t('set.smoothing')} desc={says(s.smooth === 'all', 'set.smoothing.desc', 'set.smoothing.off')} checked={s.smooth === 'all'} onChange={(v) => set({ smooth: v ? 'all' : 'off' })} />
           <Slider label={t('set.size')} value={s.uiScale} min={0.8} max={1.2} step={0.05} onChange={(v) => set({ uiScale: v })} format={pct} />
         </div>
         <div class={`tab-panel${tab === 'motion' ? '' : ' hidden'}`} inert={tab !== 'motion'}>
           {/* Reduced motion turns these two off, so they sit under it. */}
           <div class="setting-group">
-            <Toggle label={t('set.reduced')} desc={t('set.reduced.desc')} checked={s.reducedMotion} onChange={(v) => set({ reducedMotion: v })} />
-            <Toggle label={t('set.shake')} checked={s.screenShake} onChange={(v) => set({ screenShake: v })} disabled={s.reducedMotion} />
-            <Toggle label={t('set.bg')} checked={s.backgroundAnim} onChange={(v) => set({ backgroundAnim: v })} disabled={s.reducedMotion} />
+            <Toggle label={t('set.reduced')} desc={says(s.reducedMotion, 'set.reduced.desc', 'set.reduced.off')} checked={s.reducedMotion} onChange={(v) => set({ reducedMotion: v })} />
+            <Toggle label={t('set.shake')} desc={says(s.screenShake, 'set.shake.on', 'set.shake.off')} checked={s.screenShake} onChange={(v) => set({ screenShake: v })} disabled={s.reducedMotion} />
+            <Toggle label={t('set.bg')} desc={says(s.backgroundAnim, 'set.bg.on', 'set.bg.off')} checked={s.backgroundAnim} onChange={(v) => set({ backgroundAnim: v })} disabled={s.reducedMotion} />
           </div>
           {/* A switch and the slider it locks, framed together. */}
           <div class="setting-group">
-            <Toggle label={t('set.crt')} desc={t('set.crt.desc')} checked={s.crt} onChange={(v) => set({ crt: v })} />
+            <Toggle label={t('set.crt')} desc={says(s.crt, 'set.crt.desc', 'set.crt.off')} checked={s.crt} onChange={(v) => set({ crt: v })} />
             <Slider
               label={t('set.crtStrength')}
               value={s.crtIntensity}
@@ -672,6 +677,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
           </div>
           <Choice
             label={t('set.speed')}
+            desc={[speedText(s.gameSpeed), ...SPEEDS.filter((v) => v !== s.gameSpeed).map(speedText)]}
             value={s.gameSpeed}
             options={SPEEDS.map((v) => ({ value: v, label: `${v}x` }))}
             onChange={(gameSpeed) => set({ gameSpeed })}
@@ -679,7 +685,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
         </div>
         <div class={`tab-panel${tab === 'sound' ? '' : ' hidden'}`} inert={tab !== 'sound'}>
           <div class="setting-group">
-            <Toggle label={t('set.mute')} checked={s.muted} onChange={(v) => set({ muted: v })} />
+            <Toggle label={t('set.mute')} desc={says(s.muted, 'set.mute.on', 'set.mute.off')} checked={s.muted} onChange={(v) => set({ muted: v })} />
             <Slider
               label={t('set.master')}
               value={s.masterVolume}
@@ -711,7 +717,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
               disabled={s.muted}
             />
           </div>
-          <Toggle label={t('set.vibration')} desc={t('set.vibration.desc')} checked={s.haptics} onChange={(v) => set({ haptics: v })} />
+          <Toggle label={t('set.vibration')} desc={says(s.haptics, 'set.vibration.desc', 'set.vibration.off')} checked={s.haptics} onChange={(v) => set({ haptics: v })} />
         </div>
       </div>
     </Modal>

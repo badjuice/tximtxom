@@ -40,6 +40,7 @@ export const RULE_ACHIEVEMENTS = {
   bust100: { art: 'bust', on: (r: Rules) => r.threshold === 100 },
   softcore: { art: 'softcore', on: (r: Rules) => r.softcore },
   superposition: { art: 'ace', on: (r: Rules) => r.superposition },
+  mobius: { art: 'ace', on: (r: Rules) => r.mobius },
   smeared: { art: 'mixed', on: (r: Rules) => r.smeared },
   inTurns: { art: 'ride', on: (r: Rules) => r.rideOrder === 'roundRobin' },
   autoRide: { art: 'autoride', on: (r: Rules) => r.autoRide },

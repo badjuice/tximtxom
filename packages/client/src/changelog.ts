@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.39.0',
+    date: '2026-11-01',
+    items: [
+      n('New rule, Mobius Strip: straights loop through the Ace, so it can sit in the middle (K-A-2). It needs Ace High.', 'Nova regra, Fita de Mobius: as escadas dão a volta pelo Ás, que pode ficar no meio (K-Ás-2). Precisa do Ás Alto.'),
+      n('A rule that needs another is greyed out until that one is on, with a sign saying which.', 'Uma regra que precisa de outra fica cinzenta até essa estar ligada, com um aviso a dizer qual.'),
+      n('New achievement for playing with Mobius Strip. Ace High has a new flavour line.', 'Nova conquista por jogar com a Fita de Mobius. O Ás Alto tem uma frase nova.'),
+      c('Settings explain what they do as they are set: "The table stays still", "Cards stay where you put them" and so on.', 'As definições explicam o que fazem conforme estão: "A mesa fica quieta", "As cartas ficam onde as pões" e por aí fora.'),
+    ],
+  },
+  {
     version: '0.38.1',
     date: '2026-11-01',
     items: [n('New epic achievement: Self-Service, for taking a ride on your own straight.', 'Nova conquista épica: Self-Service, por apanhares boleia na tua própria escada.')],
