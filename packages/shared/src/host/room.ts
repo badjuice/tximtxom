@@ -333,7 +333,7 @@ export class Room {
     const seat = this.seatOf(member);
     if (seat === null) return 'You are not playing';
     if (action.type === 'putBack') return 'Unknown action';
-    return this.apply(seat, action, false, action.type === 'pass' && action.auto === true);
+    return this.apply(seat, action, false, action.type === 'pass' && !!action.auto);
   }
 
   /** `marked`: a move made for a player who didn't act (the log shows it). */

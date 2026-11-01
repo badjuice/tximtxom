@@ -1,4 +1,4 @@
-import { type Action, type Card, canEndWith, canRide, type GameEvent, type GameView, type RoomView } from '@tximtxom/shared';
+import { type Action, type Card, canEndWith, canRide, fullDeck, type PassWhy, type GameEvent, type GameView, type RoomView } from '@tximtxom/shared';
 import { play, type Sfx, vibrate } from './audio';
 import { setMood, shuffleTablePalette, swirl } from './background';
 import { drawPileTop, revealGroups, type SortKey, sortedCards } from './game/scene';
@@ -45,13 +45,15 @@ function myRideKey(g: GameView): string {
   return `${w.formationId}`;
 }
 /** None of your cards can go on the open formation (it's full, or nothing fits): the same checks as the host. */
-function cannotRide(g: GameView): boolean {
+function cannotRide(g: GameView): PassWhy | null {
   const me = g.you;
   const f = g.reveal?.formations.find((x) => x.id === g.reveal?.ride?.formationId);
-  if (me === null || !f) return false;
-  if (f.owner === me && f.kind !== 'straight') return true;
-  if (f.kind !== 'straight' && f.rides.some((r) => r.seat === me)) return true;
-  return !(g.players[me].hand ?? []).some((c) => canRide(f.cards, c, g.rules));
+  if (me === null || !f) return null;
+  if (f.owner === me && f.kind !== 'straight') return 'done';
+  if (f.kind !== 'straight' && f.rides.some((r) => r.seat === me)) return 'done';
+  if ((g.players[me].hand ?? []).some((c) => canRide(f.cards, c, g.rules))) return null;
+  // No card in the whole deck would fit: the formation is complete.
+  return fullDeck().some((c) => !f.cards.includes(c) && canRide(f.cards, c, g.rules)) ? 'noFit' : 'full';
 }
 
 const AUTO_PASS_MS = 5000;
@@ -61,12 +63,13 @@ let autoPassTimer: ReturnType<typeof setTimeout> | undefined;
 /** With nothing to ride with, Pass counts down and passes for you. */
 function autoPass(g: GameView, rideKey: string): void {
   const f = g.reveal?.formations.find((x) => x.id === g.reveal?.ride?.formationId);
-  const key = rideKey && f && cannotRide(g) ? `${rideKey}:${f.cards.length}` : '';
+  const why = rideKey && f ? cannotRide(g) : null;
+  const key = why ? `${rideKey}:${f!.cards.length}` : '';
   if (key === autoPassKey) return;
   autoPassKey = key;
   clearTimeout(autoPassTimer);
   store.set({ autoPassAt: key ? Date.now() + AUTO_PASS_MS : null });
-  if (key) autoPassTimer = setTimeout(() => autoPassKey === key && void send({ type: 'pass', auto: true }), AUTO_PASS_MS);
+  if (key) autoPassTimer = setTimeout(() => autoPassKey === key && void send({ type: 'pass', auto: why! }), AUTO_PASS_MS);
 }
 
 /** How long a formation's cards wait before flying in (ms): its name badge waits too. */

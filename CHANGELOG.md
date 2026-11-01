@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.43.1 (2026-11-01)
+- 🔧 An automatic pass in the History says why: no card fits, the formation is full, or the player can't add more to it.
+
 ## 0.43.0 (2026-11-01)
 - ✨ Magic sort puts the cards of each formation together. A setting picks whether the cards that form nothing go left or right.
 - ✨ When none of your cards can ride, Pass counts down 5 seconds and passes for you. The History marks moves the game made for a player with a timer icon.

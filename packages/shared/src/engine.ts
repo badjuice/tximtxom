@@ -14,6 +14,7 @@ import type {
   RideWindow,
   Seat,
 } from './types.js';
+import { PASS_WHY } from './types.js';
 
 /** The whole game's move log is kept (bounded) so players can read the history. */
 const MAX_EVENTS = 5000;
@@ -415,7 +416,8 @@ function revealAction(state: GameState, reveal: RevealState, seat: Seat, action:
       } else if (!w.passed.includes(seat)) {
         w.passed.push(seat);
       }
-      emit(state, { t: 'pass', seat });
+      const why = action.type === 'pass' && PASS_WHY.includes(action.auto!) ? action.auto : undefined;
+      emit(state, why ? { t: 'pass', seat, why } : { t: 'pass', seat });
       maybeCloseRide(state, reveal);
       return null;
     }

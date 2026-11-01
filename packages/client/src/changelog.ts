@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.43.1',
+    date: '2026-11-01',
+    items: [
+      c('An automatic pass in the History says why: no card fits, the formation is full, or the player can\'t add more to it.', 'Uma passagem automática no Histórico diz porquê: nenhuma carta serve, a formação está completa, ou o jogador já não pode acrescentar.'),
+    ],
+  },
+  {
     version: '0.43.0',
     date: '2026-11-01',
     items: [

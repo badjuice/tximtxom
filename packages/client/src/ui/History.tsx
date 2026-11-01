@@ -262,7 +262,7 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
         break;
       case 'pass':
         // Passing is silent, unless the game had to do it for someone.
-        if (e.auto) lines.push({ id, kind: 'move', seat: e.seat, body: tj('h.autoPass', { name: N(e.seat) }) });
+        if (e.auto) lines.push({ id, kind: 'move', seat: e.seat, body: tj(`h.autoPass.${e.why ?? 'noFit'}`, { name: N(e.seat) }) });
         break;
     }
     if (e.auto && lines.length > count) lines[lines.length - 1].auto = true;

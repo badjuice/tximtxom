@@ -80,6 +80,13 @@ export interface RoundResult {
   totals: number[];
 }
 
+/**
+ * Why a ride was passed automatically: no card in hand fits, the formation
+ * takes no more cards, or this player can't add to it (they own it or already rode).
+ */
+export const PASS_WHY = ['noFit', 'full', 'done'] as const;
+export type PassWhy = (typeof PASS_WHY)[number];
+
 export type GameEvent = (
   | { t: 'cut'; draws: { seat: Seat; card: Card }[][]; dealer: Seat }
   | { t: 'deal'; round: number; dealer: Seat }
@@ -90,7 +97,7 @@ export type GameEvent = (
   | { t: 'end'; seat: Seat | null; card: Card | null; kind: EndKind; bonus: boolean }
   | { t: 'lay'; seat: Seat; formationId: number; kind: FormationKind; cards: Card[] }
   | { t: 'ride'; seat: Seat; formationId: number; card: Card }
-  | { t: 'pass'; seat: Seat }
+  | { t: 'pass'; seat: Seat; why?: PassWhy }
   | { t: 'doneLaying'; seat: Seat }
   | { t: 'score'; round: number }
   | { t: 'tximtxom'; seat: Seat }
@@ -141,8 +148,8 @@ export type Action =
   | { type: 'lay'; cards: Card[] }
   | { type: 'doneLaying' }
   | { type: 'ride'; card: Card }
-  /** `auto`: the player's client passed for them (nothing of theirs could ride). */
-  | { type: 'pass'; auto?: boolean }
+  /** `auto`: the player's client passed for them, and why. */
+  | { type: 'pass'; auto?: PassWhy }
   | { type: 'ready' }
   /** The turn timer only (players can't send it): the card just taken from the discard pile goes back. */
   | { type: 'putBack' };

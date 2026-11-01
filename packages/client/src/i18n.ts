@@ -296,7 +296,9 @@ const en = {
   // history
   'h.title': 'History',
   'h.copyGame': 'Copy game',
-  'h.autoPass': '{name} passed (nothing fitted)',
+  'h.autoPass.noFit': '{name} passed: no card fits',
+  'h.autoPass.full': '{name} passed: formation is full',
+  'h.autoPass.done': "{name} passed: can't add more to it",
   'h.autoTitle': 'Played automatically: this player seems to be away',
   'h.pastGame': 'Game {n}',
   'h.copyRound': 'Copy',
@@ -1091,7 +1093,9 @@ const pt: Record<Key, string> = {
 
   'h.title': 'Histórico',
   'h.copyGame': 'Copiar jogo',
-  'h.autoPass': '{name} passou (nada servia)',
+  'h.autoPass.noFit': '{name} passou: nenhuma carta serve',
+  'h.autoPass.full': '{name} passou: a formação está completa',
+  'h.autoPass.done': '{name} passou: já não pode acrescentar',
   'h.autoTitle': 'Jogada automática: este jogador parece estar ausente',
   'h.pastGame': 'Jogo {n}',
   'h.copyRound': 'Copiar',

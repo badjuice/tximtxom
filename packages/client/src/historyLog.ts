@@ -47,7 +47,7 @@ function line(e: GameEvent, g: GameView, mine: Card | undefined): string | null 
     case 'gameOver':
       return `G ${e.winners.join(',')}`;
     case 'pass':
-      return null;
+      return e.why ? `${e.seat}pass:${e.why}` : null;
   }
 }
 
