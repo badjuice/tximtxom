@@ -72,6 +72,19 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         onChange={(rideOrder) => onChange({ rideOrder })}
         disabled={readOnly}
       />
+      <Choice
+        label={t('rule.rides')}
+        desc={t('rule.rides.desc')}
+        joker="ride"
+        value={rules.rides}
+        options={[
+          { value: 'any', label: t('rule.rides.any') },
+          { value: 'one', label: t('rule.rides.one') },
+          { value: 'none', label: t('rule.rides.none') },
+        ]}
+        onChange={(rides) => onChange({ rides })}
+        disabled={readOnly}
+      />
       <Toggle label={t('rule.autoRide')} desc={t('rule.autoRide.desc')} joker="autoride" tone="support" checked={rules.autoRide} onChange={(autoRide) => onChange({ autoRide })} disabled={readOnly} />
       <Toggle
         label={t('rule.sixthSense')}
@@ -122,6 +135,7 @@ export function RulesSummary({ rules }: { rules: Rules }) {
     ['mixed', t('rule.smeared'), t('rule.smeared.desc'), onOff(rules.smeared), 'support'],
     ['magicsort', t('rule.magicSort'), t('rule.magicSort.desc'), onOff(rules.magicSort), 'support'],
     ['ride', t('rule.rideOrder'), t('rule.rideOrder.desc'), <b class="rs-val">{rules.rideOrder === 'roundRobin' ? t('rule.inTurns') : t('rule.together')}</b>],
+    ['ride', t('rule.rides'), t('rule.rides.desc'), <b class="rs-val">{t(`rule.rides.${rules.rides}`)}</b>],
     ['autoride', t('rule.autoRide'), t('rule.autoRide.desc'), onOff(rules.autoRide), 'support'],
     ['peek', t('rule.sixthSense'), t('rule.sixthSense.desc'), onOff(rules.sixthSense), 'info'],
     ['notice', t('rule.notice'), t('rule.notice.desc'), onOff(rules.noMoreFormationsNotice), 'info'],

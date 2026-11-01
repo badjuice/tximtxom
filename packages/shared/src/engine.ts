@@ -372,7 +372,7 @@ function revealAction(state: GameState, reveal: RevealState, seat: Seat, action:
       if (new Set(cards).size !== cards.length || !cards.every((c) => hand.includes(c))) return 'Those cards are not in your hand';
       if (!classifyFormation(cards, state.rules)) return 'That is not a valid formation';
       const f = addFormation(state, reveal, seat, cards);
-      if (reveal.ridesAllowed) openRide(state, reveal, f);
+      if (reveal.ridesAllowed && state.rules.rides !== 'none') openRide(state, reveal, f);
       advanceReveal(state, reveal);
       return null;
     }
@@ -400,6 +400,12 @@ function revealAction(state: GameState, reveal: RevealState, seat: Seat, action:
       w.passed = [];
       w.rrPasses = 0;
       emit(state, { t: 'ride', seat, formationId: f.id, card: action.card });
+      // One ride per formation: that card ends it.
+      if (state.rules.rides === 'one') {
+        reveal.ride = null;
+        advanceReveal(state, reveal);
+        return null;
+      }
       ownerJoins(state, w, f);
       if (state.rules.rideOrder === 'roundRobin' && hand.length === 0) advanceRoundRobin(state, w);
       maybeCloseRide(state, reveal);
@@ -429,6 +435,8 @@ function revealAction(state: GameState, reveal: RevealState, seat: Seat, action:
 export function rideError(state: GameState, f: Formation, seat: Seat, card: Card): string | null {
   // Owners can add to their own straights (once someone has stretched them), not to sets.
   if (f.owner === seat && f.kind !== 'straight') return "You can't ride on your own formation";
+  if (state.rules.rides === 'none') return 'No rides in this game';
+  if (state.rules.rides === 'one' && f.rides.length > 0) return 'Only one ride per formation';
   if (f.kind !== 'straight' && f.rides.some((r) => r.seat === seat)) {
     return 'Only one card per player on a pair or trio';
   }

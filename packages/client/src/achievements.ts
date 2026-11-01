@@ -46,6 +46,8 @@ export const RULE_ACHIEVEMENTS = {
   mobius: { art: 'ace', on: (r: Rules) => r.mobius },
   smeared: { art: 'mixed', on: (r: Rules) => r.smeared },
   inTurns: { art: 'ride', on: (r: Rules) => r.rideOrder === 'roundRobin' },
+  oneRide: { art: 'ride', on: (r: Rules) => r.rides === 'one' },
+  noRides: { art: 'ride', on: (r: Rules) => r.rides === 'none' },
   autoRide: { art: 'autoride', on: (r: Rules) => r.autoRide },
   sixthSense: { art: 'peek', on: (r: Rules) => r.sixthSense },
   notice: { art: 'notice', on: (r: Rules) => r.noMoreFormationsNotice },

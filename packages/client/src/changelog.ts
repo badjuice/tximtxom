@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.50.0',
+    date: '2026-11-01',
+    items: [
+      n("New rule, Rides: no limit (as before), one ride per formation, or no rides at all. Each has its achievement.", "Nova regra, Boleias: sem limite (como antes), uma boleia por formação, ou nenhuma. Cada uma tem a sua conquista."),
+      c("Pairs, trios and quads keep the order you laid them in. Straights are still sorted.", "Pares, trios e quadras ficam pela ordem em que os puseste. As sequências continuam ordenadas."),
+    ],
+  },
+  {
     version: '0.49.14',
     date: '2026-11-01',
     items: [

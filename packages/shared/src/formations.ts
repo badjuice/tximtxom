@@ -62,7 +62,8 @@ export function classifyFormation(cards: readonly Card[], rules: RuleFlags): For
     const kind = setKind(cards.length);
     if (!kind) return null;
     if (kind === 'pair' && !rules.softcore) return null;
-    return { kind, cards: [...cards].sort((a, b) => suitOf(a) - suitOf(b)) };
+    // In the order they were laid: only straights need sorting.
+    return { kind, cards: [...cards] };
   }
 
   if (cards.length < 3) return null;

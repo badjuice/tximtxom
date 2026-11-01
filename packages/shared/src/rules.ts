@@ -1,4 +1,6 @@
 export type RideOrder = 'simultaneous' | 'roundRobin';
+/** How many cards may ride on each formation: no limit, one, or none at all. */
+export type RideLimit = 'any' | 'one' | 'none';
 
 /** Room settings. Everything here is chosen by the host before the game starts. */
 export interface Rules {
@@ -15,6 +17,7 @@ export interface Rules {
   /** Tell a revealing player when nothing else can be formed (no other hints). */
   noMoreFormationsNotice: boolean;
   rideOrder: RideOrder;
+  rides: RideLimit;
   /** Ender doesn't have the strictly lowest round score: their round points double. */
   doubleDown: boolean;
   /** Ender doesn't have the strictly lowest round score: +10. Applied after doubling. */
@@ -39,6 +42,7 @@ export const DEFAULT_RULES: Rules = {
   autoRide: false,
   noMoreFormationsNotice: false,
   rideOrder: 'simultaneous',
+  rides: 'any',
   doubleDown: false,
   penalty10: false,
   turnTimer: 0,
@@ -67,6 +71,7 @@ export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
     autoRide: !!r.autoRide,
     noMoreFormationsNotice: !!r.noMoreFormationsNotice,
     rideOrder: r.rideOrder === 'roundRobin' ? 'roundRobin' : 'simultaneous',
+    rides: r.rides === 'one' || r.rides === 'none' ? r.rides : 'any',
     doubleDown: !!r.doubleDown,
     penalty10: !!r.penalty10,
     turnTimer: (TIMER_OPTIONS as readonly number[]).includes(r.turnTimer) ? r.turnTimer : 0,

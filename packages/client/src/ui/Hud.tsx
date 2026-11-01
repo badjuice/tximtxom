@@ -56,6 +56,7 @@ export function activeRules(r: GameView['rules']): [string, Key, Key][] {
   if (r.mobius) out.push(['ace', 'rule.mobius', 'rule.mobius.desc']);
   if (r.smeared) out.push(['mixed', 'rule.smeared', 'rule.smeared.desc']);
   if (r.rideOrder === 'roundRobin') out.push(['ride', 'rule.rideOrder', 'rule.rideOrder.desc']);
+  if (r.rides !== 'any') out.push(['ride', r.rides === 'one' ? 'rule.rides.oneName' : 'rule.rides.noneName', 'rule.rides.desc']);
   if (r.autoRide) out.push(['autoride', 'rule.autoRide', 'rule.autoRide.desc']);
   if (r.sixthSense) out.push(['peek', 'rule.sixthSense', 'rule.sixthSense.desc']);
   if (r.noMoreFormationsNotice) out.push(['notice', 'rule.notice', 'rule.notice.desc']);

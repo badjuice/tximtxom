@@ -180,6 +180,33 @@ describe('scoring', () => {
     expect(s.reveal!.order[s.reveal!.current]).toBe(1);
   });
 
+  it('Rides: one per formation ends the ride after the first card', () => {
+    let s = rig(game(3, { rides: 'one' }), ['2H 7H 7S 4D 5D 6D KC', '7D 7C 3D AD 9D JS 10D', 'QH 2D 8H 9H AS AC 10S'], '5C', 'KD');
+    s = act(s, 0, { type: 'draw' });
+    s = act(s, 0, { type: 'endRound', card: C('5C') });
+    s = act(s, 0, { type: 'lay', cards: P('4D 5D 6D') });
+    s = act(s, 1, { type: 'ride', card: C('3D') });
+    expect(s.reveal!.ride).toBeNull();
+    expect(s.reveal!.formations[0].cards).toEqual(P('3D 4D 5D 6D'));
+  });
+
+  it('Rides: none never opens a ride', () => {
+    let s = rig(game(3, { rides: 'none' }), ['2H 7H 7S 4D 5D 6D KC', '7D 7C 3D AD 9D JS 10D', 'QH 2D 8H 9H AS AC 10S'], '5C', 'KD');
+    s = act(s, 0, { type: 'draw' });
+    s = act(s, 0, { type: 'endRound', card: C('5C') });
+    s = act(s, 0, { type: 'lay', cards: P('7H 7S') });
+    expect(s.reveal!.ride).toBeNull();
+    expect(err(s, 1, { type: 'ride', card: C('7D') })).toMatch(/Nothing to ride on/);
+  });
+
+  it('keeps a set in the order it was laid', () => {
+    let s = rig(game(2), ['7S 7H 7D 4D 5D 6D KC', 'QH 2D 8H 9H AS AC 10S'], '5C', 'KD');
+    s = act(s, 0, { type: 'draw' });
+    s = act(s, 0, { type: 'endRound', card: C('5C') });
+    s = act(s, 0, { type: 'lay', cards: P('7D 7S 7H') });
+    expect(s.reveal!.formations[0].cards).toEqual(P('7D 7S 7H'));
+  });
+
   it('the owner of a straight rides on it once someone has stretched it', () => {
     let s = rig(game(2), ['3D 4D 5D 6D AD KC QH', '2D 9S 9C JS 10H 8C 7C'], '5C', 'KD');
     s = act(s, 0, { type: 'draw' });

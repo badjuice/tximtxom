@@ -23,6 +23,8 @@ const Art = ({ a, scale, shine }: { a: Achievement; scale: number; shine?: boole
 function ruleName(rule: RuleAch): string {
   if (rule === 'bust100') return `${t('rule.bust')} 100`;
   if (rule === 'inTurns') return `${t('rule.rideOrder')}: ${t('rule.inTurns')}`;
+  if (rule === 'oneRide') return t('rule.rides.oneName');
+  if (rule === 'noRides') return t('rule.rides.noneName');
   const key: Record<string, Key> = { notice: 'rule.notice', timer: 'rule.timer' };
   return t(key[rule] ?? (`rule.${rule}` as Key));
 }
