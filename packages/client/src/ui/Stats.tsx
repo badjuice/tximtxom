@@ -109,11 +109,13 @@ function ChipsPanel() {
             ['chips.spentShop', formatCount(c.spentShop)],
             ['chips.wagerWon', formatCount(c.wagerWon)],
             ['chips.wagerLost', formatCount(c.wagerLost)],
+            ['chips.streak', formatCount(c.dailyStreak)],
+            ['chips.bestStreak', formatCount(c.bestDailyStreak)],
           ]}
         />
       </div>
       <p class="center muted small">
-        {t('chips.how', { survived: PAY.survived, round: PAY.roundWin, game: PAY.gameWin, per: PAY.perOpponent, daily: PAY.daily })}
+        {t('chips.how', { survived: PAY.survived, round: PAY.roundWin, game: PAY.gameWin, per: PAY.perOpponent, daily: PAY.daily, firstWin: PAY.firstWin })}
       </p>
     </>
   );

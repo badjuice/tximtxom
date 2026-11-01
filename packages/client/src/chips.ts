@@ -6,8 +6,8 @@ import { useEffect, useState } from 'preact/hooks';
 import { type GameEvent, type GameView, rankOf } from '@tximtxom/shared';
 import type { Rarity } from './achievements';
 
-export type ChipSource = 'formed' | 'rides' | 'survived' | 'roundWins' | 'gameWins' | 'achievements' | 'daily';
-export const CHIP_SOURCES: ChipSource[] = ['formed', 'rides', 'survived', 'roundWins', 'gameWins', 'achievements', 'daily'];
+export type ChipSource = 'formed' | 'rides' | 'survived' | 'roundWins' | 'gameWins' | 'achievements' | 'daily' | 'firstWin';
+export const CHIP_SOURCES: ChipSource[] = ['formed', 'rides', 'survived', 'roundWins', 'gameWins', 'achievements', 'daily', 'firstWin'];
 
 /** What pays, and how much. */
 export const PAY = {
@@ -18,6 +18,8 @@ export const PAY = {
   /** On top of a game win, for each other player. */
   perOpponent: 10,
   daily: 25,
+  /** The first game you win each day, on top of the win itself. */
+  firstWin: 50,
 };
 export const ACH_PAY: Record<Rarity, number> = { common: 10, uncommon: 25, epic: 50, legendary: 100, secret: 50 };
 
@@ -39,6 +41,11 @@ export interface Chips {
   wagerLost: number;
   /** The day the daily bonus was last paid (Date.toDateString()). */
   lastDaily: string;
+  /** Days in a row the daily bonus has been paid, up to lastDaily; and the longest run. */
+  dailyStreak: number;
+  bestDailyStreak: number;
+  /** The day the first-win bonus was last paid. */
+  lastWinDay: string;
   /** Achievements unlocked before chips existed have been paid for. */
   backPaid: boolean;
   /** The latest changes, newest last; older ones live on only in the totals above. */
@@ -54,11 +61,14 @@ const SECRET = 'txim-txom:chips:7f3a91c2';
 const EMPTY: Chips = {
   balance: 0,
   most: 0,
-  earned: { formed: 0, rides: 0, survived: 0, roundWins: 0, gameWins: 0, achievements: 0, daily: 0 },
+  earned: { formed: 0, rides: 0, survived: 0, roundWins: 0, gameWins: 0, achievements: 0, daily: 0, firstWin: 0 },
   spentShop: 0,
   wagerWon: 0,
   wagerLost: 0,
   lastDaily: '',
+  dailyStreak: 0,
+  bestDailyStreak: 0,
+  lastWinDay: '',
   backPaid: false,
   log: [],
 };
@@ -220,7 +230,10 @@ export function chipsEvent(e: GameEvent, g: GameView, spot: (formationId: number
         gameEarned = 0;
         const today = new Date().toDateString();
         if (chips.lastDaily !== today) {
-          chips = { ...chips, lastDaily: today };
+          // Yesterday's bonus too: the streak goes on; otherwise it starts again.
+          const yesterday = new Date(Date.now() - 864e5).toDateString();
+          const dailyStreak = chips.lastDaily === yesterday ? chips.dailyStreak + 1 : 1;
+          chips = { ...chips, lastDaily: today, dailyStreak, bestDailyStreak: Math.max(chips.bestDailyStreak, dailyStreak) };
           earn('daily', PAY.daily);
         }
       }
@@ -239,7 +252,14 @@ export function chipsEvent(e: GameEvent, g: GameView, spot: (formationId: number
       break;
     }
     case 'gameOver':
-      if (e.winners.includes(me)) earn('gameWins', PAY.gameWin + PAY.perOpponent * (g.players.length - 1));
+      if (e.winners.includes(me)) {
+        earn('gameWins', PAY.gameWin + PAY.perOpponent * (g.players.length - 1));
+        const today = new Date().toDateString();
+        if (chips.lastWinDay !== today) {
+          chips = { ...chips, lastWinDay: today };
+          earn('firstWin', PAY.firstWin);
+        }
+      }
       break;
   }
 }

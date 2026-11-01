@@ -1,5 +1,5 @@
 import { RULE_REQUIRES, type Rules } from '@tximtxom/shared';
-import { chipsEarned } from '../chips';
+import { chipsEarned, chipsNow } from '../chips';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, onUnlock, unlock, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
@@ -50,6 +50,8 @@ function meter(a: Achievement, mine: MyStats, unlocked: Unlocked): { count: numb
   if (a.track && a.goal) return { count: TRACKS[a.track].count(mine), goal: a.goal };
   if (a.meter === 'rules') return { count: RULE_ACH_IDS.filter((r) => unlocked[`rule_${r}`]).length, goal: RULE_ACH_IDS.length };
   if (a.meter === 'chips' && a.goal) return { count: chipsEarned(), goal: a.goal };
+  // The current run of days, or the full week once it's done.
+  if (a.meter === 'streak' && a.goal) return { count: unlocked[a.id] ? a.goal : chipsNow().dailyStreak, goal: a.goal, unit: t('ach.days') };
   if (a.meter === 'minutes') return { count: Math.min(ADDICTED_MINUTES, Math.floor(mine.timePlayed / 60000)), goal: ADDICTED_MINUTES, unit: t('ach.minutes') };
   return null;
 }

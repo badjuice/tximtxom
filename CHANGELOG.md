@@ -5,6 +5,10 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.51.1 (2026-11-01)
+- ✨ The first game you win each day pays an extra 50 chips.
+- ✨ New achievement, Regular: collect the daily bonus 7 days in a row. Stats shows your current and longest run.
+
 ## 0.51.0 (2026-11-01)
 - ✨ Chips! Each card you form pays its rank, a ride card half that. Not busting, winning rounds and games, achievements and the first game of the day pay too.
 - ✨ Your chips show on the main menu and in the lobby, float up over your formations, and add up in the round and game summaries.

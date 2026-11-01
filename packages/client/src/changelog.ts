@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.51.1',
+    date: '2026-11-01',
+    items: [
+      n("The first game you win each day pays an extra 50 chips.", "O primeiro jogo que ganhas em cada dia dá mais 50 fichas."),
+      n("New achievement, Regular: collect the daily bonus 7 days in a row. Stats shows your current and longest run.", "Nova conquista, Cliente da Casa: recebe o bónus diário 7 dias seguidos. As Estatísticas mostram a sequência atual e a maior."),
+    ],
+  },
+  {
     version: '0.51.0',
     date: '2026-11-01',
     items: [

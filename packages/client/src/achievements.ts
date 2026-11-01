@@ -8,7 +8,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
 import { getSettings } from './settings';
 import { store } from './store';
-import { ACH_PAY, chipsEarned, earn, onChips, payBack } from './chips';
+import { ACH_PAY, chipsEarned, chipsNow, earn, onChips, payBack } from './chips';
 import { claimPatientZero, countInfected, creditCarrier, type MyStats, myStats, onStats } from './stats';
 
 const CARRIER_KEY = 'tximtxom.carrier';
@@ -36,7 +36,7 @@ export type AchievementId =
   | 'addicted' | 'busPass' | 'rtfm' | 'windowShopper' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | 'vanilla' | `rule_${RuleAch}`
   | 'closeCall' | 'leastWorst' | 'flawless' | 'comeback' | 'generous' | 'selfService' | `${Track}${number}`
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd'
-  | 'sayHi' | 'showDontTell' | 'anarchist' | 'nightOwl' | 'polyglot' | 'recycler' | 'throughAce' | 'royalFlush' | 'quickDraw' | 'sevenUp'
+  | 'regular' | 'sayHi' | 'showDontTell' | 'anarchist' | 'nightOwl' | 'polyglot' | 'recycler' | 'throughAce' | 'royalFlush' | 'quickDraw' | 'sevenUp'
   | 'theBeast' | 'mirrorMatch' | 'luckySeven' | 'royalMess';
 
 /** One achievement per rule, for playing a round with it on: its card art, and whether it's on. */
@@ -118,7 +118,7 @@ export interface Achievement {
   /** Made from its track ("Hitchhiker II"): the tier's number, from 1. */
   tier?: number;
   /** A bar for a one-off that's reached bit by bit: rules played (Rulebook), minutes played (Addicted). */
-  meter?: 'rules' | 'minutes' | 'chips';
+  meter?: 'rules' | 'minutes' | 'chips' | 'streak';
 }
 
 /** Common to legendary, then the secret ones. */
@@ -148,6 +148,7 @@ const ALL: Achievement[] = [
   { id: 'anarchist', art: 'boar', rarity: 'uncommon' },
   { id: 'addicted', art: 'timer', rarity: 'uncommon', meter: 'minutes' },
   { id: 'chips100', art: 'ranger', rarity: 'uncommon', meter: 'chips', goal: 10000 },
+  { id: 'regular', art: 'timer', rarity: 'epic', meter: 'streak', goal: 7 },
   { id: 'gameWins10', art: 'boar', rarity: 'epic', track: 'gamesWon', goal: 10 },
   { id: 'midas', art: 'ziku', rarity: 'epic', track: 'gamesWon', goal: 5 },
   { id: 'closeCall', art: 'bust', rarity: 'epic' },
@@ -461,6 +462,7 @@ export function initAchievements(): void {
   // The chip ones unlock as chips are earned.
   const chipCheck = () => {
     for (const a of ACHIEVEMENTS) if (a.meter === 'chips' && a.goal && chipsEarned() >= a.goal) unlock(a.id);
+    if (chipsNow().bestDailyStreak >= 7) unlock('regular');
   };
   chipCheck();
   onChips(chipCheck);
