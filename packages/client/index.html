@@ -2,13 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // A cached copy of this page can be older than the game on the server (GitHub
+      // Pages lets browsers keep it 10 minutes). Ask the server, past the cache,
+      // and reload once at a new address if there's a newer version.
+      (function () {
+        var mine = '%APP_VERSION%';
+        var url = new URL(location.href);
+        if (url.searchParams.has('v')) {
+          url.searchParams.delete('v');
+          history.replaceState(history.state, '', url.href);
+        }
+        fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (j) {
+            if (!j || !j.version || j.version === mine) return;
+            var key = 'tximtxom.reloadedFor';
+            if (sessionStorage.getItem(key) === j.version) return;
+            sessionStorage.setItem(key, j.version);
+            url.searchParams.set('v', j.version);
+            location.replace(url.href);
+          })
+          .catch(function () {});
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#1b2b2a" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>TximTxom</title>
-    <link rel="preload" href="assets/m6x11plus.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/m6x11plus.woff2?v=%APP_VERSION%" as="font" type="font/woff2" crossorigin />
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="favicon.png" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -20,7 +44,7 @@
          page is busy starting the game. */
       @font-face {
         font-family: m6x11;
-        src: url(assets/m6x11plus.woff2) format('woff2');
+        src: url(assets/m6x11plus.woff2?v=%APP_VERSION%) format('woff2');
       }
       #loading {
         user-select: none;
@@ -87,7 +111,7 @@
       :is(#loading, .joining) .face > i {
         position: absolute;
         inset: 0;
-        background: url(assets/ui/loading.png) 0 0 / 672px 120px no-repeat;
+        background: url(assets/ui/loading.png?v=%APP_VERSION%) 0 0 / 672px 120px no-repeat;
         image-rendering: pixelated;
       }
       :is(#loading, .joining) .face > .black {

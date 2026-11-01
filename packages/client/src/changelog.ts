@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.43.2',
+    date: '2026-11-01',
+    items: [
+      c('The page checks for a newer version as it loads and reloads itself to get it. Game files are fetched fresh for each version.', 'A página procura uma versão mais recente ao abrir e recarrega-se para a obter. Os ficheiros do jogo são obtidos de novo em cada versão.'),
+      c('The achievement shine is slower and more see-through.', 'O brilho das conquistas é mais lento e mais transparente.'),
+    ],
+  },
+  {
     version: '0.43.1',
     date: '2026-11-01',
     items: [

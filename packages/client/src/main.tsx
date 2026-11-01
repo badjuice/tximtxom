@@ -1,3 +1,4 @@
+import { assetUrl } from './version';
 import { render } from 'preact';
 import { initAudio, unlockAudio } from './audio';
 import { startBackground } from './background';
@@ -23,7 +24,7 @@ async function boot() {
   applyCssSettings();
   startBackground(document.getElementById('bg') as HTMLCanvasElement);
 
-  const font = new FontFace('m6x11', `url(${import.meta.env.BASE_URL}assets/m6x11plus.woff2)`);
+  const font = new FontFace('m6x11', `url(${assetUrl('m6x11plus.woff2')})`);
   await Promise.all([font.load().then((f) => document.fonts.add(f)).catch(() => {}), loadSpriteAtlases()]);
 
   const table = new Table({

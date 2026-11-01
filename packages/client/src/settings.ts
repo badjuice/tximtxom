@@ -1,3 +1,4 @@
+import { assetUrl } from './version';
 import { useEffect, useState } from 'preact/hooks';
 
 /** The card art: Kenney's pixel cards, or the smooth cards of his Boardgame Pack. */
@@ -61,7 +62,7 @@ function loadFont(id: FontId): void {
   const f = FONTS.find((x) => x.id === id);
   if (!f || fontsAsked.has(id)) return;
   fontsAsked.add(id);
-  new FontFace(`tt-${id}`, `url(${import.meta.env.BASE_URL}assets/${f.file})`)
+  new FontFace(`tt-${id}`, `url(${assetUrl(f.file)})`)
     .load()
     .then((face) => {
       document.fonts.add(face);

@@ -1,3 +1,4 @@
+import { assetUrl } from '../version';
 import type { ComponentChildren } from 'preact';
 import { type Card, cardCode, type LobbyPlayer } from '@tximtxom/shared';
 import { cardSpoken, type Key, t } from '../i18n';
@@ -24,10 +25,10 @@ interface Atlas {
 const atlases: Record<string, Atlas> = {};
 
 async function loadAtlas(file: string, pixelArt = true): Promise<Atlas> {
-  const json = await (await fetch(`${import.meta.env.BASE_URL}assets/${file}.json`)).json();
+  const json = await (await fetch(assetUrl(`${file}.json`))).json();
   const frames: Record<string, Frame> = {};
   for (const [k, v] of Object.entries<{ frame: Frame }>(json.frames)) frames[k] = v.frame;
-  const url = `${import.meta.env.BASE_URL}assets/${json.meta.image}`;
+  const url = assetUrl(json.meta.image);
   const img = new Image();
   img.src = url;
   await img.decode();

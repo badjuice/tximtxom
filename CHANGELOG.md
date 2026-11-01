@@ -5,6 +5,10 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.43.2 (2026-11-01)
+- 🔧 The page checks for a newer version as it loads and reloads itself to get it. Game files are fetched fresh for each version.
+- 🔧 The achievement shine is slower and more see-through.
+
 ## 0.43.1 (2026-11-01)
 - 🔧 An automatic pass in the History says why: no card fits, the formation is full, or the player can't add more to it.
 

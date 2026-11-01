@@ -1,3 +1,4 @@
+import { assetUrl } from '../version';
 import { Application, Assets, CanvasSource, Container, type Spritesheet, type Texture } from 'pixi.js';
 import type { Card, GameView } from '@tximtxom/shared';
 import { upscaled, UPSCALE } from '../pixelArt';
@@ -189,7 +190,7 @@ export class Table {
   /** A card style's textures, loaded once. */
   private loadCards(style: CardStyle): Promise<CardTextures> {
     return (this.cardSheets[style] ??= (async () => {
-      const sheet = (await Assets.load(`${import.meta.env.BASE_URL}assets/${CARD_ATLAS[style]}.json`)) as Spritesheet;
+      const sheet = (await Assets.load(assetUrl(`${CARD_ATLAS[style]}.json`))) as Spritesheet;
       if (style === 'pixel') {
         // The art enlarged with hard pixel edges first: smoothing it then softens
         // only the edges between pixels, not each pixel into its neighbours.

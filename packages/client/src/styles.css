@@ -4542,14 +4542,14 @@ input.rename {
   background: linear-gradient(
       115deg,
       transparent 40%,
-      rgba(255, 220, 120, 0.35) 46%,
-      rgba(255, 255, 255, 0.85) 50%,
-      rgba(255, 220, 120, 0.35) 54%,
+      rgba(255, 220, 120, 0.18) 45%,
+      rgba(255, 255, 255, 0.5) 50%,
+      rgba(255, 220, 120, 0.18) 55%,
       transparent 60%
     )
     100% 0 / 300% 100% no-repeat;
   opacity: 0;
-  animation: ach-shine 0.48s ease-in-out 0.42s 3;
+  animation: ach-shine 0.8s ease-in-out 0.42s 3;
 }
 @keyframes ach-shine {
   0% {

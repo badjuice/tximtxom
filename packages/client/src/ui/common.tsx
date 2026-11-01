@@ -5,7 +5,7 @@ import { play } from '../audio';
 import { type Key, otherTexts, t, tEvery } from '../i18n';
 import { useSettings } from '../settings';
 import { store } from '../store';
-import { AUTHOR_URL, VERSION } from '../version';
+import { assetUrl, AUTHOR_URL, VERSION } from '../version';
 import { ArtIcon } from './sprites';
 
 type Color = 'red' | 'blue' | 'orange' | 'green' | 'grey' | 'purple';
@@ -684,7 +684,7 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
 
 /** A white Kenney Game Icon, drawn in the text colour of its button. */
 export function UiIcon({ name }: { name: 'help' | 'settings' | 'leave' | 'history' }) {
-  return <span class="ui-icon" style={{ '--icon': `url(${import.meta.env.BASE_URL}assets/ui/${name}.png)` }} aria-hidden="true" />;
+  return <span class="ui-icon" style={{ '--icon': `url(${assetUrl(`ui/${name}.png`)})` }} aria-hidden="true" />;
 }
 
 /** A small button the size of the Rules button, for the menus along the top. */

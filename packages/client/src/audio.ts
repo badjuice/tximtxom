@@ -1,7 +1,7 @@
+import { assetUrl } from './version';
 import { Howl, Howler } from 'howler';
 import { getSettings, onSettings } from './settings';
 
-const A = `${import.meta.env.BASE_URL}assets/`;
 
 export type Sfx =
   | 'button' | 'cancel' | 'highlight1' | 'highlight2' | 'card1' | 'card3' | 'cardSlide1' | 'cardSlide2'
@@ -18,7 +18,7 @@ let musicId: number | undefined;
  * `maxMs` so a slow connection doesn't hold up the game. It plays from unlockAudio.
  */
 export function initAudio(maxMs = 4000): Promise<void> {
-  music = new Howl({ src: [`${A}theme.webm`, `${A}theme.mp3`], loop: true, html5: true, preload: true });
+  music = new Howl({ src: [assetUrl('theme.webm'), assetUrl('theme.mp3')], format: ['webm', 'mp3'], loop: true, html5: true, preload: true });
   applyVolumes();
   onSettings(applyVolumes);
   // Howler's own unlock on the first click reloads the audio, cutting off a play
@@ -29,10 +29,10 @@ export function initAudio(maxMs = 4000): Promise<void> {
     music!.once('loaderror', () => done());
     setTimeout(done, maxMs);
   });
-  void fetch(`${A}sfx.json`)
+  void fetch(assetUrl('sfx.json'))
     .then((r) => r.json())
     .then((sprite: Record<string, [number, number]>) => {
-      sfx = new Howl({ src: [`${A}sfx.webm`, `${A}sfx.mp3`], sprite, preload: true });
+      sfx = new Howl({ src: [assetUrl('sfx.webm'), assetUrl('sfx.mp3')], format: ['webm', 'mp3'], sprite, preload: true });
     });
   return ready;
 }

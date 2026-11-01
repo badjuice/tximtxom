@@ -230,7 +230,7 @@ export function unlock(id: AchievementId, counted = false): void {
 }
 
 /** When each of the toast's three shines starts (ms after it shows). */
-const SHINE_AT = [420, 900, 1380];
+const SHINE_AT = [420, 1220, 2020];
 
 function nextToast(): void {
   showing = toastQueue.shift() ?? null;
