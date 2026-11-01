@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.38.1 (2026-11-01)
+- ✨ New epic achievement: Self-Service, for taking a ride on your own straight.
+
 ## 0.38.0 (2026-11-01)
 - ✨ New achievements for pairs, trios and straights of 5 cards or more.
 - ✨ Once someone stretches your straight, you can add to it too: a 2 on your 3-4-5-6 lets you place an Ace.

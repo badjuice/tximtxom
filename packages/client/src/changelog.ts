@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.38.1',
+    date: '2026-11-01',
+    items: [n('New epic achievement: Self-Service, for taking a ride on your own straight.', 'Nova conquista épica: Self-Service, por apanhares boleia na tua própria escada.')],
+  },
+  {
     version: '0.38.0',
     date: '2026-11-01',
     items: [

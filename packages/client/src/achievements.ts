@@ -32,7 +32,7 @@ export type AchievementId =
   | 'tipTap' | 'dealtIn' | 'lowRoller' | 'champion' | 'competitor' | 'tximtxom' | 'bitter' | 'busted' | 'likeIce' | 'nuts'
   | 'ragequit' | 'chips10' | 'chips100' | 'chips1000' | 'roundWins10' | 'gameWins10' | 'fullParty' | 'midas' | 'firstLoser'
   | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | `rule_${RuleAch}`
-  | 'closeCall' | 'flawless' | 'comeback' | 'generous' | `${Track}${number}`
+  | 'closeCall' | 'flawless' | 'comeback' | 'generous' | 'selfService' | `${Track}${number}`
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd';
 
 /** One achievement per rule, for playing a round with it on: its card art, and whether it's on. */
@@ -133,6 +133,7 @@ const ALL: Achievement[] = [
   { id: 'likeIce', art: 'fantasma', rarity: 'epic' },
   { id: 'nuts', art: 'crab', rarity: 'epic' },
   { id: 'badTiming', art: 'autoride', rarity: 'epic' },
+  { id: 'selfService', art: 'ride', rarity: 'epic' },
   { id: 'tximtxom', art: 'tximtxom', rarity: 'legendary' },
   { id: 'flawless', art: 'kabaleru', rarity: 'legendary' },
   // The running counts, each track's goals in a row.
@@ -277,6 +278,10 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       if (r.totals[me] === 69 && r.totals[me] > threshold) unlock('nuts');
       break;
     }
+    case 'ride':
+      // Your own straight, once someone else stretched it.
+      if (e.seat === me && g.events.some((x) => x.e.t === 'lay' && x.e.formationId === e.formationId && x.e.seat === me)) unlock('selfService');
+      break;
     case 'end':
       if (e.bonus && e.seat === me) unlock('fullHand');
       break;
