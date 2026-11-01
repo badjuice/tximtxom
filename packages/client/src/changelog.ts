@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.3',
+    date: '2026-11-01',
+    items: [
+      c("The main menu's Achievements button pulses with a golden glow while any achievement is New!.", "O botão Conquistas do menu principal pulsa com um brilho dourado enquanto houver conquistas Nova!."),
+      c("Magic sort is only in the game, with the Magic Sort rule: it's gone from Settings.", "A ordenação Mágica só existe no jogo, com a regra Ordem Mágica: saiu das Definições."),
+      c("A new room always starts on the default rules.", "Uma sala nova começa sempre com as regras de base."),
+    ],
+  },
+  {
     version: '0.49.2',
     date: '2026-11-01',
     items: [

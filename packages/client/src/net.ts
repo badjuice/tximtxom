@@ -10,7 +10,7 @@ import { recordLeftGame } from './stats';
 
 /** Sent when joining: whether you're Infected, and your carrier id if so. */
 const infection = () => (hasAchievement('infected') ? { infected: true, carrier: carrierId() } : { infected: false });
-import { type Action, type ClientToServer, type GameEvent, IDLE_REASON, type JoinResult, randomCode, type Request, type Rules, sanitizeRules, type ServerToClient } from '@tximtxom/shared';
+import { type Action, type ClientToServer, type GameEvent, IDLE_REASON, type JoinResult, randomCode, type Request, type Rules, type ServerToClient } from '@tximtxom/shared';
 import { Guest, hasSavedHostRoom, Host, type P2PEvents, type Result } from './p2p';
 import { t, tError } from './i18n';
 import { store, toast } from './store';
@@ -22,7 +22,6 @@ const SESSION_KEY = 'tximtxom.session';
 const NAME_KEY = 'tximtxom.name';
 // The character you used last, and (as host) the rules you set last.
 const AVATAR_KEY = 'tximtxom.avatar';
-const RULES_KEY = 'tximtxom.rules';
 
 interface Session {
   code: string;
@@ -48,16 +47,6 @@ function savedAvatar(): string | undefined {
   return localStorage.getItem(AVATAR_KEY) ?? undefined;
 }
 
-/** The rules this player last used as host; a new room starts with them. */
-export function savedRules(): Partial<Rules> | undefined {
-  try {
-    const r = JSON.parse(localStorage.getItem(RULES_KEY) ?? 'null');
-    return r ? sanitizeRules(r) : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 /** Remembers your character, and the rules while you are the host. */
 function rememberPreferences(): void {
   const room = store.get().room;
@@ -68,7 +57,6 @@ function rememberPreferences(): void {
     if (localStorage.getItem(key) !== value) localStorage.setItem(key, value);
   };
   if (me.avatar) keep(AVATAR_KEY, me.avatar);
-  if (room.hostId === room.youId) keep(RULES_KEY, JSON.stringify(room.rules));
 }
 
 function saveSession(r: JoinResult, host: boolean): void {
@@ -342,7 +330,8 @@ async function joining<R>(kind: 'join' | 'create', work: () => Promise<R>): Prom
 
 /** Back to the room this device had a seat in, after a refresh (the menu's Rejoin). */
 export const rejoinRoom = () => joining('join', rejoinRoomNow);
-export const createRoom = (name: string, rules: Partial<Rules> | undefined = savedRules()) => joining('create', () => createRoomNow(name, rules));
+// A new room always starts on the default rules.
+export const createRoom = (name: string, rules?: Partial<Rules>) => joining('create', () => createRoomNow(name, rules));
 export const joinRoom = (code: string, name: string) => joining('join', () => joinRoomNow(code, name));
 
 export const setRules = (rules: Partial<Rules>) => call({ event: 'room:rules', msg: { rules } });

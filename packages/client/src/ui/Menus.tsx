@@ -621,28 +621,15 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
           <Toggle label={t('set.announce')} desc={says(s.announce, 'set.announce.on', 'set.announce.off')} checked={s.announce} onChange={(v) => set({ announce: v })} />
           <Choice
             label={t('set.sortBy')}
-            desc={t(`set.sortBy.${s.sortBy}` as Key)}
-            value={s.sortBy}
+            // Magic sort is the Magic Sort rule's, in the game only.
+            desc={t(`set.sortBy.${s.sortBy === 'suit' ? 'suit' : 'rank'}`)}
+            value={s.sortBy === 'suit' ? 'suit' : 'rank'}
             options={[
               { value: 'rank', label: t('sort.rank') },
               { value: 'suit', label: t('sort.suit') },
-              { value: 'magic', label: t('sort.magic') },
             ]}
             onChange={(sortBy) => set({ sortBy })}
           />
-          {/* Only for Magic sort. */}
-          {s.sortBy === 'magic' && (
-            <Choice
-              label={t('set.magicUnformed')}
-              desc={t(`set.magicUnformed.${s.magicUnformed}` as Key)}
-              value={s.magicUnformed}
-              options={[
-                { value: 'left', label: t('set.left') },
-                { value: 'right', label: t('set.right') },
-              ]}
-              onChange={(magicUnformed) => set({ magicUnformed })}
-            />
-          )}
           <Toggle label={t('set.autoSort')} desc={says(s.autoSort, 'set.autoSort.on', 'set.autoSort.off')} checked={s.autoSort} onChange={(v) => set({ autoSort: v })} />
         </div>
         <div class={`tab-panel${tab === 'access' ? '' : ' hidden'}`} inert={tab !== 'access'}>
