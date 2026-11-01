@@ -1116,7 +1116,7 @@ const pt: Record<Key, string> = {
 
   'h.title': 'Histórico',
   'h.copyGame': 'Copiar jogo',
-  'act.autoSkip': 'Passa sozinho em {s}s',
+  'act.autoSkip': 'Passa automaticamente em {s}s',
   'h.autoPass.noFit': '{name} passou: nenhuma carta serve',
   'h.autoPass.full': '{name} passou: a formação está completa',
   'h.autoPass.done': '{name} passou: já não pode acrescentar',

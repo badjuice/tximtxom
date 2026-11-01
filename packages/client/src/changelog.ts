@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.44.1',
+    date: '2026-11-01',
+    items: [
+      c('In Portuguese, the Pass countdown reads "Passa automaticamente em 9,4s".', 'Em português, a contagem do Passar diz "Passa automaticamente em 9,4s".'),
+      f('The Achievements window is wider, never scrolls sideways, and its first row (with any New! signs) is no longer hidden under the top.', 'A janela das Conquistas é mais larga, nunca desliza para o lado, e a primeira linha (com os sinais Nova!) já não fica tapada pelo topo.'),
+    ],
+  },
+  {
     version: '0.44.0',
     date: '2026-11-01',
     items: [
@@ -26,7 +34,7 @@ export const CHANGELOG: Release[] = [
       n('New rule, Scramble (funny): no sorting, and every card someone picks up shuffles everyone\'s hand.', 'Nova regra, Baralhada (divertida): nada de ordenar, e cada carta que alguém apanha baralha a mão de todos.'),
       n('New achievements: Vanilla (win with the default rules), and one per rule for finishing a game with it off while another rule is on.', 'Novas conquistas: Baunilha (ganha com as regras de origem), e uma por regra por acabar um jogo com ela desligada e outra ligada.'),
       n('Achievements you haven\'t seen yet show a New! sign, on the Achievements button and on the card, until you look at them.', 'As conquistas que ainda não viste mostram um sinal Nova!, no botão Conquistas e no cartão, até as veres.'),
-      c('Auto-pass waits 10 seconds when the formation could still take a card, 5 when it\'s full, and the button says "Auto-skipping in 9.4s" over a smooth bar.', 'A passagem automática espera 10 segundos quando a formação ainda pode levar cartas, 5 quando está completa, e o botão diz "Passa sozinho em 9,4s" sobre uma barra suave.'),
+      c('Auto-pass waits 10 seconds when the formation could still take a card, 5 when it\'s full, and the button says "Auto-skipping in 9.4s" over a smooth bar.', 'A passagem automática espera 10 segundos quando a formação ainda pode levar cartas, 5 quando está completa, e o botão diz "Passa automaticamente em 9,4s" sobre uma barra suave.'),
       c('Thin scrollbars in the game\'s colours, beside the content instead of over it. The top of Achievements and the Changelog stays in view while you scroll.', 'Barras de deslocamento finas nas cores do jogo, ao lado do conteúdo em vez de por cima. O topo das Conquistas e das Alterações fica à vista ao deslizar.'),
       c('Boardgame card backs: variants 1 and 3 of each colour, and Random never shows one colour twice in a row.', 'Costas de cartas do Boardgame: variantes 1 e 3 de cada cor, e o Aleatório nunca mostra a mesma cor duas vezes seguidas.'),
       c('How to play colours "2–10 as printed" like the other card values.', 'O Como jogar dá cor a "2–10 o que diz a carta" como aos outros valores.'),

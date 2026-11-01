@@ -4270,7 +4270,11 @@ input.rename {
 
 /* Two columns of cards: art, name, what to do and a quiet line of flavour. */
 .modal.ach-modal {
-  width: min(760px, 96vw);
+  width: min(880px, 96vw);
+}
+/* Only ever scrolls down. */
+.ach-modal .modal-body {
+  overflow-x: hidden;
 }
 .ach-count {
   margin: 0 0 4px;
@@ -4310,7 +4314,8 @@ input.rename {
 .ach-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  /* Room above the first row for its New! signs, clear of the pinned header. */
+  padding: 12px 0 4px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 6px;
@@ -5208,7 +5213,7 @@ td.num.pts {
 .new-sign {
   position: absolute;
   top: -8px;
-  right: -6px;
+  right: 6px;
   z-index: 2;
   padding: 1px 7px;
   border-radius: 6px;

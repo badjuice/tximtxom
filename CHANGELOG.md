@@ -5,6 +5,10 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.44.1 (2026-11-01)
+- 🔧 In Portuguese, the Pass countdown reads "Passa automaticamente em 9,4s".
+- 🐛 The Achievements window is wider, never scrolls sideways, and its first row (with any New! signs) is no longer hidden under the top.
+
 ## 0.44.0 (2026-11-01)
 - ✨ New rule, Magic Sort (support): turns on the Magic sort button. Magic sort now follows the room's rules and groups cards one short of a formation, after the formed ones.
 - ✨ New rule, Scramble (funny): no sorting, and every card someone picks up shuffles everyone's hand.
