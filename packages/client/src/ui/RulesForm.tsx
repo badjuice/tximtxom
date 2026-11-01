@@ -54,7 +54,8 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         checked={rules.mobius}
         onChange={(mobius) => onChange({ mobius })}
         disabled={readOnly}
-        locked={rules.superposition ? undefined : t('rule.requires', { rule: t('rule.superposition') })}
+        locked={rules.superposition ? undefined : t('rule.superposition')}
+        lockedTone="support"
         lockedBy="superposition"
       />
       <Toggle label={t('rule.smeared')} desc={t('rule.smeared.desc')} joker="mixed" tone="support" checked={rules.smeared} onChange={(smeared) => onChange({ smeared })} disabled={readOnly} />

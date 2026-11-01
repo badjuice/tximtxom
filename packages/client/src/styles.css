@@ -960,6 +960,10 @@ input[type='text'] {
   border-radius: 6px;
   padding: 3px 12px;
 }
+/* The needed rule's name keeps its own shine; a shadow would show through its clear letters. */
+.lock-sign .rule-ref {
+  text-shadow: none;
+}
 /* Locked by another setting: text faded, and the switch flat grey whether on or off. */
 .toggle.disabled .toggle-text {
   opacity: 0.45;
@@ -5099,6 +5103,38 @@ input.rename {
 }
 .emote-grid button:hover {
   background: var(--blue);
+}
+/* Resting after an emote: greyed out under a gold ring that empties as the wait runs out. */
+.emote-btn {
+  position: relative;
+}
+.emote-picker.cooling .emote-btn > :not(.emote-ring),
+.emote-picker.cooling .emote-grid button {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+.emote-grid button:disabled {
+  cursor: default;
+  background: var(--panel-in);
+}
+.emote-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26px;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(var(--gold) calc(var(--cool, 1) * 360deg), rgba(0, 0, 0, 0.35) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  filter: drop-shadow(0 0 3px rgba(255, 207, 74, 0.7));
+}
+.emote-grid .emote-ring {
+  width: 72px;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
 }
 /* On your plate in a game: a small button at its right edge. */
 .emote-picker.on-plate {

@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.7',
+    date: '2026-11-01',
+    items: [
+      c("Locked rules show the rule they need in its own colour.", "As regras bloqueadas mostram a regra de que precisam na cor dela."),
+      c("The emotes stay open while you pick, and close when you tap elsewhere.", "Os emotes ficam abertos enquanto escolhes e fecham quando tocas fora."),
+      f("Emotes now rest for 3 seconds after each one: greyed out, with a ring that empties as the wait runs out.", "Os emotes agora descansam 3 segundos depois de cada um: ficam cinzentos, com um anel que esvazia até poderes enviar outro."),
+    ],
+  },
+  {
     version: '0.49.6',
     date: '2026-11-01',
     items: [c("The game waits longer before going to sleep in the background: 10 minutes, 15 in a room.", "O jogo espera mais antes de adormecer em segundo plano: 10 minutos, 15 numa sala.")],

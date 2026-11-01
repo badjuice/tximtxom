@@ -373,8 +373,10 @@ export function Toggle(props: {
   joker?: string;
   disabled?: boolean;
   tone?: Tone;
-  /** Needs another rule that's off: greyed out and striped under a "Requires …" sign. */
+  /** Needs another rule that's off (its name here): greyed out and striped under a "Requires …" sign. */
   locked?: string;
+  /** The needed rule's tone, for its name on that sign. */
+  lockedTone?: Tone;
   /** The `rule` of the toggle it needs: tapping this one while locked makes that one flash. */
   lockedBy?: string;
   /** Names this toggle for a locked one's `lockedBy`. */
@@ -401,7 +403,15 @@ export function Toggle(props: {
         <span class="lock-sign">
           <span>
             <UiIcon name="lock" />
-            <WaveText text={props.locked} plain />
+            {/* "Requires Superposition": the rule's name shines in its colour, as rule names do. */}
+            {t('rule.requires', { rule: '\u0000' })
+              .split('\u0000')
+              .map((part, i) => (
+                <>
+                  {i > 0 && <RuleName name={props.locked!} tone={props.lockedTone} />}
+                  {part.trim() && <WaveText text={part.trim()} plain />}
+                </>
+              ))}
           </span>
         </span>
       )}

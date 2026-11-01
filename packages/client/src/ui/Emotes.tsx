@@ -1,6 +1,6 @@
 // Emotes: a bubble over the sender's plate (in a game) or their row (in the
 // lobby) for a moment. Nothing goes to the chat.
-import { EMOTES, type RoomView } from '@tximtxom/shared';
+import { EMOTE_GAP_MS, EMOTES, type RoomView } from '@tximtxom/shared';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { unlock } from '../achievements';
 import { play } from '../audio';
@@ -60,12 +60,44 @@ export function EmoteBubble({ player }: { player: string }) {
   );
 }
 
-/** A button that opens the grid of emotes. */
+/** Until when your emotes rest after sending one (the host refuses them sooner). */
+let coolUntil = 0;
+const coolers = new Set<() => void>();
+
+/** True while emotes rest. Sets `--cool` (1 down to 0) on `el` each frame for the ring. */
+function useCooldown(el: { current: HTMLElement | null }): boolean {
+  const [cooling, setCooling] = useState(() => Date.now() < coolUntil);
+  useEffect(() => {
+    const start = () => setCooling(Date.now() < coolUntil);
+    coolers.add(start);
+    return () => void coolers.delete(start);
+  }, []);
+  useEffect(() => {
+    if (!cooling) return;
+    let frame = 0;
+    const step = () => {
+      const left = coolUntil - Date.now();
+      if (left <= 0) return setCooling(false);
+      el.current?.style.setProperty('--cool', String(left / EMOTE_GAP_MS));
+      frame = requestAnimationFrame(step);
+    };
+    step();
+    return () => cancelAnimationFrame(frame);
+  }, [cooling]);
+  return cooling;
+}
+
+/** A ring that empties as the rest runs out. */
+const CoolRing = () => <span class="emote-ring" aria-hidden="true" />;
+
+/** A button that opens the grid of emotes. It stays open while you pick, and closes
+ *  on a tap anywhere else. */
 export function EmotePicker({ class: cls }: { class?: string }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
   const grid = useRef<HTMLSpanElement>(null);
   const [shift, setShift] = useState(0);
+  const cooling = useCooldown(box);
   // Kept inside the screen (a plate near the edge would push it off). offsetLeft ignores the pop-in scale.
   useLayoutEffect(() => {
     if (!open || !box.current || !grid.current) return setShift(0);
@@ -90,9 +122,10 @@ export function EmotePicker({ class: cls }: { class?: string }) {
     };
   }, [open]);
   return (
-    <span class={`emote-picker${cls ? ` ${cls}` : ''}`} ref={box}>
+    <span class={`emote-picker${cls ? ` ${cls}` : ''}${cooling ? ' cooling' : ''}`} ref={box}>
       <button type="button" class="emote-btn" aria-label={t('emote.open')} title={t('emote.open')} aria-expanded={open} onClick={() => setOpen(!open)}>
         <EmoteIcon id="faceHappy" scale={1.5} />
+        {cooling && !open && <CoolRing />}
       </button>
       {open && (
         <span class="emote-grid" role="menu" ref={grid} style={{ marginLeft: `${shift}px`, marginRight: `${-shift}px` }}>
@@ -102,14 +135,17 @@ export function EmotePicker({ class: cls }: { class?: string }) {
               role="menuitem"
               aria-label={t(`emote.${id}` as Key)}
               title={t(`emote.${id}` as Key)}
+              disabled={cooling}
               onClick={() => {
-                setOpen(false);
+                coolUntil = Date.now() + EMOTE_GAP_MS;
+                coolers.forEach((c) => c());
                 void sendEmote(id).then((ok) => ok && unlock('showDontTell'));
               }}
             >
               <EmoteIcon id={id} scale={2} />
             </button>
           ))}
+          {cooling && <CoolRing />}
         </span>
       )}
     </span>

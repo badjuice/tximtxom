@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.7 (2026-11-01)
+- 🔧 Locked rules show the rule they need in its own colour.
+- 🔧 The emotes stay open while you pick, and close when you tap elsewhere.
+- 🐛 Emotes now rest for 3 seconds after each one: greyed out, with a ring that empties as the wait runs out.
+
 ## 0.49.6 (2026-11-01)
 - 🔧 The game waits longer before going to sleep in the background: 10 minutes, 15 in a room.
 
