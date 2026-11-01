@@ -17,7 +17,7 @@ describe('chat', () => {
   it('reaches everyone in the room, cleaned up and cut to size', () => {
     const { server, views } = setup();
     expect(say(server, 'a', '  hello \n\t there  ').ok).toBe(true);
-    expect(views.get('b')!.chat.at(-1)).toMatchObject({ from: views.get('a')!.youId, text: 'hello there' });
+    expect(views.get('b')!.chat.at(-1)).toMatchObject({ from: views.get('a')!.youId, text: 'hello there', at: expect.any(Number) });
     say(server, 'b', 'x'.repeat(CHAT_MAX + 50));
     expect(views.get('a')!.chat.at(-1)!.text.length).toBe(CHAT_MAX);
     expect(say(server, 'a', ' \n ').ok).toBe(false);

@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.8 (2026-11-01)
+- ✨ Chat messages show the time they were sent, and a date where the day changes.
+- 🔧 Your name in the chat reads "Name (you)".
+- 🔧 The chat's Send button still looks like a button while there's nothing to send.
+
 ## 0.49.7 (2026-11-01)
 - 🔧 Locked rules show the rule they need in its own colour.
 - 🔧 The emotes stay open while you pick, and close when you tap elsewhere.

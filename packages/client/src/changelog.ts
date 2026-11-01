@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.8',
+    date: '2026-11-01',
+    items: [
+      n("Chat messages show the time they were sent, and a date where the day changes.", "As mensagens da conversa mostram a hora a que foram enviadas, e a data quando o dia muda."),
+      c("Your name in the chat reads \"Name (you)\".", "O teu nome na conversa aparece como \"Nome (tu)\"."),
+      c("The chat's Send button still looks like a button while there's nothing to send.", "O botão Enviar da conversa continua a parecer um botão quando não há nada para enviar."),
+    ],
+  },
+  {
     version: '0.49.7',
     date: '2026-11-01',
     items: [

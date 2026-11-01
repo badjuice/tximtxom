@@ -7,7 +7,7 @@ import { t } from '../i18n';
 import { sendChat } from '../net';
 import { SEAT_COLORS } from '../seatColors';
 import { unlock } from '../achievements';
-import { countChatSent } from '../stats';
+import { countChatSent, locale } from '../stats';
 import { store, useStore } from '../store';
 import { EmotePicker } from './Emotes';
 
@@ -32,6 +32,9 @@ export function initChat(): void {
     last = { code: room.code, id: line.id };
   });
 }
+
+const clock = (at: number) => new Date(at).toLocaleTimeString(locale(), { hour: 'numeric', minute: '2-digit' });
+const day = (at: number) => new Date(at).toDateString();
 
 /** The messages and a field to write in. Marks everything read while it's on screen. */
 export function ChatBox({ room }: { room: RoomView }) {
@@ -69,13 +72,27 @@ export function ChatBox({ room }: { room: RoomView }) {
           atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
         }}
       >
-        {room.chat.map((l) => {
+        {room.chat.map((l, n) => {
           const i = room.players.findIndex((p) => p.id === l.from);
-          const who = l.from === room.youId ? t('you') : (room.players[i]?.name ?? t('chat.gone'));
+          const name = room.players[i]?.name ?? t('chat.gone');
+          const who = l.from === room.youId ? `${name} (${t('you').toLowerCase()})` : name;
+          // A date line where the day changes, and above the first message if it isn't from today.
+          const prev = room.chat[n - 1]?.at;
+          const newDay = l.at != null && (prev != null ? day(prev) !== day(l.at) : day(l.at) !== day(Date.now()));
           return (
-            <li key={l.id} class={l.from === room.youId ? 'mine' : ''}>
-              <b style={{ color: i >= 0 ? SEAT_COLORS[i] : undefined }}>{who}</b> {l.text}
-            </li>
+            <>
+              {newDay && (
+                <li class="chat-day" key={`d${l.id}`}>
+                  {new Date(l.at!).toLocaleDateString(locale(), { day: 'numeric', month: 'long', year: 'numeric' })}
+                </li>
+              )}
+              <li key={l.id} class={l.from === room.youId ? 'mine' : ''}>
+                <span>
+                  <b style={{ color: i >= 0 ? SEAT_COLORS[i] : undefined }}>{who}</b> {l.text}
+                </span>
+                {l.at != null && <time dateTime={new Date(l.at).toISOString()}>{clock(l.at)}</time>}
+              </li>
+            </>
           );
         })}
         {room.chat.length === 0 && <li class="muted">{t('chat.empty')}</li>}

@@ -30,6 +30,8 @@ export interface ChatLine {
   /** The sender's player id. */
   from: string;
   text: string;
+  /** When the host got it (ms since 1970). Missing from hosts older than 0.49.8. */
+  at?: number;
 }
 
 /** The emotes a player can send: a bubble over their plate for a moment. */

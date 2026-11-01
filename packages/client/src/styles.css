@@ -4902,8 +4902,29 @@ input.rename {
   overflow-wrap: anywhere;
 }
 .chat-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   padding: 2px 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.chat-list li > span {
+  flex: 1;
+  min-width: 0;
+}
+/* The time each message was sent, on its right. */
+.chat-list time {
+  flex: none;
+  font-size: 0.8em;
+  color: #7d8f93;
+}
+/* A day's first message: its date across the list. */
+.chat-list li.chat-day {
+  justify-content: center;
+  margin: 4px 0 2px;
+  font-size: 0.8em;
+  color: #9fb3b8;
+  border-bottom: none;
 }
 .chat-list li.mine {
   border-left: 3px solid var(--gold);
@@ -4938,10 +4959,13 @@ input.rename {
   box-shadow: 0 3px 0 var(--blue-d);
   cursor: pointer;
 }
+/* Nothing to send yet: still a raised button, only grey. */
 .chat-send:disabled {
-  background: #3a4a4e;
-  box-shadow: none;
-  color: #6f8186;
+  background: #5b6f74;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.12),
+    0 3px 0 #253134;
+  color: #b3c3c7;
   cursor: default;
 }
 .lobby-chat {

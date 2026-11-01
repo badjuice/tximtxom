@@ -411,7 +411,7 @@ export class Room {
     const recent = (this.chatTimes.get(m.id) ?? []).filter((at) => now - at < CHAT_WINDOW_MS);
     if (recent.length >= CHAT_BURST) return 'Slow down a little';
     this.chatTimes.set(m.id, [...recent, now]);
-    this.chat = [...this.chat, { id: (this.chat.at(-1)?.id ?? 0) + 1, from: m.id, text }].slice(-CHAT_KEEP);
+    this.chat = [...this.chat, { id: (this.chat.at(-1)?.id ?? 0) + 1, from: m.id, text, at: now }].slice(-CHAT_KEEP);
     this.broadcast();
     this.hooks.changed?.();
     return null;
