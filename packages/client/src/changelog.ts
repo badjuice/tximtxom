@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.9',
+    date: '2026-11-01',
+    items: [
+      f("The auto-skip countdown no longer runs into the button's text.", "A contagem para passar automaticamente já não fica por cima do texto do botão."),
+      c("Player plates in the game have a thicker border.", "As placas dos jogadores no jogo têm uma borda mais grossa."),
+    ],
+  },
+  {
     version: '0.49.8',
     date: '2026-11-01',
     items: [

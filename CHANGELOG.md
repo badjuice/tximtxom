@@ -5,6 +5,10 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.9 (2026-11-01)
+- 🐛 The auto-skip countdown no longer runs into the button's text.
+- 🔧 Player plates in the game have a thicker border.
+
 ## 0.49.8 (2026-11-01)
 - ✨ Chat messages show the time they were sent, and a date where the day changes.
 - 🔧 Your name in the chat reads "Name (you)".

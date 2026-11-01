@@ -1458,7 +1458,7 @@ input[type='text'] {
   position: absolute;
   transform: translate(-50%, -50%);
   background: rgba(30, 43, 45, 0.88);
-  border: 2px solid #4f6a70;
+  border: 3px solid #4f6a70;
   border-radius: 10px;
   padding: 3px 10px;
   text-align: center;
@@ -5238,6 +5238,11 @@ td.num.pts {
 
 /* A button that presses itself (Pass, when nothing fits): seconds left and a draining bar. */
 /* On the corner, so the button keeps its width. */
+/* The label moves up to leave the countdown its own line (the button keeps its height). */
+.btn:has(.btn-count) {
+  padding-top: 0.1em;
+  padding-bottom: 0.95em;
+}
 .btn-count {
   position: absolute;
   left: 0;
