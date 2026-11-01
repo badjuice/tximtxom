@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.40.1 (2026-11-01)
+- 🐛 Txi jog plays out as at a real table: the ending card goes face up under the discard pile, then the whole pile is turned face down onto the draw pile.
+
 ## 0.40.0 (2026-11-01)
 - ✨ Chat: one conversation per room, in the lobby and in a Chat tab next to History during a game. A count shows messages you haven't read.
 - ✨ Stats has a Badges tab: gold, silver and bust badges, and the total.

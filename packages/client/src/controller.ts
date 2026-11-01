@@ -409,9 +409,9 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       } else if (e.kind !== 'manual') {
         setTimeout(() => banner(t('b.noRides'), { sub: t('b.noRidesSub'), joker: 'ride', tone: 'bad', ms: 2200 }), 1300);
       }
-      // The ending card goes under the discard pile face down, and the pile onto
-      // the draw pile: nobody sees which card it was.
-      if (e.card !== null) table.ritual(getSettings().reducedMotion ? 0.3 : 0.9);
+      // The ending card goes face up under the discard pile, and the pile is turned
+      // over onto the draw pile.
+      if (e.card !== null) table.ritual(...((getSettings().reducedMotion ? [0.25, 0.25] : [0.8, 0.7]) as [number, number]));
       banner(how, { tone: 'bad' });
       announce(
         t('sr.end', {

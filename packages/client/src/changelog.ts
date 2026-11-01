@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.40.1',
+    date: '2026-11-01',
+    items: [
+      f('Txi jog plays out as at a real table: the ending card goes face up under the discard pile, then the whole pile is turned face down onto the draw pile.', 'O Txi jog é como numa mesa a sério: a carta final vai virada para cima para debaixo da pilha de descarte, e depois a pilha toda é virada para baixo em cima do Monte.'),
+    ],
+  },
+  {
     version: '0.40.0',
     date: '2026-11-01',
     items: [

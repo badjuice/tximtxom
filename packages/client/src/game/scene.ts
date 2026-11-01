@@ -45,8 +45,9 @@ export interface SceneInput {
   drag: { card: Card; x: number; y: number } | null;
   /** Cards still waiting in the deck during a deal (view keys). Hands leave them out, so they grow as cards arrive. */
   pending?: ReadonlySet<string>;
-  /** Txi jog under way: the ending card slides under the discard pile before the piles merge. */
-  ritual?: boolean;
+  /** Txi jog under way. 'under': the ending card slides face up under the discard pile.
+   *  'flip': the discard pile, ending card and all, turns face down onto the draw pile. Then the stack moves aside. */
+  ritual?: 'under' | 'flip';
 }
 
 /** Lays out formations in rows inside the reveal area. */
@@ -177,8 +178,9 @@ export function describeScene(input: SceneInput): DesiredCard[] {
   const roundDone = g.phase === 'roundOver' || g.phase === 'gameOver';
   // Once the round ends, the draw and discard piles slide together into one
   // stack beside the ending card, out of the way of the formations.
-  const merged = (revealing || roundDone) && !input.ritual;
-  const stack = { x: L.endCard.x - 60, y: L.endCard.y };
+  const merged = (revealing || roundDone) && input.ritual !== 'under';
+  // While the discard pile flips over, the stack stays where the draw pile is.
+  const stack = input.ritual === 'flip' ? drawPileTop(L, 1) : { x: L.endCard.x - 60, y: L.endCard.y };
   const ps = L.pileScale;
 
   // --- Draw pile (only the top few backs are drawn)
@@ -190,7 +192,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
       card: null,
       role: 'drawPile',
       target: {
-        ...(merged ? { x: stack.x - i * 0.8, y: stack.y - i * 2 } : drawPileTop(L, i + 1)),
+        ...(merged && input.ritual !== 'flip' ? { x: stack.x - i * 0.8, y: stack.y - i * 2 } : drawPileTop(L, i + 1)),
         rot: 0,
         scale: ps,
         z: 10 + i,
@@ -204,14 +206,21 @@ export function describeScene(input: SceneInput): DesiredCard[] {
   // --- Discard pile: the top card, plus the previous one peeking out underneath.
   const endCard = g.reveal?.endCard ?? null;
   const top = g.discardTop;
+  // How many discards sit on the draw pile once the piles merge (the ending card goes on top of them).
+  let onPile = shown;
   if (merged && top !== null && top !== endCard) {
-    // Face down on top of the draw pile, as one stack.
-    out.push({
-      key: `c${top}`,
-      card: top,
-      role: 'discardTop',
-      target: { x: stack.x - shown * 0.8, y: stack.y - shown * 2, rot: 0, scale: ps, z: 10 + shown, faceUp: false },
-    });
+    // Turned face down onto the draw pile, as one stack: the card that peeked out under the top goes too.
+    const under = input.discardMemory.at(-2);
+    const cards = under !== undefined && under !== top && under !== endCard && g.discardCount >= 2 ? [top, under] : [top];
+    for (const c of cards) {
+      out.push({
+        key: `c${c}`,
+        card: c,
+        role: c === top ? 'discardTop' : 'pileUnder',
+        target: { x: stack.x - onPile * 0.8, y: stack.y - onPile * 2, rot: 0, scale: ps, z: 10 + onPile, faceUp: false },
+      });
+      onPile++;
+    }
   } else if (top !== null && top !== endCard) {
     const under = input.discardMemory.at(-2);
     if (under !== undefined && under !== top && g.discardCount >= 2) {
@@ -404,16 +413,18 @@ export function describeScene(input: SceneInput): DesiredCard[] {
         });
       });
     }
-    // Face down, as at a real table: first slid under the discard pile (peeking
-    // out), then at the bottom of the stack the piles make. It stays hidden.
+    // As at a real table: slid face up under the bottom of the discard pile
+    // (peeking out), then the pile is turned over onto the draw pile, which
+    // leaves the ending card face down on top of the stack.
     if (endCard !== null) {
+      const onTop = onPile;
       out.push({
         key: `c${endCard}`,
         card: endCard,
         role: 'endCard',
         target: merged
-          ? { x: stack.x, y: stack.y, rot: 0, scale: ps, z: 9, faceUp: false }
-          : { x: L.discard.x + 14, y: L.discard.y + 8, rot: 0.1, scale: ps, z: 18, faceUp: false },
+          ? { x: stack.x - onTop * 0.8, y: stack.y - onTop * 2, rot: 0, scale: ps, z: 10 + onTop, faceUp: false }
+          : { x: L.discard.x + 22, y: L.discard.y + 26, rot: 0.2, scale: ps, z: 18, faceUp: true },
       });
     }
   }

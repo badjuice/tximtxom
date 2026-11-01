@@ -269,7 +269,7 @@ export class Table {
       discardMemory: this.discardMemory,
       drag: drag ? { card: drag.card, x: drag.x, y: drag.y } : null,
       pending: this.dealPending,
-      ritual: this.ritualEnd > 0,
+      ritual: this.ritualStep(),
     });
     const seen = new Set<string>();
     this.roles.clear();
@@ -570,17 +570,28 @@ export class Table {
     this.views.get(key)?.pop(amount);
   }
 
-  /** Table time when the Txi jog ritual is over and the piles merge (0: none). */
+  /** Table times when the Txi jog ritual turns the discard pile over, and when it's done (0: none). */
+  private ritualFlip = 0;
   private ritualEnd = 0;
 
-  /** Holds the piles apart for `s` seconds while the ending card slides under the discard pile. */
-  ritual(s: number): void {
-    this.ritualEnd = this.time + s;
+  /** The Txi jog: `under` seconds for the ending card to slide under the discard pile, then `flip` for the pile to turn over onto the draw pile. */
+  ritual(under: number, flip: number): void {
+    this.ritualFlip = this.time + under;
+    this.ritualEnd = this.ritualFlip + flip;
+  }
+
+  private ritualStep(): 'under' | 'flip' | undefined {
+    if (!this.ritualEnd) return undefined;
+    return this.time < this.ritualFlip ? 'under' : 'flip';
   }
 
   private tick(dt: number): void {
     dt = Math.min(dt, 0.05);
     this.time += dt;
+    if (this.ritualFlip && this.time >= this.ritualFlip) {
+      this.ritualFlip = 0;
+      this.sync();
+    }
     if (this.ritualEnd && this.time >= this.ritualEnd) {
       this.ritualEnd = 0;
       this.sync();
