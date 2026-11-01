@@ -5,6 +5,18 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.43.0 (2026-11-01)
+- ✨ Magic sort puts the cards of each formation together. A setting picks whether the cards that form nothing go left or right.
+- ✨ When none of your cards can ride, Pass counts down 5 seconds and passes for you. The History marks moves the game made for a player with a timer icon.
+- ✨ The History folds earlier rounds and earlier games in the room instead of losing them. Open one to read it or copy it.
+- ✨ Unlocking an achievement shines the whole card three times, with a chime for each.
+- ✨ Formations show their cards first, then their name, which shines when laid and again for each card added. A closed formation shines once.
+- ✨ Stats count the rides you gave.
+- 🔧 Straights are named by their length before rides, like 4-Straight.
+- 🔧 TximTxom has to be called with a card of 5 or less, like Txi jog.
+- 🔧 Hand points stack on wide screens too, and round totals stay on one line. The pile counters appear once the cards are dealt.
+- 🐛 Txi jog with a card picked before drawing ends the round with that card and keeps the drawn one.
+
 ## 0.42.0 (2026-11-01)
 - ✨ Emotes: 12 pixel emotes by Kenney. Pick one from the smiley button on your plate or next to the chat field, and it pops up over your plate (or your row in the lobby) for everyone.
 - ✨ A Chat button in the top bar (shortcut C) opens the chat directly and shows how many messages you haven't read.

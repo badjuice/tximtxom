@@ -100,12 +100,15 @@ describe('wins and play again', () => {
     const g = room.game!;
     const seat = g.turn;
     const hand = [1, 2, 3, 4, 5, 6, 7].map((r) => makeCard(r, 0)); // A-7 of one suit
-    const others = g.players.flatMap((p) => p.hand).filter((c) => !hand.includes(c));
+    const low = makeCard(2, 1); // drawn, then let go of
+    const others = g.players.flatMap((p) => p.hand).filter((c) => !hand.includes(c) && c !== low);
     for (const p of g.players) p.hand = [];
     g.players[seat].hand = hand;
     g.players[1 - seat].hand = others.slice(0, 7);
+    g.step = 'drawn';
+    g.drawn = low;
     const member = room.members.find((m) => m.id === g.players[seat].id)!;
-    const err = room.act(member, { type: 'tximtxom' });
+    const err = room.act(member, { type: 'tximtxom', swap: low });
     expect(err).toBeNull();
     expect(room.game!.phase).toBe('gameOver');
     expect(member.wins).toBe(1);

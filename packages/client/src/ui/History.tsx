@@ -5,7 +5,7 @@ import { cardShort, cardSpoken, type Key, kindName, lang, t } from '../i18n';
 import { updateSettings, useSettings } from '../settings';
 import { historyText } from '../historyLog';
 import { copyText } from '../report';
-import { store, toast, useStore } from '../store';
+import { type PastGame, store, toast, useStore } from '../store';
 import { ChatBox, useUnreadChat } from './Chat';
 import { Label } from './common';
 import { SEAT_COLORS } from './Hud';
@@ -27,11 +27,102 @@ function tj(key: Key, vars: Record<string, ComponentChildren>): ComponentChildre
   return raw.split('\u0000').map((part, i) => (i % 2 ? vars[part] : part));
 }
 
+const CopyIcon = () => (
+  <svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges" aria-hidden="true">
+    <path d="M5 1h9v9h-2V3H5z" fill="currentColor" />
+    <path d="M2 5h9v10H2zm2 2v6h5V7z" fill="currentColor" fill-rule="evenodd" />
+  </svg>
+);
+
+function copied(ok: boolean): void {
+  toast(ok ? t('h.copied') : t('h.copyFailed'), ok ? 'info' : 'error');
+}
+
+const LineItem = ({ l, you }: { l: Line; you: number | null }) => (
+  <li class={`hline ${l.kind}${l.seat !== null && l.seat === you ? ' mine' : ''}${l.auto ? ' auto' : ''}`} key={l.id}>
+    {l.body}
+    {l.auto && (
+      <span class="hauto" title={t('h.autoTitle')} aria-label={t('h.autoTitle')} role="img">
+        <ArtIcon name="timer" scale={0.26} />
+      </span>
+    )}
+  </li>
+);
+
+/**
+ * A game's lines, a fold per round: the rounds before the last one are closed
+ * (open them to read or copy), and the last round is laid out in full.
+ */
+function Lines({ lines, you, foldAll }: { lines: Line[]; you: number | null; foldAll?: boolean }) {
+  const rounds: Line[][] = [[]];
+  for (const l of lines) {
+    if (l.kind === 'round' && rounds.at(-1)!.some((x) => x.kind === 'round')) rounds.push([]);
+    rounds.at(-1)!.push(l);
+  }
+  return (
+    <>
+      {rounds.map((r, i) => {
+        const head = r.find((x) => x.kind === 'round');
+        if ((i === rounds.length - 1 && !foldAll) || !head) return r.map((l) => <LineItem l={l} you={you} />);
+        const before = r.slice(0, r.indexOf(head));
+        return (
+          <>
+            {before.map((l) => (
+              <LineItem l={l} you={you} />
+            ))}
+            <li class="hfold" key={`f${head.id}`}>
+              <details>
+                <summary class="hline round">{head.body}</summary>
+                <ol class="hfold-list">
+                  {r.slice(r.indexOf(head) + 1).map((l) => (
+                    <LineItem l={l} you={you} />
+                  ))}
+                </ol>
+              </details>
+            </li>
+          </>
+        );
+      })}
+    </>
+  );
+}
+
+/** An earlier game in this room: one closed line, with its rounds folded inside. */
+function PastGameFold({ game, n }: { game: PastGame; n: number }) {
+  const copy = (round?: number) => void copyText(historyText(game.events, game.g, game.myDraws, round)).then(copied);
+  const lines = describe(game.events, game.g, game.myDraws, copy);
+  return (
+    <li class="hfold past">
+      <details>
+        <summary class="hline big">
+          {t('h.pastGame', { n })}
+          <button
+            class="hcopy small"
+            title={t('h.copyGame')}
+            aria-label={t('h.copyGame')}
+            onClick={(e) => {
+              e.preventDefault();
+              copy();
+            }}
+          >
+            <CopyIcon />
+          </button>
+        </summary>
+        <ol class="hfold-list">
+          <Lines lines={lines} you={game.g.you} foldAll />
+        </ol>
+      </details>
+    </li>
+  );
+}
+
 interface Line {
   id: number;
   kind: 'round' | 'move' | 'big' | 'score';
   seat: number | null;
   body: ComponentChildren;
+  /** The game made this move for the player (they didn't act in time). */
+  auto?: boolean;
 }
 
 function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: Record<number, Card>, onCopy: (round: number) => void): Line[] {
@@ -45,6 +136,7 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
     );
   const lines: Line[] = [];
   for (const { id, e } of events) {
+    const count = lines.length;
     switch (e.t) {
       case 'cut':
         lines.push({ id, kind: 'move', seat: e.dealer, body: tj('h.cut', { name: N(e.dealer) }) });
@@ -101,7 +193,7 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
           seat: e.seat,
           body: (
             <>
-              {tj('h.showed', { name: N(e.seat), kind: kindName(e.kind).toLowerCase() })}{' '}
+              {tj('h.showed', { name: N(e.seat), kind: kindName(e.kind, e.cards.length).toLowerCase() })}{' '}
               {e.cards.map((c) => (
                 <C card={c} />
               ))}
@@ -169,8 +261,11 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
         lines.push({ id, kind: 'big', seat: null, body: tj('h.gameOver', { names: <>{e.winners.map((w, i) => [i > 0 && ' & ', N(w)])}</> }) });
         break;
       case 'pass':
+        // Passing is silent, unless the game had to do it for someone.
+        if (e.auto) lines.push({ id, kind: 'move', seat: e.seat, body: tj('h.autoPass', { name: N(e.seat) }) });
         break;
     }
+    if (e.auto && lines.length > count) lines[lines.length - 1].auto = true;
   }
   return lines;
 }
@@ -178,6 +273,7 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
 export function HistoryPanel() {
   const s = useSettings();
   const history = useStore((st) => st.history);
+  const pastGames = useStore((st) => st.pastGames);
   const myDraws = useStore((st) => st.myDraws);
   const g = useStore((st) => st.room?.game);
   const room = useStore((st) => st.room);
@@ -237,11 +333,10 @@ export function HistoryPanel() {
           atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
         }}
       >
-        {lines.map((l) => (
-          <li class={`hline ${l.kind}${l.seat !== null && l.seat === g.you ? ' mine' : ''}`} key={l.id}>
-            {l.body}
-          </li>
+        {pastGames.map((p, i) => (
+          <PastGameFold game={p} n={i + 1} key={`g${i}`} />
         ))}
+        <Lines lines={lines} you={g.you} />
         {lines.length === 0 && <li class="hline muted">{t('h.empty')}</li>}
       </ol>}
     </aside>

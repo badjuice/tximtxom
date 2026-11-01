@@ -243,6 +243,8 @@ function turnAction(state: GameState, seat: Seat, action: Action): string | null
         if (!canEndWith(card)) return 'You can only end the round with a 5 or lower';
         removeCard(hand, card);
       }
+      // A Txi jog that leaves a TximTxom in your hand calls it.
+      if (isTximTxom(hand, state.rules)) return callTximTxom(state, seat, card);
       // The ending card is shown and slid under the discard pile.
       state.discard.unshift(card);
       const kind: EndKind = state.mustEnd ? 'pileOut' : 'manual';
@@ -253,25 +255,33 @@ function turnAction(state: GameState, seat: Seat, action: Action): string | null
       return null;
     }
     case 'tximtxom': {
-      let candidate = [...hand];
-      if (state.step === 'drawn') candidate.push(state.drawn!);
-      if (candidate.length > HAND_SIZE) {
-        if (action.swap === undefined || !candidate.includes(action.swap)) return 'Choose a card to let go first';
-        if (action.swap === state.taken) return "You can't let go of the card you just took";
-        candidate = candidate.filter((c) => c !== action.swap);
-      }
-      if (!isTximTxom(candidate, state.rules)) return 'Not a TximTxom!';
-      player.hand = candidate;
-      state.drawn = null;
-      state.taken = null;
-      state.phase = 'gameOver';
-      state.winners = [seat];
-      emit(state, { t: 'tximtxom', seat });
-      emit(state, { t: 'gameOver', winners: [seat] });
-      return null;
+      // Called like a Txi jog: pick a card up, then let go of a 5 or lower (any card once the pile is out).
+      if (state.step === 'choose') return 'Pick a card first';
+      const candidate = state.step === 'drawn' ? [...hand, state.drawn!] : [...hand];
+      const swap = action.swap;
+      if (swap === undefined || !candidate.includes(swap)) return 'Choose a card to let go first';
+      if (swap === state.taken) return "You can't let go of the card you just took";
+      if (!state.mustEnd && !canEndWith(swap)) return 'You can only end the round with a 5 or lower';
+      const rest = candidate.filter((c) => c !== swap);
+      if (!isTximTxom(rest, state.rules)) return 'Not a TximTxom!';
+      player.hand = rest;
+      return callTximTxom(state, seat, swap);
     }
   }
   return 'Unknown action';
+}
+
+/** TximTxom: the game is won on the spot. `card`, let go of, goes under the discard pile. */
+function callTximTxom(state: GameState, seat: Seat, card: Card): null {
+  state.discard.unshift(card);
+  state.drawn = null;
+  state.taken = null;
+  state.mustEnd = false;
+  state.phase = 'gameOver';
+  state.winners = [seat];
+  emit(state, { t: 'tximtxom', seat });
+  emit(state, { t: 'gameOver', winners: [seat] });
+  return null;
 }
 
 function finishTurn(state: GameState): void {

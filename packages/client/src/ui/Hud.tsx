@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { EmoteBubble, EmotePicker } from './Emotes';
 import { type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
-import { canDrop, cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort, txiJogBlock, type BarButton } from '../controller';
+import { canDrop, cardsSeenOut, computeBar, layWait, readyForNextRound, sortHand, toggleAutoSort, txiJogBlock, type BarButton } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
-import { drawPileTop, revealGroups } from '../game/scene';
+import { drawPileTop, type FormationGroup, revealGroups } from '../game/scene';
 import { cardShort, type Key, kindName, t } from '../i18n';
 import { leaveRoom, playAgain, startGame } from '../net';
 import { useSettings } from '../settings';
@@ -212,11 +212,14 @@ function TimerBar({ deadline, total }: { deadline: number; total: number }) {
 }
 
 function PileInfo({ g, L }: { g: GameView; L: Layout }) {
+  // Hidden (not removed) while the cards are dealt, and shown once they've landed.
+  const dealing = useStore((s) => s.dealing);
   if (g.phase !== 'playing') return null;
   const below = (p: Point) => ({ x: p.x, y: p.y + (CARD_H * L.pileScale) / 2 + 20 });
+  const cls = `pile-label${dealing ? ' pre-deal' : ''}`;
   return (
     <>
-      <div class="pile-label" style={toScreen(L, below(L.draw))}>
+      <div class={cls} style={toScreen(L, below(L.draw))}>
         <span class="muted">
           <Label k="drawPile" />
         </span> <b>{g.drawCount}</b>
@@ -226,7 +229,7 @@ function PileInfo({ g, L }: { g: GameView; L: Layout }) {
           </span>
         )}
       </div>
-      <div class="pile-label" style={toScreen(L, below(L.discard))}>
+      <div class={cls} style={toScreen(L, below(L.discard))}>
         <span class="muted">
           <Label k="discardPile" />
         </span> <b>{g.discardCount}</b>
@@ -313,17 +316,54 @@ function FormationLabels({ g, L }: { g: GameView; L: Layout }) {
   return (
     <>
       {groups.map((grp) => (
-        // In its owner's colour, so no name is needed (long names overlapped);
-        // "+2" counts the cards other players added on rides.
-        <div
-          class={`formation-label${grp.active ? ' active' : ''}`}
-          style={{ ...toScreen(L, { x: grp.x + grp.w / 2, y: grp.y - 4 }), '--seat': SEAT_COLORS[grp.owner] }}
-          aria-label={`${grp.owner === g.you ? t('you') : g.players[grp.owner].name}: ${kindName(grp.kind)}${grp.rides ? ` +${grp.rides}` : ''}`}
-        >
-          {kindName(grp.kind)}
-          {grp.rides > 0 && <b class="fl-rides">+{grp.rides}</b>}
-        </div>
+        <FormationLabel key={grp.id} grp={grp} g={g} L={L} />
       ))}
+    </>
+  );
+}
+
+/**
+ * A formation's name badge. It waits for the cards to land, then pops in with a
+ * shine; every card added on a ride shines it again. When the formation closes
+ * (its cards tighten), one shine crosses the cards.
+ */
+function FormationLabel({ grp, g, L }: { grp: FormationGroup; g: GameView; L: Layout }) {
+  const fresh = useRef(true);
+  const wasActive = useRef(grp.active);
+  const closed = useRef(false);
+  // Laid now (not already on the table when you joined or refreshed).
+  const laidNow = useRef(g.phase === 'reveal');
+  const wait = useRef((layWait.get(grp.id) ?? 0) / 1000).current;
+  if (!fresh.current && wasActive.current && !grp.active) closed.current = true;
+  // Laid with nobody able to ride: it's closed straight away.
+  if (fresh.current && !grp.active && laidNow.current) closed.current = true;
+  const first = fresh.current;
+  fresh.current = false;
+  wasActive.current = grp.active;
+  const owner = grp.owner === g.you ? t('you') : g.players[grp.owner].name;
+  const name = kindName(grp.kind, grp.cards.length - grp.rides);
+  const h = CARD_H * L.reveal.cardScale * L.scale;
+  return (
+    <>
+      {/* In its owner's colour, so no name is needed (long names overlapped);
+          "+2" counts the cards other players added on rides. */}
+      <div
+        class={`formation-label${grp.active ? ' active' : ''}${laidNow.current ? ' fl-in' : ''}`}
+        style={{ ...toScreen(L, { x: grp.x + grp.w / 2, y: grp.y - 4 }), '--seat': SEAT_COLORS[grp.owner], '--fl-wait': `${wait}s` }}
+        aria-label={`${owner}: ${name}${grp.rides ? ` +${grp.rides}` : ''}`}
+      >
+        {name}
+        {grp.rides > 0 && <b class="fl-rides">+{grp.rides}</b>}
+        {laidNow.current && <span class="fl-shine" key={grp.cards.length} style={{ animationDelay: first || grp.rides === 0 ? `${wait + 0.85}s` : '0.4s' }} aria-hidden="true" />}
+      </div>
+      {closed.current && (
+        <div
+          class="formation-shine"
+          key={`c${grp.id}`}
+          style={{ ...toScreen(L, { x: grp.x, y: grp.y }), width: `${grp.w * L.scale}px`, height: `${h}px`, animationDelay: wasActive.current || !first ? '0.4s' : `${wait + 1.4}s` }}
+          aria-hidden="true"
+        />
+      )}
     </>
   );
 }
@@ -349,6 +389,9 @@ function HandBar({ g, L }: { g: GameView; L: Layout }) {
         <button class={`mini${s.sortBy === 'suit' ? ' on' : ''}`} onClick={() => sortHand('suit')}>
           <Label k="sort.suit" />
         </button>
+        <button class={`mini${s.sortBy === 'magic' ? ' on' : ''}`} onClick={() => sortHand('magic')} title={t('sort.magicTitle')}>
+          <Label k="sort.magic" />
+        </button>
         <span class="sort-sep" aria-hidden="true" />
         {/* A switch, not a third sort option: keeps the hand sorted as cards come and go. */}
         <button class={`auto-toggle${s.autoSort ? ' on' : ''}`} role="switch" aria-checked={s.autoSort} title={t('sort.autoTitle')} onClick={toggleAutoSort}>
@@ -369,6 +412,22 @@ function HandBar({ g, L }: { g: GameView; L: Layout }) {
         <b class="after">{after.min === after.max ? after.min : `${after.min}–${after.max}`}</b>
       </div>
     </div>
+  );
+}
+
+/** Seconds until a button presses itself, with a bar draining along its bottom. */
+function Countdown({ at }: { at: number }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 100);
+    return () => clearInterval(id);
+  }, [at]);
+  const left = Math.max(0, at - now);
+  return (
+    <>
+      <span class="btn-count">{Math.ceil(left / 1000)}</span>
+      <span class="btn-drain" style={{ width: `${Math.min(100, left / 50)}%` }} aria-hidden="true" />
+    </>
   );
 }
 
@@ -431,6 +490,7 @@ export function ActionBar() {
             ) : (
               <Button color={b.color} disabled={!on(b)} onClick={b.onClick} kbd={b.key === 'Enter' ? '⏎' : b.key === 'Backspace' ? '⌫' : b.key} title={b.title} big>
                 <ShortLabel text={b.label} short={b.short} />
+                {b.deadline && <Countdown at={b.deadline} />}
               </Button>
             ),
           )}

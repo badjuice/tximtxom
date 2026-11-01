@@ -1,4 +1,4 @@
-import { type Card, type GameView, rankOf, suitOf } from '@tximtxom/shared';
+import { bestPartition, type Card, type GameView, rankOf, type Rules, suitOf } from '@tximtxom/shared';
 import { SEAT_COLORS } from '../seatColors';
 import type { Staged } from '../store';
 import type { CardTarget } from './cardView';
@@ -36,7 +36,7 @@ export interface SceneInput {
   layout: Layout;
   handOrder: Card[];
   /** Auto sort is on: keep the hand in this order, also while a move is staged. */
-  autoSortBy: 'rank' | 'suit' | null;
+  autoSortBy: SortKey | null;
   selected: Card[];
   staged: Staged | null;
   /** Previously seen discard tops (for a visible pile under the top card). */
@@ -127,9 +127,19 @@ export function revealGroups(game: GameView, layout: Layout): FormationGroup[] {
   return groups;
 }
 
-export function sortedCards(hand: readonly Card[], by: 'rank' | 'suit'): Card[] {
+/** How the hand is sorted. Magic puts each formation's cards together, the unformed ones to the right (or the left: magicLeft). */
+export type SortKey = 'rank' | 'suit' | 'magic' | 'magicLeft';
+
+export function sortedCards(hand: readonly Card[], by: SortKey, rules?: Rules): Card[] {
+  if ((by === 'magic' || by === 'magicLeft') && rules) {
+    // The best way to form the hand (fewest points left), each formation in its own order, lowest first.
+    const p = bestPartition(hand, rules);
+    const forms = [...p.formations].sort((a, b) => Math.min(...a.cards.map(rankOf)) - Math.min(...b.cards.map(rankOf))).flatMap((f) => f.cards);
+    const rest = sortedCards(p.leftover, 'rank');
+    return by === 'magicLeft' ? [...rest, ...forms] : [...forms, ...rest];
+  }
   return [...hand].sort((a, b) =>
-    by === 'rank' ? rankOf(a) - rankOf(b) || suitOf(a) - suitOf(b) : suitOf(a) - suitOf(b) || rankOf(a) - rankOf(b),
+    by === 'suit' ? suitOf(a) - suitOf(b) || rankOf(a) - rankOf(b) : rankOf(a) - rankOf(b) || suitOf(a) - suitOf(b),
   );
 }
 
@@ -276,7 +286,7 @@ export function describeScene(input: SceneInput): DesiredCard[] {
         leaving = { card: staged.card, at: staged.type === 'endRound' ? 'end' : 'discard' };
         shownHand = order.map((c) => (c === staged.card && drawn !== null ? drawn : c)).filter((c) => c !== staged.card);
         // The drawn card takes the leaving card's slot; with auto sort it goes where it belongs.
-        if (input.autoSortBy) shownHand = sortedCards(shownHand, input.autoSortBy);
+        if (input.autoSortBy) shownHand = sortedCards(shownHand, input.autoSortBy, g.rules);
         if (drawn !== null) drawnSpot = null;
       }
     }

@@ -108,6 +108,7 @@ const en = {
   trio: 'Trio',
   quad: 'Quad',
   straight: 'Straight',
+  straightN: '{n}-Straight',
   formation: 'formation',
   drawPile: 'Draw Pile',
   discardPile: 'Discard Pile',
@@ -154,6 +155,8 @@ const en = {
   'sort.label': 'Sort',
   'sort.rank': 'Rank',
   'sort.suit': 'Suit',
+  'sort.magic': 'Magic',
+  'sort.magicTitle': 'Put the cards of each formation together',
   'sort.auto': 'Auto',
   'sort.autoTitle': 'Keep the hand sorted as cards come and go',
 
@@ -189,7 +192,7 @@ const en = {
   'act.pass': 'Pass',
   'act.nextRound': 'Next round',
   'act.txiJogNeeds': 'You need a 5 or lower to end the round',
-  'act.tximtxomTitle': 'Call TximTxom with a 7-card straight flush. Wins the game.',
+  'act.tximtxomTitle': 'With a 7-card straight flush after picking a card up, let go of a 5 or lower to call TximTxom. Wins the game.',
   'act.doneTitle': 'No more formations to show',
 
   // status line
@@ -200,6 +203,7 @@ const en = {
   'st.drawn': 'Drag it to the Discard Pile, or onto a hand card to swap',
   'st.mustEnd': 'Last card of the pile: end the round with any card',
   'st.tookPick': 'Drag a card to the Discard Pile (not the one you took)',
+  'st.cantRide': 'None of your cards fits: passing for you',
   'st.ride': "Take a ride on {name}'s formation? Drag a card onto it",
   'st.rideOnMine': 'Others may take a ride on your formation…',
   'st.rideOnTheirs': "Others may take a ride on {name}'s formation…",
@@ -292,6 +296,9 @@ const en = {
   // history
   'h.title': 'History',
   'h.copyGame': 'Copy game',
+  'h.autoPass': '{name} passed (nothing fitted)',
+  'h.autoTitle': 'Played automatically: this player seems to be away',
+  'h.pastGame': 'Game {n}',
   'h.copyRound': 'Copy',
   'h.copied': 'History copied',
   'h.copyFailed': "Couldn't copy the history",
@@ -353,8 +360,8 @@ const en = {
   'f.aceHighOff': 'Only with Ace High',
   'f.noWrap': 'No wrap',
   'f.noWrapDesc': 'An Ace never sits in the middle of a straight',
-  'f.tximtxomDesc': 'A {o}7-card straight flush{/o}. Call it on your turn to {g}win the game!{/g}',
-  'f.tximtxomSmeared': 'A {o}7-card straight flush{/o}, one suit even with Mixed Suits. Call it on your turn to {g}win the game!{/g}',
+  'f.tximtxomDesc': 'A {o}7-card straight flush{/o}. Call it with a Txi jog of a 5 or lower to {g}win the game!{/g}',
+  'f.tximtxomSmeared': 'A {o}7-card straight flush{/o}, one suit even with Mixed Suits. Call it with a Txi jog of a 5 or lower to {g}win the game!{/g}',
 
   // settings
   'set.seats.ccw': 'Visual only: the next player sits on your right',
@@ -363,6 +370,12 @@ const en = {
   'set.announce.off': 'Your screen reader stays quiet during play',
   'set.sortBy.rank': 'Cards go in order: A, 2, 3 … K',
   'set.sortBy.suit': 'Cards group by suit, then go in order',
+  'set.sortBy.magic': 'The cards of each formation go together',
+  'set.magicUnformed': 'Unformed cards',
+  'set.magicUnformed.left': 'Cards that form nothing go on the left',
+  'set.magicUnformed.right': 'Cards that form nothing go on the right',
+  'set.left': 'Left',
+  'set.right': 'Right',
   'set.autoSort.on': 'Your hand sorts itself as cards come and go',
   'set.autoSort.off': 'Cards stay where you put them until you press Sort',
   'set.confirm.off': 'Buttons play at once, with no undo',
@@ -740,6 +753,7 @@ const en = {
   'stats.tximtxoms': 'TximTxoms',
   'stats.formations': 'Formations shown',
   'stats.rides': 'Rides taken',
+  'stats.ridesGiven': 'Rides given',
   'stats.best': 'Best round',
   'stats.visits': 'Visits',
   'stats.since': 'Playing since',
@@ -774,7 +788,7 @@ const en = {
   'help.ride':
     'After the round ends, formations are shown one by one. Other players can {g}take a ride{/g}: add their own cards to them to shed points. One card per player on a pair or trio; cards at either end of a straight, in its suit (any suit with Mixed Suits). Once someone stretches your straight, you can add to it too. No rides after a {g}full hand (-10){/g}, or when the Draw Pile ran out.',
   'help.more':
-    'The first time the Draw Pile empties, the discards (except the top one) are reshuffled. The second time, whoever drew the last card must {r}end the round{/r} with any card, and there are no rides. Hold a {o}7-card straight flush{/o} and call {o}TximTxom!{/o} on your turn to win the whole game. Turns go counter-clockwise; the dealer plays first and the deal rotates.',
+    'The first time the Draw Pile empties, the discards (except the top one) are reshuffled. The second time, whoever drew the last card must {r}end the round{/r} with any card, and there are no rides. Make a {o}7-card straight flush{/o} and end your turn with a Txi jog of a 5 or lower to call {o}TximTxom!{/o} and win the whole game. Turns go counter-clockwise; the dealer plays first and the deal rotates.',
 
   // errors (from the rules engine / host)
   'err.notYourTurn': 'Not your turn',
@@ -899,6 +913,7 @@ const pt: Record<Key, string> = {
   trio: 'Trinca',
   quad: 'Quadra',
   straight: 'Escada',
+  straightN: 'Escada de {n}',
   formation: 'formação',
   drawPile: 'Monte',
   discardPile: 'Descarte',
@@ -942,6 +957,8 @@ const pt: Record<Key, string> = {
   'sort.label': 'Ordenar',
   'sort.rank': 'Valor',
   'sort.suit': 'Naipe',
+  'sort.magic': 'Magia',
+  'sort.magicTitle': 'Junta as cartas de cada formação',
   'sort.auto': 'Auto',
   'sort.autoTitle': 'Manter a mão ordenada quando entram e saem cartas',
 
@@ -975,7 +992,7 @@ const pt: Record<Key, string> = {
   'act.pass': 'Passar vez',
   'act.nextRound': 'Próxima ronda',
   'act.txiJogNeeds': 'Precisas de um 5 ou menos para fazer Txi jog',
-  'act.tximtxomTitle': 'Chama TximTxom com uma escada de 7 do mesmo naipe. Ganha o jogo.',
+  'act.tximtxomTitle': 'Com uma escada de 7 do mesmo naipe depois de apanhar uma carta, larga um 5 ou menos para chamar TximTxom. Ganha o jogo.',
   'act.doneTitle': 'Não tenho mais formações para mostrar',
 
   'st.waitingFor': 'À espera de {name}…',
@@ -985,6 +1002,7 @@ const pt: Record<Key, string> = {
   'st.drawn': 'Arrasta-a para o Descarte, ou para cima de uma carta da mão para trocar',
   'st.mustEnd': 'Última carta do Monte: faz Txi jog com qualquer carta',
   'st.tookPick': 'Arrasta uma carta para o Descarte (não a que apanhaste)',
+  'st.cantRide': 'Nenhuma carta tua serve: passas automaticamente',
   'st.ride': 'Apanhar boleia na formação de {name}? Arrasta uma carta para lá',
   'st.rideOnMine': 'Os outros podem apanhar boleia na tua formação…',
   'st.rideOnTheirs': 'Os outros podem apanhar boleia na formação de {name}…',
@@ -1073,6 +1091,9 @@ const pt: Record<Key, string> = {
 
   'h.title': 'Histórico',
   'h.copyGame': 'Copiar jogo',
+  'h.autoPass': '{name} passou (nada servia)',
+  'h.autoTitle': 'Jogada automática: este jogador parece estar ausente',
+  'h.pastGame': 'Jogo {n}',
   'h.copyRound': 'Copiar',
   'h.copied': 'Histórico copiado',
   'h.copyFailed': 'Não deu para copiar o histórico',
@@ -1132,8 +1153,8 @@ const pt: Record<Key, string> = {
   'f.aceHighOff': 'Só com Ás Alto',
   'f.noWrap': 'Sem volta',
   'f.noWrapDesc': 'O Ás nunca fica no meio de uma escada',
-  'f.tximtxomDesc': '{o}Escada de 7 do mesmo naipe{/o}. Chama-a na tua vez para {g}ganhar o jogo!{/g}',
-  'f.tximtxomSmeared': '{o}Escada de 7 do mesmo naipe{/o}, mesmo com Naipes Misturados. Chama-a na tua vez para {g}ganhar o jogo!{/g}',
+  'f.tximtxomDesc': '{o}Escada de 7 do mesmo naipe{/o}. Chama-a com um Txi jog de um 5 ou menos para {g}ganhar o jogo!{/g}',
+  'f.tximtxomSmeared': '{o}Escada de 7 do mesmo naipe{/o}, mesmo com Naipes Misturados. Chama-a com um Txi jog de um 5 ou menos para {g}ganhar o jogo!{/g}',
 
   'set.seats.ccw': 'Só visual: o jogador seguinte senta-se à tua direita',
   'set.seats.cw': 'Só visual: o jogador seguinte senta-se à tua esquerda',
@@ -1141,6 +1162,12 @@ const pt: Record<Key, string> = {
   'set.announce.off': 'O leitor de ecrã fica calado durante o jogo',
   'set.sortBy.rank': 'As cartas ficam por ordem: Ás, 2, 3 … K',
   'set.sortBy.suit': 'As cartas juntam-se por naipe, depois por ordem',
+  'set.sortBy.magic': 'As cartas de cada formação ficam juntas',
+  'set.magicUnformed': 'Cartas por formar',
+  'set.magicUnformed.left': 'As cartas que não formam nada ficam à esquerda',
+  'set.magicUnformed.right': 'As cartas que não formam nada ficam à direita',
+  'set.left': 'Esquerda',
+  'set.right': 'Direita',
   'set.autoSort.on': 'A tua mão arruma-se sozinha à medida que as cartas entram e saem',
   'set.autoSort.off': 'As cartas ficam onde as pões até carregares em Ordenar',
   'set.confirm.off': 'Os botões jogam logo, sem desfazer',
@@ -1518,6 +1545,7 @@ const pt: Record<Key, string> = {
   'stats.tximtxoms': 'TximTxoms',
   'stats.formations': 'Formações mostradas',
   'stats.rides': 'Boleias apanhadas',
+  'stats.ridesGiven': 'Boleias dadas',
   'stats.best': 'Melhor ronda',
   'stats.visits': 'Visitas',
   'stats.since': 'A jogar desde',
@@ -1550,7 +1578,7 @@ const pt: Record<Key, string> = {
   'help.ride':
     'Depois do {r}Txi jog{/r}, as formações são mostradas uma a uma. Os outros jogadores podem {g}apanhar boleia{/g}: juntar cartas suas para se livrarem de pontos. Uma carta por jogador num par ou trinca; cartas do mesmo naipe nas pontas de uma escada (de qualquer naipe com Naipes Misturados). Quando alguém estica a tua escada, também lhe podes juntar cartas. Não há boleias depois de uma {g}mão cheia (-10){/g}, nem quando o Monte acabou.',
   'help.more':
-    'Da primeira vez que o Monte acaba, o Descarte (menos a carta de cima) é baralhado. Da segunda vez, quem tirou a última carta tem de fazer {r}Txi jog{/r} com qualquer carta, e não há boleias. Com uma {o}escada de 7 do mesmo naipe{/o} na mão, chama {o}TximTxom!{/o} na tua vez e ganhas o jogo todo. Joga-se no sentido anti-horário; o Dealer joga primeiro e o Dealer muda a cada ronda.',
+    'Da primeira vez que o Monte acaba, o Descarte (menos a carta de cima) é baralhado. Da segunda vez, quem tirou a última carta tem de fazer {r}Txi jog{/r} com qualquer carta, e não há boleias. Com uma {o}escada de 7 do mesmo naipe{/o}, acaba a tua vez com um Txi jog de um 5 ou menos para chamar {o}TximTxom!{/o} e ganhas o jogo todo. Joga-se no sentido anti-horário; o Dealer joga primeiro e o Dealer muda a cada ronda.',
 
   'err.notYourTurn': 'Não é a tua vez',
   'err.pickFirst': 'Primeiro tira ou apanha uma carta',
@@ -1678,6 +1706,8 @@ export function cardShort(c: Card): string {
   return r + SUIT_SYMBOLS[suitOf(c)];
 }
 
-export function kindName(kind: string): string {
+/** A formation's name. A straight says how many cards it was laid with ("4-Straight"); rides don't change it. */
+export function kindName(kind: string, size?: number): string {
+  if (kind === 'straight' && size) return t('straightN', { n: size });
   return t((['pair', 'trio', 'quad', 'straight'].includes(kind) ? kind : 'formation') as Key);
 }

@@ -6,7 +6,7 @@ import type { Staged } from '../store';
 import { type CardTarget, type CardTextures, CardView } from './cardView';
 import { CARD_H, CARD_W, computeLayout, type Layout, type Point } from './layout';
 import { Particles, Shake } from './particles';
-import { type DesiredCard, describeScene, drawPileTop, GREEN, handDropTop, reorderedHand } from './scene';
+import { type DesiredCard, describeScene, type SortKey, drawPileTop, GREEN, handDropTop, reorderedHand } from './scene';
 
 export type DropTarget = { kind: 'discard' } | { kind: 'drawPile' } | { kind: 'txiJog' } | { kind: 'handCard'; card: Card } | { kind: 'formation'; id: number } | { kind: 'table' };
 
@@ -34,7 +34,7 @@ export interface TableHandlers {
 export interface TableInput {
   game: GameView | null;
   handOrder: Card[];
-  autoSortBy: 'rank' | 'suit' | null;
+  autoSortBy: SortKey | null;
   selected: Card[];
   staged: Staged | null;
 }

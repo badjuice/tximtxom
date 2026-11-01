@@ -111,7 +111,9 @@ export interface Settings {
   historyOpen: boolean;
   // Language and hand sorting
   lang: 'pt' | 'en';
-  sortBy: 'rank' | 'suit';
+  sortBy: 'rank' | 'suit' | 'magic';
+  /** Magic sort: where the cards that form nothing go. */
+  magicUnformed: 'left' | 'right';
   autoSort: boolean;
 }
 
@@ -148,6 +150,7 @@ export const DEFAULT_SETTINGS: Settings = {
   historyOpen: false,
   lang: 'pt',
   sortBy: 'rank',
+  magicUnformed: 'right',
   autoSort: false,
 };
 

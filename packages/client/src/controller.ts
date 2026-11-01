@@ -1,7 +1,7 @@
 import { type Action, type Card, canEndWith, canRide, type GameEvent, type GameView, type RoomView } from '@tximtxom/shared';
 import { play, type Sfx, vibrate } from './audio';
 import { setMood, shuffleTablePalette, swirl } from './background';
-import { drawPileTop, revealGroups, sortedCards } from './game/scene';
+import { drawPileTop, revealGroups, type SortKey, sortedCards } from './game/scene';
 import type { DropTarget, SpawnHints, Table } from './game/table';
 import { cardShort, cardSpoken, type Key, kindName, t, tError } from './i18n';
 import { act, fetchHistory } from './net';
@@ -44,6 +44,34 @@ function myRideKey(g: GameView): string {
   if (g.rules.rideOrder === 'roundRobin' ? w.riders[w.rrIndex] !== me : w.passed.includes(me)) return '';
   return `${w.formationId}`;
 }
+/** None of your cards can go on the open formation (it's full, or nothing fits): the same checks as the host. */
+function cannotRide(g: GameView): boolean {
+  const me = g.you;
+  const f = g.reveal?.formations.find((x) => x.id === g.reveal?.ride?.formationId);
+  if (me === null || !f) return false;
+  if (f.owner === me && f.kind !== 'straight') return true;
+  if (f.kind !== 'straight' && f.rides.some((r) => r.seat === me)) return true;
+  return !(g.players[me].hand ?? []).some((c) => canRide(f.cards, c, g.rules));
+}
+
+const AUTO_PASS_MS = 5000;
+let autoPassKey = '';
+let autoPassTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** With nothing to ride with, Pass counts down and passes for you. */
+function autoPass(g: GameView, rideKey: string): void {
+  const f = g.reveal?.formations.find((x) => x.id === g.reveal?.ride?.formationId);
+  const key = rideKey && f && cannotRide(g) ? `${rideKey}:${f.cards.length}` : '';
+  if (key === autoPassKey) return;
+  autoPassKey = key;
+  clearTimeout(autoPassTimer);
+  store.set({ autoPassAt: key ? Date.now() + AUTO_PASS_MS : null });
+  if (key) autoPassTimer = setTimeout(() => autoPassKey === key && void send({ type: 'pass', auto: true }), AUTO_PASS_MS);
+}
+
+/** How long a formation's cards wait before flying in (ms): its name badge waits too. */
+export const layWait = new Map<number, number>();
+
 let announce: (text: string) => void = () => {};
 
 export function setAnnouncer(fn: (text: string) => void): void {
@@ -75,12 +103,18 @@ export function setHandOrder(order: Card[]): void {
   pushToTable();
 }
 
-export function sortHand(by: 'rank' | 'suit'): void {
+/** The sort in use, with Magic's side for the unformed cards. */
+function sortKey(): SortKey {
+  const s = getSettings();
+  return s.sortBy === 'magic' ? (s.magicUnformed === 'left' ? 'magicLeft' : 'magic') : s.sortBy;
+}
+
+export function sortHand(by: 'rank' | 'suit' | 'magic'): void {
   const g = store.get().room?.game;
   if (!g || g.you === null) return;
   play('cardFan2', { volume: 0.6 });
   updateSettings({ sortBy: by });
-  handOrder = sortedCards(g.players[g.you].hand ?? [], by);
+  handOrder = sortedCards(g.players[g.you].hand ?? [], sortKey(), g.rules);
   pushToTable();
 }
 
@@ -95,8 +129,7 @@ export function toggleAutoSort(): void {
 function applyAutoSort(): void {
   const g = store.get().room?.game;
   if (!g || g.you === null) return;
-  const s = getSettings();
-  const next = sortedCards(g.players[g.you].hand ?? [], s.sortBy);
+  const next = sortedCards(g.players[g.you].hand ?? [], sortKey(), g.rules);
   if (next.join() !== handOrder.join()) {
     handOrder = next;
     pushToTable();
@@ -148,8 +181,8 @@ function onStore(): void {
 
 function pushToTable(hints?: SpawnHints): void {
   const s = store.get();
-  const { autoSort, sortBy } = getSettings();
-  table.set({ game: s.room?.game ?? null, handOrder, autoSortBy: autoSort ? sortBy : null, selected: s.selected, staged: s.staged }, hints);
+  const { autoSort } = getSettings();
+  table.set({ game: s.room?.game ?? null, handOrder, autoSortBy: autoSort ? sortKey() : null, selected: s.selected, staged: s.staged }, hints);
 }
 
 function onRoom(room: RoomView | null, prev: RoomView | null): void {
@@ -209,7 +242,9 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   const rideChanged = prevG?.reveal?.ride?.formationId !== g.reveal?.ride?.formationId || prevG?.reveal?.current !== g.reveal?.current;
   if (stepChanged || rideChanged) {
     const hand = me !== null ? g.players[me].hand ?? [] : [];
-    store.set({ staged: null, selected: s.selected.filter((c) => hand.includes(c) && !stepChanged) });
+    // Picking a card up (draw or take) keeps what you'd selected in your hand: pick a 5, draw, then Txi jog with it.
+    const pickedUp = prevG?.phase === 'playing' && g.phase === 'playing' && prevG.turn === me && g.turn === me && prevG.step === 'choose';
+    store.set({ staged: null, selected: s.selected.filter((c) => hand.includes(c) && (!stepChanged || pickedUp)) });
   }
 
   turnCallouts(g, prevG);
@@ -220,7 +255,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
     if (wait > 0) setTimeout(applyAutoSort, wait);
     else {
       const hand = me !== null ? g.players[me].hand ?? [] : [];
-      handOrder = sortedCards(hand, getSettings().sortBy);
+      handOrder = sortedCards(hand, sortKey(), g.rules);
     }
   }
   pushToTable(hints);
@@ -255,16 +290,23 @@ function turnCallouts(g: GameView, prevG: GameView | null): void {
     callout(t('c.ride'), CALLOUT.ride, { ms: RIDE_CALLOUT_MS });
   }
   lastRideKey = rideKey;
+  autoPass(g, rideKey);
 }
 
 /** Keeps the full move log: merges the recent events, fetches everything if there's a gap. */
 let historyFetching = false;
+/** The game view the history was last synced with: names the players of a game once it's over. */
+let historyGame: GameView | null = null;
+const PAST_GAMES = 10;
 function syncHistory(g: GameView | null): void {
   const s = store.get();
   if (!g) {
-    if (s.history.length) store.set({ history: [], myDraws: {} });
+    if (s.history.length || s.pastGames.length) store.set({ history: [], myDraws: {}, pastGames: [] });
+    historyGame = null;
     return;
   }
+  const last = historyGame;
+  historyGame = g;
   const known = s.history;
   const lastKnown = known.at(-1)?.id ?? 0;
   const fresh = g.events.filter((x) => x.id > lastKnown);
@@ -272,7 +314,9 @@ function syncHistory(g: GameView | null): void {
   const restarted = g.events.length > 0 && g.events.at(-1)!.id < lastKnown;
   const gap = fresh.length > 0 && fresh[0].id !== lastKnown + 1;
   if (restarted || gap) {
-    store.set({ history: restarted ? [] : known, myDraws: restarted ? {} : s.myDraws });
+    // A new game: the last one folds away in the panel rather than being lost.
+    const pastGames = restarted && known.length && last ? [...s.pastGames, { events: known, g: last, myDraws: s.myDraws }].slice(-PAST_GAMES) : s.pastGames;
+    store.set({ history: restarted ? [] : known, myDraws: restarted ? {} : s.myDraws, pastGames });
     if (!historyFetching) {
       historyFetching = true;
       void fetchHistory().then((events) => {
@@ -336,6 +380,9 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       if (g.discardTop !== null) hints.set(`c${g.discardTop}`, { from: drawPileTop(L, 1), delay: (7 * n + 3) * 0.07 * speedK, hidden: lead, faceDown: true, reset: true });
       // Turn callouts wait until the cards have landed.
       dealUntil = Date.now() + lead * 1000 + ((7 * n + 4) * 70 * speedK) / gs;
+      store.set({ dealing: true });
+      const dealt = dealUntil;
+      setTimeout(() => dealUntil === dealt && store.set({ dealing: false }), dealUntil - Date.now());
       for (let i = 0; i < 7 * n; i += 2) sfx('cardSlide1', { delay: lead * 1000 + (i * 70 * speedK) / gs, volume: 0.5 });
       // Every round is dealt on a new colour, like a new blind in Balatro (and a new back, if chosen).
       shuffleTablePalette();
@@ -427,11 +474,12 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       const rideKey = myRideKey(g);
       const wait = rideKey === `${e.formationId}` && rideKey !== lastRideKey ? RIDE_CALLOUT_MS - 330 : 0;
       if (e.seat !== me) for (const c of e.cards) hints.set(`c${c}`, { from: seatPos(g, e.seat), hidden: wait / 1000 });
+      layWait.set(e.formationId, wait);
       sfx('card3', { delay: wait });
       sfx('chips1', { delay: wait + 150 });
       const grp = revealGroups(g, L).find((x) => x.id === e.formationId);
       if (grp) setTimeout(() => table.particles.burst(grp.x + grp.w / 2, grp.y + 40, { count: 14, colors: [0x009dff, 0xffffff] }), wait + 250);
-      announce(t('sr.laid', { name: name(g, e.seat), kind: kindName(e.kind), cards: e.cards.map(cardSpoken).join(', ') }));
+      announce(t('sr.laid', { name: name(g, e.seat), kind: kindName(e.kind, e.cards.length), cards: e.cards.map(cardSpoken).join(', ') }));
       break;
     }
     case 'ride': {
@@ -678,7 +726,9 @@ export async function send(action: Action): Promise<boolean> {
     store.set((s) => ({ shake: s.shake + 1 }));
     return false;
   }
-  store.set({ selected: [], staged: null });
+  // Drawing or taking keeps your selection, so a card picked beforehand can still end the round.
+  const keep = action.type === 'draw' || action.type === 'takeDiscard';
+  store.set(keep ? { staged: null } : { selected: [], staged: null });
   return true;
 }
 
@@ -718,6 +768,8 @@ export interface BarButton {
   title?: string;
   /** Press and hold to confirm (moves that are easy to hit by mistake). */
   hold?: boolean;
+  /** Pressed by itself at this time (ms timestamp): the button counts down to it. */
+  deadline?: number;
 }
 
 export interface Bar {
@@ -752,10 +804,11 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
       };
     }
 
+    // Called like a Txi jog: a card picked up, and a 5 or lower (not the one just taken) let go of.
     const tximtxom = (swap?: Card): BarButton => ({
       label: t('act.tximtxom'),
       color: 'orange',
-      enabled: true,
+      enabled: swap !== undefined && swap !== g.taken && (g.mustEnd || canEndWith(swap)),
       onClick: () => void send({ type: 'tximtxom', swap }),
       key: 'T',
       title: t('act.tximtxomTitle'),
@@ -854,9 +907,9 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
               onClick: () => card !== undefined && void send({ type: 'ride', card }),
               key: 'Enter',
             },
-            { label: t('act.pass'), color: 'red', enabled: true, onClick: () => void send({ type: 'pass' }), key: 'E' },
+            { label: t('act.pass'), color: 'red', enabled: true, onClick: () => void send({ type: 'pass' }), key: 'E', deadline: store.get().autoPassAt ?? undefined },
           ],
-          status: t('st.ride', { name: name(g, owner) }),
+          status: store.get().autoPassAt ? t('st.cantRide') : t('st.ride', { name: name(g, owner) }),
         };
       }
       const waiting = g.rules.rideOrder === 'roundRobin' ? g.players[w.riders[w.rrIndex]].name : t('st.otherPlayers');

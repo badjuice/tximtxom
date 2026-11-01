@@ -51,7 +51,6 @@ export function botAction(state: GameState, seat: Seat): Action | null {
   if (state.phase === 'playing' && state.turn === seat) {
     const hand = me.hand;
     if (state.step === 'choose') {
-      if (isTximTxom(hand, state.rules)) return { type: 'tximtxom' };
       const top = state.discard[state.discard.length - 1];
       if (top !== undefined) {
         const now = deadwood(state, hand);
@@ -65,7 +64,7 @@ export function botAction(state: GameState, seat: Seat): Action | null {
     const forbidden = state.step === 'tookDiscard' ? state.taken : null;
 
     for (const c of pool) {
-      if (c !== forbidden && isTximTxom(without(pool, c), state.rules)) return { type: 'tximtxom', swap: c };
+      if (c !== forbidden && (state.mustEnd || canEndWith(c)) && isTximTxom(without(pool, c), state.rules)) return { type: 'tximtxom', swap: c };
     }
 
     const end = bestEnd(state, pool, forbidden, state.mustEnd);

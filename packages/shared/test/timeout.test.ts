@@ -24,6 +24,10 @@ describe('turn timer', () => {
     expect(ends.length).toBeGreaterThan(0);
     for (const e of ends) expect(e.t === 'end' && e.kind).not.toBe('manual');
     expect(room.game!.events.some((x) => x.e.t === 'tximtxom')).toBe(false);
+    // Every draw and discard the timer made is marked as made for the player.
+    const moves = room.game!.events.filter((x) => x.e.t === 'draw' || x.e.t === 'discard');
+    expect(moves.length).toBeGreaterThan(0);
+    for (const x of moves) expect(x.e.auto).toBe(true);
   });
 
   it('puts back a card taken from the discard pile; a player cannot', () => {

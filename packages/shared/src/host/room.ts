@@ -333,14 +333,19 @@ export class Room {
     const seat = this.seatOf(member);
     if (seat === null) return 'You are not playing';
     if (action.type === 'putBack') return 'Unknown action';
-    return this.apply(seat, action, false);
+    return this.apply(seat, action, false, action.type === 'pass' && action.auto === true);
   }
 
-  private apply(seat: Seat, action: Action, auto: boolean): string | null {
+  /** `marked`: a move made for a player who didn't act (the log shows it). */
+  private apply(seat: Seat, action: Action, auto: boolean, marked = false): string | null {
     const before = this.game!.phase;
     const res = applyAction(this.game!, seat, action);
     this.record({ seat, what: JSON.stringify(action), auto: auto || undefined, error: res.ok ? undefined : res.error });
     if (!res.ok) return res.error;
+    if (marked) {
+      const from = this.game!.nextEventId;
+      for (const x of res.state.events) if (x.id >= from && 'seat' in x.e && x.e.seat === seat) x.e.auto = true;
+    }
     this.game = res.state;
     if (before !== 'gameOver' && this.game.phase === 'gameOver') {
       // Badges: every winner (all of them on a tie) gets gold, the rest silver,
@@ -511,7 +516,7 @@ export class Room {
       for (let i = 0; i < 20 && this.game; i++) {
         const a = this.game.phase === 'playing' ? timeoutMove(this.game, seat) : botAction(this.game, seat);
         if (!a || a.type === 'ready') break;
-        if (this.apply(seat, a, true)) break;
+        if (this.apply(seat, a, true, true)) break;
       }
     }
   }

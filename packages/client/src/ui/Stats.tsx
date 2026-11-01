@@ -146,6 +146,8 @@ function StatsPanel() {
               <dd>{formatCount(s.tximtxoms)}</dd>
               <dt>{t('stats.rides')}</dt>
               <dd>{formatCount(s.rides)}</dd>
+              <dt>{t('stats.ridesGiven')}</dt>
+              <dd>{formatCount(s.ridesGiven)}</dd>
             </dl>
           </section>
           <p class="center muted small stats-foot">

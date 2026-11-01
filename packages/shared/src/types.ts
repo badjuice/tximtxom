@@ -80,7 +80,7 @@ export interface RoundResult {
   totals: number[];
 }
 
-export type GameEvent =
+export type GameEvent = (
   | { t: 'cut'; draws: { seat: Seat; card: Card }[][]; dealer: Seat }
   | { t: 'deal'; round: number; dealer: Seat }
   | { t: 'draw'; seat: Seat }
@@ -94,7 +94,11 @@ export type GameEvent =
   | { t: 'doneLaying'; seat: Seat }
   | { t: 'score'; round: number }
   | { t: 'tximtxom'; seat: Seat }
-  | { t: 'gameOver'; winners: Seat[] };
+  | { t: 'gameOver'; winners: Seat[] }
+) & {
+  /** Made by the game for a player who didn't act in time (turn timer, or nothing to ride with). */
+  auto?: true;
+};
 
 export interface GameState {
   rules: Rules;
@@ -137,7 +141,8 @@ export type Action =
   | { type: 'lay'; cards: Card[] }
   | { type: 'doneLaying' }
   | { type: 'ride'; card: Card }
-  | { type: 'pass' }
+  /** `auto`: the player's client passed for them (nothing of theirs could ride). */
+  | { type: 'pass'; auto?: boolean }
   | { type: 'ready' }
   /** The turn timer only (players can't send it): the card just taken from the discard pile goes back. */
   | { type: 'putBack' };

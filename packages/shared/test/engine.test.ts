@@ -221,11 +221,22 @@ describe('scoring', () => {
     expect(s.phase).toBe('gameOver');
   });
 
-  it('TximTxom wins the game instantly', () => {
-    let s = rig(game(), ['AS 2S 3S 4S 5S 6S 9H', 'QH QS 9D 9C 6H 6D 10C'], '7S', '8H');
-    expect(err(s, 0, { type: 'tximtxom' })).toMatch(/Not a TximTxom/);
+  it('TximTxom is called like a Txi jog, letting go of a 5 or lower, and wins the game', () => {
+    let s = rig(game(), ['AS 2S 3S 4S 5S 6S 3H', 'QH QS 9D 9C 6H 6D 10C'], '7S', '8H');
+    expect(err(s, 0, { type: 'tximtxom' })).toMatch(/Pick a card first/);
     s = act(s, 0, { type: 'draw' });
-    s = act(s, 0, { type: 'tximtxom', swap: C('9H') });
+    expect(err(s, 0, { type: 'tximtxom', swap: C('6S') })).toMatch(/5 or lower/);
+    expect(err(s, 0, { type: 'tximtxom', swap: C('AS') })).toMatch(/Not a TximTxom/);
+    s = act(s, 0, { type: 'tximtxom', swap: C('3H') });
+    expect(s.phase).toBe('gameOver');
+    expect(s.winners).toEqual([0]);
+    expect(s.discard[0]).toBe(C('3H'));
+  });
+
+  it('a Txi jog that leaves a TximTxom calls it', () => {
+    let s = rig(game(), ['AS 2S 3S 4S 5S 6S 2H', 'QH QS 9D 9C 6H 6D 10C'], '7S', '8H');
+    s = act(s, 0, { type: 'draw' });
+    s = act(s, 0, { type: 'endRound', card: C('2H') });
     expect(s.phase).toBe('gameOver');
     expect(s.winners).toEqual([0]);
   });

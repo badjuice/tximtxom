@@ -1,6 +1,13 @@
 import { getSettings, updateSettings } from './settings';
 import { useEffect, useState } from 'preact/hooks';
-import type { Card, GameEvent, RoomView } from '@tximtxom/shared';
+import type { Card, GameEvent, GameView, RoomView } from '@tximtxom/shared';
+
+/** A finished game's log: its events, the view to name its players by, and the cards you drew. */
+export interface PastGame {
+  events: { id: number; e: GameEvent }[];
+  g: GameView;
+  myDraws: Record<number, Card>;
+}
 import type { Layout } from './game/layout';
 
 /** One colour per seat, used on plates, callouts and in the history. */
@@ -42,10 +49,16 @@ export interface ClientState {
   history: { id: number; e: GameEvent }[];
   /** Cards you drew yourself, by event id (only you know them). */
   myDraws: Record<number, Card>;
+  /** Earlier games in this room, oldest first, kept for the History panel until you leave. */
+  pastGames: PastGame[];
   /** The last chat message you've seen, and in which room. */
   chatSeen: { code: string; id: number };
   /** The History panel's tab. */
   sideTab: 'history' | 'chat';
+  /** The cards are being dealt: the pile counters wait until they've landed. */
+  dealing: boolean;
+  /** No card of yours fits the open formation: when you pass on your own (ms timestamp). */
+  autoPassAt: number | null;
 }
 
 /** The History and Chat buttons (and H, C): open the side panel on that tab, or close it if it's showing it already. */
@@ -95,8 +108,11 @@ export const store = createStore<ClientState>({
   layout: null,
   history: [],
   myDraws: {},
+  pastGames: [],
   chatSeen: { code: '', id: 0 },
   sideTab: 'history',
+  dealing: false,
+  autoPassAt: null,
 });
 
 /** Preact hook: re-renders when the selected slice changes. */

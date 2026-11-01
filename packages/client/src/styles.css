@@ -1654,6 +1654,54 @@ input[type='text'] {
 .formation-label.end {
   background: var(--red);
 }
+/* Laid: the badge waits for the cards to land, pops in, then shines (once more per card ridden on). */
+.formation-label.fl-in {
+  overflow: hidden;
+  animation: fl-pop 0.22s cubic-bezier(0.2, 1.6, 0.4, 1) calc(var(--fl-wait, 0s) + 0.6s) both;
+}
+@keyframes fl-pop {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+}
+.fl-shine,
+.formation-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 38%, rgba(255, 255, 255, 0.9) 50%, transparent 62%) 100% 0 / 300% 100% no-repeat;
+  opacity: 0;
+  animation: fl-shine 0.5s ease-in-out both;
+}
+/* A closed formation: one shine across its cards. */
+.formation-shine {
+  inset: auto;
+  border-radius: 6px;
+  background-image: linear-gradient(115deg, transparent 40%, rgba(255, 240, 190, 0.75) 50%, transparent 60%);
+  mix-blend-mode: screen;
+  animation-duration: 0.7s;
+}
+@keyframes fl-shine {
+  0% {
+    background-position: 100% 0;
+    opacity: 1;
+  }
+  99% {
+    background-position: 0% 0;
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.reduced-motion .formation-label.fl-in {
+  animation: none;
+}
+.reduced-motion .fl-shine,
+.reduced-motion .formation-shine {
+  display: none;
+}
 /* Over the draw pile while a card that can end the round is held. */
 .txijog-drop {
   position: absolute;
@@ -2758,19 +2806,17 @@ input[type='text'] {
     padding: 2px 8px;
   }
 }
-/* Phones: the two figures stack, one per line, to keep the bar inside the screen. */
-@media (max-width: 700px) {
-  .hand-points {
-    display: grid;
-    grid-template-columns: auto auto;
-    column-gap: 6px;
-    row-gap: 0;
-    padding: 1px 8px;
-    line-height: 1.05;
-  }
-  .hand-points b + .muted {
-    margin-left: 0;
-  }
+/* The two figures stack, one per line, on every screen. */
+.hand-points {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 6px;
+  row-gap: 0;
+  padding: 1px 8px;
+  line-height: 1.05;
+}
+.hand-points b + .muted {
+  margin-left: 0;
 }
 .mini {
   background: var(--grey);
@@ -4486,6 +4532,38 @@ input.rename {
 .reduced-motion .ach-toast {
   animation: fade 0.2s both;
 }
+/* Three shines across the whole toast once it lands, each with a chime (achievements.ts: SHINE_AT). */
+.ach-toast::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+      115deg,
+      transparent 40%,
+      rgba(255, 220, 120, 0.35) 46%,
+      rgba(255, 255, 255, 0.85) 50%,
+      rgba(255, 220, 120, 0.35) 54%,
+      transparent 60%
+    )
+    100% 0 / 300% 100% no-repeat;
+  opacity: 0;
+  animation: ach-shine 0.48s ease-in-out 0.42s 3;
+}
+@keyframes ach-shine {
+  0% {
+    background-position: 100% 0;
+    opacity: 1;
+  }
+  100% {
+    background-position: 0% 0;
+    opacity: 1;
+  }
+}
+.reduced-motion .ach-toast::after {
+  animation: none;
+}
 
 /* Cards and card art can be picked up for fun (grab.ts). Touch drags them too,
    except in the scrolling History, where a swipe scrolls. */
@@ -5027,4 +5105,95 @@ input.rename {
   .history-open .topbar .mini-text {
     display: none;
   }
+}
+
+/* Pile counters: in once the deal has landed. */
+.pile-label {
+  transition: opacity 0.25s;
+}
+.pile-label.pre-deal {
+  opacity: 0;
+}
+
+/* Round and game summaries: "41 pts" never breaks over two lines. */
+td.num.total,
+td.num.pts {
+  white-space: nowrap;
+}
+
+/* A button that presses itself (Pass, when nothing fits): seconds left and a draining bar. */
+/* On the corner, so the button keeps its width. */
+.btn-count {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  min-width: 24px;
+  height: 24px;
+  line-height: 24px;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--red-d);
+  text-shadow: none;
+  font-size: 0.85em;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+/* The hold-to-confirm fill run backwards: the whole button, emptying from the right. */
+.btn .btn-drain {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* History folds: earlier rounds and games close up into their header line. */
+.hfold {
+  list-style: none;
+}
+.hfold > details > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.hfold > details > summary::-webkit-details-marker {
+  display: none;
+}
+.hfold > details > summary::before {
+  content: '▸';
+  font-size: 0.9em;
+}
+.hfold > details[open] > summary::before {
+  content: '▾';
+}
+.hfold-list {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0 0 0 6px;
+  border-left: 2px solid rgba(255, 255, 255, 0.12);
+}
+.hfold.past > details > summary {
+  margin-top: 4px;
+}
+.hcopy.small {
+  width: 22px;
+  height: 20px;
+  margin: 0 0 0 auto;
+}
+
+/* A move the game made for a player: a small timer at the end of its line. */
+.hauto {
+  display: inline-block;
+  margin-left: 4px;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+/* Seat colours can match the header's blue: names there go white. */
+.hline.round .hname {
+  color: #fff !important;
 }

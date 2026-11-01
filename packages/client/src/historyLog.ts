@@ -60,6 +60,7 @@ export function historyText(events: { id: number; e: GameEvent }[], g: GameView,
     picked = start < 0 ? [] : events.slice(start, next < 0 ? undefined : next);
   }
   const seats = g.players.map((p, i) => `${i}=${p.name}${p.isBot ? '(bot)' : ''}${i === g.you ? '(me)' : ''}`).join(' ');
-  const body = picked.map(({ id, e }) => line(e, g, myDraws[id])).filter((l) => l !== null);
+  // (auto): the game made the move for the player.
+  const body = picked.map(({ id, e }) => { const l = line(e, g, myDraws[id]); return l !== null && e.auto ? `${l} (auto)` : l; }).filter((l) => l !== null);
   return [`TximTxom v${VERSION} ${round !== undefined ? `round ${round}` : 'game'} log. Seats: ${seats}`, rulesLine(g.rules), LEGEND, ...body].join('\n');
 }

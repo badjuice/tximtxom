@@ -19,6 +19,22 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.43.0',
+    date: '2026-11-01',
+    items: [
+      n('Magic sort puts the cards of each formation together. A setting picks whether the cards that form nothing go left or right.', 'A ordenação Magia junta as cartas de cada formação. Uma definição escolhe se as cartas que não formam nada ficam à esquerda ou à direita.'),
+      n('When none of your cards can ride, Pass counts down 5 seconds and passes for you. The History marks moves the game made for a player with a timer icon.', 'Quando nenhuma carta tua pode ir à boleia, o Passar conta 5 segundos e passa por ti. O Histórico marca com um relógio as jogadas que o jogo fez por um jogador.'),
+      n('The History folds earlier rounds and earlier games in the room instead of losing them. Open one to read it or copy it.', 'O Histórico fecha as rondas e os jogos anteriores da sala em vez de os perder. Abre um para o ler ou copiar.'),
+      n('Unlocking an achievement shines the whole card three times, with a chime for each.', 'Desbloquear uma conquista faz brilhar o cartão inteiro três vezes, com um som para cada.'),
+      n('Formations show their cards first, then their name, which shines when laid and again for each card added. A closed formation shines once.', 'As formações mostram primeiro as cartas, depois o nome, que brilha ao ser mostrado e outra vez por cada carta acrescentada. Uma formação fechada brilha uma vez.'),
+      n('Stats count the rides you gave.', 'As estatísticas contam as boleias que deste.'),
+      c('Straights are named by their length before rides, like 4-Straight.', 'As escadas têm o nome do tamanho antes das boleias, como Escada de 4.'),
+      c('TximTxom has to be called with a card of 5 or less, like Txi jog.', 'O TximTxom tem de ser chamado com uma carta de 5 ou menos, como o Txi jog.'),
+      c('Hand points stack on wide screens too, and round totals stay on one line. The pile counters appear once the cards are dealt.', 'Os pontos da mão ficam empilhados também em ecrãs largos, e os totais da ronda ficam numa linha. Os contadores dos montes aparecem depois de as cartas serem dadas.'),
+      f('Txi jog with a card picked before drawing ends the round with that card and keeps the drawn one.', 'O Txi jog com uma carta escolhida antes de comprar acaba a ronda com essa carta e fica com a comprada.'),
+    ],
+  },
+  {
     version: '0.42.0',
     date: '2026-11-01',
     items: [

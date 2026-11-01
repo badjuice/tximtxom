@@ -229,11 +229,16 @@ export function unlock(id: AchievementId, counted = false): void {
   if (!showing) nextToast();
 }
 
+/** When each of the toast's three shines starts (ms after it shows). */
+const SHINE_AT = [420, 900, 1380];
+
 function nextToast(): void {
   showing = toastQueue.shift() ?? null;
   notify();
   if (!showing) return;
   play('coin1', { volume: 0.7 });
+  // Three rising chimes, one for each shine across the toast (styles.css: ach-shine).
+  SHINE_AT.forEach((ms, i) => setTimeout(() => play('editionFoil', { volume: 0.9, rate: 1 + i * 0.18 }), ms));
   setTimeout(() => {
     showing = null;
     notify();
