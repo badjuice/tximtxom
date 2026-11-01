@@ -716,7 +716,7 @@ function nope(): void {
   vibrate([30, 40, 30]);
   // Now and then a "Nuh-uh!" instead, and one time in twenty a "Nananinanão!".
   const r = Math.random();
-  callout(t(r < 0.05 ? 'c.nope.rare' : r < 0.5 ? 'c.nope' : 'c.nope.alt'), CALLOUT.nope, { ms: 1000 });
+  callout(t(r < 0.05 ? 'c.nope.rare' : r < 0.5 ? 'c.nope' : 'c.nope.alt'), CALLOUT.nope, { ms: 1500 });
 }
 
 export function badDrop(card: Card, target: DropTarget): void {

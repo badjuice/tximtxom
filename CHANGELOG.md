@@ -5,6 +5,10 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.2 (2026-11-01)
+- 🔧 Nope! and the other quick callouts stay on screen a bit longer.
+- 🐛 An achievement unlocked while the Achievements window is open (Window Shopper) gets its New! sign right away.
+
 ## 0.49.1 (2026-11-01)
 - 🐛 When a round ends, the piles slide aside before any formation is shown, so formations no longer land under them.
 

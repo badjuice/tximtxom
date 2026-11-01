@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.2',
+    date: '2026-11-01',
+    items: [
+      c("Nope! and the other quick callouts stay on screen a bit longer.", "O Nope! e os outros avisos rápidos ficam no ecrã um pouco mais."),
+      f("An achievement unlocked while the Achievements window is open (Window Shopper) gets its New! sign right away.", "Uma conquista desbloqueada com a janela das Conquistas aberta (Só a Ver) ganha logo o sinal Nova!."),
+    ],
+  },
+  {
     version: '0.49.1',
     date: '2026-11-01',
     items: [f("When a round ends, the piles slide aside before any formation is shown, so formations no longer land under them.", "Quando uma ronda acaba, os montes afastam-se antes de se mostrar qualquer formação, para as formações já não caírem debaixo deles.")],

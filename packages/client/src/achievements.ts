@@ -246,8 +246,10 @@ const notify = () => listeners.forEach((l) => l());
 const unlockHooks = new Set<(id: AchievementId) => void>();
 
 /** Calls `hook` with each achievement as it's unlocked. */
-export function onUnlock(hook: (id: AchievementId) => void): void {
+/** Calls `hook` on every unlock; returns a function that stops it. */
+export function onUnlock(hook: (id: AchievementId) => void): () => void {
   unlockHooks.add(hook);
+  return () => unlockHooks.delete(hook);
 }
 
 export const hasAchievement = (id: AchievementId) => !!unlocked[id];

@@ -140,7 +140,7 @@ let calloutId = 0;
 /** Shows a callout for `ms`. `small` is for less important ones (other players' turns). */
 export function callout(text: string, color: string, opts: { ms?: number; small?: boolean } = {}): void {
   const id = ++calloutId;
-  const ms = opts.ms ?? 1250;
+  const ms = opts.ms ?? 1700;
   store.set({ callout: { id, text, color, small: opts.small, ms } });
   setTimeout(() => {
     if (store.get().callout?.id === id) store.set({ callout: null });
