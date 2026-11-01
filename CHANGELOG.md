@@ -5,6 +5,13 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.0 (2026-11-01)
+- 🔧 The "rule off" achievements are now "everything but": finish a game with every other rule on. Mobius Strip goes off with Ace High, and either Magic Sort or Scramble counts.
+- 🔧 Magic Sort and Scramble can't be on together: turning one on turns the other off, and says so.
+- 🔧 A rule that needs another is striped under a gold padlock sign; tapping it shakes it and flashes the rule it needs. Mobius Strip's achievement says it needs Ace High.
+- 🔧 Lobby: How to play and Formations sit at the top next to Settings, as in the game, and Rules is a button above Start game that says how many rules changed.
+- 🔧 New achievements glow with a golden tint, and achievement cards lift a little when hovered.
+
 ## 0.48.1 (2026-11-01)
 - 🔧 Tapping a rule card at the top of the table explains it in a balloon, as on the Formations screen.
 - 🔧 Anarchist now needs your whole hand formed in a round, with no J, Q or K.

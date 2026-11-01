@@ -1,11 +1,20 @@
 import type { ComponentChildren } from 'preact';
 import type { Rules } from '@tximtxom/shared';
 import { t } from '../i18n';
+import { toast } from '../store';
+
+const RULE_KEY = { magicSort: 'rule.magicSort', scramble: 'rule.scramble' } as const;
 import { Choice, RuleName, Toggle } from './common';
 import { ArtIcon } from './sprites';
 
 /** The room settings, each next to its Joker. */
 export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChange: (r: Partial<Rules>) => void; readOnly?: boolean }) {
+  // Magic Sort and Scramble can't both be on: turning one on turns the other off, and says so.
+  const exclusive = (rule: 'magicSort' | 'scramble', other: 'magicSort' | 'scramble', on: boolean): Partial<Rules> => {
+    if (!on || !rules[other]) return { [rule]: on };
+    toast(t('rule.excludes', { rule: t(RULE_KEY[rule]), other: t(RULE_KEY[other]) }));
+    return { [rule]: true, [other]: false };
+  };
   return (
     <div class="rules-form">
       <p class="rules-legend">
@@ -33,6 +42,7 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         desc={t('rule.superposition.desc')}
         joker="ace" tone="support"
         checked={rules.superposition}
+        rule="superposition"
         // Mobius Strip only works on top of it, so it goes off too.
         onChange={(superposition) => onChange(superposition ? { superposition } : { superposition, mobius: false })}
         disabled={readOnly}
@@ -45,9 +55,10 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         onChange={(mobius) => onChange({ mobius })}
         disabled={readOnly}
         locked={rules.superposition ? undefined : t('rule.requires', { rule: t('rule.superposition') })}
+        lockedBy="superposition"
       />
       <Toggle label={t('rule.smeared')} desc={t('rule.smeared.desc')} joker="mixed" tone="support" checked={rules.smeared} onChange={(smeared) => onChange({ smeared })} disabled={readOnly} />
-      <Toggle label={t('rule.magicSort')} desc={t('rule.magicSort.desc')} joker="magicsort" tone="support" checked={rules.magicSort} onChange={(magicSort) => onChange({ magicSort })} disabled={readOnly} />
+      <Toggle label={t('rule.magicSort')} desc={t('rule.magicSort.desc')} joker="magicsort" tone="support" checked={rules.magicSort} onChange={(magicSort) => onChange(exclusive('magicSort', 'scramble', magicSort))} disabled={readOnly} />
       <Choice
         label={t('rule.rideOrder')}
         desc={t('rule.rideOrder.desc')}
@@ -92,7 +103,7 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         onChange={(turnTimer) => onChange({ turnTimer })}
         disabled={readOnly}
       />
-      <Toggle label={t('rule.scramble')} desc={t('rule.scramble.desc')} joker="scramble" tone="funny" checked={rules.scramble} onChange={(scramble) => onChange({ scramble })} disabled={readOnly} />
+      <Toggle label={t('rule.scramble')} desc={t('rule.scramble.desc')} joker="scramble" tone="funny" checked={rules.scramble} onChange={(scramble) => onChange(exclusive('scramble', 'magicSort', scramble))} disabled={readOnly} />
     </div>
   );
 }

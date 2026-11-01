@@ -373,15 +373,36 @@ export function Toggle(props: {
   joker?: string;
   disabled?: boolean;
   tone?: Tone;
-  /** Needs another rule that's off: greyed out under a "Requires …" sign. */
+  /** Needs another rule that's off: greyed out and striped under a "Requires …" sign. */
   locked?: string;
+  /** The `rule` of the toggle it needs: tapping this one while locked makes that one flash. */
+  lockedBy?: string;
+  /** Names this toggle for a locked one's `lockedBy`. */
+  rule?: string;
 }) {
   const disabled = props.disabled || !!props.locked;
+  const nudge = (e: MouseEvent) => {
+    if (!props.locked) return;
+    const me = e.currentTarget as HTMLElement;
+    const need = props.lockedBy ? document.querySelector<HTMLElement>(`[data-rule="${props.lockedBy}"]`) : null;
+    for (const [el, cls, ms] of [[me, 'nudge', 400], [need, 'beckon', 1500]] as const) {
+      if (!el) continue;
+      el.classList.remove(cls);
+      void el.offsetWidth;
+      el.classList.add(cls);
+      setTimeout(() => el.classList.remove(cls), ms);
+    }
+    need?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    play('cancel', { volume: 0.4 });
+  };
   return (
-    <label class={`toggle${disabled ? ' disabled' : ''}${props.locked ? ' locked' : ''}${props.tone ? ` tone-${props.tone}` : ''}`}>
+    <label class={`toggle${disabled ? ' disabled' : ''}${props.locked ? ' locked' : ''}${props.tone ? ` tone-${props.tone}` : ''}`} data-rule={props.rule} onClick={nudge}>
       {props.locked && (
         <span class="lock-sign">
-          <WaveText text={props.locked} plain />
+          <span>
+            <UiIcon name="lock" />
+            <WaveText text={props.locked} plain />
+          </span>
         </span>
       )}
       {props.joker && <ArtIcon name={props.joker} scale={0.55} rule />}
@@ -685,7 +706,7 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
 }
 
 /** A white Kenney Game Icon, drawn in the text colour of its button. */
-export type UiIconName = 'help' | 'settings' | 'leave' | 'history' | 'credits' | 'crGame' | 'crArt' | 'crInspiration' | 'crLibraries' | 'crServices';
+export type UiIconName = 'help' | 'settings' | 'leave' | 'history' | 'credits' | 'crGame' | 'crArt' | 'crInspiration' | 'crLibraries' | 'crServices' | 'lock';
 
 export function UiIcon({ name }: { name: UiIconName }) {
   return <span class="ui-icon" style={{ '--icon': `url(${assetUrl(`ui/${name}.png`)})` }} aria-hidden="true" />;
@@ -784,10 +805,12 @@ export function Label({ k, vars }: { k: Key; vars?: Record<string, string | numb
 }
 
 /** Top-right corner of the title screen and the room: Settings. */
-export function TopMenu() {
+/** Settings in the screen's top corner; `children` go before it (the lobby's How to play and Formations). */
+export function TopMenu({ children }: { children?: ComponentChildren }) {
   useSettings(); // redraw on a language change
   return (
     <div class="top-menu">
+      {children}
       <MiniButton color="orange" onClick={() => store.set({ overlay: 'settings' })} label={t('title.settings')}>
         <UiIcon name="settings" />
         <span class="mini-text">

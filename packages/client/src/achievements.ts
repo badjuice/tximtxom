@@ -3,7 +3,7 @@
 // a time. Infected is the odd one: it passes between players who share a room
 // (see `infected` in the room protocol), and the very first player to start a
 // game gets it from nobody (see claimPatientZero in stats.ts).
-import { type Card, type GameEvent, type GameView, rankOf, type RoomView, type Rules, suitOf } from '@tximtxom/shared';
+import { type Card, type GameEvent, type GameView, everythingBut, rankOf, type RoomView, type Rules, suitOf } from '@tximtxom/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
 import { getSettings } from './settings';
@@ -57,6 +57,7 @@ export const RULE_ACHIEVEMENTS = {
 } satisfies Record<string, { art: string; on: (r: Rules) => boolean }>;
 export type RuleAch = keyof typeof RULE_ACHIEVEMENTS;
 export const RULE_ACH_IDS = Object.keys(RULE_ACHIEVEMENTS) as RuleAch[];
+
 
 /**
  * Running counts with a row of achievements each (common, uncommon, epic), from your stats.
@@ -174,7 +175,7 @@ const ALL: Achievement[] = [
   { id: 'allRules', art: 'bikingu', rarity: 'legendary', meter: 'rules' },
   { id: 'chips1000', art: 'kabaleru', rarity: 'legendary', soon: true },
   ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `rule_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'common', rule })),
-  ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `ruleOff_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'common', rule, off: true })),
+  ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `ruleOff_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'uncommon', rule, off: true })),
   { id: 'vanilla', art: 'villager', rarity: 'uncommon' },
   { id: 'infected', art: 'slime', rarity: 'secret', secret: true },
   { id: 'scholar', art: 'elder', rarity: 'secret', secret: true },
@@ -420,7 +421,7 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       if (RULE_ACH_IDS.every((rule) => unlocked[`rule_${rule}`])) unlock('allRules');
       // A rule left off, in a game where some other rule was on (a plain game is Vanilla's).
       const on = RULE_ACH_IDS.filter((rule) => RULE_ACHIEVEMENTS[rule].on(g.rules));
-      for (const rule of RULE_ACH_IDS) if (!on.includes(rule) && on.length > 0) unlock(`ruleOff_${rule}`);
+      for (const rule of RULE_ACH_IDS) if (everythingBut(rule, on, RULE_ACH_IDS)) unlock(`ruleOff_${rule}`);
       if (on.length === 0 && e.winners.includes(me)) unlock('vanilla');
       const total = g.players[me].total;
       if (e.winners.includes(me)) {

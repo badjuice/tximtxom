@@ -49,7 +49,7 @@ export function Hud() {
 }
 
 /** The rules changed from the defaults, as [art, name, description] for the round chip. */
-function activeRules(r: GameView['rules']): [string, Key, Key][] {
+export function activeRules(r: GameView['rules']): [string, Key, Key][] {
   const out: [string, Key, Key][] = [];
   if (r.softcore) out.push(['softcore', 'rule.softcore', 'rule.softcore.desc']);
   if (r.superposition) out.push(['ace', 'rule.superposition', 'rule.superposition.desc']);

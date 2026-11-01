@@ -19,6 +19,17 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.0',
+    date: '2026-11-01',
+    items: [
+      c("The \"rule off\" achievements are now \"everything but\": finish a game with every other rule on. Mobius Strip goes off with Ace High, and either Magic Sort or Scramble counts.", "As conquistas de \"regra desligada\" agora são \"tudo menos\": acaba um jogo com todas as outras regras ligadas. A Fita de Mobius desliga-se com o Ás Alto, e conta a Ordem Mágica ou a Baralhada."),
+      c("Magic Sort and Scramble can't be on together: turning one on turns the other off, and says so.", "A Ordem Mágica e a Baralhada não podem estar ligadas juntas: ligar uma desliga a outra, com um aviso."),
+      c("A rule that needs another is striped under a gold padlock sign; tapping it shakes it and flashes the rule it needs. Mobius Strip's achievement says it needs Ace High.", "Uma regra que precisa de outra fica às riscas sob um aviso dourado com cadeado; tocar nela abana-a e faz piscar a regra de que precisa. A conquista da Fita de Mobius diz que precisa do Ás Alto."),
+      c("Lobby: How to play and Formations sit at the top next to Settings, as in the game, and Rules is a button above Start game that says how many rules changed.", "Sala: Como jogar e Formações ficam no topo ao lado das Definições, como no jogo, e as Regras são um botão por cima de Começar que diz quantas regras mudaram."),
+      c("New achievements glow with a golden tint, and achievement cards lift a little when hovered.", "As conquistas novas brilham com um tom dourado, e os cartões das conquistas levantam-se um pouco ao passar o rato."),
+    ],
+  },
+  {
     version: '0.48.1',
     date: '2026-11-01',
     items: [

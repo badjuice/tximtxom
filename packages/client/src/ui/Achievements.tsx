@@ -1,3 +1,4 @@
+import { RULE_REQUIRES, type Rules } from '@tximtxom/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, unlock, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
@@ -71,11 +72,15 @@ const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => {
   if (!a.rule) return t(`ach.${a.id}.${part}` as Key);
   if (a.off) {
     const name = ruleOffName(a.rule);
-    const phrase = a.rule === 'bust100' || a.rule === 'inTurns' ? name : t('ach.ruleOff.phrase', { rule: ruleName(a.rule) });
-    return part === 'name' ? name : part === 'desc' ? t('ach.ruleOff.desc', { rule: phrase }) : t('ach.ruleOff.flavor');
+    // "Ace High (and Mobius Strip, which needs it)": a rule that needs this one is off with it.
+    const dep = RULE_ACH_IDS.find((r) => RULE_REQUIRES[r as keyof Rules] === a.rule);
+    const except = dep ? t('ach.ruleOff.needs', { rule: ruleName(a.rule), dep: ruleName(dep) }) : ruleName(a.rule);
+    return part === 'name' ? name : part === 'desc' ? t('ach.ruleOff.desc', { rule: except }) : t('ach.ruleOff.flavor');
   }
   const name = ruleName(a.rule);
-  return part === 'name' ? name : part === 'desc' ? t('ach.rule.desc', { rule: name }) : t(`ach.rule.${a.rule}.flavor` as Key);
+  const need = RULE_REQUIRES[a.rule as keyof Rules] as RuleAch | undefined;
+  const what = need ? t('ach.rule.needs', { rule: name, need: ruleName(need) }) : name;
+  return part === 'name' ? name : part === 'desc' ? t('ach.rule.desc', { rule: what }) : t(`ach.rule.${a.rule}.flavor` as Key);
 };
 
 /** An unlocked achievement's name, shining in its rarity's colour (rainbow for the rainbow ones). */

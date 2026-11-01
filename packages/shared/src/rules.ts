@@ -51,6 +51,23 @@ export const DEFAULT_RULES: Rules = {
 /** Rules that only work on top of another: off, and locked in the room, until that one is on. */
 export const RULE_REQUIRES: Partial<Record<keyof Rules, keyof Rules>> = { mobius: 'superposition' };
 
+/** Rules that can't be on together (Scramble undoes any sorting): turning one on turns the other off. */
+export const RULE_EXCLUDES: [keyof Rules, keyof Rules][] = [['magicSort', 'scramble']];
+
+/** "Everything but": `rule` off and every other one of `all` on. A rule that needs `rule`
+ *  is off with it, and of two rules that can't be on together, either one is enough. */
+export function everythingBut<T extends string>(rule: T, on: readonly T[], all: readonly T[]): boolean {
+  if (on.includes(rule)) return false;
+  const has = (r: string) => (on as readonly string[]).includes(r);
+  return all.every(
+    (r) =>
+      r === rule ||
+      has(r) ||
+      RULE_REQUIRES[r as keyof Rules] === rule ||
+      RULE_EXCLUDES.some(([x, y]) => (r === x && has(y)) || (r === y && has(x))),
+  );
+}
+
 export const THRESHOLD_OPTIONS = [40, 100] as const;
 export const TIMER_OPTIONS = [0, 30, 60] as const;
 
@@ -69,7 +86,8 @@ export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
     turnTimer: (TIMER_OPTIONS as readonly number[]).includes(r.turnTimer) ? r.turnTimer : 0,
     sixthSense: !!r.sixthSense,
     smeared: !!r.smeared,
-    magicSort: !!r.magicSort,
+    // Never both: Scramble wins.
+    magicSort: !!r.magicSort && !r.scramble,
     scramble: !!r.scramble,
   };
 }

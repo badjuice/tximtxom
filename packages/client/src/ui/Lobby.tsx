@@ -5,7 +5,8 @@ import { play } from '../audio';
 import { t } from '../i18n';
 import { addBot, cycleAvatar, kick, renamePlayer, setReady, startGame } from '../net';
 import { store, useStore } from '../store';
-import { Button, TopMenu, WaveText } from './common';
+import { Button, Label, MiniButton, TopMenu, WaveText } from './common';
+import { activeRules } from './Hud';
 import { ChatBox } from './Chat';
 import { SEAT_COLORS } from './Hud';
 import { Icon, ArtIcon, Wins } from './sprites';
@@ -58,6 +59,7 @@ export function Lobby() {
   const isHost = room.hostId === room.youId;
   const me = room.players.find((p) => p.id === room.youId);
   const allReady = room.players.every((p) => p.ready);
+  const changed = activeRules(room.rules).length;
   const note = isHost
     ? room.players.length < MIN_PLAYERS
       ? t('lobby.needPlayers', { n: MIN_PLAYERS })
@@ -93,8 +95,15 @@ export function Lobby() {
 
   return (
     <main class="lobby">
-      {/* Language and Settings in the screen's top corner, as on the title screen. */}
-      <TopMenu />
+      {/* How to play, Formations and Settings in the screen's top corner, as in the game. */}
+      <TopMenu>
+        <MiniButton color="green" onClick={() => store.set({ overlay: 'help' })}>
+          <Label k="top.help" />
+        </MiniButton>
+        <MiniButton color="blue" onClick={() => store.set({ overlay: 'formations' })}>
+          <Label k="top.formations" />
+        </MiniButton>
+      </TopMenu>
       <section class="panel lobby-room">
         {/* Leave sits across from the title, so the main button below gets the whole row. */}
         <div class="lobby-head">
@@ -206,6 +215,10 @@ export function Lobby() {
             <li class="empty-seat">{t('lobby.emptySeat')}</li>
           ))}
         </ul>
+        {/* The rules, read on the way down to Start: they open in their own window. */}
+        <Button color="red" class="lobby-rules" onClick={() => store.set({ overlay: 'rules' })}>
+          {changed ? t('lobby.rulesChanged', { n: changed }) : t('lobby.rulesDefault')}
+        </Button>
         <div class="lobby-actions">
           {isHost ? (
             <Button color="blue" big disabled={room.players.length < MIN_PLAYERS || !allReady} onClick={() => void startGame()}>
@@ -235,18 +248,6 @@ export function Lobby() {
         <ChatBox room={room} />
       </section>
 
-      {/* Beside the room on wide screens; above it on narrow ones. The rules open in their own window. */}
-      <nav class="lobby-links">
-        <Button color="green" onClick={() => store.set({ overlay: 'help' })}>
-          {t('title.howToPlay')}
-        </Button>
-        <Button color="blue" onClick={() => store.set({ overlay: 'formations' })}>
-          {t('top.formations')}
-        </Button>
-        <Button color="red" onClick={() => store.set({ overlay: 'rules' })}>
-          {t('top.rules')}
-        </Button>
-      </nav>
     </main>
   );
 }
