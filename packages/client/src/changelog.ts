@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.40.2',
+    date: '2026-11-01',
+    items: [
+      f('High contrast cards now tell all four suits apart: diamonds are orange and clubs dark blue, while hearts stay red and spades black. Card backs are unchanged.', 'As cartas de alto contraste distinguem agora os quatro naipes: ouros cor de laranja e paus azul-escuro, enquanto copas continuam vermelhas e espadas pretas. As costas das cartas não mudam.'),
+    ],
+  },
+  {
     version: '0.40.1',
     date: '2026-11-01',
     items: [

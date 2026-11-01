@@ -46,8 +46,9 @@ const INK = '4d5766'; // outline, and the black suits' ink
 const RED = 'f52c4e';
 const FIELD = 'c7d7ec'; // light blue: card back field, inner frame
 
-// High contrast: one colour per suit (the game's suit colours).
-const HC = { H: [RED, [240, 52, 100]], D: [RED, [240, 107, 63]], S: [INK, [60, 67, 104]], C: [INK, [35, 89, 85]] };
+// High contrast, as in Balatro: hearts stay red and spades stay black; diamonds
+// turn orange and clubs a dark blue, so no two suits share a colour.
+const HC = { H: [RED, [245, 44, 78]], D: [RED, [238, 124, 22]], S: [INK, [77, 87, 102]], C: [INK, [52, 86, 178]] };
 
 const BACKS = {
   back_red: [254, 95, 85],
@@ -88,7 +89,7 @@ async function cards() {
     for (const s of ['H', 'C', 'D', 'S']) {
       for (const r of RANKS) {
         let img = await load(`card_${SUITS[s]}_${fileRank(r)}`);
-        if (deck === 'hc') img = recolour(img, ...HC[s]);
+        if (deck === 'hc' && (s === 'D' || s === 'C')) img = recolour(img, ...HC[s]);
         entries.push([`${deck}_${r}${s}`, await png(img)]);
       }
     }
@@ -158,7 +159,8 @@ async function boardCards() {
     for (const s of ['H', 'C', 'D', 'S']) {
       for (const r of RANKS) {
         let img = await boardLoad(`card${BOARD_SUITS[s]}${r}`);
-        if (deck === 'hc') img = boardInk(img, s);
+        // Hearts and spades keep their ink; only diamonds and clubs change colour.
+        if (deck === 'hc' && (s === 'D' || s === 'C')) img = boardInk(img, s);
         entries.push([`${deck}_${r}${s}`, await png(img)]);
       }
     }

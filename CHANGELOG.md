@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.40.2 (2026-11-01)
+- 🐛 High contrast cards now tell all four suits apart: diamonds are orange and clubs dark blue, while hearts stay red and spades black. Card backs are unchanged.
+
 ## 0.40.1 (2026-11-01)
 - 🐛 Txi jog plays out as at a real table: the ending card goes face up under the discard pile, then the whole pile is turned face down onto the draw pile.
 
