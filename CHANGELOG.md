@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.13 (2026-11-01)
+- 🐛 An achievement unlocked with the window open shines in step with the others.
+
 ## 0.49.12 (2026-11-01)
 - 🔧 On touch screens, tapping an achievement again puts it back in place.
 

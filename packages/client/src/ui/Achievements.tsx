@@ -1,5 +1,5 @@
 import { RULE_REQUIRES, type Rules } from '@tximtxom/shared';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, onUnlock, unlock, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
@@ -83,6 +83,9 @@ const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => {
   return part === 'name' ? name : part === 'desc' ? t('ach.rule.desc', { rule: what }) : t(`ach.rule.${a.rule}.flavor` as Key);
 };
 
+/** The looping shines on unlocked cards: the art's, the name's and the whole card's. */
+const SHINES = new Set(['rule-card-shine', 'rule-shine', 'ach-card-shine', 'rainbow-slide']);
+
 /** An unlocked achievement's name, shining in its rarity's colour (rainbow for the rainbow ones). */
 const Name = ({ a }: { a: Achievement }) => (
   <span class={`rule-ref${a.rainbow ? ' rainbow-text' : ''}`} style={{ '--rc': RARITY_SHINE[a.rarity] }}>
@@ -130,6 +133,12 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
   const [lifted, setLifted] = useState<AchievementId | null>(null);
   // Window Shopper: the list scrolled to its end, or short enough to show it all at once.
   const list = useRef<HTMLUListElement>(null);
+  // Every shine on the page clock's beat, so a card unlocked while this is open
+  // (its shines start late) glints together with the rest.
+  useLayoutEffect(() => {
+    for (const a of list.current?.getAnimations({ subtree: true }) ?? [])
+      if (a instanceof CSSAnimation && SHINES.has(a.animationName) && a.startTime !== 0) a.startTime = 0;
+  });
   const atEnd = () => {
     const el = list.current;
     if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 4) unlock('windowShopper');

@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.13',
+    date: '2026-11-01',
+    items: [f("An achievement unlocked with the window open shines in step with the others.", "Uma conquista desbloqueada com a janela aberta brilha ao mesmo ritmo das outras.")],
+  },
+  {
     version: '0.49.12',
     date: '2026-11-01',
     items: [c("On touch screens, tapping an achievement again puts it back in place.", "Nos ecrãs táteis, tocar outra vez numa conquista põe-na de volta no lugar.")],
