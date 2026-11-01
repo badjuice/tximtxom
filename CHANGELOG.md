@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.1 (2026-11-01)
+- 🐛 When a round ends, the piles slide aside before any formation is shown, so formations no longer land under them.
+
 ## 0.49.0 (2026-11-01)
 - 🔧 The "rule off" achievements are now "everything but": finish a game with every other rule on. Mobius Strip goes off with Ace High, and either Magic Sort or Scramble counts.
 - 🔧 Magic Sort and Scramble can't be on together: turning one on turns the other off, and says so.

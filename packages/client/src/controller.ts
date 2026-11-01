@@ -77,6 +77,10 @@ function autoPass(g: GameView, rideKey: string): void {
 /** How long a formation's cards wait before flying in (ms): its name badge waits too. */
 export const layWait = new Map<number, number>();
 
+/** When the round ends the piles slide aside into one stack; formations shown before then wait (ms timestamp). */
+let pilesClearAt = 0;
+const PILE_SLIDE_MS = 600;
+
 let announce: (text: string) => void = () => {};
 
 export function setAnnouncer(fn: (text: string) => void): void {
@@ -484,7 +488,10 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       }
       // The ending card goes face up under the discard pile, and the pile is turned
       // over onto the draw pile.
-      if (e.card !== null) table.ritual(...((getSettings().reducedMotion ? [0.25, 0.25] : [0.8, 0.7]) as [number, number]));
+      const ritual = (getSettings().reducedMotion ? [0.25, 0.25] : [0.8, 0.7]) as [number, number];
+      if (e.card !== null) table.ritual(...ritual);
+      // Formations shown before the piles have slid aside wait for them.
+      pilesClearAt = Date.now() + (e.card !== null ? (ritual[0] + ritual[1]) * 1000 : 0) + PILE_SLIDE_MS;
       banner(how, { tone: 'bad' });
       announce(
         t('sr.end', {
@@ -498,8 +505,9 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       // If this formation opens a ride for us, "Take a ride!" plays first and
       // the cards land as it fades, so the callout doesn't cover them.
       const rideKey = myRideKey(g);
-      const wait = rideKey === `${e.formationId}` && rideKey !== lastRideKey ? RIDE_CALLOUT_MS - 330 : 0;
+      const wait = Math.max(rideKey === `${e.formationId}` && rideKey !== lastRideKey ? RIDE_CALLOUT_MS - 330 : 0, pilesClearAt - Date.now());
       if (e.seat !== me) for (const c of e.cards) hints.set(`c${c}`, { from: seatPos(g, e.seat), hidden: wait / 1000 });
+      else if (wait > 0) setTimeout(() => table.hold(e.cards.map((c) => `c${c}`), wait / 1000));
       layWait.set(e.formationId, wait);
       sfx('card3', { delay: wait });
       sfx('chips1', { delay: wait + 150 });

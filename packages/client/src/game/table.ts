@@ -576,6 +576,14 @@ export class Table {
     this.views.get(key)?.pop(amount);
   }
 
+  /** Cards already on the table (your own, leaving your hand) stay put for `s` seconds first. */
+  hold(keys: string[], s: number): void {
+    for (const k of keys) {
+      const v = this.views.get(k);
+      if (v) v.delay = Math.max(v.delay, s);
+    }
+  }
+
   /** Table times when the Txi jog ritual turns the discard pile over, and when it's done (0: none). */
   private ritualFlip = 0;
   private ritualEnd = 0;

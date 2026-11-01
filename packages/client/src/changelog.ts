@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.1',
+    date: '2026-11-01',
+    items: [f("When a round ends, the piles slide aside before any formation is shown, so formations no longer land under them.", "Quando uma ronda acaba, os montes afastam-se antes de se mostrar qualquer formação, para as formações já não caírem debaixo deles.")],
+  },
+  {
     version: '0.49.0',
     date: '2026-11-01',
     items: [
