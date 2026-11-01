@@ -5420,6 +5420,39 @@ td.num.pts {
       0 0 18px rgba(255, 207, 74, 1);
   }
 }
+/* Unlocked: after the shine crosses its art and its name, a wider one crosses the whole
+   card, then all wait for the next beat (the same 3.2s loop as the rule cards). */
+.ach-list > li.got::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  pointer-events: none;
+  background: linear-gradient(
+      110deg,
+      transparent 40%,
+      color-mix(in srgb, var(--rc, #fff) 22%, transparent) 46%,
+      color-mix(in srgb, var(--rc, #fff) 40%, rgba(255, 255, 255, 0.35)) 50%,
+      color-mix(in srgb, var(--rc, #fff) 22%, transparent) 54%,
+      transparent 60%
+    )
+    100% 0 / 300% 100% no-repeat;
+  animation: ach-card-shine 3.2s linear infinite;
+}
+@keyframes ach-card-shine {
+  0%,
+  45% {
+    background-position: 100% 0;
+  }
+  80%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+.reduced-motion .ach-list > li.got::after {
+  animation: none;
+  opacity: 0;
+}
 .reduced-motion .ach-list > li:hover {
   transform: none;
 }

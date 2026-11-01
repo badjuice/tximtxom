@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.11 (2026-11-01)
+- 🔧 Unlocked achievements shine on a loop: first the card and the name, then the whole achievement.
+
 ## 0.49.10 (2026-11-01)
 - 🐛 The Achievements button's golden glow now goes all the way round, bottom included.
 

@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.11',
+    date: '2026-11-01',
+    items: [c("Unlocked achievements shine on a loop: first the card and the name, then the whole achievement.", "As conquistas desbloqueadas brilham sem parar: primeiro a carta e o nome, depois a conquista toda.")],
+  },
+  {
     version: '0.49.10',
     date: '2026-11-01',
     items: [f("The Achievements button's golden glow now goes all the way round, bottom included.", "O brilho dourado do botão Conquistas agora dá a volta toda, incluindo em baixo.")],

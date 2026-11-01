@@ -172,6 +172,7 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           return (
             <li
               class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}${fresh.has(a.id) ? (gone.has(a.id) ? ' new seen' : ' new') : ''}`}
+              style={got ? { '--rc': a.rainbow ? '#fff' : RARITY_SHINE[a.rarity] } : undefined}
               onPointerEnter={() => see(a.id)}
               title={got ? undefined : t('ach.locked')}
               onClick={() => {
