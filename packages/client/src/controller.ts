@@ -9,6 +9,7 @@ import { act, fetchHistory } from './net';
 import { getSettings, onSettings, rollRandomBack, updateSettings } from './settings';
 import { achievementEvent } from './achievements';
 import { recordEvent } from './stats';
+import { chipsEvent } from './chips';
 import { banner, callout, SEAT_COLORS, type Staged, store, toast } from './store';
 
 let table: Table;
@@ -258,6 +259,7 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
   for (const { e } of fresh) {
     handleEvent(e, g, hints);
     recordEvent(e, g, room);
+    chipsEvent(e, g, chipSpot(g));
     achievementEvent(e, g, room);
     trackSeen(e, g);
   }
@@ -378,6 +380,12 @@ function handPos(g: GameView, seat: number, n: number): (Point & { scale?: numbe
 
 /** When each formation's cards land on the table: rides on it wait for that. */
 const layLandAt = new Map<number, number>();
+
+/** Above a formation, once its cards have landed: where chips earned on it float up. */
+const chipSpot = (g: GameView) => (id: number) => {
+  const grp = revealGroups(g, table.layout).find((x) => x.id === id);
+  return grp ? { x: grp.x + grp.w / 2, y: grp.y, delay: Math.max(0, (layLandAt.get(id) ?? 0) - Date.now()) } : null;
+};
 
 function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
   // Scramble: anyone picking a card up (or swapping the drawn one in) shuffles every hand.

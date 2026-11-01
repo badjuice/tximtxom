@@ -5635,3 +5635,101 @@ td.num.pts {
   animation: none;
   box-shadow: 0 5px 0 var(--shadow), 0 0 0 2px #ffcf4a, 0 5px 0 2px #ffcf4a, 0 3px 10px rgba(255, 207, 74, 0.6);
 }
+
+/* ---------------------------------------------------------- chips */
+
+.chip-icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+  image-rendering: auto;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+}
+/* Your balance: the chip on a dark pill, gold number. */
+.chip-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px 0 8px;
+  background: rgba(20, 30, 32, 0.85);
+  border: 2px solid #4d6469;
+  border-radius: 20px;
+  color: var(--gold);
+  font-size: 1.1em;
+  white-space: nowrap;
+}
+.chip-count b {
+  font-variant-numeric: tabular-nums;
+}
+.main-menu .menu-chips {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+/* "+13" floating up from a formation, then fading. */
+.chip-pop {
+  position: absolute;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  translate: -50% -100%;
+  color: var(--gold);
+  font-size: 1.25em;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.7),
+    0 0 8px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  animation: chip-pop 1.5s ease-out forwards;
+}
+@keyframes chip-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1.15);
+  }
+  30% {
+    transform: translateY(-4px) scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-34px);
+  }
+}
+.chips-earned {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  color: var(--gold);
+  font-size: 1.15em;
+}
+.chip-tiles {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.chip-tiles .stat-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 600px) {
+  .chip-tiles {
+    grid-template-columns: 1fr 1fr;
+  }
+  .chip-tiles .big {
+    grid-column: 1 / -1;
+  }
+}
+.reduced-motion .chip-pop {
+  animation: none;
+}

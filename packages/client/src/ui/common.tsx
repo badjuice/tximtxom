@@ -6,6 +6,8 @@ import { type Key, otherTexts, t, tEvery } from '../i18n';
 import { useSettings } from '../settings';
 import { store } from '../store';
 import { assetUrl, AUTHOR_URL, VERSION } from '../version';
+import { useChips } from '../chips';
+import { formatCount } from '../stats';
 import { ArtIcon } from './sprites';
 
 type Color = 'red' | 'blue' | 'orange' | 'green' | 'grey' | 'purple';
@@ -816,6 +818,20 @@ export function Label({ k, vars }: { k: Key; vars?: Record<string, string | numb
 
 /** Top-right corner of the title screen and the room: Settings. */
 /** Settings in the screen's top corner; `children` go before it (the lobby's How to play and Formations). */
+/** A casino chip: the icon of the game's currency. */
+export const ChipIcon = ({ size = 20 }: { size?: number }) => <img class="chip-icon" src={assetUrl('ui/chip.png')} width={size} height={size} alt="" aria-hidden="true" />;
+
+/** Your chips: the balance on a dark pill, with the chip in front. */
+export function ChipCount({ class: cls }: { class?: string }) {
+  const c = useChips();
+  return (
+    <span class={`chip-count${cls ? ` ${cls}` : ''}`} role="status" aria-label={t('chips.balance', { n: formatCount(c.balance) })} title={t('chips.title')}>
+      <ChipIcon />
+      <b>{formatCount(c.balance)}</b>
+    </span>
+  );
+}
+
 export function TopMenu({ children }: { children?: ComponentChildren }) {
   useSettings(); // redraw on a language change
   return (

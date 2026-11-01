@@ -10,7 +10,9 @@ import { leaveRoom, playAgain, startGame } from '../net';
 import { useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, toggleSide, useStore } from '../store';
-import { Button, CardText, HintBalloon, HoldButton, Label, MiniButton, Modal, RuleName, ShortLabel, UiIcon, withHighlights } from './common';
+import { Button, CardText, ChipIcon, HintBalloon, HoldButton, Label, MiniButton, Modal, RuleName, ShortLabel, UiIcon, withHighlights } from './common';
+import { type ChipPop, gameChips, onChipPop, roundChips, useChips } from '../chips';
+import { formatCount } from '../stats';
 import { useUnreadChat } from './Chat';
 import { Badge, BADGE_KINDS, badgeCount, CardIcon, EmoteIcon, Icon, ArtIcon, Wins } from './sprites';
 
@@ -40,6 +42,7 @@ export function Hud() {
       <PileInfo g={g} L={L} />
       <TxiJogDrop g={g} L={L} />
       {(g.phase === 'reveal' || g.phase === 'roundOver') && <FormationLabels g={g} L={L} />}
+      <ChipPops L={L} />
       <HandBar g={g} L={L} />
       <ActionBar />
       {g.phase === 'roundOver' && <RoundSummary g={g} />}
@@ -563,6 +566,40 @@ export function ActionBar() {
   );
 }
 
+/** Chips you earn on the table float up from there as "+13". */
+function ChipPops({ L }: { L: Layout }) {
+  const [pops, setPops] = useState<ChipPop[]>([]);
+  useEffect(
+    () =>
+      onChipPop((p) => {
+        setTimeout(() => setPops((ps) => [...ps, p]), p.delay);
+        setTimeout(() => setPops((ps) => ps.filter((x) => x.id !== p.id)), p.delay + POP_MS);
+      }),
+    [],
+  );
+  return (
+    <>
+      {pops.map((p) => (
+        <span class="chip-pop" key={p.id} style={toScreen(L, p)} aria-hidden="true">
+          <ChipIcon size={18} />+{p.n}
+        </span>
+      ))}
+    </>
+  );
+}
+const POP_MS = 1500;
+
+/** "+42 chips" under a summary (none while there are none). */
+function ChipsEarned({ n, label }: { n: number; label: 'chips.round' | 'chips.game' }) {
+  useChips(); // redraw when chips come in after the summary opens
+  if (n <= 0) return null;
+  return (
+    <p class="chips-earned center">
+      <ChipIcon /> {t(label, { n: formatCount(n) })}
+    </p>
+  );
+}
+
 function RoundSummary({ g }: { g: GameView }) {
   const r = g.results.at(-1);
   if (!r) return null;
@@ -632,6 +669,7 @@ function RoundSummary({ g }: { g: GameView }) {
           })}
         </tbody>
       </table>
+      <ChipsEarned n={roundChips()} label="chips.round" />
       <RoundEnterKey onEnter={() => !ready && readyForNextRound()} />
     </Modal>
   );
@@ -718,6 +756,7 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
           ))}
         </tbody>
       </table>
+      <ChipsEarned n={gameChips()} label="chips.game" />
     </Modal>
   );
 }

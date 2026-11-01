@@ -8,6 +8,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
 import { getSettings } from './settings';
 import { store } from './store';
+import { ACH_PAY, chipsEarned, earn, onChips, payBack } from './chips';
 import { claimPatientZero, countInfected, creditCarrier, type MyStats, myStats, onStats } from './stats';
 
 const CARRIER_KEY = 'tximtxom.carrier';
@@ -107,8 +108,6 @@ export interface Achievement {
   rarity: Rarity;
   /** Hidden until unlocked: no name, no description. */
   secret?: boolean;
-  /** Not in the game yet (needs chips): left out of the list. */
-  soon?: boolean;
   /** Framed in moving rainbow colours instead of its rarity's (kept for a future Completionist). */
   rainbow?: boolean;
   /** One of the per-rule achievements: its text is made from the rule's name. */
@@ -119,7 +118,7 @@ export interface Achievement {
   /** Made from its track ("Hitchhiker II"): the tier's number, from 1. */
   tier?: number;
   /** A bar for a one-off that's reached bit by bit: rules played (Rulebook), minutes played (Addicted). */
-  meter?: 'rules' | 'minutes';
+  meter?: 'rules' | 'minutes' | 'chips';
 }
 
 /** Common to legendary, then the secret ones. */
@@ -139,7 +138,7 @@ const ALL: Achievement[] = [
   { id: 'showDontTell', art: 'magiku', rarity: 'common' },
   { id: 'polyglot', art: 'help', rarity: 'common' },
   { id: 'recycler', art: 'crab', rarity: 'common' },
-  { id: 'chips10', art: 'guard', rarity: 'common', soon: true },
+  { id: 'chips10', art: 'guard', rarity: 'common', meter: 'chips', goal: 1000 },
   { id: 'competitor', art: 'barbarian', rarity: 'uncommon' },
   { id: 'fullHand', art: 'txijog', rarity: 'uncommon' },
   { id: 'fullParty', art: 'turn', rarity: 'uncommon' },
@@ -148,7 +147,7 @@ const ALL: Achievement[] = [
   { id: 'generous', art: 'villager', rarity: 'uncommon' },
   { id: 'anarchist', art: 'boar', rarity: 'uncommon' },
   { id: 'addicted', art: 'timer', rarity: 'uncommon', meter: 'minutes' },
-  { id: 'chips100', art: 'ranger', rarity: 'uncommon', soon: true },
+  { id: 'chips100', art: 'ranger', rarity: 'uncommon', meter: 'chips', goal: 10000 },
   { id: 'gameWins10', art: 'boar', rarity: 'epic', track: 'gamesWon', goal: 10 },
   { id: 'midas', art: 'ziku', rarity: 'epic', track: 'gamesWon', goal: 5 },
   { id: 'closeCall', art: 'bust', rarity: 'epic' },
@@ -173,7 +172,7 @@ const ALL: Achievement[] = [
       .map(([goal, rarity], i): Achievement => ({ id: `${track}${goal}`, art: TRACKS[track].art, rarity, track, goal, tier: i + 1 })),
   ),
   { id: 'allRules', art: 'bikingu', rarity: 'legendary', meter: 'rules' },
-  { id: 'chips1000', art: 'kabaleru', rarity: 'legendary', soon: true },
+  { id: 'chips1000', art: 'kabaleru', rarity: 'legendary', meter: 'chips', goal: 100000 },
   ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `rule_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'common', rule })),
   { id: 'vanilla', art: 'villager', rarity: 'uncommon' },
   { id: 'infected', art: 'slime', rarity: 'secret', secret: true },
@@ -187,7 +186,7 @@ const ALL: Achievement[] = [
   { id: 'royalMess', art: 'barbarian', rarity: 'secret', secret: true },
 ];
 /** The achievements you can get now. */
-export const ACHIEVEMENTS = ALL.filter((a) => !a.soon);
+export const ACHIEVEMENTS = ALL;
 
 const KEY = 'tximtxom.achievements';
 /** Time a toast is on screen (about 4 s to read it, plus sliding in and out),
@@ -267,6 +266,8 @@ export function unlock(id: AchievementId, counted = false): void {
   toastQueue.push(id);
   notify();
   unlockHooks.forEach((h) => h(id));
+  const a = ACHIEVEMENTS.find((x) => x.id === id);
+  if (a) earn('achievements', ACH_PAY[a.rarity]);
   if (!showing) nextToast();
 }
 
@@ -453,8 +454,16 @@ export function initAchievements(): void {
     for (const a of ACHIEVEMENTS) if (a.track && a.goal && TRACKS[a.track].count(s) >= a.goal) unlock(a.id);
     if (s.timePlayed >= ADDICTED_MINUTES * 60 * 1000) unlock('addicted');
   };
+  // Achievements unlocked before chips existed pay once (before any new unlock, which pays itself).
+  payBack(ACHIEVEMENTS.filter((a) => unlocked[a.id]).map((a) => a.rarity));
   check();
   onStats(check);
+  // The chip ones unlock as chips are earned.
+  const chipCheck = () => {
+    for (const a of ACHIEVEMENTS) if (a.meter === 'chips' && a.goal && chipsEarned() >= a.goal) unlock(a.id);
+  };
+  chipCheck();
+  onChips(chipCheck);
   let room: RoomView | null = null;
   store.subscribe(() => {
     const next = store.get().room;

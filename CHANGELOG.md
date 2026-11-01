@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.51.0 (2026-11-01)
+- ✨ Chips! Each card you form pays its rank, a ride card half that. Not busting, winning rounds and games, achievements and the first game of the day pay too.
+- ✨ Your chips show on the main menu and in the lobby, float up over your formations, and add up in the round and game summaries.
+- ✨ Stats has a Chips tab: balance, most ever held, and where they came from.
+- ✨ Achievements you already had pay their chips once. The chip achievements are back, at 1,000, 10,000 and 100,000 chips earned.
+
 ## 0.50.2 (2026-11-01)
 - 🔧 Seat colours are easier to tell apart: the orange seat is now purple (orange looked like the gold of the current turn), and plate borders are brighter.
 

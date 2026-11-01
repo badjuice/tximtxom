@@ -3,7 +3,8 @@ import type { FormationKind } from '@tximtxom/shared';
 import { type Key, t } from '../i18n';
 import { useSettings } from '../settings';
 import { formatCount, locale, type MyStats, useStats } from '../stats';
-import { Modal, Tabs, WaveText, withTximTxom } from './common';
+import { CHIP_SOURCES, chipsEarned, PAY, useChips } from '../chips';
+import { ChipIcon, Modal, Tabs, WaveText, withTximTxom } from './common';
 import { Icon } from './sprites';
 
 /** "2h 05m", "12m 30s", "45s". */
@@ -79,6 +80,45 @@ function PileBar({ s }: { s: MyStats }) {
   );
 }
 
+/** Your chips: the balance, where they came from, and where they went. */
+function ChipsPanel() {
+  const c = useChips();
+  return (
+    <>
+      <div class="chip-tiles">
+        <div class="stat-tile big">
+          <span class="stat-value">
+            <ChipIcon size={28} /> {formatCount(c.balance)}
+          </span>
+          <span class="stat-label">{t('chips.now')}</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-value">{formatCount(c.most)}</span>
+          <span class="stat-label">{t('chips.most')}</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-value">{formatCount(chipsEarned(c))}</span>
+          <span class="stat-label">{t('chips.earned')}</span>
+        </div>
+      </div>
+      <div class="stat-cols">
+        <StatList title="chips.earnedTitle" rows={CHIP_SOURCES.map((s): [Key, string] => [`chips.src.${s}`, formatCount(c.earned[s])])} />
+        <StatList
+          title="chips.spentTitle"
+          rows={[
+            ['chips.spentShop', formatCount(c.spentShop)],
+            ['chips.wagerWon', formatCount(c.wagerWon)],
+            ['chips.wagerLost', formatCount(c.wagerLost)],
+          ]}
+        />
+      </div>
+      <p class="center muted small">
+        {t('chips.how', { survived: PAY.survived, round: PAY.roundWin, game: PAY.gameWin, per: PAY.perOpponent, daily: PAY.daily })}
+      </p>
+    </>
+  );
+}
+
 /** A titled list of label / number rows. */
 function StatList({ title, rows }: { title: Key; rows: [Key, string][] }) {
   return (
@@ -96,7 +136,7 @@ function StatList({ title, rows }: { title: Key; rows: [Key, string][] }) {
   );
 }
 
-type StatsTab = 'overview' | 'play' | 'cards' | 'badges';
+type StatsTab = 'overview' | 'play' | 'cards' | 'badges' | 'chips';
 
 /** Your stats in three tabs, stacked so switching never resizes the modal. */
 function StatsPanel() {
@@ -114,6 +154,7 @@ function StatsPanel() {
           { id: 'play', label: t('stats.tab.play') },
           { id: 'cards', label: t('stats.tab.cards') },
           { id: 'badges', label: t('stats.tab.badges') },
+          { id: 'chips', label: t('stats.tab.chips') },
         ]}
         active={tab}
         onChange={setTab}
@@ -204,6 +245,9 @@ function StatsPanel() {
             ))}
           </div>
           <p class="center muted small">{t('stats.badgesNote')}</p>
+        </div>
+        <div class={`tab-panel${tab === 'chips' ? '' : ' hidden'}`} inert={tab !== 'chips'}>
+          <ChipsPanel />
         </div>
       </div>
     </div>

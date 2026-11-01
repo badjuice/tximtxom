@@ -324,6 +324,11 @@ async function uiIcons() {
       .toFile(path.join(OUT, 'ui', `${key}.png`));
   }
   console.log(`ui icons: ${Object.keys(UI_ICONS).length}`);
+  // The chip, in its own colours (not a mask): the currency's icon.
+  await sharp(path.join(KENNEY, 'boardgame-pack/PNG/Chips/chipRedWhite_border.png'))
+    .resize(64, 64)
+    .png({ compressionLevel: 9 })
+    .toFile(path.join(OUT, 'ui', 'chip.png'));
   // The loading screen's card (shown before the atlases load), as one strip:
   // the two Jokers, then the backs in BACKS order (index.html picks one at random).
   const { frames } = JSON.parse(fs.readFileSync(path.join(OUT, 'cards.json'), 'utf8'));

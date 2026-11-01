@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.51.0',
+    date: '2026-11-01',
+    items: [
+      n("Chips! Each card you form pays its rank, a ride card half that. Not busting, winning rounds and games, achievements and the first game of the day pay too.", "Fichas! Cada carta que formas vale o seu valor, uma carta de boleia metade. Não rabentar, ganhar rondas e jogos, conquistas e o primeiro jogo do dia também dão fichas."),
+      n("Your chips show on the main menu and in the lobby, float up over your formations, and add up in the round and game summaries.", "As tuas fichas aparecem no menu principal e na sala, sobem por cima das tuas formações e somam-se nos resumos da ronda e do jogo."),
+      n("Stats has a Chips tab: balance, most ever held, and where they came from.", "As Estatísticas têm um separador Fichas: saldo, o máximo que já tiveste e de onde vieram."),
+      n("Achievements you already had pay their chips once. The chip achievements are back, at 1,000, 10,000 and 100,000 chips earned.", "As conquistas que já tinhas pagam as suas fichas uma vez. As conquistas de fichas voltaram, aos 1000, 10 000 e 100 000 fichas ganhas."),
+    ],
+  },
+  {
     version: '0.50.2',
     date: '2026-11-01',
     items: [c("Seat colours are easier to tell apart: the orange seat is now purple (orange looked like the gold of the current turn), and plate borders are brighter.", "As cores dos lugares distinguem-se melhor: o lugar laranja agora é roxo (o laranja parecia o dourado da vez), e as bordas das placas estão mais vivas.")],
