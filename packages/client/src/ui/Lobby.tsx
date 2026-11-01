@@ -58,6 +58,15 @@ export function Lobby() {
   const isHost = room.hostId === room.youId;
   const me = room.players.find((p) => p.id === room.youId);
   const allReady = room.players.every((p) => p.ready);
+  const note = isHost
+    ? room.players.length < MIN_PLAYERS
+      ? t('lobby.needPlayers', { n: MIN_PLAYERS })
+      : allReady
+        ? ''
+        : t('lobby.waitReady')
+    : me?.ready
+      ? t('lobby.waitHost')
+      : t('lobby.sayReady');
   const bots = room.players.filter((p) => p.isBot);
   const link = `${location.origin}${location.pathname}?room=${room.code}`;
   const [editing, setEditing] = useState<string | null>(null);
@@ -208,17 +217,14 @@ export function Lobby() {
             </Button>
           )}
         </div>
-        {/* One line, always there (empty when there's nothing to say), so nothing moves. */}
+        {/* Every note this player can get sits in the same cell, only the current one
+            shown, so the line is always as tall as the longest and nothing moves. */}
         <p class="muted lobby-note" role="status">
-          {isHost
-            ? room.players.length < MIN_PLAYERS
-              ? t('lobby.needPlayers', { n: MIN_PLAYERS })
-              : !allReady
-                ? t('lobby.waitReady')
-                : '\u00a0'
-            : me?.ready
-              ? t('lobby.waitHost')
-              : t('lobby.sayReady')}
+          {(isHost ? [t('lobby.needPlayers', { n: MIN_PLAYERS }), t('lobby.waitReady')] : [t('lobby.waitHost'), t('lobby.sayReady')]).map((text) => (
+            <span class={text === note ? undefined : 'off'} aria-hidden={text === note ? undefined : 'true'}>
+              {text}
+            </span>
+          ))}
         </p>
       </section>
 

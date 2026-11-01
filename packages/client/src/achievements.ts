@@ -371,9 +371,9 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       // All seven formed, but someone else ended the round first.
       if (r.ender !== null && r.ender !== me && r.leftovers[me].length === 0) unlock('badTiming');
       if (r.totals[me] === 69 && r.totals[me] > threshold) unlock('nuts');
-      // Formations shown this round (rides too), none of them with a Jack, Queen or King.
+      // The whole hand formed this round (rides too, nothing left over), without a Jack, Queen or King.
       const shown = g.events.slice(lastDealIndex(g)).flatMap((x) => (x.e.t === 'lay' && x.e.seat === me ? x.e.cards : x.e.t === 'ride' && x.e.seat === me ? [x.e.card] : []));
-      if (shown.length && shown.every((c) => rankOf(c) < 11)) unlock('anarchist');
+      if (shown.length && r.leftovers[me].length === 0 && shown.every((c) => rankOf(c) < 11)) unlock('anarchist');
       const low = Math.min(...r.points);
       if (r.points[me] === low && r.points.filter((p) => p === low).length > 1) unlock('mirrorMatch');
       if (r.points[me] === low && low === 7) unlock('luckySeven');

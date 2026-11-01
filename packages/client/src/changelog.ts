@@ -19,6 +19,17 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.48.1',
+    date: '2026-11-01',
+    items: [
+      c("Tapping a rule card at the top of the table explains it in a balloon, as on the Formations screen.", "Tocar numa carta de regra no topo da mesa explica-a num balão, como no ecrã das Formações."),
+      c("Anarchist now needs your whole hand formed in a round, with no J, Q or K.", "O Anarquista agora pede a mão inteira formada numa ronda, sem J, Q nem K."),
+      c("Card back credits its Kenney pack; the Board game backs are named Blue, Red, Green and Blue Frame, Red Frame, Green Frame.", "As Costas das cartas creditam o pack da Kenney; as costas do Jogo de tabuleiro chamam-se Azul, Vermelho, Verde e Azul com moldura, Vermelho com moldura, Verde com moldura."),
+      f("The lobby no longer jumps when a second player joins.", "A sala já não salta quando entra um segundo jogador."),
+      f("A dragged TximTxom example card on the Formations screen keeps changing instead of freezing.", "Uma carta do exemplo do TximTxom arrastada no ecrã das Formações continua a mudar em vez de congelar."),
+    ],
+  },
+  {
     version: '0.48.0',
     date: '2026-11-01',
     items: [

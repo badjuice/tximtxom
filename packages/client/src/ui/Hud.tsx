@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { play } from '../audio';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { EmoteBubble, EmotePicker } from './Emotes';
 import { type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
 import { canDrop, cardsSeenOut, computeBar, layWait, readyForNextRound, sortHand, toggleAutoSort, txiJogBlock, type BarButton } from '../controller';
@@ -9,7 +10,7 @@ import { leaveRoom, playAgain, startGame } from '../net';
 import { useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, toggleSide, useStore } from '../store';
-import { Button, CardText, HoldButton, Label, MiniButton, Modal, RuleName, ShortLabel, UiIcon } from './common';
+import { Button, CardText, HintBalloon, HoldButton, Label, MiniButton, Modal, RuleName, ShortLabel, UiIcon, withHighlights } from './common';
 import { useUnreadChat } from './Chat';
 import { Badge, BADGE_KINDS, badgeCount, CardIcon, EmoteIcon, Icon, ArtIcon, Wins } from './sprites';
 
@@ -66,6 +67,38 @@ function activeRules(r: GameView['rules']): [string, Key, Key][] {
   return out;
 }
 
+/** The rules in play as small cards. Tapping one (or clicking it) explains it in a
+ *  balloon, as on the Formations screen; hovering still shows the tooltip. */
+function RuleCards({ g }: { g: GameView }) {
+  const [open, setOpen] = useState<{ art: string; at: DOMRect } | null>(null);
+  const close = useCallback(() => setOpen(null), []);
+  const rules = activeRules(g.rules);
+  const shown = open && rules.find(([art]) => art === open.art);
+  return (
+    <span class="rule-cards">
+      {rules.map(([art, name, desc]) => (
+        <button
+          type="button"
+          class={`f-rule${open?.art === art ? ' on' : ''}`}
+          aria-label={t(name)}
+          aria-expanded={open?.art === art}
+          onClick={(e) => {
+            play('button', { volume: 0.5 });
+            setOpen(open?.art === art ? null : { art, at: (e.currentTarget as HTMLElement).getBoundingClientRect() });
+          }}
+        >
+          <ArtIcon name={art} scale={0.26} title={`${t(name)}\n${t(desc)}`} rule />
+        </button>
+      ))}
+      {open && shown && (
+        <HintBalloon at={open.at} onClose={close} keep=".rule-cards .f-rule">
+          <b>{withHighlights(t(shown[1]))}</b> {withHighlights(t(shown[2]))}
+        </HintBalloon>
+      )}
+    </span>
+  );
+}
+
 function TopBar({ g }: { g: GameView }) {
   const open = (overlay: NonNullable<Overlay>) => store.set({ overlay });
   const { historyOpen } = useSettings();
@@ -78,11 +111,7 @@ function TopBar({ g }: { g: GameView }) {
         <span class="bust-chip">
           <Label k="top.bust" vars={{ n: g.rules.threshold }} />
         </span>
-        <span class="rule-cards">
-          {activeRules(g.rules).map(([art, name, desc]) => (
-            <ArtIcon name={art} scale={0.26} title={`${t(name)}\n${t(desc)}`} rule />
-          ))}
-        </span>
+        <RuleCards g={g} />
         <button class="rules-btn" onClick={() => open('rules')}>
           <Label k="top.rules" />
         </button>

@@ -490,10 +490,12 @@ const SPEEDS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
 const FPS: Settings['fps'][] = ['auto', 15, 30, 60, 120];
 const fpsText = (v: Settings['fps']) => (v === 'auto' ? t('set.fps.autoDesc') : t('set.fps.desc', { n: v }));
 
-/** "Blue 3" for `back_blue3`, "Red" for `back_red`. */
+/** "Red" for `back_red` and the plain `back_red1`, "Red Frame" for `back_red3`. */
 function backName(b: string): string {
   const [, colour, n] = /^back_([a-z]+)(\d*)$/.exec(b) ?? [];
-  return colour ? `${t(`colour.${colour}` as Key)}${n ? ` ${n}` : ''}` : b;
+  if (!colour) return b;
+  const name = t(`colour.${colour}` as Key);
+  return n === '3' ? t('set.cardBack.framed', { c: name }) : name;
 }
 
 /** Card art, card back and font, each on a cycler like the game speed, over a preview of the cards. */
@@ -518,6 +520,7 @@ function StyleTab() {
       />
       <Choice
         label={t('set.cardBack')}
+        desc={t(`set.cardStyle.${s.cardStyle}.by` as Key)}
         value={back}
         options={[...backs.map((b) => ({ value: b, label: backName(b) })), { value: 'random', label: t('set.cardBack.random') }]}
         onChange={(cardBack) => updateSettings({ cardBack })}

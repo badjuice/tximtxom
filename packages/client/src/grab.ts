@@ -34,6 +34,22 @@ function lift(el: HTMLElement): HTMLElement {
   return copy;
 }
 
+/** Keeps the copy showing what the original shows (a card that changes on its own,
+ *  like the TximTxom example), keeping the copy's own position and lean. */
+function follow(el: HTMLElement, copy: HTMLElement): MutationObserver {
+  const keep = ['left', 'top', 'width', 'height', 'transform', 'translate', 'rotate'] as const;
+  const obs = new MutationObserver(() => {
+    const own = keep.map((k) => copy.style[k]);
+    const fresh = el.cloneNode(true) as HTMLElement;
+    copy.setAttribute('style', el.getAttribute('style') ?? '');
+    copy.style.visibility = '';
+    keep.forEach((k, i) => (copy.style[k] = own[i]));
+    copy.replaceChildren(...fresh.childNodes);
+  });
+  obs.observe(el, { attributes: true, attributeFilter: ['style', 'class'], subtree: true, childList: true, characterData: true });
+  return obs;
+}
+
 /** Springs the copy back over the original, then shows the original again. */
 function settle(el: HTMLElement, copy: HTMLElement): void {
   const done = () => {
@@ -63,6 +79,7 @@ export function initGrab(): void {
     const el = (down.target as Element).closest?.<HTMLElement>(SELECTOR);
     if (!el || el.closest('.logo-fan, .grabbed')) return;
     let copy: HTMLElement | null = null;
+    let watch: MutationObserver | null = null;
     let lean = 0;
     let lastX = down.clientX;
     const move = (e: PointerEvent) => {
@@ -72,6 +89,7 @@ export function initGrab(): void {
       if (!copy) {
         if (Math.hypot(dx, dy) < THRESHOLD) return;
         copy = lift(el);
+        watch = follow(el, copy);
         play('cardSlide1', { volume: 0.4 });
       }
       lean = Math.max(-MAX_LEAN, Math.min(MAX_LEAN, lean * 0.75 + (e.clientX - lastX) * 0.8));
@@ -84,6 +102,7 @@ export function initGrab(): void {
       removeEventListener('pointermove', move);
       removeEventListener('pointerup', up);
       removeEventListener('pointercancel', up);
+      watch?.disconnect();
       if (!copy) return;
       if (e.type === 'pointerup') swallowClick();
       play('cardSlide2', { volume: 0.35 });

@@ -5,6 +5,13 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.48.1 (2026-11-01)
+- 🔧 Tapping a rule card at the top of the table explains it in a balloon, as on the Formations screen.
+- 🔧 Anarchist now needs your whole hand formed in a round, with no J, Q or K.
+- 🔧 Card back credits its Kenney pack; the Board game backs are named Blue, Red, Green and Blue Frame, Red Frame, Green Frame.
+- 🐛 The lobby no longer jumps when a second player joins.
+- 🐛 A dragged TximTxom example card on the Formations screen keeps changing instead of freezing.
+
 ## 0.48.0 (2026-11-01)
 - ✨ Saves battery: left in the background (3 minutes, 5 in a room), the game goes to sleep. Come back and it reloads, straight into your room.
 - ✨ Settings > Graphics: Frame rate (Auto is 30 on phones, 60 on computers; also 15, 30, 60, 120) and Low power graphics.

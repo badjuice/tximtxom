@@ -5410,3 +5410,14 @@ td.num.pts {
   color: var(--muted);
   font-size: 0.9em;
 }
+
+/* The lobby's note: all its texts stacked in one cell, the current one visible. */
+.lobby-note {
+  display: grid;
+}
+.lobby-note > span {
+  grid-area: 1 / 1;
+}
+.lobby-note > .off {
+  visibility: hidden;
+}
