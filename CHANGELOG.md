@@ -5,6 +5,16 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.52.1 (2026-11-01)
+- ✨ Achievements: a button switches between all of them, only the locked ones and only the unlocked ones. Its hint says which comes next.
+- ✨ Credits: nevesfred, who made Odj c*, the game that inspired this one, and the testers SFGrey and the.red_angel. Each section's icon now sits on a little card.
+- 🔧 The chip is seen from the side, and can't be dragged around any more.
+- 🔧 Stats > Chips: each way to earn chips has its own colour, in the list and in the explanation under it.
+- 🔧 Long player names are cut with "…" in the lobby, the chat and the score tables.
+- 🔧 The copy button in the History panel is a raised button like the close button beside it.
+- 🔧 Scrollbars light up when hovered and when held.
+- 🔧 Tabs are lower, like the small buttons on the game's top bar.
+
 ## 0.52.0 (2026-11-01)
 - 🔧 Digital Disco is the game's font now. m6x11 is still one of the choices, and players who picked a font keep it.
 - 🔧 "Confirm moves" is now "Play at once", off by default: the game still waits for End Turn unless you turn it on.

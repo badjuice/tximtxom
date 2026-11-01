@@ -19,6 +19,20 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.52.1',
+    date: '2026-11-01',
+    items: [
+      n("Achievements: a button switches between all of them, only the locked ones and only the unlocked ones. Its hint says which comes next.", "Conquistas: um botão alterna entre todas, só as bloqueadas e só as desbloqueadas. A dica diz qual vem a seguir."),
+      n("Credits: nevesfred, who made Odj c*, the game that inspired this one, and the testers SFGrey and the.red_angel. Each section's icon now sits on a little card.", "Créditos: nevesfred, que fez o Odj c*, o jogo que inspirou este, e os testadores SFGrey e the.red_angel. O ícone de cada secção está agora numa pequena carta."),
+      c("The chip is seen from the side, and can't be dragged around any more.", "A ficha aparece de lado e já não pode ser arrastada."),
+      c("Stats > Chips: each way to earn chips has its own colour, in the list and in the explanation under it.", "Estatísticas > Fichas: cada forma de ganhar fichas tem a sua cor, na lista e na explicação por baixo."),
+      c("Long player names are cut with \"…\" in the lobby, the chat and the score tables.", "Nomes de jogadores compridos são cortados com \"…\" na sala, no chat e nas tabelas de pontos."),
+      c("The copy button in the History panel is a raised button like the close button beside it.", "O botão de copiar no painel do Histórico é um botão em relevo como o de fechar ao lado."),
+      c("Scrollbars light up when hovered and when held.", "As barras de deslocamento acendem ao passar o rato e ao agarrar."),
+      c("Tabs are lower, like the small buttons on the game's top bar.", "Os separadores são mais baixos, como os botões pequenos da barra de cima do jogo."),
+    ],
+  },
+  {
     version: '0.52.0',
     date: '2026-11-01',
     items: [

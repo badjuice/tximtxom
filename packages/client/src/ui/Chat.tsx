@@ -75,7 +75,7 @@ export function ChatBox({ room }: { room: RoomView }) {
         {room.chat.map((l, n) => {
           const i = room.players.findIndex((p) => p.id === l.from);
           const name = room.players[i]?.name ?? t('chat.gone');
-          const who = l.from === room.youId ? `${name} (${t('you').toLowerCase()})` : name;
+          const mine = l.from === room.youId;
           // A date line where the day changes, and above the first message if it isn't from today.
           const prev = room.chat[n - 1]?.at;
           const newDay = l.at != null && (prev != null ? day(prev) !== day(l.at) : day(l.at) !== day(Date.now()));
@@ -88,7 +88,11 @@ export function ChatBox({ room }: { room: RoomView }) {
               )}
               <li key={l.id} class={l.from === room.youId ? 'mine' : ''}>
                 <span>
-                  <b style={{ color: i >= 0 ? SEAT_COLORS[i] : undefined }}>{who}</b> {l.text}
+                  <b style={{ color: i >= 0 ? SEAT_COLORS[i] : undefined }}>
+                    <span class="chat-nm">{name}</span>
+                    {mine && ` (${t('you').toLowerCase()})`}
+                  </b>{' '}
+                  {l.text}
                 </span>
                 {l.at != null && <time dateTime={new Date(l.at).toISOString()}>{clock(l.at)}</time>}
               </li>

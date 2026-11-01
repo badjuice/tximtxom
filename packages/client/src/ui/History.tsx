@@ -27,10 +27,11 @@ function tj(key: Key, vars: Record<string, ComponentChildren>): ComponentChildre
   return raw.split('\u0000').map((part, i) => (i % 2 ? vars[part] : part));
 }
 
-const CopyIcon = () => (
-  <svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges" aria-hidden="true">
-    <path d="M5 1h9v9h-2V3H5z" fill="currentColor" />
-    <path d="M2 5h9v10H2zm2 2v6h5V7z" fill="currentColor" fill-rule="evenodd" />
+/** Two sheets, the front one solid: drawn on the same pixel grid as the game's icons. */
+const CopyIcon = ({ size = 14 }: { size?: number }) => (
+  <svg viewBox="0 0 16 16" width={size} height={size} shape-rendering="crispEdges" aria-hidden="true">
+    <path d="M5 1h10v10h-3V9h1V3H7v1H5z" fill="currentColor" opacity="0.7" />
+    <path d="M1 5h10v10H1z" fill="currentColor" />
   </svg>
 );
 
@@ -105,7 +106,7 @@ function PastGameFold({ game, n }: { game: PastGame; n: number }) {
               copy();
             }}
           >
-            <CopyIcon />
+            <CopyIcon size={12} />
           </button>
         </summary>
         <ol class="hfold-list">
@@ -315,10 +316,7 @@ export function HistoryPanel() {
         </div>
         {tab === 'history' && (
           <button class="hcopy" onClick={() => copy()} title={t('h.copyGame')} aria-label={t('h.copyGame')}>
-            <svg viewBox="0 0 16 16" width="14" height="14" shape-rendering="crispEdges" aria-hidden="true">
-              <path d="M5 1h9v9h-2V3H5z" fill="currentColor" />
-              <path d="M2 5h9v10H2zm2 2v6h5V7z" fill="currentColor" fill-rule="evenodd" />
-            </svg>
+            <CopyIcon />
           </button>
         )}
         <button class="x" aria-label={t('close')} onClick={() => updateSettings({ historyOpen: false })}>

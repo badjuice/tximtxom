@@ -718,7 +718,7 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
 }
 
 /** A white Kenney Game Icon, drawn in the text colour of its button. */
-export type UiIconName = 'help' | 'settings' | 'leave' | 'history' | 'credits' | 'crGame' | 'crArt' | 'crInspiration' | 'crLibraries' | 'crServices' | 'lock';
+export type UiIconName = 'help' | 'settings' | 'leave' | 'history' | 'credits' | 'crGame' | 'crArt' | 'crInspiration' | 'crLibraries' | 'crServices' | 'crTesters' | 'lock' | 'unlocked' | 'grid';
 
 export function UiIcon({ name }: { name: UiIconName }) {
   return <span class="ui-icon" style={{ '--icon': `url(${assetUrl(`ui/${name}.png`)})` }} aria-hidden="true" />;
@@ -819,7 +819,10 @@ export function Label({ k, vars }: { k: Key; vars?: Record<string, string | numb
 /** Top-right corner of the title screen and the room: Settings. */
 /** Settings in the screen's top corner; `children` go before it (the lobby's How to play and Formations). */
 /** A casino chip: the icon of the game's currency. */
-export const ChipIcon = ({ size = 20 }: { size?: number }) => <img class="chip-icon" src={assetUrl('ui/chip.png')} width={size} height={size} alt="" aria-hidden="true" />;
+/** The chip, seen from the side (68 × 42), `size` wide. Not draggable, and clicks go through it. */
+export const ChipIcon = ({ size = 20 }: { size?: number }) => (
+  <img class="chip-icon" src={assetUrl('ui/chip.png')} width={Math.round(size * 1.25)} height={Math.round(size * 1.25 * (42 / 68))} alt="" aria-hidden="true" draggable={false} />
+);
 
 /** Your chips: the balance on a dark pill, with the chip in front. */
 export function ChipCount({ class: cls }: { class?: string }) {

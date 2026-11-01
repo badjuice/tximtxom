@@ -181,8 +181,8 @@ export function Lobby() {
                 />
               ) : (
                 <span class="pname">
-                  {p.name}
-                  {p.id === room.youId && ` (${t('you').toLowerCase()})`}
+                  <span class="pname-nm">{p.name}</span>
+                  {p.id === room.youId && <span class="pname-you">{`(${t('you').toLowerCase()})`}</span>}
                   <Wins n={p.wins} />
                 </span>
               )}

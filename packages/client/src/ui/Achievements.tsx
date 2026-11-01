@@ -5,8 +5,8 @@ import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, c
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
 import { formatCount, type MyStats, refreshInfected, refreshSpread, useStats } from '../stats';
-import { Cycler, HintBalloon, Modal, WaveText, withHighlights } from './common';
-import { type AchSort, updateSettings, useSettings } from '../settings';
+import { Cycler, HintBalloon, Modal, UiIcon, type UiIconName, WaveText, withHighlights } from './common';
+import { type AchSort, type AchView, updateSettings, useSettings } from '../settings';
 import { ArtIcon, CardBackIcon } from './sprites';
 
 /** Each rarity's colour, as the shine on unlocked achievements (lighter than the frame, to read as light). */
@@ -77,6 +77,9 @@ function stamp(ms: number): string {
   const two = (n: number) => String(n).padStart(2, '0');
   return `${two(d.getDate())}/${two(d.getMonth() + 1)}/${d.getFullYear()}, ${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}`;
 }
+
+const VIEWS: AchView[] = ['all', 'locked', 'unlocked'];
+const VIEW_ICON: Record<AchView, UiIconName> = { all: 'grid', locked: 'lock', unlocked: 'unlocked' };
 
 const SORTS: AchSort[] = ['default', 'complete', 'rarity', 'similar', 'date', 'name'];
 const RARITY_ORDER: Record<Rarity, number> = { common: 0, uncommon: 1, epic: 2, legendary: 3, secret: 4 };
@@ -179,7 +182,8 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
   const [lifted, setLifted] = useState<AchievementId | null>(null);
   const [when, setWhen] = useState<{ id: AchievementId; at: DOMRect } | null>(null);
   const closeWhen = useCallback(() => setWhen(null), []);
-  const { achSort: sort, achSortDesc: desc } = useSettings();
+  const { achSort: sort, achSortDesc: desc, achView: view } = useSettings();
+  const shown = sorted(sort, desc, unlocked, mine).filter((a) => view === 'all' || !!unlocked[a.id] === (view === 'unlocked'));
   // Window Shopper: the list scrolled to its end, or short enough to show it all at once.
   const list = useRef<HTMLUListElement>(null);
   // Every shine on the page clock's beat, so a card unlocked while this is open
@@ -188,11 +192,12 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
     for (const a of list.current?.parentElement?.getAnimations({ subtree: true }) ?? [])
       if (a instanceof CSSAnimation && SHINES.has(a.animationName) && a.startTime !== 0) a.startTime = 0;
   });
+  // Only the whole list counts: a filtered one is too easy to reach the end of.
   const atEnd = () => {
     const el = list.current;
-    if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 4) unlock('windowShopper');
+    if (view === 'all' && el && el.scrollTop + el.clientHeight >= el.scrollHeight - 4) unlock('windowShopper');
   };
-  useEffect(atEnd, []);
+  useEffect(atEnd, [view]);
   const see = (id: AchievementId) => {
     if (!fresh.has(id) || gone.has(id)) return;
     markSeen(id);
@@ -225,18 +230,34 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           <span class="lg rarity-locked">{t('ach.locked')}</span>
         </p>
         <div class="ach-sort">
-          <span class="muted">{t('ach.sortBy')}</span>
+          {/* Which cards show; the button names what it shows, its hint says what's next. */}
+          <button
+            type="button"
+            class={`ach-view ach-view-${view}`}
+            title={t(`ach.view.${view}Hint`)}
+            aria-label={t(`ach.view.${view}Hint`)}
+            onClick={() => {
+              play('button', { volume: 0.4 });
+              updateSettings({ achView: VIEWS[(VIEWS.indexOf(view) + 1) % VIEWS.length] });
+            }}
+          >
+            <UiIcon name={VIEW_ICON[view]} />
+            <span class="ach-view-text">{t(`ach.view.${view}`)}</span>
+          </button>
+          <span class="muted ach-sort-label">{t('ach.sortBy')}</span>
           <Cycler label={t('ach.sortBy')} value={sort} options={SORTS.map((s) => ({ value: s, label: t(`ach.sort.${s}`) }))} onChange={(achSort) => updateSettings({ achSort })} />
           <button type="button" class="ach-dir" aria-label={desc ? t('ach.sortDesc') : t('ach.sortAsc')} title={desc ? t('ach.sortDesc') : t('ach.sortAsc')} onClick={() => {
             play('button', { volume: 0.4 });
             updateSettings({ achSortDesc: !desc });
           }}>
-            <span aria-hidden="true">{desc ? '▼' : '▲'}</span> {desc ? t('ach.desc') : t('ach.asc')}
+            <span aria-hidden="true">{desc ? '▼' : '▲'}</span>
+            <span class="ach-dir-text"> {desc ? t('ach.desc') : t('ach.asc')}</span>
           </button>
         </div>
       </div>
       <ul class="ach-list" ref={list} onScroll={atEnd}>
-        {sorted(sort, desc, unlocked, mine).map((a) => {
+        {!shown.length && <li class="ach-empty muted">{t(view === 'unlocked' ? 'ach.none.unlocked' : 'ach.none.locked')}</li>}
+        {shown.map((a) => {
           const got = !!unlocked[a.id];
           const hidden = a.secret && !got;
           return (

@@ -47,6 +47,7 @@ export function currentBack(): CardBack {
   return all.includes(b) ? b : all[0];
 }
 
+export type AchView = 'all' | 'locked' | 'unlocked';
 export type AchSort = 'default' | 'complete' | 'rarity' | 'similar' | 'date' | 'name';
 
 /** The game's font, or one of the alternatives (assets/fonts). */
@@ -120,6 +121,8 @@ export interface Settings {
   /** How the Achievements list is sorted, and which way. */
   achSort: AchSort;
   achSortDesc: boolean;
+  /** Which achievements the list shows. */
+  achView: AchView;
   announce: boolean;
   /** Mirrors the bottom button bar for left-handed players. */
   leftHanded: boolean;
@@ -166,6 +169,7 @@ export const DEFAULT_SETTINGS: Settings = {
   tapDeselect: false,
   achSort: 'default',
   achSortDesc: false,
+  achView: 'all',
   announce: true,
   leftHanded: false,
   historyOpen: false,

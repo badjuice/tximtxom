@@ -788,6 +788,20 @@ input[type='text'] {
 }
 .player-list .pname {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  white-space: nowrap;
+}
+/* A long name gets cut with "…"; "(you)" and the wins stay whole. */
+.pname-nm {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pname-you {
+  flex: none;
 }
 .dot {
   width: 10px;
@@ -2257,23 +2271,29 @@ input[type='text'] {
 .history-head h2 {
   margin-right: auto;
 }
+/* Copy: a raised blue button, the twin of the red close button beside it. */
 .hcopy {
   font: inherit;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   font-size: 0.8em;
-  color: var(--text);
-  background: var(--panel-d);
+  color: #fff;
+  background: var(--blue);
   border: 0;
   border-radius: 6px;
+  box-shadow: 0 3px 0 var(--blue-d);
   padding: 0;
   margin: 0 6px;
   cursor: pointer;
 }
 .hcopy:hover {
-  background: var(--blue);
+  filter: brightness(1.12);
+}
+.hcopy:active {
+  translate: 0 2px;
+  box-shadow: 0 1px 0 var(--blue-d);
 }
 .hscore-title {
   display: flex;
@@ -2526,21 +2546,25 @@ input[type='text'] {
   flex-wrap: wrap;
   margin-bottom: 10px;
 }
+/* As low as the top bar's small buttons. */
 .tab {
   font: inherit;
   color: var(--muted);
   background: var(--panel-d);
   border: none;
-  border-radius: 8px;
-  padding: 6px 14px;
-  min-height: 38px;
+  border-radius: 6px;
+  padding: 2px 12px;
+  min-height: 28px;
   cursor: pointer;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.tab:hover:not(.on) {
+  color: var(--text);
 }
 .tab.on {
   color: #fff;
   background: var(--red);
-  box-shadow: 0 3px 0 var(--red-d);
+  box-shadow: 0 2px 0 var(--red-d);
 }
 .tab-body {
   display: flex;
@@ -3078,6 +3102,9 @@ input[type='text'] {
 }
 .score-table .pname {
   white-space: nowrap;
+  max-width: 11em;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .score-table .pname .seat-dot {
   margin-right: 6px;
@@ -4095,6 +4122,19 @@ input.rename {
 .stat-list dt {
   color: var(--muted);
 }
+/* A chip source's colour, matched in the explanation under the lists. */
+.src-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+.chips-how {
+  line-height: 1.5;
+}
 .stat-list dd {
   margin: 0;
   text-align: right;
@@ -4550,17 +4590,56 @@ input.rename {
 .ach-sort .cycler {
   margin-left: 0;
 }
-/* Phones: label, cycler and direction still share one line; the narrowest drop the label. */
+/* Phones: everything still shares one line. */
 @media (max-width: 600px) {
   .ach-sort {
     flex-wrap: nowrap;
     gap: 6px;
   }
 }
-@media (max-width: 379px) {
-  .ach-sort > .muted {
+/* Phones: the view and direction buttons drop their words (their hints keep them), and the label goes. */
+@media (max-width: 600px) {
+  .ach-sort-label,
+  .ach-view-text,
+  .ach-dir-text {
     display: none;
   }
+}
+/* The view filter: an icon and what it's showing, a cool blue so it doesn't read as the sort. */
+.ach-view {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  min-height: 36px;
+  padding: 0 10px;
+  color: #fff;
+  background: var(--blue);
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 3px 0 var(--blue-d);
+  cursor: pointer;
+}
+.ach-view:hover {
+  filter: brightness(1.12);
+}
+.ach-view:active {
+  translate: 0 2px;
+  box-shadow: 0 1px 0 var(--blue-d);
+}
+.ach-view-locked {
+  background: var(--grey);
+  box-shadow: 0 3px 0 var(--grey-d);
+}
+.ach-view-unlocked {
+  background: var(--green);
+  box-shadow: 0 3px 0 var(--green-d, #2e8a68);
+}
+.ach-empty {
+  grid-column: 1 / -1;
+  padding: 24px;
+  text-align: center;
 }
 .ach-dir {
   flex: none;
@@ -4990,6 +5069,15 @@ input.rename {
   flex: 1;
   min-width: 0;
 }
+/* Long names get "…" so the message starts on the same line. */
+.chat-nm {
+  display: inline-block;
+  max-width: 9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
 /* The time each message was sent, on its right. */
 .chat-list time {
   flex: none;
@@ -5383,9 +5471,10 @@ td.num.pts {
   margin-top: 4px;
 }
 .hcopy.small {
-  width: 22px;
-  height: 20px;
+  width: 24px;
+  height: 22px;
   margin: 0 0 0 auto;
+  box-shadow: 0 2px 0 var(--blue-d);
 }
 
 /* A move the game made for a player: a small timer at the end of its line. */
@@ -5579,8 +5668,17 @@ td.num.pts {
   border-radius: 4px;
   border: 1px solid var(--panel-d);
 }
+/* Hover: lighter and full width; held: lighter still, ringed in gold. */
+::-webkit-scrollbar-track:hover {
+  background: color-mix(in srgb, var(--panel-d) 85%, #fff);
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #f3d27e;
+  border-width: 0;
+}
+::-webkit-scrollbar-thumb:active {
+  background: #fff1c2;
+  border: 1px solid var(--gold);
 }
 ::-webkit-scrollbar-corner {
   background: transparent;
@@ -5627,8 +5725,8 @@ td.num.pts {
 .cr-section h3 {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 10px 0 4px;
+  gap: 10px;
+  margin: 12px 0 6px;
   color: var(--gold);
   font-size: 1em;
 }
@@ -5653,11 +5751,30 @@ td.num.pts {
   color: #6fcfff;
   font-weight: normal;
 }
+/* Each section's icon on a little card back: red, white frame, like the deck's. */
+.cr-card {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 38px;
+  color: #fff;
+  background: var(--red);
+  border: 2px solid #fff;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 2px var(--red-d, #b8403a),
+    0 2px 0 rgba(0, 0, 0, 0.4);
+  rotate: -6deg;
+}
+.cr-card .ui-icon {
+  width: 18px;
+  height: 18px;
+}
 .cr-glyph {
-  width: 1.15em;
   text-align: center;
   line-height: 1;
-  font-size: 0.95em;
+  font-size: 0.8em;
 }
 .cr-what {
   color: var(--muted);
@@ -5703,6 +5820,10 @@ td.num.pts {
   vertical-align: middle;
   image-rendering: auto;
   filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
 /* Your balance: the chip on a dark pill, gold number. */
 .chip-count {

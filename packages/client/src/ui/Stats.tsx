@@ -3,7 +3,7 @@ import type { FormationKind } from '@tximtxom/shared';
 import { type Key, t } from '../i18n';
 import { useSettings } from '../settings';
 import { formatCount, locale, type MyStats, useStats } from '../stats';
-import { CHIP_SOURCES, chipsEarned, PAY, useChips } from '../chips';
+import { ACH_PAY, CHIP_SOURCES, type ChipSource, chipsEarned, PAY, useChips } from '../chips';
 import { ChipIcon, Modal, Tabs, WaveText, withTximTxom } from './common';
 import { Icon } from './sprites';
 
@@ -102,7 +102,7 @@ function ChipsPanel() {
         </div>
       </div>
       <div class="stat-cols">
-        <StatList title="chips.earnedTitle" rows={CHIP_SOURCES.map((s): [Key, string] => [`chips.src.${s}`, formatCount(c.earned[s])])} />
+        <StatList title="chips.earnedTitle" rows={CHIP_SOURCES.map((s): [Key, string] => [`chips.src.${s}`, formatCount(c.earned[s])])} colors={CHIP_SOURCES.map((s) => SRC_COLORS[s])} />
         <StatList
           title="chips.spentTitle"
           rows={[
@@ -114,22 +114,32 @@ function ChipsPanel() {
           ]}
         />
       </div>
-      <p class="center muted small">
-        {t('chips.how', { survived: PAY.survived, round: PAY.roundWin, game: PAY.gameWin, per: PAY.perOpponent, daily: PAY.daily, firstWin: PAY.firstWin })}
+      {/* How each source pays, in the colour of its dot above. */}
+      <p class="center small chips-how">
+        {CHIP_SOURCES.map((s, i) => (
+          <>
+            {i > 0 && <span class="muted"> · </span>}
+            <span style={{ color: SRC_COLORS[s] }}>{t(`chips.how.${s}`, HOW)}</span>
+          </>
+        ))}
       </p>
     </>
   );
 }
 
 /** A titled list of label / number rows. */
-function StatList({ title, rows }: { title: Key; rows: [Key, string][] }) {
+/** `colors`, if given, puts a dot of each row's colour before its label. */
+function StatList({ title, rows, colors }: { title: Key; rows: [Key, string][]; colors?: string[] }) {
   return (
     <section class="stat-box">
       <h4>{t(title)}</h4>
       <dl class="stat-list">
-        {rows.map(([label, value]) => (
+        {rows.map(([label, value], i) => (
           <>
-            <dt>{t(label)}</dt>
+            <dt>
+              {colors && <span class="src-dot" style={{ '--c': colors[i] }} />}
+              {t(label)}
+            </dt>
             <dd>{value}</dd>
           </>
         ))}
@@ -137,6 +147,19 @@ function StatList({ title, rows }: { title: Key; rows: [Key, string][] }) {
     </section>
   );
 }
+
+/** One colour per chip source: its dot in "Earned from" and its part of the explanation. */
+const SRC_COLORS: Record<ChipSource, string> = {
+  formed: '#38b6ff',
+  rides: '#b58cf5',
+  survived: '#4bc292',
+  roundWins: '#ff9a52',
+  gameWins: '#f7c948',
+  achievements: '#ff7eb6',
+  daily: '#5fd8d0',
+  firstWin: '#ff6b61',
+};
+const HOW = { survived: PAY.survived, round: PAY.roundWin, game: PAY.gameWin, per: PAY.perOpponent, daily: PAY.daily, firstWin: PAY.firstWin, low: ACH_PAY.common, high: ACH_PAY.legendary };
 
 type StatsTab = 'overview' | 'play' | 'cards' | 'badges' | 'chips';
 

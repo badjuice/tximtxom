@@ -313,7 +313,7 @@ async function icons() {
 // ---------------------------------------------------------------- menu button icons
 
 // Plain white shapes, used as CSS masks so the buttons can colour them.
-const UI_ICONS = { help: 'question', settings: 'gear', leave: 'exitLeft', history: 'menuList', credits: 'star', crGame: 'gamepad', crArt: 'musicOn', crInspiration: 'medal1', crLibraries: 'wrench', crServices: 'signal3', lock: 'locked' };
+const UI_ICONS = { help: 'question', settings: 'gear', leave: 'exitLeft', history: 'menuList', credits: 'star', crGame: 'gamepad', crArt: 'musicOn', crInspiration: 'medal1', crLibraries: 'wrench', crServices: 'signal3', crTesters: 'multiplayer', lock: 'locked', unlocked: 'unlocked', grid: 'menuGrid' };
 
 async function uiIcons() {
   fs.mkdirSync(path.join(OUT, 'ui'), { recursive: true });
@@ -324,9 +324,8 @@ async function uiIcons() {
       .toFile(path.join(OUT, 'ui', `${key}.png`));
   }
   console.log(`ui icons: ${Object.keys(UI_ICONS).length}`);
-  // The chip, in its own colours (not a mask): the currency's icon.
-  await sharp(path.join(KENNEY, 'boardgame-pack/PNG/Chips/chipRedWhite_border.png'))
-    .resize(64, 64)
+  // The chip, in its own colours (not a mask): the currency's icon, seen from the side so it has depth.
+  await sharp(path.join(KENNEY, 'boardgame-pack/PNG/Chips/chipRedWhite_sideBorder.png'))
     .png({ compressionLevel: 9 })
     .toFile(path.join(OUT, 'ui', 'chip.png'));
   // The loading screen's card (shown before the atlases load), as one strip:
