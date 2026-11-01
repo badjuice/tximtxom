@@ -1,5 +1,5 @@
-import { useState } from 'preact/hooks';
-import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, unlock, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
 import { formatCount, type MyStats, refreshInfected, refreshSpread, useStats } from '../stats';
@@ -119,6 +119,13 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
   // fades away (it stays in the page, so nothing moves).
   const [fresh] = useState(() => new Set(ACHIEVEMENTS.filter((a) => isNew(a.id)).map((a) => a.id)));
   const [gone, setGone] = useState<Set<AchievementId>>(() => new Set());
+  // Window Shopper: the list scrolled to its end, or short enough to show it all at once.
+  const list = useRef<HTMLUListElement>(null);
+  const atEnd = () => {
+    const el = list.current;
+    if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 4) unlock('windowShopper');
+  };
+  useEffect(atEnd, []);
   const see = (id: AchievementId) => {
     if (!fresh.has(id) || gone.has(id)) return;
     markSeen(id);
@@ -151,7 +158,7 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           <span class="lg rarity-locked">{t('ach.locked')}</span>
         </p>
       </div>
-      <ul class="ach-list">
+      <ul class="ach-list" ref={list} onScroll={atEnd}>
         {ACHIEVEMENTS.map((a) => {
           const got = !!unlocked[a.id];
           const hidden = a.secret && !got;

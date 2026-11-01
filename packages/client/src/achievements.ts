@@ -32,7 +32,7 @@ export function carrierId(): string {
 export type AchievementId =
   | 'tipTap' | 'dealtIn' | 'lowRoller' | 'champion' | 'competitor' | 'tximtxom' | 'bitter' | 'busted' | 'likeIce' | 'nuts'
   | 'ragequit' | 'chips10' | 'chips100' | 'chips1000' | 'roundWins10' | 'gameWins10' | 'fullParty' | 'midas' | 'firstLoser'
-  | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | 'vanilla' | `rule_${RuleAch}` | `ruleOff_${RuleAch}`
+  | 'addicted' | 'busPass' | 'rtfm' | 'windowShopper' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | 'vanilla' | `rule_${RuleAch}` | `ruleOff_${RuleAch}`
   | 'closeCall' | 'leastWorst' | 'flawless' | 'comeback' | 'generous' | 'selfService' | `${Track}${number}`
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd'
   | 'sayHi' | 'showDontTell' | 'anarchist' | 'nightOwl' | 'polyglot' | 'recycler' | 'throughAce' | 'royalFlush' | 'quickDraw' | 'sevenUp'
@@ -131,6 +131,7 @@ const ALL: Achievement[] = [
   { id: 'firstLoser', art: 'bearded', rarity: 'common' },
   { id: 'ragequit', art: 'bat', rarity: 'common' },
   { id: 'rtfm', art: 'help', rarity: 'common' },
+  { id: 'windowShopper', art: 'peek', rarity: 'common' },
   { id: 'newLook', art: 'magiku', rarity: 'common' },
   { id: 'distracted', art: 'frei', rarity: 'common' },
   { id: 'sayHi', art: 'notice', rarity: 'common' },

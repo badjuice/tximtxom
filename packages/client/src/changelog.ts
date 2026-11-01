@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.47.0',
+    date: '2026-11-01',
+    items: [
+      n("New achievement: Window Shopper, scroll to the end of the Achievements list.", "Nova conquista: Só a Ver, desliza até ao fim da lista das Conquistas."),
+      c("The Credits window is wider, and each section has an icon.", "A janela dos Créditos é mais larga, e cada secção tem um ícone."),
+    ],
+  },
+  {
     version: '0.46.1',
     date: '2026-11-01',
     items: [c('Least Worst is now Last One Standing: win a game where everyone but you busted.', 'O Menos Mau passa a O Último de Pé: ganha um jogo em que todos menos tu passaram o limite.')],

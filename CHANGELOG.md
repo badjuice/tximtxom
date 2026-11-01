@@ -5,6 +5,10 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.47.0 (2026-11-01)
+- ✨ New achievement: Window Shopper, scroll to the end of the Achievements list.
+- 🔧 The Credits window is wider, and each section has an icon.
+
 ## 0.46.1 (2026-11-01)
 - 🔧 Least Worst is now Last One Standing: win a game where everyone but you busted.
 

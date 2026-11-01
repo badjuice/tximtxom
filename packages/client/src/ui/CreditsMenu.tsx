@@ -1,6 +1,6 @@
 import { type Key, t } from '../i18n';
 import { AUTHOR_URL } from '../version';
-import { Modal, withTximTxom } from './common';
+import { Modal, UiIcon, type UiIconName, withTximTxom } from './common';
 
 /** One credited name: what they made, and where to find them (if anywhere). */
 interface Credit {
@@ -10,9 +10,11 @@ interface Credit {
   what: Key | { text: string };
 }
 
-const SECTIONS: { title: Key; credits: Credit[] }[] = [
+/** `icon` is a UI icon; Fonts has none in the pack, so it shows "Aa" in the game font. */
+const SECTIONS: { title: Key; icon?: UiIconName; credits: Credit[] }[] = [
   {
     title: 'cr.game',
+    icon: 'crGame',
     credits: [
       { name: 'BadJuice', url: AUTHOR_URL, what: 'cr.made' },
       { name: 'BadJuice', url: AUTHOR_URL, what: 'cr.music' },
@@ -20,6 +22,7 @@ const SECTIONS: { title: Key; credits: Credit[] }[] = [
   },
   {
     title: 'cr.art',
+    icon: 'crArt',
     credits: [{ name: 'Kenney', url: 'https://kenney.nl', what: 'cr.kenney' }],
   },
   {
@@ -33,10 +36,12 @@ const SECTIONS: { title: Key; credits: Credit[] }[] = [
   },
   {
     title: 'cr.inspiration',
+    icon: 'crInspiration',
     credits: [{ name: 'LocalThunk', url: 'https://www.playbalatro.com', what: 'cr.balatro' }],
   },
   {
     title: 'cr.libraries',
+    icon: 'crLibraries',
     credits: [
       { name: 'Preact', url: 'https://preactjs.com', what: 'cr.lib.ui' },
       { name: 'PixiJS', url: 'https://pixijs.com', what: 'cr.lib.table' },
@@ -47,6 +52,7 @@ const SECTIONS: { title: Key; credits: Credit[] }[] = [
   },
   {
     title: 'cr.services',
+    icon: 'crServices',
     credits: [
       { name: 'Suno', url: 'https://suno.com', what: 'cr.svc.suno' },
       { name: 'Metered', url: 'https://www.metered.ca', what: 'cr.svc.metered' },
@@ -62,7 +68,10 @@ export function CreditsMenu({ onClose }: { onClose: () => void }) {
       <p class="cr-intro">{withTximTxom(t('cr.intro'))}</p>
       {SECTIONS.map((s) => (
         <section class="cr-section">
-          <h3>{t(s.title)}</h3>
+          <h3>
+            {s.icon ? <UiIcon name={s.icon} /> : <span class="cr-glyph">Aa</span>}
+            {t(s.title)}
+          </h3>
           <ul>
             {s.credits.map((c) => (
               <li>

@@ -5368,7 +5368,13 @@ td.num.pts {
   text-align: center;
   margin: 0 0 8px;
 }
+.modal.credits-modal {
+  width: min(720px, 96vw);
+}
 .cr-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 10px 0 4px;
   color: var(--gold);
   font-size: 1em;
@@ -5393,6 +5399,12 @@ td.num.pts {
 .cr-section b {
   color: #6fcfff;
   font-weight: normal;
+}
+.cr-glyph {
+  width: 1.15em;
+  text-align: center;
+  line-height: 1;
+  font-size: 0.95em;
 }
 .cr-what {
   color: var(--muted);
