@@ -21,11 +21,11 @@ export function onFrameRate(fn: () => void): void {
   fn();
 }
 
-// Out of focus (or hidden) for 3 minutes, 5 in a room: the page swaps itself for
+// Out of focus (or hidden) for 10 minutes, 15 in a room: the page swaps itself for
 // sleep.html, which frees the music, connections and graphics. Coming back to it
 // loads the game again, and a room is rejoined (its seat is kept for 10 minutes).
-const SLEEP_MS = 3 * 60_000;
-const SLEEP_ROOM_MS = 5 * 60_000;
+const SLEEP_MS = 10 * 60_000;
+const SLEEP_ROOM_MS = 15 * 60_000;
 const WAKE_KEY = 'tximtxom.wake';
 let away = 0;
 let asleep = false;

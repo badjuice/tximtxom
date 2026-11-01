@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.6',
+    date: '2026-11-01',
+    items: [c("The game waits longer before going to sleep in the background: 10 minutes, 15 in a room.", "O jogo espera mais antes de adormecer em segundo plano: 10 minutos, 15 numa sala.")],
+  },
+  {
     version: '0.49.5',
     date: '2026-11-01',
     items: [

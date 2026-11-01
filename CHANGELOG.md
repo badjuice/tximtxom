@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.6 (2026-11-01)
+- 🔧 The game waits longer before going to sleep in the background: 10 minutes, 15 in a room.
+
 ## 0.49.5 (2026-11-01)
 - 🔧 Achievements: bigger count and progress bar text, and a hovered card comes forward and grows instead of tilting.
 - 🔧 Bigger Aces on the main menu on big screens.
