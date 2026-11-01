@@ -6,6 +6,8 @@ import { play } from '../audio';
 import { t } from '../i18n';
 import { sendChat } from '../net';
 import { SEAT_COLORS } from '../seatColors';
+import { unlock } from '../achievements';
+import { countChatSent } from '../stats';
 import { store, useStore } from '../store';
 
 /** Messages from other players you haven't seen yet. */
@@ -48,7 +50,11 @@ export function ChatBox({ room }: { room: RoomView }) {
     const msg = text.trim();
     if (!msg) return;
     atBottom.current = true;
-    if (await sendChat(msg)) setText('');
+    if (await sendChat(msg)) {
+      setText('');
+      countChatSent();
+      unlock('sayHi');
+    }
   };
 
   return (

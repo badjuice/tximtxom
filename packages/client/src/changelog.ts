@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.41.0',
+    date: '2026-11-01',
+    items: [
+      n('New achievements: Say Hi, Polyglot, Recycler, Through the Ace, Quick Draw, Royal Flush and Seven Up, plus five secret ones.', 'Novas conquistas: Diz Olá, Poliglota, Reciclador, Volta ao Ás, Gatilho Rápido, Sequência Real e Sete em Linha, e mais cinco secretas.'),
+      n('New achievements with progress bars: Chatterbox, Badge Collector, Scavenger, Marathon, and one for each kind of badge.', 'Novas conquistas com barra de progresso: Tagarela, Colecionador de Emblemas, Catador, Maratonista, e uma para cada tipo de emblema.'),
+      c('Gold badges have a 50-win step after Midas (5) and Card Shark (10).', 'Os emblemas de ouro têm um passo de 50 vitórias depois de Midas (5) e Tubarão (10).'),
+    ],
+  },
+  {
     version: '0.40.2',
     date: '2026-11-01',
     items: [

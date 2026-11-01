@@ -3,9 +3,10 @@
 // a time. Infected is the odd one: it passes between players who share a room
 // (see `infected` in the room protocol), and the very first player to start a
 // game gets it from nobody (see claimPatientZero in stats.ts).
-import type { GameEvent, GameView, RoomView, Rules } from '@tximtxom/shared';
+import { type Card, type GameEvent, type GameView, rankOf, type RoomView, type Rules, suitOf } from '@tximtxom/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
+import { getSettings } from './settings';
 import { store } from './store';
 import { claimPatientZero, countInfected, creditCarrier, type MyStats, myStats, onStats } from './stats';
 
@@ -33,7 +34,9 @@ export type AchievementId =
   | 'ragequit' | 'chips10' | 'chips100' | 'chips1000' | 'roundWins10' | 'gameWins10' | 'fullParty' | 'midas' | 'firstLoser'
   | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | `rule_${RuleAch}`
   | 'closeCall' | 'flawless' | 'comeback' | 'generous' | 'selfService' | `${Track}${number}`
-  | 'infected' | 'scholar' | 'prettyBasic' | 'nerd';
+  | 'infected' | 'scholar' | 'prettyBasic' | 'nerd'
+  | 'sayHi' | 'nightOwl' | 'polyglot' | 'recycler' | 'throughAce' | 'royalFlush' | 'quickDraw' | 'sevenUp'
+  | 'theBeast' | 'mirrorMatch' | 'luckySeven' | 'royalMess';
 
 /** One achievement per rule, for playing a round with it on: its card art, and whether it's on. */
 export const RULE_ACHIEVEMENTS = {
@@ -63,7 +66,11 @@ export const RULE_ACH_IDS = Object.keys(RULE_ACHIEVEMENTS) as RuleAch[];
 const STEADY = [5, 25, 100];
 export const TRACKS = {
   roundsWon: { art: 'ace', goals: STEADY, count: (s: MyStats) => s.roundsWon },
-  gamesWon: { art: 'princess', goals: STEADY, count: (s: MyStats) => s.gamesWon },
+  // Games won are gold badges: Midas (5) and Card Shark (10) come first.
+  gamesWon: { art: 'princess', goals: [5, 10, 25, 50, 100], count: (s: MyStats) => s.gamesWon },
+  silvers: { art: 'bearded', goals: [5, 10, 50], count: (s: MyStats) => s.silvers },
+  busts: { art: 'bust', goals: [5, 10, 50], count: (s: MyStats) => s.busts },
+  badges: { art: 'elder', goals: [10, 50, 150], count: (s: MyStats) => s.gamesWon + s.silvers + s.busts },
   formations: { art: 'magiku', goals: [10, 50, 250], count: (s: MyStats) => s.formations },
   pairs: { art: 'softcore', goals: [10, 50, 200], count: (s: MyStats) => s.kinds.pair },
   trios: { art: 'guard', goals: STEADY, count: (s: MyStats) => s.kinds.trio },
@@ -74,11 +81,16 @@ export const TRACKS = {
   ridesGiven: { art: 'autoride', goals: STEADY, count: (s: MyStats) => s.ridesGiven },
   txiJogs: { art: 'txijog', goals: STEADY, count: (s: MyStats) => s.roundsEnded },
   draws: { art: 'turn', goals: [25, 250, 1000], count: (s: MyStats) => s.cardsDrawn },
+  taken: { art: 'crab', goals: [25, 100, 400], count: (s: MyStats) => s.cardsTaken },
+  rounds: { art: 'timer', goals: [25, 100, 500], count: (s: MyStats) => s.roundsPlayed },
+  chat: { art: 'notice', goals: [10, 100, 250], count: (s: MyStats) => s.chatSent },
 } satisfies Record<string, { art: string; goals: number[]; count: (s: MyStats) => number }>;
 export type Track = keyof typeof TRACKS;
 const TIERS: Rarity[] = ['common', 'uncommon', 'epic'];
-/** Goals an older achievement already covers (Midas is 5 games won, Bus Pass 25 rides): no second card for them. */
-const COVERED: Partial<Record<Track, number[]>> = { gamesWon: [5], ridesTaken: [25] };
+/** Goals an older achievement already covers (Midas is 5 games won, Card Shark 10, Bus Pass 25 rides): no second card for them. */
+const COVERED: Partial<Record<Track, number[]>> = { gamesWon: [5, 10], ridesTaken: [25] };
+/** Rarity by goal, for a track that doesn't follow common, uncommon, epic. */
+const TRACK_RARITY: Partial<Record<Track, Rarity[]>> = { gamesWon: ['epic', 'epic', 'uncommon', 'epic', 'legendary'] };
 
 /** How hard it is to get, shown as the colour down the card's side. Secret ones are red. */
 export type Rarity = 'common' | 'uncommon' | 'epic' | 'legendary' | 'secret';
@@ -117,6 +129,9 @@ const ALL: Achievement[] = [
   { id: 'rtfm', art: 'help', rarity: 'common' },
   { id: 'newLook', art: 'magiku', rarity: 'common' },
   { id: 'distracted', art: 'frei', rarity: 'common' },
+  { id: 'sayHi', art: 'notice', rarity: 'common' },
+  { id: 'polyglot', art: 'help', rarity: 'common' },
+  { id: 'recycler', art: 'crab', rarity: 'common' },
   { id: 'chips10', art: 'guard', rarity: 'common', soon: true },
   { id: 'competitor', art: 'barbarian', rarity: 'uncommon' },
   { id: 'fullHand', art: 'txijog', rarity: 'uncommon' },
@@ -135,12 +150,16 @@ const ALL: Achievement[] = [
   { id: 'nuts', art: 'crab', rarity: 'epic' },
   { id: 'badTiming', art: 'autoride', rarity: 'epic' },
   { id: 'selfService', art: 'ride', rarity: 'epic' },
+  { id: 'throughAce', art: 'ace', rarity: 'epic' },
+  { id: 'quickDraw', art: 'txijog', rarity: 'epic' },
   { id: 'tximtxom', art: 'tximtxom', rarity: 'legendary' },
   { id: 'flawless', art: 'kabaleru', rarity: 'legendary' },
+  { id: 'royalFlush', art: 'princess', rarity: 'legendary' },
+  { id: 'sevenUp', art: 'mixed', rarity: 'legendary' },
   // The running counts, each track's goals in a row.
   ...(Object.keys(TRACKS) as Track[]).flatMap((track) =>
     TRACKS[track].goals
-      .map((goal, i) => [goal, TIERS[i]] as const)
+      .map((goal, i) => [goal, TRACK_RARITY[track]?.[i] ?? TIERS[i]] as const)
       .filter(([goal]) => !COVERED[track]?.includes(goal))
       .map(([goal, rarity], i): Achievement => ({ id: `${track}${goal}`, art: TRACKS[track].art, rarity, track, goal, tier: i + 1 })),
   ),
@@ -151,6 +170,11 @@ const ALL: Achievement[] = [
   { id: 'scholar', art: 'elder', rarity: 'secret', secret: true },
   { id: 'prettyBasic', art: 'cards:base', rarity: 'secret', secret: true },
   { id: 'nerd', art: 'spider', rarity: 'secret', secret: true },
+  { id: 'theBeast', art: 'bat', rarity: 'secret', secret: true },
+  { id: 'nightOwl', art: 'fantasma', rarity: 'secret', secret: true },
+  { id: 'mirrorMatch', art: 'magiku', rarity: 'secret', secret: true },
+  { id: 'luckySeven', art: 'ziku', rarity: 'secret', secret: true },
+  { id: 'royalMess', art: 'barbarian', rarity: 'secret', secret: true },
 ];
 /** The achievements you can get now. */
 export const ACHIEVEMENTS = ALL.filter((a) => !a.soon);
@@ -240,6 +264,30 @@ function lastDealIndex(g: GameView): number {
   return Math.max(0, i);
 }
 
+const LANGS_KEY = 'tximtxom.roundLangs';
+/** Polyglot: the languages you've played a round in. */
+function playedRoundIn(lang: string): void {
+  try {
+    const langs = new Set<string>(JSON.parse(localStorage.getItem(LANGS_KEY) ?? '[]'));
+    langs.add(lang);
+    localStorage.setItem(LANGS_KEY, JSON.stringify([...langs]));
+    if (langs.has('en') && langs.has('pt')) unlock('polyglot');
+  } catch {
+    // Storage blocked: nothing to remember it by.
+  }
+}
+
+/** Formation achievements, for cards you show (laid, or a formation of yours after a ride). */
+function formationShown(kind: string, cards: Card[]): void {
+  const ranks = new Set(cards.map(rankOf));
+  if (kind === 'trio' && cards.length === 3 && cards.every((c) => rankOf(c) === 6)) unlock('theBeast');
+  if (kind !== 'straight') return;
+  if (cards.length >= 7) unlock('sevenUp');
+  // The Ace in the middle: only the Mobius Strip lets a straight run K-A-2.
+  if (ranks.has(13) && ranks.has(1) && ranks.has(2)) unlock('throughAce');
+  if ([10, 11, 12, 13, 1].every((r) => ranks.has(r)) && new Set(cards.map(suitOf)).size === 1) unlock('royalFlush');
+}
+
 /** Checks one game event for achievements. Called once per event, as it happens. */
 export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): void {
   const me = g.you;
@@ -248,6 +296,7 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
   switch (e.t) {
     case 'deal':
       unlock('dealtIn');
+      playedRoundIn(getSettings().lang);
       // Every round start, Infected passes to anyone at the table who doesn't have it yet.
       const carriers = room.players.filter((p) => p.id !== room.youId && p.infected);
       if (carriers.length) {
@@ -274,14 +323,41 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       // All seven formed, but someone else ended the round first.
       if (r.ender !== null && r.ender !== me && r.leftovers[me].length === 0) unlock('badTiming');
       if (r.totals[me] === 69 && r.totals[me] > threshold) unlock('nuts');
+      const low = Math.min(...r.points);
+      if (r.points[me] === low && r.points.filter((p) => p === low).length > 1) unlock('mirrorMatch');
+      if (r.points[me] === low && low === 7) unlock('luckySeven');
+      // Went over the limit this round, with all four Kings in your hand (laid or not).
+      const before = g.results.at(-2)?.totals[me] ?? 0;
+      if (r.totals[me] > threshold && before <= threshold) {
+        const held = [...r.leftovers[me], ...g.events.slice(lastDealIndex(g)).flatMap((x) => (x.e.t === 'lay' && x.e.seat === me ? x.e.cards : []))];
+        if (held.filter((c) => rankOf(c) === 13).length === 4) unlock('royalMess');
+      }
+      break;
+    }
+    case 'lay': {
+      if (e.seat !== me) break;
+      formationShown(e.kind, e.cards);
+      // A card you took from the discard pile this round, shown.
+      const taken = new Set(g.events.slice(lastDealIndex(g)).flatMap((x) => (x.e.t === 'take' && x.e.seat === me ? [x.e.card] : [])));
+      if (e.cards.some((c) => taken.has(c))) unlock('recycler');
       break;
     }
     case 'ride':
       // Your own straight, once someone else stretched it.
       if (e.seat === me && g.events.some((x) => x.e.t === 'lay' && x.e.formationId === e.formationId && x.e.seat === me)) unlock('selfService');
+      // A formation of yours that a ride turned into something.
+      {
+        const f = g.reveal?.formations.find((x) => x.id === e.formationId);
+        if (f && f.owner === me) formationShown(f.kind, f.cards);
+      }
       break;
     case 'end':
       if (e.bonus && e.seat === me) unlock('fullHand');
+      // Txi jog on your first turn of the round: one draw or take of yours so far.
+      if (e.kind === 'manual' && e.seat === me) {
+        const turns = g.events.slice(lastDealIndex(g)).filter((x) => (x.e.t === 'draw' || x.e.t === 'take') && x.e.seat === me).length;
+        if (turns <= 1) unlock('quickDraw');
+      }
       break;
     case 'tximtxom':
       if (e.seat === me) unlock('tximtxom');
@@ -305,6 +381,7 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       if (g.players.length > 1 && g.players.every((p) => !p.isBot)) unlock('fullParty');
       // Right on the limit, and not over it.
       if (total === threshold) unlock('closeCall');
+      if (new Date().getHours() < 5) unlock('nightOwl');
       break;
     }
   }

@@ -40,6 +40,8 @@ export interface MyStats {
   cardsDrawn: number;
   /** Cards picked up from the discard pile. */
   cardsTaken: number;
+  /** Chat messages you sent. */
+  chatSent: number;
   /** Most rounds in one game you played to the end. */
   longestGame: number;
   /** Fewest and most points in one round, or null before the first round. */
@@ -96,6 +98,7 @@ const EMPTY: MyStats = {
   ridesGiven: 0,
   cardsDrawn: 0,
   cardsTaken: 0,
+  chatSent: 0,
   longestGame: 0,
   bestRound: null,
   worstRound: null,
@@ -134,6 +137,9 @@ function bump(patch: (s: MyStats) => Partial<MyStats>): void {
   save();
   notify();
 }
+
+/** One more chat message sent. */
+export const countChatSent = () => bump((s) => ({ chatSent: s.chatSent + 1 }));
 
 // ---------------------------------------------------------------- global counters
 
