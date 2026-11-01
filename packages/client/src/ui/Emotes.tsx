@@ -90,9 +90,12 @@ function useCooldown(el: { current: HTMLElement | null }): boolean {
 /** A ring that empties as the rest runs out. */
 const CoolRing = () => <span class="emote-ring" aria-hidden="true" />;
 
+const touch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
+
 /** A button that opens the grid of emotes. It stays open while you pick, and closes
- *  on a tap anywhere else. */
-export function EmotePicker({ class: cls }: { class?: string }) {
+ *  on a tap anywhere else. On a phone in a game (`once`) it closes after one emote,
+ *  so it doesn't sit over the table. */
+export function EmotePicker({ class: cls, once }: { class?: string; once?: boolean }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
   const grid = useRef<HTMLSpanElement>(null);
@@ -137,6 +140,7 @@ export function EmotePicker({ class: cls }: { class?: string }) {
               title={t(`emote.${id}` as Key)}
               disabled={cooling}
               onClick={() => {
+                if (once && touch) setOpen(false);
                 coolUntil = Date.now() + EMOTE_GAP_MS;
                 coolers.forEach((c) => c());
                 void sendEmote(id).then((ok) => ok && unlock('showDontTell'));

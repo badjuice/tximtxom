@@ -15,11 +15,6 @@ const RARITIES: Rarity[] = ['common', 'uncommon', 'epic', 'legendary', 'secret']
 const Art = ({ a, scale, shine }: { a: Achievement; scale: number; shine?: boolean }) =>
   a.art.startsWith('cards:') ? (
     <CardBackIcon back={a.art.slice(6)} scale={scale} />
-  ) : a.off ? (
-    // A rule left off: its card, faded to grey.
-    <span class="art-off">
-      <ArtIcon name={a.art} scale={scale} shine={shine ? RARITY_SHINE[a.rarity] : undefined} />
-    </span>
   ) : (
     <ArtIcon name={a.art} scale={scale} shine={shine ? RARITY_SHINE[a.rarity] : undefined} />
   );
@@ -30,13 +25,6 @@ function ruleName(rule: RuleAch): string {
   if (rule === 'inTurns') return `${t('rule.rideOrder')}: ${t('rule.inTurns')}`;
   const key: Record<string, Key> = { notice: 'rule.notice', timer: 'rule.timer' };
   return t(key[rule] ?? (`rule.${rule}` as Key));
-}
-
-/** The rule left at its default, as a name ("Bust at 40", "Softcore: Off"). */
-function ruleOffName(rule: RuleAch): string {
-  if (rule === 'bust100') return `${t('rule.bust')} 40`;
-  if (rule === 'inTurns') return `${t('rule.rideOrder')}: ${t('rule.together')}`;
-  return t('ach.ruleOff.name', { rule: ruleName(rule) });
 }
 
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
@@ -70,13 +58,6 @@ const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => {
     return part === 'desc' ? t(`ach.track.${a.track}.desc${a.goal === 1 ? '1' : ''}` as Key, { n: a.goal! }) : '';
   }
   if (!a.rule) return t(`ach.${a.id}.${part}` as Key);
-  if (a.off) {
-    const name = ruleOffName(a.rule);
-    // "Ace High (and Mobius Strip, which needs it)": a rule that needs this one is off with it.
-    const dep = RULE_ACH_IDS.find((r) => RULE_REQUIRES[r as keyof Rules] === a.rule);
-    const except = dep ? t('ach.ruleOff.needs', { rule: ruleName(a.rule), dep: ruleName(dep) }) : ruleName(a.rule);
-    return part === 'name' ? name : part === 'desc' ? t('ach.ruleOff.desc', { rule: except }) : t('ach.ruleOff.flavor');
-  }
   const name = ruleName(a.rule);
   const need = RULE_REQUIRES[a.rule as keyof Rules] as RuleAch | undefined;
   const what = need ? t('ach.rule.needs', { rule: name, need: ruleName(need) }) : name;

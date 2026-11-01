@@ -219,7 +219,7 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
       {chip && <div class="plate-chip">{chip}</div>}
       {active && room.turnDeadline && <TimerBar deadline={room.turnDeadline} total={g.rules.turnTimer} />}
       <EmoteBubble player={p.id} />
-      {me && <EmotePicker class="on-plate" />}
+      {me && <EmotePicker class="on-plate" once />}
     </div>
   );
 }

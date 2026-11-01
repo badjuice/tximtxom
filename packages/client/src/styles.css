@@ -5322,12 +5322,6 @@ td.num.pts {
   color: #fff !important;
 }
 
-/* A rule-off achievement: the rule's card, faded to grey. */
-.art-off {
-  display: inline-flex;
-  filter: grayscale(0.9) brightness(0.85);
-}
-
 /* "New!" on an achievement you haven't seen yet, and on the Achievements button:
    a tilted gold sign that pulses and shines until it's seen. */
 .new-sign {

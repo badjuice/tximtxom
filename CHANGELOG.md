@@ -5,6 +5,10 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.14 (2026-11-01)
+- 🔧 The "every rule on except one" achievements are gone; each rule keeps its "finish a game with it on" one.
+- 🔧 On a phone, in a game, the emotes close after you send one.
+
 ## 0.49.13 (2026-11-01)
 - 🐛 An achievement unlocked with the window open shines in step with the others.
 

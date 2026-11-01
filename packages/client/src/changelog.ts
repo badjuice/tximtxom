@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.14',
+    date: '2026-11-01',
+    items: [
+      c("The \"every rule on except one\" achievements are gone; each rule keeps its \"finish a game with it on\" one.", "As conquistas \"todas as regras ligadas menos uma\" saíram; cada regra mantém a de \"acabar um jogo com ela ligada\"."),
+      c("On a phone, in a game, the emotes close after you send one.", "No telemóvel, durante o jogo, os emotes fecham depois de enviares um."),
+    ],
+  },
+  {
     version: '0.49.13',
     date: '2026-11-01',
     items: [f("An achievement unlocked with the window open shines in step with the others.", "Uma conquista desbloqueada com a janela aberta brilha ao mesmo ritmo das outras.")],
