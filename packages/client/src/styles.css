@@ -522,7 +522,7 @@ input[type='text'] {
   position: relative;
   z-index: 3; /* a held Ace passes over the panel */
   width: 100%;
-  height: 119px;
+  height: var(--fan-h, 119px);
   margin-top: -6px;
   padding-bottom: 10px;
 }
@@ -4341,11 +4341,12 @@ input.rename {
   margin: 0 0 4px;
   text-align: center;
   color: var(--gold);
+  font-size: 1.25em;
 }
 /* How much of the list is unlocked: a gold bar filling a dark track. */
 .ach-progress {
   position: relative;
-  height: 16px;
+  height: 24px;
   margin: 0 0 10px;
   background: var(--panel-d);
   border-radius: 8px;
@@ -4362,8 +4363,8 @@ input.rename {
 .ach-progress-text {
   position: relative;
   display: block;
-  font-size: 0.75em;
-  line-height: 16px;
+  font-size: 1.05em;
+  line-height: 24px;
   text-align: center;
   color: #fff;
   text-shadow:
@@ -5319,17 +5320,15 @@ td.num.pts {
     box-shadow 0.45s ease-out,
     --tint 0.45s;
 }
-/* Hovered: lifts and tips a touch, brighter, with a shadow under it. */
+/* Hovered: comes forward, towards the viewer, a little bigger, with a shadow under it. */
 .ach-list > li:hover {
-  transform: translateY(-3px) rotate(-0.4deg);
+  transform: scale(1.04);
+  z-index: 2;
   filter: brightness(1.1);
   box-shadow:
     inset 0 0 0 3px var(--rarity),
     inset 0 -6px 0 var(--panel-d),
-    0 6px 10px rgba(0, 0, 0, 0.35);
-}
-.ach-list > li:nth-child(even):hover {
-  transform: translateY(-3px) rotate(0.4deg);
+    0 10px 18px rgba(0, 0, 0, 0.45);
 }
 /* New: a golden tint and glow, on the same beat as its New! sign. The rarity frame stays. */
 @property --tint {

@@ -15,9 +15,11 @@ import { spawnElement } from './textSpawn';
 // Four Aces fanned like a hand, red and black alternating: spades, hearts, clubs, diamonds.
 const FAN: Suit[] = [3, 0, 1, 2];
 const FAN_ANGLE = [-12, -4, 4, 12];
-const FAN_DROP = [11, 1, 1, 11];
-const FAN_SCALE = 1.25; // 119 px tall cards
-const FAN_STEP = 60; // px between card centres
+// Bigger Aces on big screens (picked when the page loads; the card art is drawn at that size).
+const FAN_K = typeof matchMedia !== 'undefined' && matchMedia('(min-width: 1100px) and (min-height: 800px)').matches ? 1.4 : 1;
+const FAN_DROP = [11, 1, 1, 11].map((d) => d * FAN_K);
+const FAN_SCALE = 1.25 * FAN_K; // 119 px tall cards, at 1x
+const FAN_STEP = 60 * FAN_K; // px between card centres
 const DRAG_THRESHOLD = 10;
 const SPAWN_STEP = 700 + 250; // one Ace materialises (700 ms), a short pause, then the next
 const LOGO_MS = 900; // the title materialising
@@ -112,7 +114,7 @@ function FanCard(props: {
     slot: number;
     moved: boolean;
   } | null>(null);
-  const onFan = (s: { x: number; slot: number }, e: PointerEvent, y: number) => (Math.abs(y) < 95 ? slotX(s.slot) + e.clientX - s.x : null);
+  const onFan = (s: { x: number; slot: number }, e: PointerEvent, y: number) => (Math.abs(y) < 95 * FAN_K ? slotX(s.slot) + e.clientX - s.x : null);
 
   const style: Record<string, string> = {
     '--x': `${slotX(slot)}px`,
@@ -403,7 +405,7 @@ export function Title() {
         <WaveText text="TximTxom" amp={12} plain />
       </h1>
       {/* Only on the main menu; kept mounted on the Play panel so the Aces don't deal again. */}
-      <div class={`logo-fan${playing ? ' away' : ''}`} aria-hidden="true">
+      <div class={`logo-fan${playing ? ' away' : ''}`} style={{ '--fan-h': `${Math.round(119 * FAN_K)}px` }} aria-hidden="true">
         {/* Fixed DOM order; each Ace slides to its slot, so a reorder animates. */}
         {FAN.map((suit) => (
           <FanCard

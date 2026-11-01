@@ -19,6 +19,14 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.5',
+    date: '2026-11-01',
+    items: [
+      c("Achievements: bigger count and progress bar text, and a hovered card comes forward and grows instead of tilting.", "Conquistas: contagem e texto da barra maiores, e um cartão com o rato por cima vem para a frente e cresce em vez de inclinar."),
+      c("Bigger Aces on the main menu on big screens.", "Ases maiores no menu principal em ecrãs grandes."),
+    ],
+  },
+  {
     version: '0.49.4',
     date: '2026-11-01',
     items: [c("Main menu: one button per row on phones, and a wider box on computers.", "Menu principal: um botão por linha nos telemóveis, e uma caixa mais larga nos computadores.")],
