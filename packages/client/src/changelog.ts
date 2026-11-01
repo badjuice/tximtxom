@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.46.1',
+    date: '2026-11-01',
+    items: [c('Least Worst is now Last One Standing: win a game where everyone but you busted.', 'O Menos Mau passa a O Último de Pé: ganha um jogo em que todos menos tu passaram o limite.')],
+  },
+  {
     version: '0.46.0',
     date: '2026-11-01',
     items: [

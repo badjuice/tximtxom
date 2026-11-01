@@ -435,8 +435,8 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       if (g.players.length > 1 && g.players.every((p) => !p.isBot)) unlock('fullParty');
       // Right on the limit, and not over it.
       if (total === threshold) unlock('closeCall');
-      // Everyone went over in the last round, and you went over the least.
-      if (e.winners.includes(me) && g.players.every((p) => p.total > threshold)) unlock('leastWorst');
+      // Everyone else went over in the last round, and you didn't.
+      if (e.winners.includes(me) && total <= threshold && g.players.every((p, i) => i === me || p.total > threshold)) unlock('leastWorst');
       if (new Date().getHours() < 5) unlock('nightOwl');
       break;
     }

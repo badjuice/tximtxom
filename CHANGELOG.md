@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.46.1 (2026-11-01)
+- 🔧 Least Worst is now Last One Standing: win a game where everyone but you busted.
+
 ## 0.46.0 (2026-11-01)
 - ✨ A Credits button next to Language on the main menu: everyone who made the game possible, with links to their pages.
 - 🔧 A New! achievement's border pulses with the same glow as its sign.
