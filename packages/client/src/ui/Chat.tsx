@@ -9,6 +9,7 @@ import { SEAT_COLORS } from '../seatColors';
 import { unlock } from '../achievements';
 import { countChatSent } from '../stats';
 import { store, useStore } from '../store';
+import { EmotePicker } from './Emotes';
 
 /** Messages from other players you haven't seen yet. */
 export function unreadChat(room: RoomView | null, seen: ClientSeen): number {
@@ -103,6 +104,7 @@ export function ChatBox({ room }: { room: RoomView }) {
             }
           }}
         />
+        <EmotePicker />
         <button type="submit" class="chat-send" disabled={!text.trim()} aria-label={t('chat.send')} title={t('chat.send')}>
           <svg viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true">
             <path d="M2 2h2v1h2v1h2v1h2v1h2v1h2v2h-2v1h-2v1h-2v1h-2v1h-2v1H2v-5h6V7H2z" fill="currentColor" />

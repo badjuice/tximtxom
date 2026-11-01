@@ -350,6 +350,7 @@ export const kick = (playerId: string) => call({ event: 'room:kick', msg: { play
 export const startGame = () => call({ event: 'room:start' });
 export const setReady = (ready: boolean) => call({ event: 'room:ready', msg: { ready } });
 export const sendChat = async (text: string) => (await call({ event: 'room:chat', msg: { text } })).ok;
+export const sendEmote = async (emote: string) => (await call({ event: 'room:emote', msg: { emote } })).ok;
 export const playAgain = () => call({ event: 'room:again' });
 export const renamePlayer = (playerId: string, name: string) => {
   if (playerId === store.get().room?.youId) localStorage.setItem(NAME_KEY, name);

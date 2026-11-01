@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'preact/hooks';
+import { EmoteBubble, EmotePicker } from './Emotes';
 import { type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
 import { canDrop, cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort, txiJogBlock, type BarButton } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { drawPileTop, revealGroups } from '../game/scene';
 import { cardShort, type Key, kindName, t } from '../i18n';
 import { leaveRoom, playAgain, startGame } from '../net';
-import { updateSettings, useSettings } from '../settings';
+import { useSettings } from '../settings';
 import { copyReport } from '../report';
-import { type Overlay, store, toast, useStore } from '../store';
+import { type Overlay, store, toast, toggleSide, useStore } from '../store';
 import { Button, CardText, HoldButton, Label, MiniButton, Modal, ShortLabel, UiIcon } from './common';
 import { useUnreadChat } from './Chat';
-import { Badge, BADGE_KINDS, badgeCount, CardIcon, Icon, ArtIcon, Wins } from './sprites';
+import { Badge, BADGE_KINDS, badgeCount, CardIcon, EmoteIcon, Icon, ArtIcon, Wins } from './sprites';
 
 function toScreen(L: Layout, p: Point) {
   return { left: `${L.offsetX + p.x * L.scale}px`, top: `${L.offsetY + p.y * L.scale}px` };
@@ -97,12 +98,20 @@ function TopBar({ g }: { g: GameView }) {
         </MiniButton>
       </div>
       <div class="topbar-mini">
-        <MiniButton color="purple" onClick={() => updateSettings({ historyOpen: !historyOpen })} label={t('top.history')} kbd="H" pressed={historyOpen}>
+        <MiniButton color="purple" onClick={() => toggleSide('history')} label={t('top.history')} kbd="H" pressed={historyOpen && sideTab === 'history'}>
           <UiIcon name="history" />
-          {/* New chat while the panel is shut (or on its other tab): a count on the button. */}
-          {unread > 0 && (!historyOpen || sideTab !== 'chat') && <span class="unread-dot">{unread}</span>}
           <span class="mini-text">
             <Label k="top.history" />
+          </span>
+        </MiniButton>
+        <MiniButton color="blue" onClick={() => toggleSide('chat')} label={t('top.chat')} kbd="C" pressed={historyOpen && sideTab === 'chat'}>
+          <span class="ui-icon chat-icon" aria-hidden="true">
+            <EmoteIcon id="chat" scale={1.25} />
+          </span>
+          {/* Messages you haven't seen: a count on the button. Always there (hidden at 0), so nothing moves. */}
+          <span class={`unread-dot${unread > 0 && !(historyOpen && sideTab === 'chat') ? '' : ' none'}`}>{unread}</span>
+          <span class="mini-text">
+            <Label k="top.chat" />
           </span>
         </MiniButton>
         <MiniButton color="orange" onClick={() => open('settings')} label={t('top.settings')}>
@@ -178,6 +187,8 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
       {offline && <div class="plate-chip bad">{t('plate.reconnecting')}</div>}
       {chip && <div class="plate-chip">{chip}</div>}
       {active && room.turnDeadline && <TimerBar deadline={room.turnDeadline} total={g.rules.turnTimer} />}
+      <EmoteBubble player={p.id} />
+      {me && <EmotePicker class="on-plate" />}
     </div>
   );
 }

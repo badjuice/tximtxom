@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.42.0 (2026-11-01)
+- ✨ Emotes: 12 pixel emotes by Kenney. Pick one from the smiley button on your plate or next to the chat field, and it pops up over your plate (or your row in the lobby) for everyone.
+- ✨ A Chat button in the top bar (shortcut C) opens the chat directly and shows how many messages you haven't read.
+- ✨ New achievements: Show, Don't Tell (send your first emote) and Anarchist.
+- 🔧 The side panel's close button looks like a button.
+
 ## 0.41.0 (2026-11-01)
 - ✨ New achievements: Say Hi, Polyglot, Recycler, Through the Ace, Quick Draw, Royal Flush and Seven Up, plus five secret ones.
 - ✨ New achievements with progress bars: Chatterbox, Badge Collector, Scavenger, Marathon, and one for each kind of badge.

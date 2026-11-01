@@ -32,6 +32,21 @@ export interface ChatLine {
   text: string;
 }
 
+/** The emotes a player can send: a bubble over their plate for a moment. */
+export const EMOTES = ['faceHappy', 'faceSad', 'faceAngry', 'laugh', 'heart', 'heartBroken', 'exclamation', 'question', 'idea', 'sleeps', 'cash', 'stars'] as const;
+export type EmoteId = (typeof EMOTES)[number];
+/** Shortest time between two emotes from one player. */
+export const EMOTE_GAP_MS = 1200;
+export const EMOTE_KEEP = 8;
+
+/** One emote sent. */
+export interface EmoteLine {
+  /** Counts up within the room. */
+  id: number;
+  from: string;
+  emote: EmoteId;
+}
+
 /** Everything a client needs, sent after every change. */
 export interface RoomView {
   code: string;
@@ -45,6 +60,8 @@ export interface RoomView {
   turnDeadline: number | null;
   /** The room's chat, oldest first (the last CHAT_KEEP messages). */
   chat: ChatLine[];
+  /** The last few emotes sent, oldest first. Not kept when the host restarts. */
+  emotes: EmoteLine[];
 }
 
 export type Ack<T = object> = (res: ({ ok: true } & T) | { ok: false; error: string }) => void;
@@ -79,6 +96,8 @@ export interface ClientToServer {
   'room:infected': (msg: { carrier?: string }, ack: Ack) => void;
   /** Say something in the room's chat (lobby and game). */
   'room:chat': (msg: { text: string }, ack: Ack) => void;
+  /** Show an emote over your plate. */
+  'room:emote': (msg: { emote: string }, ack: Ack) => void;
   'game:action': (action: Action, ack: Ack) => void;
   /** The full move log of the current game. */
   'game:history': (ack: Ack<{ events: { id: number; e: GameEvent }[] }>) => void;

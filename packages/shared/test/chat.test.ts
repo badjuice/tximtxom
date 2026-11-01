@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CHAT_BURST, CHAT_KEEP, CHAT_MAX, CHAT_WINDOW_MS, RoomServer, type RoomView } from '../src/index.js';
+import { CHAT_BURST, CHAT_KEEP, CHAT_MAX, CHAT_WINDOW_MS, EMOTE_GAP_MS, RoomServer, type RoomView } from '../src/index.js';
 
 function setup() {
   const views = new Map<string, RoomView>();
@@ -43,5 +43,22 @@ describe('chat', () => {
     const chat = views.get('a2')!.chat;
     expect(chat.length).toBe(CHAT_KEEP);
     expect(chat.at(-1)!.text).toBe(`m${CHAT_KEEP + 4}`);
+  });
+});
+
+describe('emotes', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+  const emote = (server: RoomServer, who: string, id: string) => server.handle(who, { event: 'room:emote', msg: { emote: id } });
+
+  it('shows known emotes to everyone, one per player every EMOTE_GAP_MS', () => {
+    const { server, views } = setup();
+    expect(emote(server, 'a', 'heart').ok).toBe(true);
+    expect(views.get('b')!.emotes.at(-1)).toMatchObject({ from: views.get('a')!.youId, emote: 'heart' });
+    expect(emote(server, 'a', 'laugh')).toEqual({ ok: false, error: 'Slow down a little' });
+    expect(emote(server, 'b', 'laugh').ok).toBe(true);
+    vi.advanceTimersByTime(EMOTE_GAP_MS);
+    expect(emote(server, 'a', 'laugh').ok).toBe(true);
+    expect(emote(server, 'b', '<script>')).toEqual({ ok: false, error: 'Unknown emote' });
   });
 });

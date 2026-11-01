@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.42.0',
+    date: '2026-11-01',
+    items: [
+      n('Emotes: 12 pixel emotes by Kenney. Pick one from the smiley button on your plate or next to the chat field, and it pops up over your plate (or your row in the lobby) for everyone.', 'Emotes: 12 emotes em pixel art do Kenney. Escolhe um no botão da carinha no teu painel ou ao lado do campo da conversa, e aparece por cima do teu painel (ou da tua linha na sala) para todos.'),
+      n('A Chat button in the top bar (shortcut C) opens the chat directly and shows how many messages you haven\'t read.', 'Um botão Conversa na barra de cima (atalho C) abre a conversa diretamente e mostra quantas mensagens tens por ler.'),
+      n('New achievements: Show, Don\'t Tell (send your first emote) and Anarchist.', 'Novas conquistas: Mostra, Não Digas (envia o teu primeiro emote) e Anarquista.'),
+      c('The side panel\'s close button looks like a button.', 'O botão de fechar o painel lateral parece mesmo um botão.'),
+    ],
+  },
+  {
     version: '0.41.0',
     date: '2026-11-01',
     items: [

@@ -475,6 +475,7 @@ const KEYS: { keys?: string; mouse?: Key; label: Key; hold?: boolean }[] = [
   { keys: 'S', label: 'key.scores' },
   { keys: 'F', label: 'key.formations' },
   { keys: 'H', label: 'key.history' },
+  { keys: 'C', label: 'key.chat' },
   { keys: 'Esc', label: 'key.settings' },
 ];
 

@@ -1,3 +1,4 @@
+import { getSettings, updateSettings } from './settings';
 import { useEffect, useState } from 'preact/hooks';
 import type { Card, GameEvent, RoomView } from '@tximtxom/shared';
 import type { Layout } from './game/layout';
@@ -45,6 +46,16 @@ export interface ClientState {
   chatSeen: { code: string; id: number };
   /** The History panel's tab. */
   sideTab: 'history' | 'chat';
+}
+
+/** The History and Chat buttons (and H, C): open the side panel on that tab, or close it if it's showing it already. */
+export function toggleSide(tab: 'history' | 'chat'): void {
+  const open = getSettings().historyOpen;
+  if (open && store.get().sideTab === tab) updateSettings({ historyOpen: false });
+  else {
+    store.set({ sideTab: tab });
+    if (!open) updateSettings({ historyOpen: true });
+  }
 }
 
 type Listener = () => void;

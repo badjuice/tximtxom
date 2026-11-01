@@ -444,9 +444,25 @@ async function buildAtlas(name, entries, w, h, scale = 1) {
   console.log(`atlas ${name}: ${entries.length} frames, ${width}x${height}`);
 }
 
+// ---------------------------------------------------------------- emotes
+
+// Kenney's Emotes Pack, pixel style 2 (square bubble, light blue rim). The ids
+// are the ones the room accepts (EMOTES in shared/src/protocol.ts).
+const EMOTE_IDS = ['faceHappy', 'faceSad', 'faceAngry', 'laugh', 'heart', 'heartBroken', 'exclamation', 'question', 'idea', 'sleeps', 'cash', 'stars'];
+
+async function emotes() {
+  const dir = path.join(KENNEY, 'emotes-pack/PNG/Pixel/Style 2');
+  const entries = [];
+  for (const id of EMOTE_IDS) entries.push([id, await sharp(path.join(dir, `emote_${id}.png`)).ensureAlpha().png().toBuffer()]);
+  // The Chat button's icon: a plain white bubble with dots.
+  entries.push(['chat', await sharp(path.join(KENNEY, 'emotes-pack/PNG/Pixel/Style 1/emote_dots3.png')).ensureAlpha().png().toBuffer()]);
+  await buildAtlas('emotes', entries, 16, 16);
+}
+
 if (!only || only === 'cards') await cards();
 if (!only || only === 'boardCards') await boardCards();
 if (!only || only === 'art') await art();
 if (!only || only === 'icons') await icons();
+if (!only || only === 'emotes') await emotes();
 if (!only || only === 'ui') await uiIcons();
 if (!only || only === 'audio') await audio();

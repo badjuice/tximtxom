@@ -15,6 +15,7 @@ import { Button } from './ui/common';
 import { initAchievements } from './achievements';
 import { t } from './i18n';
 import { initChat } from './ui/Chat';
+import { initEmotes } from './ui/Emotes';
 import { loadSpriteAtlases } from './ui/sprites';
 
 async function boot() {
@@ -44,6 +45,7 @@ async function boot() {
   if (import.meta.env.DEV) Object.assign(window, { __table: table, __send: send, __lang: (lang: 'en' | 'pt') => updateSettings({ lang }) });
   initController(table);
   initChat();
+  initEmotes();
   initStats();
   initAchievements();
   initGrab();

@@ -1,6 +1,6 @@
 import { botAction } from '../bot.js';
 import { applyAction, newGame } from '../engine.js';
-import { CHAT_BURST, CHAT_KEEP, CHAT_WINDOW_MS, type ChatLine, type LobbyPlayer, type RoomView } from '../protocol.js';
+import { CHAT_BURST, CHAT_KEEP, CHAT_WINDOW_MS, type ChatLine, EMOTE_GAP_MS, EMOTE_KEEP, type EmoteId, type EmoteLine, type LobbyPlayer, type RoomView } from '../protocol.js';
 import { randomSeed } from '../rng.js';
 import { BOT_PERSONAS, DEFAULT_RULES, HUMAN_JOKERS, MAX_PLAYERS, MIN_PLAYERS, type Rules, sanitizeRules } from '../rules.js';
 import type { Action, GameState, Seat } from '../types.js';
@@ -121,6 +121,9 @@ export class Room {
   chat: ChatLine[] = [];
   /** When each player sent their recent messages: no more than CHAT_BURST per CHAT_WINDOW_MS. */
   private chatTimes = new Map<string, number[]>();
+  emotes: EmoteLine[] = [];
+  /** When each player last sent an emote. */
+  private emoteAt = new Map<string, number>();
 
   private botTimer: Timer | null = null;
   private idleTimer: Timer | null = null;
@@ -392,6 +395,7 @@ export class Room {
       game: this.game ? viewFor(this.game, this.seatOf(m)) : null,
       turnDeadline: this.turnDeadline,
       chat: this.chat,
+      emotes: this.emotes,
     };
   }
 
@@ -405,6 +409,16 @@ export class Room {
     this.chat = [...this.chat, { id: (this.chat.at(-1)?.id ?? 0) + 1, from: m.id, text }].slice(-CHAT_KEEP);
     this.broadcast();
     this.hooks.changed?.();
+    return null;
+  }
+
+  /** Shows `emote` (already checked) over the player's plate, or says why not. */
+  emote(m: Member, emote: EmoteId): string | null {
+    const now = Date.now();
+    if (now - (this.emoteAt.get(m.id) ?? 0) < EMOTE_GAP_MS) return 'Slow down a little';
+    this.emoteAt.set(m.id, now);
+    this.emotes = [...this.emotes, { id: (this.emotes.at(-1)?.id ?? 0) + 1, from: m.id, emote }].slice(-EMOTE_KEEP);
+    this.broadcast();
     return null;
   }
 

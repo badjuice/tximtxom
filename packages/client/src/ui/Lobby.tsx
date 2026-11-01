@@ -1,3 +1,4 @@
+import { EmoteBubble } from './Emotes';
 import { useEffect, useState } from 'preact/hooks';
 import { MAX_PLAYERS, MIN_PLAYERS, NAME_MAX } from '@tximtxom/shared';
 import { play } from '../audio';
@@ -133,6 +134,7 @@ export function Lobby() {
             const editable = mine || (isHost && p.isBot);
             return (
             <li class={p.connected ? '' : 'offline'} style={{ '--seat': SEAT_COLORS[i] }}>
+              <EmoteBubble player={p.id} />
               {editable ? (
                 <button class="art-btn" title={t('lobby.cycleArt')} aria-label={t('lobby.cycleArtFor', { name: p.name })} onClick={() => void cycleAvatar(p.id)}>
                   <ArtIcon name={p.avatar || 'villager'} scale={0.42} />

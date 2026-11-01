@@ -35,7 +35,7 @@ export type AchievementId =
   | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | `rule_${RuleAch}`
   | 'closeCall' | 'flawless' | 'comeback' | 'generous' | 'selfService' | `${Track}${number}`
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd'
-  | 'sayHi' | 'nightOwl' | 'polyglot' | 'recycler' | 'throughAce' | 'royalFlush' | 'quickDraw' | 'sevenUp'
+  | 'sayHi' | 'showDontTell' | 'anarchist' | 'nightOwl' | 'polyglot' | 'recycler' | 'throughAce' | 'royalFlush' | 'quickDraw' | 'sevenUp'
   | 'theBeast' | 'mirrorMatch' | 'luckySeven' | 'royalMess';
 
 /** One achievement per rule, for playing a round with it on: its card art, and whether it's on. */
@@ -130,6 +130,7 @@ const ALL: Achievement[] = [
   { id: 'newLook', art: 'magiku', rarity: 'common' },
   { id: 'distracted', art: 'frei', rarity: 'common' },
   { id: 'sayHi', art: 'notice', rarity: 'common' },
+  { id: 'showDontTell', art: 'magiku', rarity: 'common' },
   { id: 'polyglot', art: 'help', rarity: 'common' },
   { id: 'recycler', art: 'crab', rarity: 'common' },
   { id: 'chips10', art: 'guard', rarity: 'common', soon: true },
@@ -139,6 +140,7 @@ const ALL: Achievement[] = [
   { id: 'roundWins10', art: 'squire', rarity: 'uncommon', track: 'roundsWon', goal: 10 },
   { id: 'busPass', art: 'ride', rarity: 'uncommon', track: 'ridesTaken', goal: 25 },
   { id: 'generous', art: 'villager', rarity: 'uncommon' },
+  { id: 'anarchist', art: 'boar', rarity: 'uncommon' },
   { id: 'addicted', art: 'timer', rarity: 'uncommon', meter: 'minutes' },
   { id: 'chips100', art: 'ranger', rarity: 'uncommon', soon: true },
   { id: 'gameWins10', art: 'boar', rarity: 'epic', track: 'gamesWon', goal: 10 },
@@ -323,6 +325,9 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       // All seven formed, but someone else ended the round first.
       if (r.ender !== null && r.ender !== me && r.leftovers[me].length === 0) unlock('badTiming');
       if (r.totals[me] === 69 && r.totals[me] > threshold) unlock('nuts');
+      // Formations shown this round (rides too), none of them with a Jack, Queen or King.
+      const shown = g.events.slice(lastDealIndex(g)).flatMap((x) => (x.e.t === 'lay' && x.e.seat === me ? x.e.cards : x.e.t === 'ride' && x.e.seat === me ? [x.e.card] : []));
+      if (shown.length && shown.every((c) => rankOf(c) < 11)) unlock('anarchist');
       const low = Math.min(...r.points);
       if (r.points[me] === low && r.points.filter((p) => p === low).length > 1) unlock('mirrorMatch');
       if (r.points[me] === low && low === 7) unlock('luckySeven');

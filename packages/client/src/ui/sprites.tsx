@@ -59,7 +59,7 @@ async function showCardStyle(style: CardStyle): Promise<void> {
 
 export async function loadSpriteAtlases(): Promise<void> {
   await Promise.all([
-    ...['art', 'icons'].map(async (name) => (atlases[name] = await loadAtlas(name))),
+    ...['art', 'icons', 'emotes'].map(async (name) => (atlases[name] = await loadAtlas(name))),
     showCardStyle(getSettings().cardStyle),
   ]);
   // A new card style: everything redraws once its atlas is in.
@@ -173,6 +173,11 @@ export function Badge({ kind, n, scale = 0.6, zero }: { kind: BadgeKind; n: numb
 export function badgeCount(p: LobbyPlayer | undefined, kind: BadgeKind): number {
   if (!p) return 0;
   return kind === 'win' ? p.wins : kind === 'silver' ? p.silvers : p.busts;
+}
+
+/** One of Kenney's pixel emotes (16x16 art). */
+export function EmoteIcon({ id, scale = 2 }: { id: string; scale?: number }) {
+  return <span class="sprite emote" style={spriteStyle('emotes', id, scale)} aria-hidden="true" />;
 }
 
 /** Games won: the gold badge. */

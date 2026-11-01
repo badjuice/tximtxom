@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { deselectAll, getHandOrder, setAnnouncer, tapDrawn, tapHand } from '../controller';
-import { getSettings, updateSettings, useSettings } from '../settings';
+import { getSettings, useSettings } from '../settings';
 import { t } from '../i18n';
-import { SEAT_COLORS, store, useStore } from '../store';
+import { SEAT_COLORS, store, toggleSide, useStore } from '../store';
 import { WaveText, withHighlights } from './common';
 import { AchievementToast } from './Achievements';
 import { HistoryPanel } from './History';
@@ -34,7 +34,8 @@ export function App() {
       const k = e.key.toUpperCase();
       if (k === 'S') store.set({ overlay: 'scoreboard' });
       else if (k === 'F') store.set({ overlay: 'formations' });
-      else if (k === 'H') updateSettings({ historyOpen: !getSettings().historyOpen });
+      else if (k === 'H') toggleSide('history');
+      else if (k === 'C') toggleSide('chat');
       else if (/^[1-8]$/.test(k)) {
         const hand = g.players[g.you].hand ?? [];
         const order = getHandOrder().filter((c) => hand.includes(c));

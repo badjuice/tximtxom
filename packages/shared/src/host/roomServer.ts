@@ -2,8 +2,8 @@
 // server feeds it Socket.IO messages, and in peer-to-peer mode the host's
 // browser feeds it WebRTC messages (and its own player's calls directly).
 import type { Action } from '../types.js';
-import type { ClientToServer, JoinResult, RoomView } from '../protocol.js';
-import { CHAT_MAX, NAME_MAX, ROOM_CODE_LENGTH } from '../protocol.js';
+import type { ClientToServer, EmoteId, JoinResult, RoomView } from '../protocol.js';
+import { CHAT_MAX, EMOTES, NAME_MAX, ROOM_CODE_LENGTH } from '../protocol.js';
 import type { GameEvent } from '../types.js';
 import { IDLE_REASON, isExpired, type Member, Room, type RoomSnapshot } from './room.js';
 
@@ -45,6 +45,7 @@ export type Request =
   | { event: 'room:ping' }
   | { event: 'room:infected'; msg?: { carrier?: string } }
   | { event: 'room:chat'; msg: Parameters<ClientToServer['room:chat']>[0] }
+  | { event: 'room:emote'; msg: Parameters<ClientToServer['room:emote']>[0] }
   | { event: 'game:action'; msg: Action }
   | { event: 'game:history' };
 
@@ -196,6 +197,14 @@ export class RoomServer {
         const c = this.ctx(clientId);
         if (!c) return { ok: false, error: 'Not in a room' };
         const err = c.room.say(c.member, cleanChat(req.msg?.text));
+        return err ? { ok: false, error: err } : { ok: true };
+      }
+      case 'room:emote': {
+        const c = this.ctx(clientId);
+        if (!c) return { ok: false, error: 'Not in a room' };
+        const id = req.msg?.emote;
+        if (!(EMOTES as readonly unknown[]).includes(id)) return { ok: false, error: 'Unknown emote' };
+        const err = c.room.emote(c.member, id as EmoteId);
         return err ? { ok: false, error: err } : { ok: true };
       }
       case 'game:action': {
