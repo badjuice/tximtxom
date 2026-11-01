@@ -3546,6 +3546,25 @@ input.rename {
     column-gap: 5px;
   }
 }
+/* Whose turn it is: their card itself glows gold, pulsing, not just the plate's border. */
+.plate.active .plate-art > * {
+  border-radius: 4px;
+  animation: turn-glow 0.9s ease-in-out infinite alternate;
+}
+@keyframes turn-glow {
+  from {
+    box-shadow: 0 0 0 2px #ffcf4a, 0 0 6px 1px rgba(255, 207, 74, 0.6);
+    filter: brightness(1.05);
+  }
+  to {
+    box-shadow: 0 0 0 2px #ffe08a, 0 0 14px 4px rgba(255, 207, 74, 0.95);
+    filter: brightness(1.25);
+  }
+}
+.reduced-motion .plate.active .plate-art > * {
+  animation: none;
+  box-shadow: 0 0 0 2px #ffcf4a, 0 0 10px 2px rgba(255, 207, 74, 0.8);
+}
 /* Balatro's Joker trigger: a quick pop with a wobble that settles. */
 .plate-art.juice {
   animation: juice 0.7s ease-out;

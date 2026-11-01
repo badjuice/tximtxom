@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.50.1',
+    date: '2026-11-01',
+    items: [
+      f("Other players' formations leave their hand and fly to the table, instead of popping up out of nowhere.", "As formações dos outros jogadores saem da mão deles e voam para a mesa, em vez de aparecerem do nada."),
+      f("A ride card waits for its formation to land before it flies in.", "Uma carta de boleia espera que a formação chegue à mesa antes de voar."),
+      c("Whose turn it is: their card on the plate glows gold.", "De quem é a vez: a carta na placa brilha a dourado."),
+    ],
+  },
+  {
     version: '0.50.0',
     date: '2026-11-01',
     items: [

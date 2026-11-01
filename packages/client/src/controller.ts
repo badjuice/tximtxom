@@ -3,6 +3,7 @@ import { play, type Sfx, vibrate } from './audio';
 import { setMood, shuffleTablePalette, swirl } from './background';
 import { drawPileTop, revealGroups, type SortKey, sortedCards } from './game/scene';
 import type { DropTarget, SpawnHints, Table } from './game/table';
+import type { Point } from './game/layout';
 import { cardShort, cardSpoken, type Key, kindName, t, tError } from './i18n';
 import { act, fetchHistory } from './net';
 import { getSettings, onSettings, rollRandomBack, updateSettings } from './settings';
@@ -80,6 +81,8 @@ export const layWait = new Map<number, number>();
 /** When the round ends the piles slide aside into one stack; formations shown before then wait (ms timestamp). */
 let pilesClearAt = 0;
 const PILE_SLIDE_MS = 600;
+/** About how long a card takes to fly to its place. */
+const LAND_MS = 400;
 
 let announce: (text: string) => void = () => {};
 
@@ -366,6 +369,16 @@ function seatPos(g: GameView, seat: number) {
   return table.layout.seats[seat] ?? table.layout.draw;
 }
 
+/** Where an opponent's cards leave from: the face-down cards at the end of their hand
+ *  (`n` of them, gone from the hand by now), or their plate. */
+function handPos(g: GameView, seat: number, n: number): (Point & { scale?: number })[] {
+  const left = g.players[seat].handCount;
+  return Array.from({ length: n }, (_, k) => table.where(`o${seat}_${left + k}`) ?? seatPos(g, seat));
+}
+
+/** When each formation's cards land on the table: rides on it wait for that. */
+const layLandAt = new Map<number, number>();
+
 function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
   // Scramble: anyone picking a card up (or swapping the drawn one in) shuffles every hand.
   if (e.t === 'draw' || e.t === 'take' || (e.t === 'discard' && !e.fromDraw)) scrambleNow = true;
@@ -506,9 +519,13 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       // the cards land as it fades, so the callout doesn't cover them.
       const rideKey = myRideKey(g);
       const wait = Math.max(rideKey === `${e.formationId}` && rideKey !== lastRideKey ? RIDE_CALLOUT_MS - 330 : 0, pilesClearAt - Date.now());
-      if (e.seat !== me) for (const c of e.cards) hints.set(`c${c}`, { from: seatPos(g, e.seat), hidden: wait / 1000 });
-      else if (wait > 0) setTimeout(() => table.hold(e.cards.map((c) => `c${c}`), wait / 1000));
+      // An opponent's cards wait face down where they were in their hand, then fly out.
+      if (e.seat !== me) {
+        const from = handPos(g, e.seat, e.cards.length);
+        e.cards.forEach((c, i) => hints.set(`c${c}`, { from: from[i], scale: from[i].scale, faceDown: true, hold: wait / 1000 }));
+      } else if (wait > 0) setTimeout(() => table.hold(e.cards.map((c) => `c${c}`), wait / 1000));
       layWait.set(e.formationId, wait);
+      layLandAt.set(e.formationId, Date.now() + wait + LAND_MS);
       sfx('card3', { delay: wait });
       sfx('chips1', { delay: wait + 150 });
       const grp = revealGroups(g, L).find((x) => x.id === e.formationId);
@@ -517,12 +534,17 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       break;
     }
     case 'ride': {
-      // The card leaves the rider's hand and flies to the formation.
-      hints.set(`c${e.card}`, { from: seatPos(g, e.seat) });
-      sfx('multhit1');
+      // The card leaves the rider's hand and flies to the formation, once that has landed.
+      const wait = Math.max(0, (layLandAt.get(e.formationId) ?? 0) - Date.now());
+      if (e.seat !== me) {
+        const [from] = handPos(g, e.seat, 1);
+        hints.set(`c${e.card}`, { from, scale: from.scale, faceDown: true, hold: wait / 1000 });
+      }
+      else if (wait > 0) setTimeout(() => table.hold([`c${e.card}`], wait / 1000));
+      sfx('multhit1', { delay: wait });
       const grp = revealGroups(g, L).find((x) => x.id === e.formationId);
-      if (grp) setTimeout(() => table.particles.burst(grp.x + grp.w / 2, grp.y + 40, { count: 16, colors: [0x4bc292, 0xffffff] }), 250);
-      if (e.seat !== me) toast(t('b.rode', { name: name(g, e.seat), card: cardShort(e.card) }));
+      if (grp) setTimeout(() => table.particles.burst(grp.x + grp.w / 2, grp.y + 40, { count: 16, colors: [0x4bc292, 0xffffff] }), wait + 250);
+      if (e.seat !== me) setTimeout(() => toast(t('b.rode', { name: name(g, e.seat), card: cardShort(e.card) })), wait);
       announce(t('sr.rode', { name: name(g, e.seat), card: cardSpoken(e.card) }));
       break;
     }

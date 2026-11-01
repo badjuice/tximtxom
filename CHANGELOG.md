@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.50.1 (2026-11-01)
+- 🐛 Other players' formations leave their hand and fly to the table, instead of popping up out of nowhere.
+- 🐛 A ride card waits for its formation to land before it flies in.
+- 🔧 Whose turn it is: their card on the plate glows gold.
+
 ## 0.50.0 (2026-11-01)
 - ✨ New rule, Rides: no limit (as before), one ride per formation, or no rides at all. Each has its achievement.
 - 🔧 Pairs, trios and quads keep the order you laid them in. Straights are still sorted.

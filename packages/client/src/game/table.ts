@@ -54,6 +54,8 @@ export type SpawnHints = Map<
     hidden?: number;
     /** Seconds it then waits at `from` before moving to its spot. */
     hold?: number;
+    /** Its size at `from` (default: its size once in place). */
+    scale?: number;
     /** Dealt into a hand: the hand makes room for it only once it leaves the deck. */
     deal?: boolean;
     /** Seconds to materialise in, once it shows (during `hold`). */
@@ -298,7 +300,7 @@ export class Table {
         this.pendingHints.delete(d.key);
         v = new CardView(d.key, d.card, { ...d.target, faceUp: hint?.faceDown ? false : d.target.faceUp }, this.tex);
         if (hint) {
-          v.spawnAt(hint.from.x, hint.from.y, d.target.scale, 0);
+          v.spawnAt(hint.from.x, hint.from.y, hint.scale ?? d.target.scale, 0);
           if (hint.faceDown) v.showFaceDown(true);
           v.delay = (hint.delay ?? 0) / Math.max(0.25, getSettings().gameSpeed) + (hint.hidden ?? 0);
           v.hold = hint.hold ?? 0;
@@ -577,6 +579,12 @@ export class Table {
   }
 
   /** Cards already on the table (your own, leaving your hand) stay put for `s` seconds first. */
+  /** Where a card's view is right now, and its size (null if it isn't on the table). */
+  where(key: string): (Point & { scale: number }) | null {
+    const v = this.views.get(key);
+    return v ? { x: v.x, y: v.y, scale: v.scale.x } : null;
+  }
+
   hold(keys: string[], s: number): void {
     for (const k of keys) {
       const v = this.views.get(k);
