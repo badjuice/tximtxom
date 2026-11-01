@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
@@ -115,28 +115,15 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
     setTaps(taps + 1);
   };
   const n = ACHIEVEMENTS.filter((a) => unlocked[a.id]).length;
-  // New when the window opened: the sign stays up until it closes, even once seen.
+  // New when the window opened. Hovering or tapping a card marks it seen, and its sign
+  // fades away (it stays in the page, so nothing moves).
   const [fresh] = useState(() => new Set(ACHIEVEMENTS.filter((a) => isNew(a.id)).map((a) => a.id)));
-  const list = useRef<HTMLUListElement>(null);
-  // A New card counts as seen after a second on screen.
-  useEffect(() => {
-    const timers = new Map<Element, ReturnType<typeof setTimeout>>();
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const en of entries) {
-          const id = (en.target as HTMLElement).dataset.id as AchievementId;
-          if (en.isIntersecting) timers.set(en.target, setTimeout(() => markSeen(id), 1000));
-          else clearTimeout(timers.get(en.target));
-        }
-      },
-      { threshold: 0.6 },
-    );
-    list.current?.querySelectorAll('li.new').forEach((el) => io.observe(el));
-    return () => {
-      io.disconnect();
-      timers.forEach(clearTimeout);
-    };
-  }, []);
+  const [gone, setGone] = useState<Set<AchievementId>>(() => new Set());
+  const see = (id: AchievementId) => {
+    if (!fresh.has(id) || gone.has(id)) return;
+    markSeen(id);
+    setGone(new Set(gone).add(id));
+  };
   return (
     <Modal title={t('ach.title')} onClose={onClose} class="ach-modal">
       {/* Count, bar and legend stay at the top while the list scrolls. */}
@@ -164,16 +151,19 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           <span class="lg rarity-locked">{t('ach.locked')}</span>
         </p>
       </div>
-      <ul class="ach-list" ref={list}>
+      <ul class="ach-list">
         {ACHIEVEMENTS.map((a) => {
           const got = !!unlocked[a.id];
           const hidden = a.secret && !got;
           return (
             <li
-              class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}${fresh.has(a.id) ? ' new' : ''}`}
-              data-id={a.id}
+              class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}${fresh.has(a.id) ? (gone.has(a.id) ? ' new seen' : ' new') : ''}`}
+              onPointerEnter={() => see(a.id)}
               title={got ? undefined : t('ach.locked')}
-              onClick={got && a.id === 'infected' ? tapInfected : undefined}
+              onClick={() => {
+                see(a.id);
+                if (got && a.id === 'infected') tapInfected();
+              }}
             >
               <AchievementIcon a={a} got={got} />
               {fresh.has(a.id) && <NewSign />}

@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.45.0',
+    date: '2026-11-01',
+    items: [
+      n('New achievement: Least Worst, win a game where everyone busted in the last round.', 'Nova conquista: O Menos Mau, ganha um jogo em que todos passaram o limite na última ronda.'),
+      f('New! signs on achievements now clear: hover or tap the card and the sign fades away.', 'Os sinais Nova! das conquistas já desaparecem: passa o rato ou toca no cartão e o sinal some-se.'),
+      c('"Nananinanão!" turns up more often: one time in twenty.', 'O "Nananinanão!" aparece mais vezes: uma em cada vinte.'),
+    ],
+  },
+  {
     version: '0.44.1',
     date: '2026-11-01',
     items: [

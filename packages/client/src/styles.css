@@ -5255,8 +5255,30 @@ td.num.pts {
 .ach-list > li {
   position: relative;
 }
-.ach-list > li.new {
+.ach-list > li {
+  transition: box-shadow 0.45s ease-out;
+}
+.ach-list > li.new:not(.seen) {
   box-shadow: 0 0 0 2px #ffcf4a, 0 0 14px rgba(255, 207, 74, 0.55);
+}
+/* Hovered or tapped: the sign pops up a little and fades out. */
+.ach-list > li.seen .new-sign {
+  animation: new-gone 0.45s ease-out forwards;
+}
+@keyframes new-gone {
+  0% {
+    opacity: 1;
+    scale: 1;
+  }
+  35% {
+    opacity: 1;
+    scale: 1.25;
+  }
+  100% {
+    opacity: 0;
+    scale: 0.6;
+    translate: 0 -6px;
+  }
 }
 
 /* Scrollbars everywhere: thin, gold on the dark panel, in their own lane so they

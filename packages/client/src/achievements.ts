@@ -33,7 +33,7 @@ export type AchievementId =
   | 'tipTap' | 'dealtIn' | 'lowRoller' | 'champion' | 'competitor' | 'tximtxom' | 'bitter' | 'busted' | 'likeIce' | 'nuts'
   | 'ragequit' | 'chips10' | 'chips100' | 'chips1000' | 'roundWins10' | 'gameWins10' | 'fullParty' | 'midas' | 'firstLoser'
   | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | 'vanilla' | `rule_${RuleAch}` | `ruleOff_${RuleAch}`
-  | 'closeCall' | 'flawless' | 'comeback' | 'generous' | 'selfService' | `${Track}${number}`
+  | 'closeCall' | 'leastWorst' | 'flawless' | 'comeback' | 'generous' | 'selfService' | `${Track}${number}`
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd'
   | 'sayHi' | 'showDontTell' | 'anarchist' | 'nightOwl' | 'polyglot' | 'recycler' | 'throughAce' | 'royalFlush' | 'quickDraw' | 'sevenUp'
   | 'theBeast' | 'mirrorMatch' | 'luckySeven' | 'royalMess';
@@ -150,6 +150,7 @@ const ALL: Achievement[] = [
   { id: 'gameWins10', art: 'boar', rarity: 'epic', track: 'gamesWon', goal: 10 },
   { id: 'midas', art: 'ziku', rarity: 'epic', track: 'gamesWon', goal: 5 },
   { id: 'closeCall', art: 'bust', rarity: 'epic' },
+  { id: 'leastWorst', art: 'bust', rarity: 'epic' },
   { id: 'comeback', art: 'boar', rarity: 'epic' },
   { id: 'bitter', art: 'snail', rarity: 'epic' },
   { id: 'likeIce', art: 'fantasma', rarity: 'epic' },
@@ -434,6 +435,8 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       if (g.players.length > 1 && g.players.every((p) => !p.isBot)) unlock('fullParty');
       // Right on the limit, and not over it.
       if (total === threshold) unlock('closeCall');
+      // Everyone went over in the last round, and you went over the least.
+      if (e.winners.includes(me) && g.players.every((p) => p.total > threshold)) unlock('leastWorst');
       if (new Date().getHours() < 5) unlock('nightOwl');
       break;
     }

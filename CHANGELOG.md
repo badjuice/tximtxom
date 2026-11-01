@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.45.0 (2026-11-01)
+- ✨ New achievement: Least Worst, win a game where everyone busted in the last round.
+- 🐛 New! signs on achievements now clear: hover or tap the card and the sign fades away.
+- 🔧 "Nananinanão!" turns up more often: one time in twenty.
+
 ## 0.44.1 (2026-11-01)
 - 🔧 In Portuguese, the Pass countdown reads "Passa automaticamente em 9,4s".
 - 🐛 The Achievements window is wider, never scrolls sideways, and its first row (with any New! signs) is no longer hidden under the top.
