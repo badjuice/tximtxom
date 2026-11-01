@@ -1,8 +1,8 @@
 import { useState } from 'preact/hooks';
-import { type Achievement, ACHIEVEMENTS, carrierId, type Rarity, type RuleAch, TOAST_MS, TRACKS, useAchievementToast, useUnlocked } from '../achievements';
+import { type Achievement, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
-import { formatCount, refreshInfected, refreshSpread, useStats } from '../stats';
+import { formatCount, type MyStats, refreshInfected, refreshSpread, useStats } from '../stats';
 import { Modal, WaveText, withHighlights } from './common';
 import { ArtIcon, CardBackIcon } from './sprites';
 
@@ -29,26 +29,36 @@ function ruleName(rule: RuleAch): string {
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
 
 /** How far along a running count is: a bar, and "37 / 50" (past the goal it keeps counting: "137 / 100"). */
-function Progress({ count, goal }: { count: number; goal: number }) {
+function Progress({ count, goal, unit }: { count: number; goal: number; unit?: string }) {
   return (
     <span class="ach-track" role="progressbar" aria-valuemin={0} aria-valuemax={goal} aria-valuenow={Math.min(count, goal)}>
       <span class="ach-track-fill" style={{ width: `${Math.min(100, (100 * count) / goal)}%` }} />
       <span class="ach-track-text">
         {formatCount(count)} / {formatCount(goal)}
+        {unit && ` ${unit}`}
       </span>
     </span>
   );
+}
+
+/** The bar under an achievement, if it has one: its count and goal. */
+function meter(a: Achievement, mine: MyStats, unlocked: Unlocked): { count: number; goal: number; unit?: string } | null {
+  if (a.track && a.goal) return { count: TRACKS[a.track].count(mine), goal: a.goal };
+  if (a.meter === 'rules') return { count: RULE_ACH_IDS.filter((r) => unlocked[`rule_${r}`]).length, goal: RULE_ACH_IDS.length };
+  if (a.meter === 'minutes') return { count: Math.min(ADDICTED_MINUTES, Math.floor(mine.timePlayed / 60000)), goal: ADDICTED_MINUTES, unit: t('ach.minutes') };
+  return null;
 }
 
 const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => {
   // A track's tier: "Hitchhiker II", "Take 100 rides", and no flavour line.
   if (a.track && a.tier) {
     if (part === 'name') return `${t(`ach.track.${a.track}.name` as Key)} ${ROMAN[a.tier]}`;
-    return part === 'desc' ? t(`ach.track.${a.track}.desc` as Key, { n: a.goal! }) : '';
+    // A goal of one has its own wording ("Show a quad").
+    return part === 'desc' ? t(`ach.track.${a.track}.desc${a.goal === 1 ? '1' : ''}` as Key, { n: a.goal! }) : '';
   }
   if (!a.rule) return t(`ach.${a.id}.${part}` as Key);
   const name = ruleName(a.rule);
-  return part === 'name' ? name : part === 'desc' ? t('ach.rule.desc', { rule: name }) : t('ach.rule.flavor');
+  return part === 'name' ? name : part === 'desc' ? t('ach.rule.desc', { rule: name }) : t(`ach.rule.${a.rule}.flavor` as Key);
 };
 
 /** An unlocked achievement's name, shining in its rarity's colour (rainbow for the rainbow ones). */
@@ -127,7 +137,10 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
                 <span class="ach-name">{hidden ? t('ach.secret') : got ? <Name a={a} /> : text(a, 'name')}</span>
                 <span class="ach-desc">{hidden ? t('ach.secretDesc') : withHighlights(text(a, 'desc'))}</span>
                 {!hidden && text(a, 'flavor') && <span class="ach-flavor">{withHighlights(text(a, 'flavor'))}</span>}
-                {a.track && a.goal && <Progress count={TRACKS[a.track].count(mine)} goal={a.goal} />}
+                {!hidden && (() => {
+                  const m = meter(a, mine, unlocked);
+                  return m && <Progress {...m} />;
+                })()}
               </span>
             </li>
           );

@@ -5,6 +5,18 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.38.0 (2026-11-01)
+- ✨ New achievements for pairs, trios and straights of 5 cards or more.
+- ✨ Once someone stretches your straight, you can add to it too: a 2 on your 3-4-5-6 lets you place an Ace.
+- ✨ Tap to deselect: a setting for one tap on the table to let go of your cards. Without it, touch screens take a double tap.
+- 🔧 Formation achievement goals follow how often each formation turns up: the last quad one asks for 15, not 100.
+- 🔧 Rulebook and Addicted show a progress bar.
+- 🔧 Each rule achievement has its own flavour line.
+- 🔧 Any number of hand cards can be selected at any time. A move that takes one card uses the last one picked.
+- 🔧 A left click on the table no longer lets go of your cards. Right-click does.
+- 🐛 A formation keeps the name it was shown with: a trio with a card added is "Trio +1", not "Quad +1".
+- 🐛 When the turn timer runs out, your hand stays as it was: a drawn card is discarded, and a card taken from the discard pile goes back.
+
 ## 0.37.0 (2026-10-29)
 - ✨ Progress achievements at 5, 25 and 100: rounds won, games won, formations, straights, quads, rides taken, rides given, Txi jogs and cards drawn. Each card shows how far along you are, and keeps counting past its goal.
 - ✨ New achievements: Close Call, Flawless, Comeback and Generous.

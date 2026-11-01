@@ -616,6 +616,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
         </div>
         <div class={`tab-panel${tab === 'access' ? '' : ' hidden'}`} inert={tab !== 'access'}>
           <Toggle label={t('set.confirm')} desc={t('set.confirm.desc')} checked={s.confirmMoves} onChange={(v) => set({ confirmMoves: v })} />
+          <Toggle label={t('set.tapDeselect')} desc={t('set.tapDeselect.desc')} checked={s.tapDeselect} onChange={(v) => set({ tapDeselect: v })} />
           <Toggle label={t('set.lefty')} desc={t('set.lefty.desc')} checked={s.leftHanded} onChange={(v) => set({ leftHanded: v })} />
           <Toggle label={t('set.highContrast')} desc={t('set.highContrast.desc')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />
           <Slider label={t('set.text')} value={s.textScale} min={0.85} max={1.6} step={0.05} onChange={(v) => set({ textScale: v })} format={pct} />

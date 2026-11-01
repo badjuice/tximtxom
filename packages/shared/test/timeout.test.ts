@@ -25,4 +25,25 @@ describe('turn timer', () => {
     for (const e of ends) expect(e.t === 'end' && e.kind).not.toBe('manual');
     expect(room.game!.events.some((x) => x.e.t === 'tximtxom')).toBe(false);
   });
+
+  it('puts back a card taken from the discard pile; a player cannot', () => {
+    const server = new RoomServer({ send: () => {}, closed: () => {}, roomClosed: () => {} });
+    const { code } = server.handle('a', { event: 'room:create', msg: { name: 'Nox' } }) as { ok: true; code: string };
+    server.handle('b', { event: 'room:join', msg: { code, name: 'Manci' } });
+    server.handle('a', { event: 'room:rules', msg: { rules: { turnTimer: 30 } } });
+    server.handle('b', { event: 'room:ready', msg: { ready: true } });
+    server.handle('a', { event: 'room:start' });
+    const room = server.rooms.get(code)!;
+    const g = room.game!;
+    const seat = g.turn;
+    const who = seat === 0 ? 'a' : 'b';
+    const hand = [...g.players[seat].hand];
+    const top = g.discard.at(-1);
+    server.handle(who, { event: 'game:action', msg: { type: 'takeDiscard' } });
+    expect(server.handle(who, { event: 'game:action', msg: { type: 'putBack' } }).ok).toBe(false);
+    vi.advanceTimersByTime(31_000);
+    expect(room.game!.players[seat].hand).toEqual(hand);
+    expect(room.game!.discard.at(-1)).toBe(top);
+    expect(room.game!.turn).not.toBe(seat);
+  });
 });

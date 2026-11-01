@@ -29,6 +29,8 @@ export interface MyStats {
   kinds: Record<FormationKind, number>;
   /** Most cards in one straight you showed. */
   longestStraight: number;
+  /** Straights of 5 cards or more you showed. */
+  longStraights: number;
   rides: number;
   /** Rides other players took on your formations. */
   ridesGiven: number;
@@ -84,6 +86,7 @@ const EMPTY: MyStats = {
   formations: 0,
   kinds: { pair: 0, trio: 0, quad: 0, straight: 0 },
   longestStraight: 0,
+  longStraights: 0,
   rides: 0,
   ridesGiven: 0,
   cardsDrawn: 0,
@@ -244,13 +247,16 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
           formations: s.formations + 1,
           kinds: { ...s.kinds, [e.kind]: s.kinds[e.kind] + 1 },
           longestStraight: e.kind === 'straight' ? Math.max(s.longestStraight, e.cards.length) : s.longestStraight,
+          longStraights: s.longStraights + (e.kind === 'straight' && e.cards.length >= 5 ? 1 : 0),
         }));
       break;
     case 'ride': {
-      if (e.seat === me) bump((s) => ({ rides: s.rides + 1 }));
-      // Someone else riding on a formation you showed.
       const shown = g.events.find((x) => x.e.t === 'lay' && x.e.formationId === e.formationId)?.e;
-      if (shown?.t === 'lay' && shown.seat === me && e.seat !== me) bump((s) => ({ ridesGiven: s.ridesGiven + 1 }));
+      const mine = shown?.t === 'lay' && shown.seat === me;
+      // A ride on someone else's formation (adding to your own straight isn't one).
+      if (e.seat === me && !mine) bump((s) => ({ rides: s.rides + 1 }));
+      // Someone else riding on a formation you showed.
+      if (mine && e.seat !== me) bump((s) => ({ ridesGiven: s.ridesGiven + 1 }));
       break;
     }
     case 'gameOver': {

@@ -19,6 +19,22 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.38.0',
+    date: '2026-11-01',
+    items: [
+      n('New achievements for pairs, trios and straights of 5 cards or more.', 'Novas conquistas para pares, trincas e escadas de 5 cartas ou mais.'),
+      n('Once someone stretches your straight, you can add to it too: a 2 on your 3-4-5-6 lets you place an Ace.', 'Quando alguém estica a tua escada, também lhe podes juntar cartas: um 2 na tua 3-4-5-6 deixa-te pôr um Ás.'),
+      n('Tap to deselect: a setting for one tap on the table to let go of your cards. Without it, touch screens take a double tap.', 'Tocar para largar: uma opção para um toque na mesa largar as cartas. Sem ela, nos ecrãs tácteis são dois toques.'),
+      c('Formation achievement goals follow how often each formation turns up: the last quad one asks for 15, not 100.', 'As metas das conquistas de formações seguem a frequência de cada formação: a última de quadras pede 15, não 100.'),
+      c('Rulebook and Addicted show a progress bar.', 'O Livro de Regras e o Viciado mostram uma barra de progresso.'),
+      c('Each rule achievement has its own flavour line.', 'Cada conquista de regra tem a sua frase.'),
+      c('Any number of hand cards can be selected at any time. A move that takes one card uses the last one picked.', 'Podes escolher quantas cartas quiseres, a qualquer altura. Uma jogada de uma carta usa a última escolhida.'),
+      c('A left click on the table no longer lets go of your cards. Right-click does.', 'Um clique esquerdo na mesa já não larga as cartas. O clique direito larga.'),
+      f('A formation keeps the name it was shown with: a trio with a card added is "Trio +1", not "Quad +1".', 'Uma formação mantém o nome com que foi mostrada: uma trinca com mais uma carta é "Trinca +1", não "Quadra +1".'),
+      f('When the turn timer runs out, your hand stays as it was: a drawn card is discarded, and a card taken from the discard pile goes back.', 'Quando o tempo da vez acaba, a tua mão fica como estava: uma carta tirada do Monte é descartada, e uma carta apanhada do descarte volta para lá.'),
+    ],
+  },
+  {
     version: '0.37.0',
     date: '2026-10-29',
     items: [

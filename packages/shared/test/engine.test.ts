@@ -163,6 +163,8 @@ describe('scoring', () => {
     s = act(s, 0, { type: 'lay', cards: P('7H 7S') });
     expect(s.reveal!.ride).not.toBeNull();
     s = act(s, 1, { type: 'ride', card: C('7D') });
+    // A pair with a card added is still the pair it was laid as (shown "Pair +1").
+    expect(s.reveal!.formations[0].kind).toBe('pair');
     expect(err(s, 1, { type: 'ride', card: C('7C') })).toMatch(/one card per player/);
     s = act(s, 1, { type: 'pass' });
     s = act(s, 2, { type: 'pass' });
@@ -176,6 +178,34 @@ describe('scoring', () => {
     s = act(s, 2, { type: 'pass' });
     s = act(s, 0, { type: 'doneLaying' });
     expect(s.reveal!.order[s.reveal!.current]).toBe(1);
+  });
+
+  it('the owner of a straight rides on it once someone has stretched it', () => {
+    let s = rig(game(2), ['3D 4D 5D 6D AD KC QH', '2D 9S 9C JS 10H 8C 7C'], '5C', 'KD');
+    s = act(s, 0, { type: 'draw' });
+    s = act(s, 0, { type: 'endRound', card: C('5C') });
+    s = act(s, 0, { type: 'lay', cards: P('3D 4D 5D 6D') });
+    expect(s.reveal!.ride!.riders).toEqual([1]);
+    s = act(s, 1, { type: 'ride', card: C('2D') });
+    expect(s.reveal!.ride!.riders).toEqual([1, 0]);
+    s = act(s, 0, { type: 'ride', card: C('AD') });
+    expect(s.reveal!.formations[0].cards).toEqual(P('AD 2D 3D 4D 5D 6D'));
+    expect(s.reveal!.formations[0].kind).toBe('straight');
+    s = act(s, 1, { type: 'pass' });
+    s = act(s, 0, { type: 'pass' });
+    expect(s.reveal!.ride).toBeNull();
+    // Sets stay closed to their owner.
+    s = act(s, 0, { type: 'doneLaying' });
+  });
+
+  it('the turn timer puts a taken discard back; players cannot', () => {
+    let s = rig(game(), ['2H 9S 9D KC QC JD 10S', '3H 4H 5H 6S 7S 8S 9C'], 'AS KD', '9H');
+    s = act(s, 0, { type: 'takeDiscard' });
+    s = act(s, 0, { type: 'putBack' });
+    expect(s.players[0].hand).toEqual(P('2H 9S 9D KC QC JD 10S'));
+    expect(s.discard.at(-1)).toBe(C('9H'));
+    expect(s.turn).toBe(1);
+    expect(err(s, 1, { type: 'putBack' })).toMatch(/took nothing/);
   });
 
   it('double down and +10 when the ender is not strictly lowest', () => {

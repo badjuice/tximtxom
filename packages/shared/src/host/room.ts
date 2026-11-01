@@ -1,5 +1,4 @@
 import { botAction } from '../bot.js';
-import { cardPoints } from '../cards.js';
 import { applyAction, newGame } from '../engine.js';
 import type { LobbyPlayer, RoomView } from '../protocol.js';
 import { randomSeed } from '../rng.js';
@@ -31,10 +30,10 @@ export const IDLE_REASON = 'Nobody played for 10 minutes';
 function timeoutMove(g: GameState, seat: Seat): Action | null {
   if (g.turn !== seat) return null;
   if (g.step === 'choose') return { type: 'draw' };
+  // The hand stays as it was: the drawn card goes (unless the pile is out and the round must end),
+  // and a card taken from the discard pile goes back.
   if (g.step === 'drawn') return g.mustEnd ? { type: 'endRound', card: g.drawn! } : { type: 'discardDrawn' };
-  // Took the discard top: let go of the highest-scoring other card.
-  const out = g.players[seat].hand.filter((c) => c !== g.taken).sort((a, b) => cardPoints(b) - cardPoints(a))[0];
-  return out === undefined ? null : { type: 'swap', card: out };
+  return { type: 'putBack' };
 }
 
 /** How long bots "think" before acting (ms). */
@@ -325,6 +324,7 @@ export class Room {
     if (!this.game) return 'The game has not started';
     const seat = this.seatOf(member);
     if (seat === null) return 'You are not playing';
+    if (action.type === 'putBack') return 'Unknown action';
     return this.apply(seat, action, false);
   }
 

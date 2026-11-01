@@ -146,6 +146,7 @@ function reduce(state: GameState, seat: Seat, action: Action): string | null {
     case 'swap':
     case 'endRound':
     case 'tximtxom':
+    case 'putBack':
       if (state.phase !== 'playing') return 'Not in play';
       if (seat !== state.turn) return 'Not your turn';
       return turnAction(state, seat, action);
@@ -199,6 +200,15 @@ function turnAction(state: GameState, seat: Seat, action: Action): string | null
       const card = state.drawn!;
       state.discard.push(card);
       emit(state, { t: 'discard', seat, card, fromDraw: true });
+      finishTurn(state);
+      return null;
+    }
+    case 'putBack': {
+      if (state.step !== 'tookDiscard' || state.taken === null) return 'You took nothing from the discard pile';
+      const card = state.taken;
+      removeCard(hand, card);
+      state.discard.push(card);
+      emit(state, { t: 'discard', seat, card, fromDraw: false });
       finishTurn(state);
       return null;
     }
@@ -375,11 +385,11 @@ function revealAction(state: GameState, reveal: RevealState, seat: Seat, action:
       const after = canRide(f.cards, action.card, state.rules)!;
       removeCard(hand, action.card);
       f.cards = after.cards;
-      f.kind = after.kind;
       f.rides.push({ seat, card: action.card });
       w.passed = [];
       w.rrPasses = 0;
       emit(state, { t: 'ride', seat, formationId: f.id, card: action.card });
+      ownerJoins(state, w, f);
       if (state.rules.rideOrder === 'roundRobin' && hand.length === 0) advanceRoundRobin(state, w);
       maybeCloseRide(state, reveal);
       return null;
@@ -405,12 +415,22 @@ function revealAction(state: GameState, reveal: RevealState, seat: Seat, action:
 
 /** Why `seat` can't add `card` to formation `f` (null = allowed). */
 export function rideError(state: GameState, f: Formation, seat: Seat, card: Card): string | null {
-  if (f.owner === seat) return "You can't ride on your own formation";
+  // Owners can add to their own straights (once someone has stretched them), not to sets.
+  if (f.owner === seat && f.kind !== 'straight') return "You can't ride on your own formation";
   if (f.kind !== 'straight' && f.rides.some((r) => r.seat === seat)) {
     return 'Only one card per player on a pair or trio';
   }
   if (!canRide(f.cards, card, state.rules)) return "That card doesn't fit";
   return null;
+}
+
+/**
+ * Once someone stretches a straight, its owner may get a card that now fits
+ * (a 2 added to 3-4-5-6 lets them place an Ace): they join the ride, last in line.
+ */
+function ownerJoins(state: GameState, w: RideWindow, f: Formation): void {
+  if (f.kind !== 'straight' || w.riders.includes(f.owner)) return;
+  if (state.players[f.owner].hand.some((c) => canRide(f.cards, c, state.rules))) w.riders.push(f.owner);
 }
 
 function activeRiders(state: GameState, w: RideWindow): Seat[] {
@@ -473,9 +493,9 @@ function autoRide(state: GameState, reveal: RevealState, f: Formation): void {
       const after = canRide(f.cards, c, state.rules)!;
       removeCard(state.players[seat].hand, c);
       f.cards = after.cards;
-      f.kind = after.kind;
       f.rides.push({ seat, card: c });
       emit(state, { t: 'ride', seat, formationId: f.id, card: c });
+      ownerJoins(state, reveal.ride!, f);
       changed = true;
     }
   }

@@ -50,26 +50,32 @@ export const RULE_ACHIEVEMENTS = {
   timer: { art: 'timer', on: (r: Rules) => r.turnTimer > 0 },
 } satisfies Record<string, { art: string; on: (r: Rules) => boolean }>;
 export type RuleAch = keyof typeof RULE_ACHIEVEMENTS;
-const RULE_ACH_IDS = Object.keys(RULE_ACHIEVEMENTS) as RuleAch[];
+export const RULE_ACH_IDS = Object.keys(RULE_ACHIEVEMENTS) as RuleAch[];
 
-/** Running counts with a row of achievements each (5, 25 and 100), from your stats. */
+/**
+ * Running counts with a row of achievements each (common, uncommon, epic), from your stats.
+ * Goals follow how often each thing turns up: in simulated games a player shows a trio or a
+ * straight in about half their rounds, a quad in one round of twelve, a straight of 5+ in one
+ * of twenty-seven, and with Softcore one or two pairs a round. Each row's goals land around
+ * 10, 50 and 200 rounds of play.
+ */
+const STEADY = [5, 25, 100];
 export const TRACKS = {
-  roundsWon: { art: 'ace', count: (s: MyStats) => s.roundsWon },
-  gamesWon: { art: 'princess', count: (s: MyStats) => s.gamesWon },
-  formations: { art: 'softcore', count: (s: MyStats) => s.formations },
-  straights: { art: 'mixed', count: (s: MyStats) => s.kinds.straight },
-  quads: { art: 'double', count: (s: MyStats) => s.kinds.quad },
-  ridesTaken: { art: 'ride', count: (s: MyStats) => s.rides },
-  ridesGiven: { art: 'autoride', count: (s: MyStats) => s.ridesGiven },
-  txiJogs: { art: 'txijog', count: (s: MyStats) => s.roundsEnded },
-  draws: { art: 'turn', count: (s: MyStats) => s.cardsDrawn },
-} satisfies Record<string, { art: string; count: (s: MyStats) => number }>;
+  roundsWon: { art: 'ace', goals: STEADY, count: (s: MyStats) => s.roundsWon },
+  gamesWon: { art: 'princess', goals: STEADY, count: (s: MyStats) => s.gamesWon },
+  formations: { art: 'magiku', goals: [10, 50, 250], count: (s: MyStats) => s.formations },
+  pairs: { art: 'softcore', goals: [10, 50, 200], count: (s: MyStats) => s.kinds.pair },
+  trios: { art: 'guard', goals: STEADY, count: (s: MyStats) => s.kinds.trio },
+  straights: { art: 'mixed', goals: STEADY, count: (s: MyStats) => s.kinds.straight },
+  longStraights: { art: 'snail', goals: [1, 3, 10], count: (s: MyStats) => s.longStraights },
+  quads: { art: 'double', goals: [1, 5, 15], count: (s: MyStats) => s.kinds.quad },
+  ridesTaken: { art: 'ride', goals: STEADY, count: (s: MyStats) => s.rides },
+  ridesGiven: { art: 'autoride', goals: STEADY, count: (s: MyStats) => s.ridesGiven },
+  txiJogs: { art: 'txijog', goals: STEADY, count: (s: MyStats) => s.roundsEnded },
+  draws: { art: 'turn', goals: [25, 250, 1000], count: (s: MyStats) => s.cardsDrawn },
+} satisfies Record<string, { art: string; goals: number[]; count: (s: MyStats) => number }>;
 export type Track = keyof typeof TRACKS;
-const GOALS: [number, Rarity][] = [
-  [5, 'common'],
-  [25, 'uncommon'],
-  [100, 'epic'],
-];
+const TIERS: Rarity[] = ['common', 'uncommon', 'epic'];
 /** Goals an older achievement already covers (Midas is 5 games won, Bus Pass 25 rides): no second card for them. */
 const COVERED: Partial<Record<Track, number[]>> = { gamesWon: [5], ridesTaken: [25] };
 
@@ -94,6 +100,8 @@ export interface Achievement {
   goal?: number;
   /** Made from its track ("Hitchhiker II"): the tier's number, from 1. */
   tier?: number;
+  /** A bar for a one-off that's reached bit by bit: rules played (Rulebook), minutes played (Addicted). */
+  meter?: 'rules' | 'minutes';
 }
 
 /** Common to legendary, then the secret ones. */
@@ -115,7 +123,7 @@ const ALL: Achievement[] = [
   { id: 'roundWins10', art: 'squire', rarity: 'uncommon', track: 'roundsWon', goal: 10 },
   { id: 'busPass', art: 'ride', rarity: 'uncommon', track: 'ridesTaken', goal: 25 },
   { id: 'generous', art: 'villager', rarity: 'uncommon' },
-  { id: 'addicted', art: 'timer', rarity: 'uncommon' },
+  { id: 'addicted', art: 'timer', rarity: 'uncommon', meter: 'minutes' },
   { id: 'chips100', art: 'ranger', rarity: 'uncommon', soon: true },
   { id: 'gameWins10', art: 'boar', rarity: 'epic', track: 'gamesWon', goal: 10 },
   { id: 'midas', art: 'ziku', rarity: 'epic', track: 'gamesWon', goal: 5 },
@@ -129,11 +137,12 @@ const ALL: Achievement[] = [
   { id: 'flawless', art: 'kabaleru', rarity: 'legendary' },
   // The running counts, each track's goals in a row.
   ...(Object.keys(TRACKS) as Track[]).flatMap((track) =>
-    GOALS.filter(([goal]) => !COVERED[track]?.includes(goal)).map(
-      ([goal, rarity], i): Achievement => ({ id: `${track}${goal}`, art: TRACKS[track].art, rarity, track, goal, tier: i + 1 }),
-    ),
+    TRACKS[track].goals
+      .map((goal, i) => [goal, TIERS[i]] as const)
+      .filter(([goal]) => !COVERED[track]?.includes(goal))
+      .map(([goal, rarity], i): Achievement => ({ id: `${track}${goal}`, art: TRACKS[track].art, rarity, track, goal, tier: i + 1 })),
   ),
-  { id: 'allRules', art: 'bikingu', rarity: 'legendary' },
+  { id: 'allRules', art: 'bikingu', rarity: 'legendary', meter: 'rules' },
   { id: 'chips1000', art: 'kabaleru', rarity: 'legendary', soon: true },
   ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `rule_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'common', rule })),
   { id: 'infected', art: 'slime', rarity: 'secret', secret: true },
@@ -295,12 +304,14 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
   }
 }
 
+export const ADDICTED_MINUTES = 60;
+
 /** Achievements that come from your running stats, checked as they change. */
 export function initAchievements(): void {
   const check = () => {
     const s = myStats();
     for (const a of ACHIEVEMENTS) if (a.track && a.goal && TRACKS[a.track].count(s) >= a.goal) unlock(a.id);
-    if (s.timePlayed >= 60 * 60 * 1000) unlock('addicted');
+    if (s.timePlayed >= ADDICTED_MINUTES * 60 * 1000) unlock('addicted');
   };
   check();
   onStats(check);

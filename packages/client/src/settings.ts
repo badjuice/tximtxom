@@ -102,6 +102,8 @@ export interface Settings {
   haptics: boolean;
   // Input
   confirmMoves: boolean;
+  /** Touch screens: one tap on empty table lets go of the selected cards (otherwise two). */
+  tapDeselect: boolean;
   announce: boolean;
   /** Mirrors the bottom button bar for left-handed players. */
   leftHanded: boolean;
@@ -140,6 +142,7 @@ export const DEFAULT_SETTINGS: Settings = {
   muted: false,
   haptics: true,
   confirmMoves: true,
+  tapDeselect: false,
   announce: true,
   leftHanded: false,
   historyOpen: false,

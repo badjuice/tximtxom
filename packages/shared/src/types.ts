@@ -138,6 +138,8 @@ export type Action =
   | { type: 'doneLaying' }
   | { type: 'ride'; card: Card }
   | { type: 'pass' }
-  | { type: 'ready' };
+  | { type: 'ready' }
+  /** The turn timer only (players can't send it): the card just taken from the discard pile goes back. */
+  | { type: 'putBack' };
 
 export type ActionResult = { ok: true; state: GameState } | { ok: false; error: string };

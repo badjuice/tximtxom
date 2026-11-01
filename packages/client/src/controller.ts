@@ -497,8 +497,8 @@ export function tapHand(card: Card): void {
   const s = store.get();
   const g = s.room?.game;
   if (!g || g.you === null || s.staged) return;
-  const multi = isMultiSelect(g);
-  const sel = s.selected.includes(card) ? s.selected.filter((c) => c !== card) : multi ? [...s.selected, card] : [card];
+  // Any number of cards can be picked; a move that takes one card uses the last picked.
+  const sel = s.selected.includes(card) ? s.selected.filter((c) => c !== card) : [...s.selected, card];
   play(sel.includes(card) ? 'card1' : 'cardSlide1', { volume: 0.5, rate: sel.includes(card) ? 1.15 : 0.9 });
   store.set({ selected: sel });
 }
@@ -538,7 +538,7 @@ export function canDrop(card: Card, target: DropTarget): boolean {
     if (!w.riders.includes(me) || !hand.includes(card)) return false;
     if (g.rules.rideOrder === 'roundRobin' ? w.riders[w.rrIndex] !== me : w.passed.includes(me)) return false;
     const f = r.formations.find((x) => x.id === w.formationId);
-    if (!f || f.owner === me) return false;
+    if (!f || (f.owner === me && f.kind !== 'straight')) return false;
     if (f.kind !== 'straight' && f.rides.some((x) => x.seat === me)) return false;
     return canRide(f.cards, card, g.rules) !== null;
   }
@@ -595,7 +595,19 @@ export function drop(card: Card, target: DropTarget): void {
   } else void send({ type: 'ride', card });
 }
 
-/** Lets go of every selected hand card: right-click, or a tap on empty table (touch screens). */
+let lastEmptyTap = 0;
+/** Empty table: a mouse click does nothing (right-click deselects); on touch
+ *  screens a double tap, or one tap with the "Tap to deselect" setting. */
+export function tapEmpty(pointerType: string): void {
+  if (pointerType === 'mouse') return;
+  const now = performance.now();
+  if (getSettings().tapDeselect || now - lastEmptyTap < 400) {
+    lastEmptyTap = 0;
+    deselectAll();
+  } else lastEmptyTap = now;
+}
+
+/** Lets go of every selected hand card: right-click, or a tap on empty table (see tapEmpty). */
 export function deselectAll(): void {
   const s = store.get();
   if (!s.room?.game || s.overlay || s.dragging || !s.selected.length || document.querySelector('.modal-backdrop')) return;
@@ -620,20 +632,9 @@ export function badDrop(_card: Card, target: DropTarget): void {
 export function tapDrawn(card: Card): void {
   const s = store.get();
   if (s.staged) return;
-  const sel = s.selected.includes(card) ? [] : [card];
+  const sel = s.selected.includes(card) ? s.selected.filter((c) => c !== card) : [...s.selected, card];
   play('card1', { volume: 0.5, rate: 1.15 });
   store.set({ selected: sel });
-}
-
-function isMultiSelect(g: GameView): boolean {
-  if (g.phase === 'reveal' && g.reveal) {
-    const ride = g.reveal.ride;
-    // While others ride a formation, its owner can pick the cards for their next one.
-    if (ride) return g.reveal.formations.find((f) => f.id === ride.formationId)?.owner === g.you;
-    return g.reveal.order[g.reveal.current] === g.you;
-  }
-  if (g.phase === 'playing' && g.turn === g.you && g.step !== 'choose') return false;
-  return true;
 }
 
 export async function send(action: Action): Promise<boolean> {
@@ -759,7 +760,7 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
       };
     }
 
-    const sel = selected[0];
+    const sel = selected.at(-1);
     if (g.step === 'drawn') {
       const drawn = g.drawn!;
       const usingHand = sel !== undefined && sel !== drawn && hand.includes(sel);
@@ -820,7 +821,7 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
       const amRider = w.riders.includes(me) && hand.length > 0;
       const myGo = g.rules.rideOrder === 'roundRobin' ? w.riders[w.rrIndex] === me : !w.passed.includes(me);
       if (amRider && myGo) {
-        const card = selected[0];
+        const card = selected.at(-1);
         return {
           ...EMPTY,
           main: [
