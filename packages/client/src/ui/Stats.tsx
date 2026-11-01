@@ -4,6 +4,7 @@ import { type Key, t } from '../i18n';
 import { useSettings } from '../settings';
 import { formatCount, locale, type MyStats, useStats } from '../stats';
 import { Modal, Tabs, WaveText, withTximTxom } from './common';
+import { Icon } from './sprites';
 
 /** "2h 05m", "12m 30s", "45s". */
 function formatDuration(ms: number): string {
@@ -95,7 +96,7 @@ function StatList({ title, rows }: { title: Key; rows: [Key, string][] }) {
   );
 }
 
-type StatsTab = 'overview' | 'play' | 'cards';
+type StatsTab = 'overview' | 'play' | 'cards' | 'badges';
 
 /** Your stats in three tabs, stacked so switching never resizes the modal. */
 function StatsPanel() {
@@ -112,6 +113,7 @@ function StatsPanel() {
           { id: 'overview', label: t('stats.tab.overview') },
           { id: 'play', label: t('stats.tab.play') },
           { id: 'cards', label: t('stats.tab.cards') },
+          { id: 'badges', label: t('stats.tab.badges') },
         ]}
         active={tab}
         onChange={setTab}
@@ -183,6 +185,23 @@ function StatsPanel() {
         <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
           <PileBar s={s} />
           <p class="center muted small">{t('stats.note')}</p>
+        </div>
+        <div class={`tab-panel${tab === 'badges' ? '' : ' hidden'}`} inert={tab !== 'badges'}>
+          {/* Every game you finish ends with one badge: gold, silver or bust. */}
+          <div class="stat-tile big badge-total">
+            <span class="stat-value">{formatCount(s.gamesWon + s.silvers + s.busts)}</span>
+            <span class="stat-label">{t('stats.badges')}</span>
+          </div>
+          <div class="badge-tiles">
+            {(['win', 'silver', 'bust'] as const).map((kind) => (
+              <div class={`stat-tile badge-tile badge-${kind}`}>
+                <Icon name={kind} scale={1.6} />
+                <span class="stat-value">{formatCount(kind === 'win' ? s.gamesWon : kind === 'silver' ? s.silvers : s.busts)}</span>
+                <span class="stat-label">{t(`badge.${kind}` as Key)}</span>
+              </div>
+            ))}
+          </div>
+          <p class="center muted small">{t('stats.badgesNote')}</p>
         </div>
       </div>
     </div>

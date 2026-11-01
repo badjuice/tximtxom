@@ -1,6 +1,6 @@
 import { botAction } from '../bot.js';
 import { applyAction, newGame } from '../engine.js';
-import type { LobbyPlayer, RoomView } from '../protocol.js';
+import { CHAT_BURST, CHAT_KEEP, CHAT_WINDOW_MS, type ChatLine, type LobbyPlayer, type RoomView } from '../protocol.js';
 import { randomSeed } from '../rng.js';
 import { BOT_PERSONAS, DEFAULT_RULES, HUMAN_JOKERS, MAX_PLAYERS, MIN_PLAYERS, type Rules, sanitizeRules } from '../rules.js';
 import type { Action, GameState, Seat } from '../types.js';
@@ -90,6 +90,8 @@ export interface RoomSnapshot {
   /** When a human last did something (ms since epoch). Missing in old saves. */
   lastHumanActivity?: number;
   log?: LogEntry[];
+  /** Missing in old saves. */
+  chat?: ChatLine[];
 }
 
 /** A saved room nobody has touched for ROOM_IDLE_MS should not come back. */
@@ -116,6 +118,9 @@ export class Room {
   lastHumanActivity = Date.now();
   /** Moves, connections and rejected moves of this room, newest last. */
   log: LogEntry[] = [];
+  chat: ChatLine[] = [];
+  /** When each player sent their recent messages: no more than CHAT_BURST per CHAT_WINDOW_MS. */
+  private chatTimes = new Map<string, number[]>();
 
   private botTimer: Timer | null = null;
   private idleTimer: Timer | null = null;
@@ -386,7 +391,21 @@ export class Room {
       rules: this.rules,
       game: this.game ? viewFor(this.game, this.seatOf(m)) : null,
       turnDeadline: this.turnDeadline,
+      chat: this.chat,
     };
+  }
+
+  /** Adds `text` (already cleaned) to the chat, or says why not. */
+  say(m: Member, text: string): string | null {
+    if (!text) return 'Say something first';
+    const now = Date.now();
+    const recent = (this.chatTimes.get(m.id) ?? []).filter((at) => now - at < CHAT_WINDOW_MS);
+    if (recent.length >= CHAT_BURST) return 'Slow down a little';
+    this.chatTimes.set(m.id, [...recent, now]);
+    this.chat = [...this.chat, { id: (this.chat.at(-1)?.id ?? 0) + 1, from: m.id, text }].slice(-CHAT_KEEP);
+    this.broadcast();
+    this.hooks.changed?.();
+    return null;
   }
 
   // ------------------------------------------------------------ bots & timers
@@ -485,7 +504,7 @@ export class Room {
 
   /** Plain data to save and restore the room (e.g. across a host refresh). */
   snapshot(): RoomSnapshot {
-    return { code: this.code, hostId: this.hostId, rules: this.rules, members: this.members, game: this.game, lastHumanActivity: this.lastHumanActivity, log: this.log };
+    return { code: this.code, hostId: this.hostId, rules: this.rules, members: this.members, game: this.game, lastHumanActivity: this.lastHumanActivity, log: this.log, chat: this.chat };
   }
 
   static restore(snap: RoomSnapshot, hooks: RoomHooks): Room {
@@ -497,6 +516,7 @@ export class Room {
     room.game = snap.game;
     room.lastHumanActivity = snap.lastHumanActivity ?? 0;
     room.log = snap.log ?? [];
+    room.chat = snap.chat ?? [];
     room.record({ what: 'restored after a host refresh' });
     room.armIdle();
     if (room.game) for (const p of room.game.players) if (!p.isBot) p.botControlled = true;

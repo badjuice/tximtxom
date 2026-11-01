@@ -456,11 +456,13 @@ export class Table {
     this.handlers.onOverTxiJog(over);
   }
 
-  /** Is the pointer over the Txi jog button? It lives in the page, over the canvas. */
+  /** Is the pointer over a Txi jog spot: the corner button, or the sign over the Draw Pile? Both live in the page, over the canvas. */
   private overTxiJog(e: PointerEvent): boolean {
-    const r = document.querySelector('[data-drop="txiJog"]')?.getBoundingClientRect();
-    const pad = 8; // a little slack around it, as with the piles
-    return !!r && e.clientX >= r.left - pad && e.clientX <= r.right + pad && e.clientY >= r.top - pad && e.clientY <= r.bottom + pad;
+    const pad = 8; // a little slack around them, as with the piles
+    return [...document.querySelectorAll('[data-drop="txiJog"]')].some((el) => {
+      const r = el.getBoundingClientRect();
+      return e.clientX >= r.left - pad && e.clientX <= r.right + pad && e.clientY >= r.top - pad && e.clientY <= r.bottom + pad;
+    });
   }
 
   private onPointerDown(e: PointerEvent): void {
@@ -516,7 +518,7 @@ export class Table {
     if (!target && p.y < handTop) target = { kind: 'table' };
     if (target && this.handlers.canDrop(drag.card, target)) {
       this.handlers.onDrop(drag.card, target);
-    } else if (target?.kind === 'formation') {
+    } else if (target?.kind === 'formation' || target?.kind === 'drawPile' || target?.kind === 'txiJog') {
       this.handlers.onBadDrop(drag.card, target);
     } else if (role === 'hand' && p.y >= handTop) {
       // Only a drop back on the hand reorders it; anywhere else the card snaps back.

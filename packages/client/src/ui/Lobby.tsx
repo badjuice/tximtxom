@@ -5,6 +5,7 @@ import { t } from '../i18n';
 import { addBot, cycleAvatar, kick, renamePlayer, setReady, startGame } from '../net';
 import { store, useStore } from '../store';
 import { Button, TopMenu, WaveText } from './common';
+import { ChatBox } from './Chat';
 import { SEAT_COLORS } from './Hud';
 import { Icon, ArtIcon, Wins } from './sprites';
 
@@ -217,6 +218,13 @@ export function Lobby() {
               ? t('lobby.waitHost')
               : t('lobby.sayReady')}
         </p>
+      </section>
+
+      <section class="panel lobby-chat" aria-label={t('chat.title')}>
+        <h2>
+          <WaveText text={t('chat.title')} />
+        </h2>
+        <ChatBox room={room} />
       </section>
 
       {/* Beside the room on wide screens; above it on narrow ones. The rules open in their own window. */}

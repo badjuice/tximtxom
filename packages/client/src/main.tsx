@@ -14,6 +14,7 @@ import { App } from './ui/App';
 import { Button } from './ui/common';
 import { initAchievements } from './achievements';
 import { t } from './i18n';
+import { initChat } from './ui/Chat';
 import { loadSpriteAtlases } from './ui/sprites';
 
 async function boot() {
@@ -42,6 +43,7 @@ async function boot() {
   await table.init(document.getElementById('stage')!);
   if (import.meta.env.DEV) Object.assign(window, { __table: table, __send: send, __lang: (lang: 'en' | 'pt') => updateSettings({ lang }) });
   initController(table);
+  initChat();
   initStats();
   initAchievements();
   initGrab();

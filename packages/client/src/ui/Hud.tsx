@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
-import { type BarButton, canDrop, cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort } from '../controller';
+import { canDrop, cardsSeenOut, computeBar, readyForNextRound, sortHand, toggleAutoSort, txiJogBlock, type BarButton } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { drawPileTop, revealGroups } from '../game/scene';
 import { cardShort, type Key, kindName, t } from '../i18n';
@@ -9,6 +9,7 @@ import { updateSettings, useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, useStore } from '../store';
 import { Button, CardText, HoldButton, Label, MiniButton, Modal, ShortLabel, UiIcon } from './common';
+import { useUnreadChat } from './Chat';
 import { Badge, BADGE_KINDS, badgeCount, CardIcon, Icon, ArtIcon, Wins } from './sprites';
 
 function toScreen(L: Layout, p: Point) {
@@ -65,6 +66,8 @@ function activeRules(r: GameView['rules']): [string, Key, Key][] {
 function TopBar({ g }: { g: GameView }) {
   const open = (overlay: NonNullable<Overlay>) => store.set({ overlay });
   const { historyOpen } = useSettings();
+  const unread = useUnreadChat();
+  const sideTab = useStore((s) => s.sideTab);
   return (
     <nav class="topbar" aria-label="Game menu">
       <div class="round-chip">
@@ -96,6 +99,8 @@ function TopBar({ g }: { g: GameView }) {
       <div class="topbar-mini">
         <MiniButton color="purple" onClick={() => updateSettings({ historyOpen: !historyOpen })} label={t('top.history')} kbd="H" pressed={historyOpen}>
           <UiIcon name="history" />
+          {/* New chat while the panel is shut (or on its other tab): a count on the button. */}
+          {unread > 0 && (!historyOpen || sideTab !== 'chat') && <span class="unread-dot">{unread}</span>}
           <span class="mini-text">
             <Label k="top.history" />
           </span>
@@ -271,14 +276,23 @@ function SixthSense({ g, L }: { g: GameView; L: Layout }) {
 }
 
 /** While a card that can end the round is held, the draw pile says it takes it. */
+/** While you hold a card on your turn: the sign over the Draw Pile. It takes the drop too,
+ *  and when this card can't end the round it's grey and says why. */
 function TxiJogDrop({ g, L }: { g: GameView; L: Layout }) {
   const card = useStore((s) => s.dragCard);
-  if (card === null || !canDrop(card, { kind: 'drawPile' })) return null;
+  const over = useStore((s) => s.overTxiJog);
+  useStore((s) => s.room);
+  const why = card === null ? undefined : txiJogBlock(card);
+  if (why === undefined) return null;
   const top = drawPileTop(L, Math.min(g.drawCount, 6));
   return (
-    <div class="txijog-drop" style={toScreen(L, { x: top.x, y: top.y - (CARD_H * L.pileScale) / 2 - 6 })}>
+    <div
+      class={`txijog-drop${why ? ' blocked' : ''}${over ? ' over' : ''}`}
+      data-drop="txiJog"
+      style={toScreen(L, { x: top.x, y: top.y - (CARD_H * L.pileScale) / 2 - 6 })}
+    >
       <ArtIcon name="txijog" scale={0.4} />
-      {t('drop.txiJog')}
+      {why ? t(why) : t('drop.txiJog')}
     </div>
   );
 }

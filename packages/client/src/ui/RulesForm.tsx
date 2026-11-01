@@ -98,28 +98,29 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
  *  Joker and its state (On in green, Off in red, or the value it is set to). */
 export function RulesSummary({ rules }: { rules: Rules }) {
   const onOff = (on: boolean) => <b class={on ? 'rs-on' : 'rs-off'}>{on ? t('rule.on') : t('rule.off')}</b>;
-  // Art, name, state, and the rule's tone (as in the room's rules).
-  const rows: [string, string, ComponentChildren, string?][] = [
-    ['bust', t('rule.bust'), <b class="rs-val">{rules.threshold}</b>],
-    ['softcore', t('rule.softcore'), onOff(rules.softcore), 'support'],
-    ['ace', t('rule.superposition'), onOff(rules.superposition), 'support'],
-    ['ace', t('rule.mobius'), onOff(rules.mobius), 'support'],
-    ['mixed', t('rule.smeared'), onOff(rules.smeared), 'support'],
-    ['ride', t('rule.rideOrder'), <b class="rs-val">{rules.rideOrder === 'roundRobin' ? t('rule.inTurns') : t('rule.together')}</b>],
-    ['autoride', t('rule.autoRide'), onOff(rules.autoRide), 'support'],
-    ['peek', t('rule.sixthSense'), onOff(rules.sixthSense), 'info'],
-    ['notice', t('rule.notice'), onOff(rules.noMoreFormationsNotice), 'info'],
-    ['penalty', t('rule.penalty10'), onOff(rules.penalty10), 'punish'],
-    ['double', t('rule.doubleDown'), onOff(rules.doubleDown), 'punish'],
-    ['timer', t('rule.timer'), rules.turnTimer ? <b class="rs-val">{rules.turnTimer}s</b> : onOff(false)],
+  // Art, name, description, state, and the rule's tone (as in the room's rules).
+  const rows: [string, string, string, ComponentChildren, string?][] = [
+    ['bust', t('rule.bust'), t('rule.bust.desc'), <b class="rs-val">{rules.threshold}</b>],
+    ['softcore', t('rule.softcore'), t('rule.softcore.desc'), onOff(rules.softcore), 'support'],
+    ['ace', t('rule.superposition'), t('rule.superposition.desc'), onOff(rules.superposition), 'support'],
+    ['ace', t('rule.mobius'), t('rule.mobius.desc'), onOff(rules.mobius), 'support'],
+    ['mixed', t('rule.smeared'), t('rule.smeared.desc'), onOff(rules.smeared), 'support'],
+    ['ride', t('rule.rideOrder'), t('rule.rideOrder.desc'), <b class="rs-val">{rules.rideOrder === 'roundRobin' ? t('rule.inTurns') : t('rule.together')}</b>],
+    ['autoride', t('rule.autoRide'), t('rule.autoRide.desc'), onOff(rules.autoRide), 'support'],
+    ['peek', t('rule.sixthSense'), t('rule.sixthSense.desc'), onOff(rules.sixthSense), 'info'],
+    ['notice', t('rule.notice'), t('rule.notice.desc'), onOff(rules.noMoreFormationsNotice), 'info'],
+    ['penalty', t('rule.penalty10'), t('rule.penalty10.desc'), onOff(rules.penalty10), 'punish'],
+    ['double', t('rule.doubleDown'), t('rule.doubleDown.desc'), onOff(rules.doubleDown), 'punish'],
+    ['timer', t('rule.timer'), t('rule.timer.desc'), rules.turnTimer ? <b class="rs-val">{rules.turnTimer}s</b> : onOff(false)],
   ];
   return (
     <ul class="rules-summary">
-      {rows.map(([art, name, state, tone]) => (
+      {rows.map(([art, name, desc, state, tone]) => (
         <li>
           <ArtIcon name={art} scale={0.3} rule />
           <span class="rs-name">
             <RuleName name={name} tone={tone} />
+            <span class="rs-desc">{desc}</span>
           </span>
           {state}
         </li>

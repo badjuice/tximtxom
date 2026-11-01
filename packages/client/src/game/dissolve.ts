@@ -34,8 +34,12 @@ uniform vec3 uEdge1;
 uniform vec3 uEdge2;
 uniform vec3 uEdge3;
 
+// No sine: sin(x) * 43758 needs full float precision, and on many phone GPUs
+// the noise fell apart into a few scattered pixels. This one holds up.
 float hash(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7)) + uSeed) * 43758.5453);
+  vec3 p3 = fract(vec3(p.xyx + uSeed) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
 }
 
 float noise(vec2 p) {
@@ -84,7 +88,8 @@ export const TAROT: EdgeColors = [
 
 export function dissolveFilter(edges: EdgeColors = FIRE): Filter {
   return new Filter({
-    glProgram: GlProgram.from({ vertex: VERT, fragment: FRAG, name: 'card-dissolve' }),
+    // Phones default filters to medium precision; ask for high where the GPU has it.
+    glProgram: GlProgram.from({ vertex: VERT, fragment: FRAG, name: 'card-dissolve', preferredFragmentPrecision: 'highp' }),
     resources: {
       dissolveUniforms: {
         uAmount: { value: 0, type: 'f32' },

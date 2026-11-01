@@ -19,6 +19,20 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.40.0',
+    date: '2026-11-01',
+    items: [
+      n('Chat: one conversation per room, in the lobby and in a Chat tab next to History during a game. A count shows messages you haven\'t read.', 'Conversa: uma por sala, na sala de espera e num separador ao lado do Histórico durante o jogo. Um número mostra as mensagens por ler.'),
+      n('Stats has a Badges tab: gold, silver and bust badges, and the total.', 'As Estatísticas têm um separador de Emblemas: ouro, prata e Rabenta, e o total.'),
+      c('Rule achievements now need a whole game finished with the rule on, not just one round.', 'As conquistas de regras pedem agora um jogo inteiro acabado com a regra, não só uma ronda.'),
+      c('The in-game Rules window shows what each rule does, under its name.', 'A janela de Regras durante o jogo mostra o que cada regra faz, debaixo do nome.'),
+      c('The Txi jog sign over the Draw Pile says why a card can\'t end the round (the card you just took, or higher than 5).', 'O aviso de Txi jog sobre o Monte diz porque é que uma carta não pode acabar a ronda (a carta que acabaste de apanhar, ou acima de 5).'),
+      f('Dropping a card on the Txi jog sign over the Draw Pile now ends the round, as dropping it on the pile does.', 'Largar uma carta no aviso de Txi jog sobre o Monte já acaba a ronda, como largá-la no Monte.'),
+      f('The card burn and deck animations render properly on phones.', 'As animações de queimar cartas e do baralho aparecem bem nos telemóveis.'),
+      f('A tab reopened by the browser (after sleeping, a reload or Back) starts on the main menu instead of jumping into Play.', 'Um separador que o navegador reabre (depois de adormecer, recarregar ou Voltar) começa no menu principal em vez de saltar para Jogar.'),
+    ],
+  },
+  {
     version: '0.39.0',
     date: '2026-11-01',
     items: [

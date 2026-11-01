@@ -38,8 +38,9 @@ test('the game survives the host refreshing the page', async ({ browser }) => {
   host.on('dialog', (d) => d.accept());
   host.on('console', (m) => m.type() === 'error' && console.log('[host]', m.text()));
   await host.reload({ waitUntil: 'commit', timeout: 120_000 });
-  // The menu shows first; Rejoin takes the host back to their room.
+  // A reload lands on the main menu; Play shows Rejoin, which takes the host back to their room.
   await host.click('#loading button', { timeout: 120_000 });
+  await host.click('.menu-play');
   await host.click('button:has-text("Rejoin")');
 
   // The room comes back under the same code, with the same game.

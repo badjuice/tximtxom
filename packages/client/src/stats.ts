@@ -18,6 +18,9 @@ export interface MyStats {
   gamesPlayed: number;
   gamesWon: number;
   gamesLost: number;
+  /** Badges from games you lost: silver (no bust) and bust. Counted since 0.40.0; the gold badge is gamesWon. */
+  silvers: number;
+  busts: number;
   /** Games won in a row: now, and the longest run. */
   winStreak: number;
   bestStreak: number;
@@ -79,6 +82,8 @@ const EMPTY: MyStats = {
   gamesPlayed: 0,
   gamesWon: 0,
   gamesLost: 0,
+  silvers: 0,
+  busts: 0,
   winStreak: 0,
   bestStreak: 0,
   roundsEnded: 0,
@@ -261,12 +266,15 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
     }
     case 'gameOver': {
       const won = e.winners.includes(me);
+      const bust = !won && g.players[me].total > g.rules.threshold;
       bump((s) => {
         const winStreak = won ? s.winStreak + 1 : 0;
         return {
           gamesPlayed: s.gamesPlayed + 1,
           gamesWon: s.gamesWon + (won ? 1 : 0),
           gamesLost: s.gamesLost + (won ? 0 : 1),
+          silvers: s.silvers + (!won && !bust ? 1 : 0),
+          busts: s.busts + (bust ? 1 : 0),
           winStreak,
           bestStreak: Math.max(s.bestStreak, winStreak),
           longestGame: Math.max(s.longestGame, g.round),

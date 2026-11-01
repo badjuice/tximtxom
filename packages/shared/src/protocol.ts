@@ -23,6 +23,15 @@ export interface LobbyPlayer {
   carrier?: string;
 }
 
+/** One chat message. */
+export interface ChatLine {
+  /** Counts up within the room: what's new since you last looked. */
+  id: number;
+  /** The sender's player id. */
+  from: string;
+  text: string;
+}
+
 /** Everything a client needs, sent after every change. */
 export interface RoomView {
   code: string;
@@ -34,6 +43,8 @@ export interface RoomView {
   game: GameView | null;
   /** Epoch ms when the current turn times out (null = no timer). */
   turnDeadline: number | null;
+  /** The room's chat, oldest first (the last CHAT_KEEP messages). */
+  chat: ChatLine[];
 }
 
 export type Ack<T = object> = (res: ({ ok: true } & T) | { ok: false; error: string }) => void;
@@ -66,6 +77,8 @@ export interface ClientToServer {
   'room:ping': (ack: Ack) => void;
   /** You caught the Infected achievement here: the rest of the table catches it at the next round start. */
   'room:infected': (msg: { carrier?: string }, ack: Ack) => void;
+  /** Say something in the room's chat (lobby and game). */
+  'room:chat': (msg: { text: string }, ack: Ack) => void;
   'game:action': (action: Action, ack: Ack) => void;
   /** The full move log of the current game. */
   'game:history': (ack: Ack<{ events: { id: number; e: GameEvent }[] }>) => void;
@@ -77,4 +90,9 @@ export interface ServerToClient {
 }
 
 export const NAME_MAX = 16;
+/** Longest chat message, messages kept, and how many one player may send per CHAT_WINDOW_MS. */
+export const CHAT_MAX = 120;
+export const CHAT_KEEP = 50;
+export const CHAT_BURST = 5;
+export const CHAT_WINDOW_MS = 10_000;
 export const ROOM_CODE_LENGTH = 4;

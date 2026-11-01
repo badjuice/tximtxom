@@ -3,7 +3,7 @@ import { play, type Sfx, vibrate } from './audio';
 import { setMood, shuffleTablePalette, swirl } from './background';
 import { drawPileTop, revealGroups, sortedCards } from './game/scene';
 import type { DropTarget, SpawnHints, Table } from './game/table';
-import { cardShort, cardSpoken, kindName, t, tError } from './i18n';
+import { cardShort, cardSpoken, type Key, kindName, t, tError } from './i18n';
 import { act, fetchHistory } from './net';
 import { getSettings, onSettings, rollRandomBack, updateSettings } from './settings';
 import { achievementEvent } from './achievements';
@@ -503,6 +503,23 @@ export function tapHand(card: Card): void {
   store.set({ selected: sel });
 }
 
+/**
+ * Can `card` end the round by Txi jog right now? null: yes. Otherwise why not
+ * (shown on the sign over the Draw Pile, and when the drop fails), or undefined
+ * when it's no moment for a Txi jog at all (not your turn, no card picked yet).
+ */
+export function txiJogBlock(card: Card): Key | null | undefined {
+  const s = store.get();
+  const g = s.room?.game;
+  if (!g || g.you === null || s.staged || g.phase !== 'playing' || g.turn !== g.you) return undefined;
+  if (g.step !== 'drawn' && g.step !== 'tookDiscard') return undefined;
+  // The drawn card or a hand card, nothing else (not the discard pile's top).
+  if (card !== g.drawn && !(g.players[g.you].hand ?? []).includes(card)) return undefined;
+  if (g.step === 'tookDiscard' && card === g.taken) return 'drop.notTaken';
+  if (!g.mustEnd && !canEndWith(card)) return 'drop.lowOnly';
+  return null;
+}
+
 /** Drag-and-drop rules (the host re-checks everything). */
 export function canDrop(card: Card, target: DropTarget): boolean {
   const s = store.get();
@@ -513,11 +530,7 @@ export function canDrop(card: Card, target: DropTarget): boolean {
   if (g.phase === 'playing' && g.turn === me) {
     // Txi jog: the card goes under the discard pile, and the pile onto the draw pile.
     // Dropping a hand card while holding a drawn one keeps the drawn card in its place.
-    if (target.kind === 'drawPile' || target.kind === 'txiJog') {
-      if (g.step === 'drawn') return (card === g.drawn || hand.includes(card)) && (g.mustEnd || canEndWith(card));
-      if (g.step === 'tookDiscard') return hand.includes(card) && card !== g.taken && canEndWith(card);
-      return false;
-    }
+    if (target.kind === 'drawPile' || target.kind === 'txiJog') return txiJogBlock(card) === null;
     if (g.mustEnd) return false;
     if (target.kind === 'discard') {
       if (g.step === 'drawn') return card === g.drawn || hand.includes(card);
@@ -624,9 +637,17 @@ function nope(): void {
   callout(t(r < 0.01 ? 'c.nope.rare' : r < 0.5 ? 'c.nope' : 'c.nope.alt'), CALLOUT.nope, { ms: 1000 });
 }
 
-export function badDrop(_card: Card, target: DropTarget): void {
+export function badDrop(card: Card, target: DropTarget): void {
   const g = store.get().room?.game;
   if (g && target.kind === 'formation' && myRideKey(g)) nope();
+  // A Txi jog that can't happen with this card: say why.
+  if (target.kind === 'drawPile' || target.kind === 'txiJog') {
+    const why = txiJogBlock(card);
+    if (why) {
+      nope();
+      toast(t(why), 'error');
+    }
+  }
 }
 
 export function tapDrawn(card: Card): void {

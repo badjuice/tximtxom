@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { makeCard, NAME_MAX, ROOM_CODE_LENGTH, type Suit } from '@tximtxom/shared';
 import { play, unlockAudio } from '../audio';
 import { t } from '../i18n';
-import { createRoom, joinRoom, linkedRoom, rejoinRoom, saveName, savedName, savedRoom, savedRoomExpiry } from '../net';
+import { createRoom, freshInvite, joinRoom, linkedRoom, rejoinRoom, saveName, savedName, savedRoom, savedRoomExpiry } from '../net';
 import { unlock } from '../achievements';
 import { formatCount, refreshGlobalRounds, useStats } from '../stats';
 import { store, useStore } from '../store';
@@ -265,8 +265,9 @@ export function Title() {
     return () => clearTimeout(id);
   }, [code]);
   const [busy, setBusy] = useState(false);
-  // The main menu, or the Play panel (straight to it from an invite link or a seat to take back).
-  const [playing, setPlaying] = useState(code !== '');
+  // The main menu, or the Play panel: straight to it only from an invite link just opened.
+  // Anything else starts on the main menu, with the code waiting in the Play panel.
+  const [playing, setPlaying] = useState(() => freshInvite());
   // The counter is hidden until the name at the bottom is tapped ten times, and
   // hides again once you leave the main menu.
   const [taps, setTaps] = useState(0);

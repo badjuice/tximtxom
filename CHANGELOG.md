@@ -5,6 +5,16 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.40.0 (2026-11-01)
+- ✨ Chat: one conversation per room, in the lobby and in a Chat tab next to History during a game. A count shows messages you haven't read.
+- ✨ Stats has a Badges tab: gold, silver and bust badges, and the total.
+- 🔧 Rule achievements now need a whole game finished with the rule on, not just one round.
+- 🔧 The in-game Rules window shows what each rule does, under its name.
+- 🔧 The Txi jog sign over the Draw Pile says why a card can't end the round (the card you just took, or higher than 5).
+- 🐛 Dropping a card on the Txi jog sign over the Draw Pile now ends the round, as dropping it on the pile does.
+- 🐛 The card burn and deck animations render properly on phones.
+- 🐛 A tab reopened by the browser (after sleeping, a reload or Back) starts on the main menu instead of jumping into Play.
+
 ## 0.39.0 (2026-11-01)
 - ✨ New rule, Mobius Strip: straights loop through the Ace, so it can sit in the middle (K-A-2). It needs Ace High.
 - ✨ A rule that needs another is greyed out until that one is on, with a sign saying which.

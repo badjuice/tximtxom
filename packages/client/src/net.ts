@@ -130,6 +130,17 @@ export function linkedRoom(): string {
   return new URL(location.href).searchParams.get('room')?.toUpperCase() ?? '';
 }
 
+/**
+ * True when someone just opened an invite link. A reload, Back/Forward, or the
+ * browser waking a tab it put to sleep also finds ?room= in the address (it's
+ * there while you're in a room): those land on the main menu.
+ */
+export function freshInvite(): boolean {
+  if (!linkedRoom() || (document as Document & { wasDiscarded?: boolean }).wasDiscarded) return false;
+  const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+  return !nav || nav.type === 'navigate';
+}
+
 function onClosed(reason: string): void {
   clearSession();
   host = null;
@@ -338,6 +349,7 @@ export const addBot = () => call({ event: 'room:addBot' });
 export const kick = (playerId: string) => call({ event: 'room:kick', msg: { playerId } });
 export const startGame = () => call({ event: 'room:start' });
 export const setReady = (ready: boolean) => call({ event: 'room:ready', msg: { ready } });
+export const sendChat = async (text: string) => (await call({ event: 'room:chat', msg: { text } })).ok;
 export const playAgain = () => call({ event: 'room:again' });
 export const renamePlayer = (playerId: string, name: string) => {
   if (playerId === store.get().room?.youId) localStorage.setItem(NAME_KEY, name);

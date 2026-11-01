@@ -5,7 +5,9 @@ import { cardShort, cardSpoken, type Key, kindName, lang, t } from '../i18n';
 import { updateSettings, useSettings } from '../settings';
 import { historyText } from '../historyLog';
 import { copyText } from '../report';
-import { toast, useStore } from '../store';
+import { store, toast, useStore } from '../store';
+import { ChatBox, useUnreadChat } from './Chat';
+import { Label } from './common';
 import { SEAT_COLORS } from './Hud';
 import { ArtIcon } from './sprites';
 
@@ -178,6 +180,9 @@ export function HistoryPanel() {
   const history = useStore((st) => st.history);
   const myDraws = useStore((st) => st.myDraws);
   const g = useStore((st) => st.room?.game);
+  const room = useStore((st) => st.room);
+  const sideTab = useStore((st) => st.sideTab);
+  const unread = useUnreadChat();
   const list = useRef<HTMLOListElement>(null);
   /** Following the newest moves: off while you scroll up to read older ones. */
   const atBottom = useRef(true);
@@ -198,19 +203,33 @@ export function HistoryPanel() {
     if (el && atBottom.current) el.scrollTop = el.scrollHeight;
   }, [lines.length, s.historyOpen]);
 
-  if (!g || !s.historyOpen) return null;
+  if (!g || !s.historyOpen || !room) return null;
+  const tab = sideTab;
   return (
-    <aside class="history panel" aria-label={t('h.title')}>
+    <aside class="history panel" aria-label={tab === 'chat' ? t('chat.title') : t('h.title')}>
       <div class="history-head">
-        <h2>{t('h.title')}</h2>
-        <button class="hcopy" onClick={() => copy()}>
-          {t('h.copyGame')}
-        </button>
+        <div class="side-tabs" role="tablist">
+          {(['history', 'chat'] as const).map((id) => (
+            <button role="tab" aria-selected={tab === id} class={`side-tab${tab === id ? ' on' : ''}`} onClick={() => store.set({ sideTab: id })}>
+              <Label k={id === 'chat' ? 'chat.title' : 'h.title'} />
+              {/* Always there, so the tab never changes width. */}
+              {id === 'chat' && <span class={`unread${unread && tab !== 'chat' ? '' : ' none'}`}>{unread || 0}</span>}
+            </button>
+          ))}
+        </div>
+        {tab === 'history' && (
+          <button class="hcopy" onClick={() => copy()} title={t('h.copyGame')} aria-label={t('h.copyGame')}>
+            <svg viewBox="0 0 16 16" width="14" height="14" shape-rendering="crispEdges" aria-hidden="true">
+              <path d="M5 1h9v9h-2V3H5z" fill="currentColor" />
+              <path d="M2 5h9v10H2zm2 2v6h5V7z" fill="currentColor" fill-rule="evenodd" />
+            </svg>
+          </button>
+        )}
         <button class="x" aria-label={t('close')} onClick={() => updateSettings({ historyOpen: false })}>
           ×
         </button>
       </div>
-      <ol
+      {tab === 'chat' ? <ChatBox room={room} /> : <ol
         class="history-list"
         ref={list}
         onScroll={(ev) => {
@@ -224,7 +243,7 @@ export function HistoryPanel() {
           </li>
         ))}
         {lines.length === 0 && <li class="hline muted">{t('h.empty')}</li>}
-      </ol>
+      </ol>}
     </aside>
   );
 }

@@ -1669,6 +1669,19 @@ input[type='text'] {
   pointer-events: none;
   animation: hint-in 0.14s cubic-bezier(0.2, 1.6, 0.4, 1);
 }
+.txijog-drop.over {
+  filter: brightness(1.2);
+  scale: 1.08;
+}
+/* This card can't end the round: grey, saying why. */
+.txijog-drop.blocked {
+  background: #4d5e62;
+  color: #d3dcde;
+}
+.txijog-drop.blocked .sprite {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
 
 .action-area {
   position: absolute;
@@ -2151,12 +2164,16 @@ input[type='text'] {
 }
 .hcopy {
   font: inherit;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 26px;
   font-size: 0.8em;
   color: var(--text);
   background: var(--panel-d);
   border: 0;
   border-radius: 6px;
-  padding: 2px 8px;
+  padding: 0;
   margin: 0 6px;
   cursor: pointer;
 }
@@ -3785,6 +3802,15 @@ input.rename {
 .rs-name {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* What the rule does, under its name, like an achievement's flavour line. */
+.rs-desc {
+  font-size: 0.78em;
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.2;
 }
 .rs-on {
   color: var(--green);
@@ -4716,5 +4742,157 @@ input.rename {
 @keyframes bust-flash {
   50% {
     color: var(--red);
+  }
+}
+
+/* --- chat (lobby panel, and a tab of the History panel in a game) */
+.chat {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chat-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0 4px 0 0;
+  font-size: 0.85em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.chat-list li {
+  padding: 2px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.chat-list li.mine {
+  border-left: 3px solid var(--gold);
+}
+.chat-form {
+  display: flex;
+  gap: 6px;
+}
+.chat-form input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.9em;
+  color: #fff;
+  background: var(--panel-in);
+  border: 2px solid #4d6469;
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+.chat-form input:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+.chat-send {
+  width: 36px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--blue);
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 3px 0 var(--blue-d);
+  cursor: pointer;
+}
+.chat-send:disabled {
+  background: #3a4a4e;
+  box-shadow: none;
+  color: #6f8186;
+  cursor: default;
+}
+.lobby-chat {
+  width: min(300px, 94vw);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lobby-chat h2 {
+  margin: 0;
+}
+@media (max-width: 700px) {
+  .lobby-chat {
+    height: 260px;
+  }
+}
+/* Tabs on the left; Copy (History tab only) and × on the right, so switching moves neither. */
+.side-tabs {
+  display: flex;
+  gap: 2px;
+  margin-right: auto;
+}
+.side-tab {
+  font: inherit;
+  font-size: 1em;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 2px 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.side-tab.on {
+  color: #fff;
+  border-bottom-color: var(--blue);
+}
+.unread,
+.unread-dot {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.75em;
+  line-height: 18px;
+  text-align: center;
+}
+.unread.none {
+  visibility: hidden;
+}
+.unread-dot {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  pointer-events: none;
+}
+.mini-btn {
+  position: relative;
+}
+
+/* --- stats: badges tab */
+.badge-total {
+  margin-bottom: 6px;
+}
+.badge-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.badge-tile {
+  gap: 6px;
+  padding: 12px 6px;
+}
+.badge-tile .stat-value {
+  font-size: 1.8em;
+}
+@media (max-width: 520px) {
+  .badge-tiles {
+    grid-template-columns: 1fr;
+  }
+  .badge-tile {
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
   }
 }

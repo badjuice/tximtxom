@@ -3,7 +3,7 @@
 // browser feeds it WebRTC messages (and its own player's calls directly).
 import type { Action } from '../types.js';
 import type { ClientToServer, JoinResult, RoomView } from '../protocol.js';
-import { NAME_MAX, ROOM_CODE_LENGTH } from '../protocol.js';
+import { CHAT_MAX, NAME_MAX, ROOM_CODE_LENGTH } from '../protocol.js';
 import type { GameEvent } from '../types.js';
 import { IDLE_REASON, isExpired, type Member, Room, type RoomSnapshot } from './room.js';
 
@@ -44,12 +44,18 @@ export type Request =
   | { event: 'room:leave' }
   | { event: 'room:ping' }
   | { event: 'room:infected'; msg?: { carrier?: string } }
+  | { event: 'room:chat'; msg: Parameters<ClientToServer['room:chat']>[0] }
   | { event: 'game:action'; msg: Action }
   | { event: 'game:history' };
 
 /** A carrier id: a short random token, or nothing. */
 function cleanCarrier(id: unknown): string | undefined {
   return typeof id === 'string' && /^[a-z0-9]{6,24}$/.test(id) ? id : undefined;
+}
+
+/** One line of chat: no control characters or line breaks, spaces squeezed, at most CHAT_MAX characters. */
+export function cleanChat(text: unknown): string {
+  return [...String(text ?? '').replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, ' ').replace(/\s+/g, ' ').trim()].slice(0, CHAT_MAX).join('').trim();
 }
 
 function cleanName(name: unknown): string {
@@ -185,6 +191,12 @@ export class RoomServer {
         if (c && !c.room.game) c.room.remove(c.member.id);
         c?.room.broadcast();
         return { ok: true };
+      }
+      case 'room:chat': {
+        const c = this.ctx(clientId);
+        if (!c) return { ok: false, error: 'Not in a room' };
+        const err = c.room.say(c.member, cleanChat(req.msg?.text));
+        return err ? { ok: false, error: err } : { ok: true };
       }
       case 'game:action': {
         const c = this.ctx(clientId);

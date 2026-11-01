@@ -41,6 +41,10 @@ export interface ClientState {
   history: { id: number; e: GameEvent }[];
   /** Cards you drew yourself, by event id (only you know them). */
   myDraws: Record<number, Card>;
+  /** The last chat message you've seen, and in which room. */
+  chatSeen: { code: string; id: number };
+  /** The History panel's tab. */
+  sideTab: 'history' | 'chat';
 }
 
 type Listener = () => void;
@@ -80,6 +84,8 @@ export const store = createStore<ClientState>({
   layout: null,
   history: [],
   myDraws: {},
+  chatSeen: { code: '', id: 0 },
+  sideTab: 'history',
 });
 
 /** Preact hook: re-renders when the selected slice changes. */

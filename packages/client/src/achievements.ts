@@ -248,9 +248,6 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
   switch (e.t) {
     case 'deal':
       unlock('dealtIn');
-      // Each rule on in this round, and all of them once they've all been played.
-      for (const rule of RULE_ACH_IDS) if (RULE_ACHIEVEMENTS[rule].on(g.rules)) unlock(`rule_${rule}`);
-      if (RULE_ACH_IDS.every((rule) => unlocked[`rule_${rule}`])) unlock('allRules');
       // Every round start, Infected passes to anyone at the table who doesn't have it yet.
       const carriers = room.players.filter((p) => p.id !== room.youId && p.infected);
       if (carriers.length) {
@@ -291,6 +288,9 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       else if (g.round === 1) unlock('bitter');
       break;
     case 'gameOver': {
+      // A whole game played to the end with each rule on (win or lose), and Rulebook once every rule's done.
+      for (const rule of RULE_ACH_IDS) if (RULE_ACHIEVEMENTS[rule].on(g.rules)) unlock(`rule_${rule}`);
+      if (RULE_ACH_IDS.every((rule) => unlocked[`rule_${rule}`])) unlock('allRules');
       const total = g.players[me].total;
       if (e.winners.includes(me)) {
         unlock('champion');
