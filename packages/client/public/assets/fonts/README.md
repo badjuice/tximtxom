@@ -1,8 +1,9 @@
 # Fonts
 
-Alternative fonts, picked in Settings > Style (the default game font is
-`../m6x11plus.woff2`). Each is only loaded when chosen; letters a font lacks
-(the card suits, some dashes) come from m6x11. Files are as downloaded from
+Fonts picked in Settings > Style. Digital Disco is the default (preloaded);
+the others are only loaded when chosen. Letters a font lacks (the card suits,
+some dashes) come from m6x11 (`../m6x11plus.woff2`, by Daniel Linssen: "free
+to use with attribution", https://managore.itch.io/m6x11). Files are as downloaded from
 DaFont on 2026-10-28.
 
 | Folder | Font | Author | Source | Licence |

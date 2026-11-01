@@ -1,11 +1,12 @@
 import { RULE_REQUIRES, type Rules } from '@tximtxom/shared';
 import { chipsEarned, chipsNow } from '../chips';
-import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, onUnlock, unlock, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
 import { formatCount, type MyStats, refreshInfected, refreshSpread, useStats } from '../stats';
-import { Modal, WaveText, withHighlights } from './common';
+import { Cycler, HintBalloon, Modal, WaveText, withHighlights } from './common';
+import { type AchSort, updateSettings, useSettings } from '../settings';
 import { ArtIcon, CardBackIcon } from './sprites';
 
 /** Each rarity's colour, as the shine on unlocked achievements (lighter than the frame, to read as light). */
@@ -70,6 +71,64 @@ const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => {
   return part === 'name' ? name : part === 'desc' ? t('ach.rule.desc', { rule: what }) : t(`ach.rule.${a.rule}.flavor` as Key);
 };
 
+/** "dd/mm/yyyy, HH:MM:SS". */
+function stamp(ms: number): string {
+  const d = new Date(ms);
+  const two = (n: number) => String(n).padStart(2, '0');
+  return `${two(d.getDate())}/${two(d.getMonth() + 1)}/${d.getFullYear()}, ${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}`;
+}
+
+const SORTS: AchSort[] = ['default', 'complete', 'rarity', 'similar', 'date', 'name'];
+const RARITY_ORDER: Record<Rarity, number> = { common: 0, uncommon: 1, epic: 2, legendary: 3, secret: 4 };
+
+/** What an achievement is "like", for sorting similar ones together: its track
+ *  (win x rounds, make x formations…), chips, rules, or everything else. */
+function family(a: Achievement): string {
+  if (a.track) return a.track;
+  if (a.meter === 'chips') return 'chips';
+  if (a.rule || a.meter === 'rules') return 'rules';
+  return 'other';
+}
+const FAMILY_ORDER = [...new Set(ACHIEVEMENTS.map(family))];
+
+/** The list in the chosen order. Ties keep the list's own order; locked cards
+ *  stay last when sorting by date, and unnamed secrets when sorting by name. */
+function sorted(by: AchSort, desc: boolean, unlocked: Unlocked, mine: MyStats): Achievement[] {
+  const base = new Map(ACHIEVEMENTS.map((a, i) => [a.id, i]));
+  const done = (a: Achievement) => {
+    if (unlocked[a.id]) return 1;
+    const m = meter(a, mine, unlocked);
+    return m ? Math.min(0.999, m.count / m.goal) : 0;
+  };
+  const key = (a: Achievement): number | string => {
+    switch (by) {
+      case 'complete':
+        return done(a);
+      case 'rarity':
+        return RARITY_ORDER[a.rarity];
+      case 'similar':
+        return FAMILY_ORDER.indexOf(family(a)) * 1e7 + (a.goal ?? 0);
+      case 'date':
+        return unlocked[a.id] ?? 0;
+      case 'name':
+        return text(a, 'name').toLocaleLowerCase();
+      default:
+        return base.get(a.id)!;
+    }
+  };
+  const sign = desc ? -1 : 1;
+  return [...ACHIEVEMENTS].sort((a, b) => {
+    if (by === 'date' && !!unlocked[a.id] !== !!unlocked[b.id]) return unlocked[a.id] ? -1 : 1;
+    // Secrets have no name to sort by until they're unlocked: after every named one.
+    const hidden = (x: Achievement) => !!x.secret && !unlocked[x.id];
+    if (by === 'name' && hidden(a) !== hidden(b)) return hidden(a) ? 1 : -1;
+    const ka = key(a);
+    const kb = key(b);
+    const c = typeof ka === 'string' ? ka.localeCompare(kb as string) : ka - (kb as number);
+    return c ? c * sign : base.get(a.id)! - base.get(b.id)!;
+  });
+}
+
 /** The looping shines on unlocked cards: the art's, the name's and the whole card's. */
 const SHINES = new Set(['rule-card-shine', 'rule-shine', 'ach-card-shine', 'rainbow-slide']);
 
@@ -118,12 +177,15 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
   const [gone, setGone] = useState<Set<AchievementId>>(() => new Set());
   // On touch screens a tap brings a card forward and a second tap puts it back (a mouse uses hover).
   const [lifted, setLifted] = useState<AchievementId | null>(null);
+  const [when, setWhen] = useState<{ id: AchievementId; at: DOMRect } | null>(null);
+  const closeWhen = useCallback(() => setWhen(null), []);
+  const { achSort: sort, achSortDesc: desc } = useSettings();
   // Window Shopper: the list scrolled to its end, or short enough to show it all at once.
   const list = useRef<HTMLUListElement>(null);
   // Every shine on the page clock's beat, so a card unlocked while this is open
   // (its shines start late) glints together with the rest.
   useLayoutEffect(() => {
-    for (const a of list.current?.getAnimations({ subtree: true }) ?? [])
+    for (const a of list.current?.parentElement?.getAnimations({ subtree: true }) ?? [])
       if (a instanceof CSSAnimation && SHINES.has(a.animationName) && a.startTime !== 0) a.startTime = 0;
   });
   const atEnd = () => {
@@ -162,9 +224,19 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           ))}
           <span class="lg rarity-locked">{t('ach.locked')}</span>
         </p>
+        <div class="ach-sort">
+          <span class="muted">{t('ach.sortBy')}</span>
+          <Cycler label={t('ach.sortBy')} value={sort} options={SORTS.map((s) => ({ value: s, label: t(`ach.sort.${s}`) }))} onChange={(achSort) => updateSettings({ achSort })} />
+          <button type="button" class="ach-dir" aria-label={desc ? t('ach.sortDesc') : t('ach.sortAsc')} title={desc ? t('ach.sortDesc') : t('ach.sortAsc')} onClick={() => {
+            play('button', { volume: 0.4 });
+            updateSettings({ achSortDesc: !desc });
+          }}>
+            <span aria-hidden="true">{desc ? '▼' : '▲'}</span> {desc ? t('ach.desc') : t('ach.asc')}
+          </button>
+        </div>
       </div>
       <ul class="ach-list" ref={list} onScroll={atEnd}>
-        {ACHIEVEMENTS.map((a) => {
+        {sorted(sort, desc, unlocked, mine).map((a) => {
           const got = !!unlocked[a.id];
           const hidden = a.secret && !got;
           return (
@@ -174,9 +246,13 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
               onPointerEnter={() => see(a.id)}
               onPointerUp={(e) => e.pointerType !== 'mouse' && setLifted((l) => (l === a.id ? null : a.id))}
               title={got ? undefined : t('ach.locked')}
-              onClick={() => {
+              data-ach={a.id}
+              onClick={(e) => {
                 see(a.id);
                 if (got && a.id === 'infected') tapInfected();
+                // When it was unlocked, in a balloon: a second tap, a scroll or a tap elsewhere hides it.
+                const at = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                setWhen((w) => (w?.id === a.id || !got ? null : { id: a.id, at }));
               }}
             >
               <AchievementIcon a={a} got={got} />
@@ -194,6 +270,11 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           );
         })}
       </ul>
+      {when && unlocked[when.id] && (
+        <HintBalloon at={when.at} onClose={closeWhen} keep={`[data-ach="${when.id}"]`}>
+          {t('ach.unlockedOn', { when: stamp(unlocked[when.id]!) })}
+        </HintBalloon>
+      )}
     </Modal>
   );
 }

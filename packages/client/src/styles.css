@@ -4378,6 +4378,7 @@ input.rename {
 .ach-progress-fill {
   position: absolute;
   inset: 0 auto 0 0;
+  overflow: hidden;
   background: var(--gold);
   border-radius: 8px;
   box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
@@ -4515,7 +4516,65 @@ input.rename {
 .ach-track-fill {
   position: absolute;
   inset: 0 auto 0 0;
+  overflow: hidden;
   background: var(--rarity, var(--gold));
+}
+/* Bars shine too: each card's with its name (rule-shine's beat), the overall one
+   with the sweep across the cards that follows (ach-card-shine's). Achievements.tsx
+   keeps them all on the page clock. */
+.ach-track-fill::after,
+.ach-progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%) 100% 0 / 300% 100% no-repeat;
+  animation: rule-shine 3.2s linear infinite;
+}
+.ach-progress-fill::after {
+  animation-name: ach-card-shine;
+}
+.reduced-motion .ach-track-fill::after,
+.reduced-motion .ach-progress-fill::after {
+  animation: none;
+  opacity: 0;
+}
+/* Sort by …, with the order's direction beside it. */
+.ach-sort {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  flex-wrap: wrap;
+}
+.ach-sort .cycler {
+  margin-left: 0;
+}
+/* Phones: label, cycler and direction still share one line; the narrowest drop the label. */
+@media (max-width: 600px) {
+  .ach-sort {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+}
+@media (max-width: 379px) {
+  .ach-sort > .muted {
+    display: none;
+  }
+}
+.ach-dir {
+  flex: none;
+  font: inherit;
+  min-height: 36px;
+  padding: 0 12px;
+  color: #fff;
+  background: var(--panel-in);
+  border: 2px solid #4d6469;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ach-dir:hover {
+  border-color: var(--blue);
 }
 .locked .ach-track-fill {
   background: #6b7780;

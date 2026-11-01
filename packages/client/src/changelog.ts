@@ -19,6 +19,17 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.52.0',
+    date: '2026-11-01',
+    items: [
+      c("Digital Disco is the game's font now. m6x11 is still one of the choices, and players who picked a font keep it.", "A letra do jogo agora é a Digital Disco. A m6x11 continua a ser uma das opções, e quem escolheu uma letra mantém-na."),
+      c("\"Confirm moves\" is now \"Play at once\", off by default: the game still waits for End Turn unless you turn it on.", "\"Confirmar jogadas\" agora é \"Jogar logo\", desligado por defeito: o jogo continua a esperar por Acabar a vez, a não ser que o ligues."),
+      n("Achievements can be sorted by progress, rarity, similar ones together, date unlocked or name, either way round.", "As conquistas podem ser ordenadas por progresso, raridade, semelhantes juntas, data ou nome, em qualquer sentido."),
+      n("Tap or click an unlocked achievement to see when you unlocked it.", "Toca ou clica numa conquista desbloqueada para ver quando a desbloqueaste."),
+      c("Achievement progress bars shine: each card's with its name, the overall one with the sweep across the cards.", "As barras de progresso das conquistas brilham: a de cada carta com o nome, a geral com o brilho que passa pelas cartas."),
+    ],
+  },
+  {
     version: '0.51.1',
     date: '2026-11-01',
     items: [

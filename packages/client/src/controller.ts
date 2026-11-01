@@ -797,7 +797,7 @@ export async function send(action: Action): Promise<boolean> {
 }
 
 export function stage(st: Staged): void {
-  if (!getSettings().confirmMoves) {
+  if (getSettings().instantMoves) {
     void send(st);
     return;
   }

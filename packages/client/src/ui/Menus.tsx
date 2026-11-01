@@ -525,7 +525,7 @@ function StyleTab() {
         options={[...backs.map((b) => ({ value: b, label: backName(b) })), { value: 'random', label: t('set.cardBack.random') }]}
         onChange={(cardBack) => updateSettings({ cardBack })}
       />
-      <Choice label={t('set.font')} desc={t('set.font.by', { author: FONTS.find((f) => f.id === s.font)?.author ?? '' })} value={s.font} options={FONTS.map((f) => ({ value: f.id, label: f.name }))} onChange={(font) => updateSettings({ font })} />
+      <Choice label={t('set.font')} desc={t('set.font.by', { author: FONTS.find((f) => f.id === s.font)?.author ?? '' })} value={s.font} options={FONTS.map((f) => ({ value: f.id, label: f.name }))} onChange={(font) => updateSettings({ font, fontPicked: true })} />
     </>
   );
 }
@@ -633,7 +633,7 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
           <Toggle label={t('set.autoSort')} desc={says(s.autoSort, 'set.autoSort.on', 'set.autoSort.off')} checked={s.autoSort} onChange={(v) => set({ autoSort: v })} />
         </div>
         <div class={`tab-panel${tab === 'access' ? '' : ' hidden'}`} inert={tab !== 'access'}>
-          <Toggle label={t('set.confirm')} desc={says(s.confirmMoves, 'set.confirm.desc', 'set.confirm.off')} checked={s.confirmMoves} onChange={(v) => set({ confirmMoves: v })} />
+          <Toggle label={t('set.instant')} desc={says(s.instantMoves, 'set.instant.on', 'set.instant.off')} checked={s.instantMoves} onChange={(v) => set({ instantMoves: v })} />
           <Toggle label={t('set.tapDeselect')} desc={says(s.tapDeselect, 'set.tapDeselect.desc', 'set.tapDeselect.off')} checked={s.tapDeselect} onChange={(v) => set({ tapDeselect: v })} />
           <Toggle label={t('set.lefty')} desc={says(s.leftHanded, 'set.lefty.desc', 'set.lefty.off')} checked={s.leftHanded} onChange={(v) => set({ leftHanded: v })} />
           <Toggle label={t('set.highContrast')} desc={says(s.highContrast, 'set.highContrast.desc', 'set.highContrast.off')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />

@@ -5,6 +5,13 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.52.0 (2026-11-01)
+- 🔧 Digital Disco is the game's font now. m6x11 is still one of the choices, and players who picked a font keep it.
+- 🔧 "Confirm moves" is now "Play at once", off by default: the game still waits for End Turn unless you turn it on.
+- ✨ Achievements can be sorted by progress, rarity, similar ones together, date unlocked or name, either way round.
+- ✨ Tap or click an unlocked achievement to see when you unlocked it.
+- 🔧 Achievement progress bars shine: each card's with its name, the overall one with the sweep across the cards.
+
 ## 0.51.1 (2026-11-01)
 - ✨ The first game you win each day pays an extra 50 chips.
 - ✨ New achievement, Regular: collect the daily bonus 7 days in a row. Stats shows your current and longest run.

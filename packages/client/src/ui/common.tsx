@@ -473,7 +473,7 @@ export function Choice<T extends string | number>(props: {
 
 /** Balatro's option cycler: arrows either side of the current option, one dot
  *  per option underneath (tap a dot to jump). Wraps around at both ends. */
-function Cycler<T extends string | number>(props: { label: string; value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; disabled?: boolean }) {
+export function Cycler<T extends string | number>(props: { label: string; value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; disabled?: boolean }) {
   const n = props.options.length;
   const i = Math.max(0, props.options.findIndex((o) => o.value === props.value));
   const go = (to: number, dir = 0) => {

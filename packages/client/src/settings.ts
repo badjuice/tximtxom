@@ -47,15 +47,17 @@ export function currentBack(): CardBack {
   return all.includes(b) ? b : all[0];
 }
 
+export type AchSort = 'default' | 'complete' | 'rarity' | 'similar' | 'date' | 'name';
+
 /** The game's font, or one of the alternatives (assets/fonts). */
 export type FontId = 'm6x11' | 'grapeSoda' | 'cutePixel' | 'superstar' | 'digitalDisco';
 /** `author` is credited under the choice (see assets/fonts/README.md). */
 export const FONTS: { id: FontId; name: string; author: string; file: string }[] = [
+  { id: 'digitalDisco', name: 'Digital Disco', author: 'jeti (CC BY 4.0)', file: 'fonts/digital-disco/DigitalDisco.ttf' },
   { id: 'm6x11', name: 'm6x11', author: 'Daniel Linssen', file: 'm6x11plus.woff2' },
   { id: 'grapeSoda', name: 'Grape Soda', author: 'jeti (CC BY 4.0)', file: 'fonts/grape-soda/GrapeSoda.ttf' },
   { id: 'cutePixel', name: 'CutePixel', author: 'zK4rim', file: 'fonts/cutepixel/CutePixel.ttf' },
   { id: 'superstar', name: 'Superstar', author: 'memesbruh03', file: 'fonts/superstar/superstar_memesbruh03.ttf' },
-  { id: 'digitalDisco', name: 'Digital Disco', author: 'jeti (CC BY 4.0)', file: 'fonts/digital-disco/DigitalDisco.ttf' },
 ];
 
 /** Fonts asked for, and fonts ready to use; the page switches once its font is in. */
@@ -84,6 +86,8 @@ export interface Settings {
   /** `random` deals each round on a new back. */
   cardBack: CardBack | 'random';
   font: FontId;
+  /** The font was chosen in Settings (not left at the default). */
+  fontPicked: boolean;
   /** Anti-aliasing: off, or on (the edges of tilted table cards and all the pixel art). */
   smooth: 'off' | 'all';
   /** Frame rate cap; `auto` is 30 on touch screens and 60 elsewhere (see power.ts). */
@@ -109,9 +113,13 @@ export interface Settings {
   muted: boolean;
   haptics: boolean;
   // Input
-  confirmMoves: boolean;
+  /** Buttons play at once (off: they wait for End Turn, so you can undo). */
+  instantMoves: boolean;
   /** Touch screens: one tap on empty table lets go of the selected cards (otherwise two). */
   tapDeselect: boolean;
+  /** How the Achievements list is sorted, and which way. */
+  achSort: AchSort;
+  achSortDesc: boolean;
   announce: boolean;
   /** Mirrors the bottom button bar for left-handed players. */
   leftHanded: boolean;
@@ -134,7 +142,8 @@ export const DEFAULT_SETTINGS: Settings = {
   bigLabels: false,
   cardStyle: 'pixel',
   cardBack: 'back_red',
-  font: 'm6x11',
+  font: 'digitalDisco',
+  fontPicked: false,
   smooth: 'all',
   fps: 'auto',
   lowPower: true,
@@ -153,8 +162,10 @@ export const DEFAULT_SETTINGS: Settings = {
   musicVolume: 0.4,
   muted: false,
   haptics: true,
-  confirmMoves: true,
+  instantMoves: false,
   tapDeselect: false,
+  achSort: 'default',
+  achSortDesc: false,
   announce: true,
   leftHanded: false,
   historyOpen: false,
@@ -178,6 +189,13 @@ function load(): Settings {
     }
     // Before 0.28 there was a third choice, card edges only: it's on now.
     if (saved.smooth === 'edges') saved.smooth = 'all';
+    // Before 0.52 this was `confirmMoves`, on by default: the toggle is now its opposite.
+    if ('confirmMoves' in saved) {
+      saved.instantMoves = saved.confirmMoves === false;
+      delete saved.confirmMoves;
+    }
+    // Before 0.52 m6x11 was the default and saved with everything else: Digital Disco takes over.
+    if (saved.font === 'm6x11' && !saved.fontPicked) delete saved.font;
     return { ...DEFAULT_SETTINGS, ...saved };
   } catch {
     return { ...DEFAULT_SETTINGS };
