@@ -19,6 +19,11 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.49.4',
+    date: '2026-11-01',
+    items: [c("Main menu: one button per row on phones, and a wider box on computers.", "Menu principal: um botão por linha nos telemóveis, e uma caixa mais larga nos computadores.")],
+  },
+  {
     version: '0.49.3',
     date: '2026-11-01',
     items: [

@@ -673,6 +673,27 @@ input[type='text'] {
   min-height: 40px;
   font-size: 0.95em;
 }
+/* Desktop: a wider box, so the three main buttons get room. */
+@media (min-width: 701px) {
+  .main-menu {
+    width: min(640px, 94vw);
+  }
+}
+/* Phones: one button per row, Play still biggest. */
+@media (max-width: 700px) {
+  .main-menu {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .main-menu .menu-play,
+  .main-menu .menu-main,
+  .main-menu .menu-minor {
+    grid-column: 1;
+  }
+  .main-menu .menu-play {
+    min-height: 60px;
+  }
+}
 /* A small padlock drawn in CSS: a shackle over a body. */
 .lock {
   position: relative;

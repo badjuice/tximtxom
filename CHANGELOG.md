@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.4 (2026-11-01)
+- 🔧 Main menu: one button per row on phones, and a wider box on computers.
+
 ## 0.49.3 (2026-11-01)
 - 🔧 The main menu's Achievements button pulses with a golden glow while any achievement is New!.
 - 🔧 Magic sort is only in the game, with the Magic Sort rule: it's gone from Settings.
