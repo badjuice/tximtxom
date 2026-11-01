@@ -126,6 +126,8 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
   // Unlocked while the window is open (Window Shopper): New! right away, like the others.
   useEffect(() => onUnlock((id) => setFresh((f) => new Set(f).add(id))), []);
   const [gone, setGone] = useState<Set<AchievementId>>(() => new Set());
+  // On touch screens a tap brings a card forward and a second tap puts it back (a mouse uses hover).
+  const [lifted, setLifted] = useState<AchievementId | null>(null);
   // Window Shopper: the list scrolled to its end, or short enough to show it all at once.
   const list = useRef<HTMLUListElement>(null);
   const atEnd = () => {
@@ -171,9 +173,10 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           const hidden = a.secret && !got;
           return (
             <li
-              class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}${fresh.has(a.id) ? (gone.has(a.id) ? ' new seen' : ' new') : ''}`}
+              class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}${fresh.has(a.id) ? (gone.has(a.id) ? ' new seen' : ' new') : ''}${lifted === a.id ? ' lifted' : ''}`}
               style={got ? { '--rc': a.rainbow ? '#fff' : RARITY_SHINE[a.rarity] } : undefined}
               onPointerEnter={() => see(a.id)}
+              onPointerUp={(e) => e.pointerType !== 'mouse' && setLifted((l) => (l === a.id ? null : a.id))}
               title={got ? undefined : t('ach.locked')}
               onClick={() => {
                 see(a.id);

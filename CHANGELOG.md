@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.49.12 (2026-11-01)
+- 🔧 On touch screens, tapping an achievement again puts it back in place.
+
 ## 0.49.11 (2026-11-01)
 - 🔧 Unlocked achievements shine on a loop: first the card and the name, then the whole achievement.
 
