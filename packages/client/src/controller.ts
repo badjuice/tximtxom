@@ -56,7 +56,8 @@ function cannotRide(g: GameView): PassWhy | null {
   return fullDeck().some((c) => !f.cards.includes(c) && canRide(f.cards, c, g.rules)) ? 'noFit' : 'full';
 }
 
-const AUTO_PASS_MS = 5000;
+/** How long Pass waits: shorter when the formation takes no more cards, longer when it could but yours don't fit. */
+const AUTO_PASS_MS: Record<PassWhy, number> = { full: 5000, done: 5000, noFit: 10000 };
 let autoPassKey = '';
 let autoPassTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -68,8 +69,9 @@ function autoPass(g: GameView, rideKey: string): void {
   if (key === autoPassKey) return;
   autoPassKey = key;
   clearTimeout(autoPassTimer);
-  store.set({ autoPassAt: key ? Date.now() + AUTO_PASS_MS : null });
-  if (key) autoPassTimer = setTimeout(() => autoPassKey === key && void send({ type: 'pass', auto: why! }), AUTO_PASS_MS);
+  const ms = why ? AUTO_PASS_MS[why] : 0;
+  store.set({ autoPass: key ? { at: Date.now() + ms, ms } : null });
+  if (key) autoPassTimer = setTimeout(() => autoPassKey === key && void send({ type: 'pass', auto: why! }), ms);
 }
 
 /** How long a formation's cards wait before flying in (ms): its name badge waits too. */
@@ -98,7 +100,7 @@ export function getHandOrder(): Card[] {
 export function setHandOrder(order: Card[]): void {
   // Dropping a card back where it was is not a move; with auto sort on, the
   // hand stays sorted and the card slides back to its place.
-  if (order.join() === handOrder.join() || getSettings().autoSort) {
+  if (order.join() === handOrder.join() || (getSettings().autoSort && !scrambled())) {
     pushToTable();
     return;
   }
@@ -109,12 +111,29 @@ export function setHandOrder(order: Card[]): void {
 /** The sort in use, with Magic's side for the unformed cards. */
 function sortKey(): SortKey {
   const s = getSettings();
+  // Magic sort is a room rule: without it, Rank.
+  if (s.sortBy === 'magic' && !store.get().room?.game?.rules.magicSort) return 'rank';
   return s.sortBy === 'magic' ? (s.magicUnformed === 'left' ? 'magicLeft' : 'magic') : s.sortBy;
+}
+
+/** Scramble rule: no sorting at all. */
+const scrambled = () => !!store.get().room?.game?.rules.scramble;
+/** A card was picked up since the last update: with Scramble, the hand gets shuffled. */
+let scrambleNow = false;
+
+function scrambleHand(g: GameView): void {
+  const hand = g.you !== null ? [...(g.players[g.you].hand ?? [])] : [];
+  for (let i = hand.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [hand[i], hand[j]] = [hand[j], hand[i]];
+  }
+  handOrder = hand;
+  play('cardFan2', { volume: 0.7, rate: 1.25 });
 }
 
 export function sortHand(by: 'rank' | 'suit' | 'magic'): void {
   const g = store.get().room?.game;
-  if (!g || g.you === null) return;
+  if (!g || g.you === null || g.rules.scramble) return;
   play('cardFan2', { volume: 0.6 });
   updateSettings({ sortBy: by });
   handOrder = sortedCards(g.players[g.you].hand ?? [], sortKey(), g.rules);
@@ -131,7 +150,7 @@ export function toggleAutoSort(): void {
 /** With auto-sort on, the hand is re-sorted whenever cards come or go. */
 function applyAutoSort(): void {
   const g = store.get().room?.game;
-  if (!g || g.you === null) return;
+  if (!g || g.you === null || g.rules.scramble) return;
   const next = sortedCards(g.players[g.you].hand ?? [], sortKey(), g.rules);
   if (next.join() !== handOrder.join()) {
     handOrder = next;
@@ -184,7 +203,7 @@ function onStore(): void {
 
 function pushToTable(hints?: SpawnHints): void {
   const s = store.get();
-  const { autoSort } = getSettings();
+  const autoSort = getSettings().autoSort && !scrambled();
   table.set({ game: s.room?.game ?? null, handOrder, autoSortBy: autoSort ? sortKey() : null, selected: s.selected, staged: s.staged }, hints);
 }
 
@@ -252,8 +271,10 @@ function onRoom(room: RoomView | null, prev: RoomView | null): void {
 
   turnCallouts(g, prevG);
   swapTaken();
+  if (scrambleNow && g.rules.scramble) scrambleHand(g);
+  scrambleNow = false;
   // Dealt cards keep the order they arrived in; auto sort waits until the deal is over.
-  if (getSettings().autoSort) {
+  if (getSettings().autoSort && !g.rules.scramble) {
     const wait = dealUntil - Date.now();
     if (wait > 0) setTimeout(applyAutoSort, wait);
     else {
@@ -342,6 +363,8 @@ function seatPos(g: GameView, seat: number) {
 }
 
 function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
+  // Scramble: anyone picking a card up (or swapping the drawn one in) shuffles every hand.
+  if (e.t === 'draw' || e.t === 'take' || (e.t === 'discard' && !e.fromDraw)) scrambleNow = true;
   const L = table.layout;
   const me = g.you;
   const sfx = (n: Sfx, o?: Parameters<typeof play>[1]) => play(n, o);
@@ -772,7 +795,7 @@ export interface BarButton {
   /** Press and hold to confirm (moves that are easy to hit by mistake). */
   hold?: boolean;
   /** Pressed by itself at this time (ms timestamp): the button counts down to it. */
-  deadline?: number;
+  deadline?: { at: number; ms: number };
 }
 
 export interface Bar {
@@ -910,9 +933,9 @@ export function computeBar(room: RoomView | null, selected: Card[], staged: Stag
               onClick: () => card !== undefined && void send({ type: 'ride', card }),
               key: 'Enter',
             },
-            { label: t('act.pass'), color: 'red', enabled: true, onClick: () => void send({ type: 'pass' }), key: 'E', deadline: store.get().autoPassAt ?? undefined },
+            { label: t('act.pass'), color: 'red', enabled: true, onClick: () => void send({ type: 'pass' }), key: 'E', deadline: store.get().autoPass ?? undefined },
           ],
-          status: store.get().autoPassAt ? t('st.cantRide') : t('st.ride', { name: name(g, owner) }),
+          status: store.get().autoPass ? t('st.cantRide') : t('st.ride', { name: name(g, owner) }),
         };
       }
       const waiting = g.rules.rideOrder === 'roundRobin' ? g.players[w.riders[w.rrIndex]].name : t('st.otherPlayers');

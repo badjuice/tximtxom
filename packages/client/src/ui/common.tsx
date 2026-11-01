@@ -125,6 +125,8 @@ const RULE_REFS: [Key, string][] = [
   ['rule.superposition', 'support'],
   ['rule.mobius', 'support'],
   ['rule.smeared', 'support'],
+  ['rule.magicSort', 'support'],
+  ['rule.scramble', 'funny'],
   ['rule.autoRide', 'support'],
   ['rule.rideOrder', 'neutral'],
   ['rule.notice', 'info'],
@@ -361,7 +363,7 @@ export function HoldButton(props: { color: Color; label: string; short?: string;
 }
 
 /** Rule colour groups: punishing (red), information (blue), support (green); none = neutral grey. */
-export type Tone = 'punish' | 'info' | 'support';
+export type Tone = 'punish' | 'info' | 'support' | 'funny';
 
 export function Toggle(props: {
   label: string;

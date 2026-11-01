@@ -1,4 +1,6 @@
 :root {
+  /* Funny rules (Scramble). */
+  --funny: #b56be0;
   --red: #fe5f55;
   --red-d: #a8372f;
   --blue: #009dff;
@@ -3321,23 +3323,6 @@ input[type='text'] {
 }
 
 /* --- history */
-.history-list {
-  scrollbar-width: auto;
-  scrollbar-color: var(--gold) var(--panel-d);
-  padding-right: 8px;
-}
-.history-list::-webkit-scrollbar {
-  width: 12px;
-}
-.history-list::-webkit-scrollbar-track {
-  background: var(--panel-d);
-  border-radius: 6px;
-}
-.history-list::-webkit-scrollbar-thumb {
-  background: var(--gold);
-  border-radius: 6px;
-  border: 2px solid var(--panel-d);
-}
 .hname {
   font-weight: normal;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
@@ -4144,6 +4129,10 @@ input.rename {
 .lg.tone-support {
   --tone: var(--green);
 }
+.toggle.tone-funny,
+.lg.tone-funny {
+  --tone: var(--funny);
+}
 .toggle[class*='tone-'] {
   background: color-mix(in srgb, var(--tone) 16%, var(--panel-in));
   box-shadow: inset 4px 0 0 var(--tone);
@@ -4625,6 +4614,9 @@ input.rename {
 .rule-ref.tone-punish {
   --rc: #ff8a82;
 }
+.rule-ref.tone-funny {
+  --rc: #e39bff;
+}
 @keyframes rule-shine {
   0% {
     background-position: 100% 0;
@@ -4652,6 +4644,9 @@ input.rename {
 }
 .rule-card.tone-punish {
   --rc: #ff8a82;
+}
+.rule-card.tone-funny {
+  --rc: #e39bff;
 }
 .rule-card::before {
   content: '';
@@ -5125,28 +5120,32 @@ td.num.pts {
 /* On the corner, so the button keeps its width. */
 .btn-count {
   position: absolute;
-  top: -9px;
-  right: -9px;
-  min-width: 24px;
-  height: 24px;
-  line-height: 24px;
-  border-radius: 12px;
-  background: #fff;
-  color: var(--red-d);
-  text-shadow: none;
-  font-size: 0.85em;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  text-align: center;
+  font-size: 0.62em;
+  white-space: nowrap;
+  opacity: 0.9;
   pointer-events: none;
 }
-/* The hold-to-confirm fill run backwards: the whole button, emptying from the right. */
+/* The hold-to-confirm fill run backwards: the whole button, emptying to the left, every frame. */
 .btn .btn-drain {
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(255, 255, 255, 0.28);
   border-radius: inherit;
   pointer-events: none;
+  transform-origin: left;
+  animation: btn-drain linear both;
+}
+@keyframes btn-drain {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 
 /* History folds: earlier rounds and games close up into their header line. */
@@ -5196,4 +5195,113 @@ td.num.pts {
 /* Seat colours can match the header's blue: names there go white. */
 .hline.round .hname {
   color: #fff !important;
+}
+
+/* A rule-off achievement: the rule's card, faded to grey. */
+.art-off {
+  display: inline-flex;
+  filter: grayscale(0.9) brightness(0.85);
+}
+
+/* "New!" on an achievement you haven't seen yet, and on the Achievements button:
+   a tilted gold sign that pulses and shines until it's seen. */
+.new-sign {
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  z-index: 2;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #3a1a00;
+  text-shadow: none;
+  white-space: nowrap;
+  pointer-events: none;
+  background: linear-gradient(110deg, #ffcf4a 40%, #fff6c8 50%, #ffcf4a 60%) 100% 0 / 300% 100%;
+  box-shadow:
+    0 2px 0 #a8650a,
+    0 0 10px rgba(255, 207, 74, 0.8);
+  rotate: 8deg;
+  animation:
+    new-pulse 0.9s ease-in-out infinite alternate,
+    new-shine 1.6s linear infinite;
+}
+@keyframes new-pulse {
+  to {
+    scale: 1.12;
+    box-shadow:
+      0 2px 0 #a8650a,
+      0 0 18px rgba(255, 207, 74, 1);
+  }
+}
+@keyframes new-shine {
+  0% {
+    background-position: 100% 0;
+  }
+  60%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+.reduced-motion .new-sign {
+  animation: none;
+}
+.has-new,
+.ach-list > li {
+  position: relative;
+}
+.ach-list > li.new {
+  box-shadow: 0 0 0 2px #ffcf4a, 0 0 14px rgba(255, 207, 74, 0.55);
+}
+
+/* Scrollbars everywhere: thin, gold on the dark panel, in their own lane so they
+   never sit over the content (scrollbar-gutter keeps that lane even when idle). */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--panel-d);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 4px;
+  border: 1px solid var(--panel-d);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #f3d27e;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--gold) var(--panel-d);
+  }
+}
+.modal-body,
+.history-list,
+.chat-list,
+.summary,
+.lobby,
+.title-screen {
+  scrollbar-gutter: stable;
+}
+.modal-body,
+.history-list,
+.chat-list {
+  padding-right: 6px;
+}
+
+/* A window's top info (counts, legends) that stays put while its list scrolls under it. */
+.sticky-top {
+  position: sticky;
+  top: -6px;
+  z-index: 3;
+  margin: -6px 0 0;
+  padding: 6px 0 2px;
+  background: #3e575c;
+  box-shadow: 0 6px 6px -4px rgba(0, 0, 0, 0.35);
 }

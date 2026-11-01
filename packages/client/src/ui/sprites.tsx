@@ -130,6 +130,8 @@ const RULE_TONES: Record<string, string> = {
   notice: 'info',
   penalty: 'punish',
   double: 'punish',
+  magicsort: 'support',
+  scramble: 'funny',
 };
 
 /** Art on a card: a player's character or a rule's picture. Unknown names (old saves) show the default character.

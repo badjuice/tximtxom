@@ -3,7 +3,8 @@ import { makeCard, NAME_MAX, ROOM_CODE_LENGTH, type Suit } from '@tximtxom/share
 import { play, unlockAudio } from '../audio';
 import { t } from '../i18n';
 import { createRoom, freshInvite, joinRoom, linkedRoom, rejoinRoom, saveName, savedName, savedRoom, savedRoomExpiry } from '../net';
-import { unlock } from '../achievements';
+import { unlock, useNewCount } from '../achievements';
+import { NewSign } from './Achievements';
 import { formatCount, refreshGlobalRounds, useStats } from '../stats';
 import { store, useStore } from '../store';
 import { Button, Credits, MiniButton, WaveText } from './common';
@@ -221,6 +222,7 @@ function PlayerCounter() {
 /** Balatro's main menu: Play first and biggest, the rest in order of importance. */
 function MainMenu({ onPlay }: { onPlay: () => void }) {
   const open = (overlay: 'stats' | 'achievements' | 'settings' | 'changelog' | 'help') => () => store.set({ overlay });
+  const newAch = useNewCount();
   return (
     <nav class="main-menu panel" aria-label={t('menu.play')}>
       <Button color="blue" big class="menu-play" onClick={onPlay}>
@@ -229,8 +231,9 @@ function MainMenu({ onPlay }: { onPlay: () => void }) {
       <Button color="green" class="menu-main" onClick={open('stats')}>
         {t('menu.stats')}
       </Button>
-      <Button color="purple" class="menu-main" onClick={open('achievements')}>
+      <Button color="purple" class="menu-main has-new" onClick={open('achievements')}>
         {t('menu.achievements')}
+        {newAch > 0 && <NewSign />}
       </Button>
       <Button color="orange" class="menu-main" onClick={open('settings')}>
         {t('title.settings')}

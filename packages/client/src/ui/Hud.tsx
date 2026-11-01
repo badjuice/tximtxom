@@ -1,15 +1,15 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { EmoteBubble, EmotePicker } from './Emotes';
 import { type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
 import { canDrop, cardsSeenOut, computeBar, layWait, readyForNextRound, sortHand, toggleAutoSort, txiJogBlock, type BarButton } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { drawPileTop, type FormationGroup, revealGroups } from '../game/scene';
-import { cardShort, type Key, kindName, t } from '../i18n';
+import { cardShort, type Key, kindName, lang, t } from '../i18n';
 import { leaveRoom, playAgain, startGame } from '../net';
 import { useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, toggleSide, useStore } from '../store';
-import { Button, CardText, HoldButton, Label, MiniButton, Modal, ShortLabel, UiIcon } from './common';
+import { Button, CardText, HoldButton, Label, MiniButton, Modal, RuleName, ShortLabel, UiIcon } from './common';
 import { useUnreadChat } from './Chat';
 import { Badge, BADGE_KINDS, badgeCount, CardIcon, EmoteIcon, Icon, ArtIcon, Wins } from './sprites';
 
@@ -61,6 +61,8 @@ function activeRules(r: GameView['rules']): [string, Key, Key][] {
   if (r.penalty10) out.push(['penalty', 'rule.penalty10', 'rule.penalty10.desc']);
   if (r.doubleDown) out.push(['double', 'rule.doubleDown', 'rule.doubleDown.desc']);
   if (r.turnTimer > 0) out.push(['timer', 'rule.timer', 'rule.timer.desc']);
+  if (r.magicSort) out.push(['magicsort', 'rule.magicSort', 'rule.magicSort.desc']);
+  if (r.scramble) out.push(['scramble', 'rule.scramble', 'rule.scramble.desc']);
   return out;
 }
 
@@ -377,29 +379,42 @@ function HandBar({ g, L }: { g: GameView; L: Layout }) {
   const y = L.hand.y + (CARD_H * L.hand.cardScale) / 2 + 22;
   // What the hand would still be worth once formations are laid, best way to worst.
   const after = leftoverRange(hand, g.rules);
+  // Magic picked in Settings, in a room without the Magic Sort rule: the hand goes by rank.
+  const sortBy = s.sortBy === 'magic' && !g.rules.magicSort ? 'rank' : s.sortBy;
   return (
     <div class="hand-bar" style={toScreen(L, { x: L.hand.x, y })}>
       <div class="sort-row" role="group" aria-label={t('sort.label')}>
-        <span class="muted">
-          <Label k="sort.label" />
-        </span>
-        <button class={`mini${s.sortBy === 'rank' ? ' on' : ''}`} onClick={() => sortHand('rank')}>
-          <Label k="sort.rank" />
-        </button>
-        <button class={`mini${s.sortBy === 'suit' ? ' on' : ''}`} onClick={() => sortHand('suit')}>
-          <Label k="sort.suit" />
-        </button>
-        <button class={`mini${s.sortBy === 'magic' ? ' on' : ''}`} onClick={() => sortHand('magic')} title={t('sort.magicTitle')}>
-          <Label k="sort.magic" />
-        </button>
-        <span class="sort-sep" aria-hidden="true" />
-        {/* A switch, not a third sort option: keeps the hand sorted as cards come and go. */}
-        <button class={`auto-toggle${s.autoSort ? ' on' : ''}`} role="switch" aria-checked={s.autoSort} title={t('sort.autoTitle')} onClick={toggleAutoSort}>
-          <span class="mini-switch" aria-hidden="true">
-            <span class="knob" />
+        {g.rules.scramble ? (
+          // Scramble: nothing to sort with, just the rule's name.
+          <span class="sort-scrambled">
+            <RuleName name={t('rule.scramble')} tone="funny" />
           </span>
-          <Label k="sort.auto" />
-        </button>
+        ) : (
+          <>
+            <span class="muted">
+              <Label k="sort.label" />
+            </span>
+            <button class={`mini${sortBy === 'rank' ? ' on' : ''}`} onClick={() => sortHand('rank')}>
+              <Label k="sort.rank" />
+            </button>
+            <button class={`mini${sortBy === 'suit' ? ' on' : ''}`} onClick={() => sortHand('suit')}>
+              <Label k="sort.suit" />
+            </button>
+            {g.rules.magicSort && (
+              <button class={`mini${sortBy === 'magic' ? ' on' : ''}`} onClick={() => sortHand('magic')} title={t('sort.magicTitle')}>
+                <Label k="sort.magic" />
+              </button>
+            )}
+            <span class="sort-sep" aria-hidden="true" />
+            {/* A switch, not a third sort option: keeps the hand sorted as cards come and go. */}
+            <button class={`auto-toggle${s.autoSort ? ' on' : ''}`} role="switch" aria-checked={s.autoSort} title={t('sort.autoTitle')} onClick={toggleAutoSort}>
+              <span class="mini-switch" aria-hidden="true">
+                <span class="knob" />
+              </span>
+              <Label k="sort.auto" />
+            </button>
+          </>
+        )}
       </div>
       <div class="hand-points" title={t('handPoints.title')}>
         <span class="muted">
@@ -416,17 +431,20 @@ function HandBar({ g, L }: { g: GameView; L: Layout }) {
 }
 
 /** Seconds until a button presses itself, with a bar draining along its bottom. */
-function Countdown({ at }: { at: number }) {
+function Countdown({ at, ms }: { at: number; ms: number }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 100);
     return () => clearInterval(id);
   }, [at]);
   const left = Math.max(0, at - now);
+  const secs = (left / 1000).toFixed(1);
+  // The bar runs as a CSS animation (smooth every frame), started as far in as time has passed.
+  const start = useMemo(() => Date.now(), [at]);
   return (
     <>
-      <span class="btn-count">{Math.ceil(left / 1000)}</span>
-      <span class="btn-drain" style={{ width: `${Math.min(100, left / 50)}%` }} aria-hidden="true" />
+      <span class="btn-count">{t('act.autoSkip', { s: lang() === 'pt' ? secs.replace('.', ',') : secs })}</span>
+      <span class="btn-drain" key={at} style={{ animationDuration: `${ms}ms`, animationDelay: `${at - ms - start}ms` }} aria-hidden="true" />
     </>
   );
 }
@@ -490,7 +508,7 @@ export function ActionBar() {
             ) : (
               <Button color={b.color} disabled={!on(b)} onClick={b.onClick} kbd={b.key === 'Enter' ? '⏎' : b.key === 'Backspace' ? '⌫' : b.key} title={b.title} big>
                 <ShortLabel text={b.label} short={b.short} />
-                {b.deadline && <Countdown at={b.deadline} />}
+                {b.deadline && <Countdown {...b.deadline} />}
               </Button>
             ),
           )}

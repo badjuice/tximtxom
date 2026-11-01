@@ -32,7 +32,7 @@ export function carrierId(): string {
 export type AchievementId =
   | 'tipTap' | 'dealtIn' | 'lowRoller' | 'champion' | 'competitor' | 'tximtxom' | 'bitter' | 'busted' | 'likeIce' | 'nuts'
   | 'ragequit' | 'chips10' | 'chips100' | 'chips1000' | 'roundWins10' | 'gameWins10' | 'fullParty' | 'midas' | 'firstLoser'
-  | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | `rule_${RuleAch}`
+  | 'addicted' | 'busPass' | 'rtfm' | 'badTiming' | 'fullHand' | 'newLook' | 'distracted' | 'allRules' | 'vanilla' | `rule_${RuleAch}` | `ruleOff_${RuleAch}`
   | 'closeCall' | 'flawless' | 'comeback' | 'generous' | 'selfService' | `${Track}${number}`
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd'
   | 'sayHi' | 'showDontTell' | 'anarchist' | 'nightOwl' | 'polyglot' | 'recycler' | 'throughAce' | 'royalFlush' | 'quickDraw' | 'sevenUp'
@@ -52,6 +52,8 @@ export const RULE_ACHIEVEMENTS = {
   penalty10: { art: 'penalty', on: (r: Rules) => r.penalty10 },
   doubleDown: { art: 'double', on: (r: Rules) => r.doubleDown },
   timer: { art: 'timer', on: (r: Rules) => r.turnTimer > 0 },
+  magicSort: { art: 'magicsort', on: (r: Rules) => r.magicSort },
+  scramble: { art: 'scramble', on: (r: Rules) => r.scramble },
 } satisfies Record<string, { art: string; on: (r: Rules) => boolean }>;
 export type RuleAch = keyof typeof RULE_ACHIEVEMENTS;
 export const RULE_ACH_IDS = Object.keys(RULE_ACHIEVEMENTS) as RuleAch[];
@@ -108,6 +110,8 @@ export interface Achievement {
   rainbow?: boolean;
   /** One of the per-rule achievements: its text is made from the rule's name. */
   rule?: RuleAch;
+  /** The rule's other achievement: a game with it off (and another rule on). */
+  off?: boolean;
   /** Unlocked when this running count reaches `goal`; the card shows how far along it is (and keeps counting). */
   track?: Track;
   goal?: number;
@@ -168,6 +172,8 @@ const ALL: Achievement[] = [
   { id: 'allRules', art: 'bikingu', rarity: 'legendary', meter: 'rules' },
   { id: 'chips1000', art: 'kabaleru', rarity: 'legendary', soon: true },
   ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `rule_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'common', rule })),
+  ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `ruleOff_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'common', rule, off: true })),
+  { id: 'vanilla', art: 'villager', rarity: 'uncommon' },
   { id: 'infected', art: 'slime', rarity: 'secret', secret: true },
   { id: 'scholar', art: 'elder', rarity: 'secret', secret: true },
   { id: 'prettyBasic', art: 'cards:base', rarity: 'secret', secret: true },
@@ -199,6 +205,37 @@ function load(): Unlocked {
 }
 
 let unlocked = load();
+
+/** Unlocked achievements you've seen in the Achievements window. The first time,
+ *  everything already unlocked counts as seen: only later ones are "New". */
+const SEEN_KEY = 'tximtxom.achSeen';
+let seen = loadSeen();
+
+function loadSeen(): Set<string> {
+  try {
+    const raw = localStorage.getItem(SEEN_KEY);
+    if (raw) return new Set(JSON.parse(raw));
+    const all = new Set(Object.keys(unlocked));
+    localStorage.setItem(SEEN_KEY, JSON.stringify([...all]));
+    return all;
+  } catch {
+    return new Set(Object.keys(unlocked));
+  }
+}
+
+/** The achievement's card has been on screen in the Achievements window: no longer New. */
+export function markSeen(id: AchievementId): void {
+  if (seen.has(id)) return;
+  seen = new Set(seen).add(id);
+  try {
+    localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
+  } catch {
+    // Storage blocked: seen for this visit only.
+  }
+  notify();
+}
+
+export const isNew = (id: AchievementId) => !!unlocked[id] && !seen.has(id);
 let toastQueue: AchievementId[] = [];
 let showing: AchievementId | null = null;
 const listeners = new Set<() => void>();
@@ -257,6 +294,8 @@ function useAchievementState<R>(pick: () => R): R {
 }
 
 export const useUnlocked = () => useAchievementState(() => unlocked);
+/** How many unlocked achievements you haven't seen yet. */
+export const useNewCount = () => useAchievementState(() => ACHIEVEMENTS.filter((x) => isNew(x.id)).length);
 /** The achievement whose toast is up, or null. */
 export const useAchievementToast = () => useAchievementState(() => showing);
 
@@ -377,6 +416,10 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       // A whole game played to the end with each rule on (win or lose), and Rulebook once every rule's done.
       for (const rule of RULE_ACH_IDS) if (RULE_ACHIEVEMENTS[rule].on(g.rules)) unlock(`rule_${rule}`);
       if (RULE_ACH_IDS.every((rule) => unlocked[`rule_${rule}`])) unlock('allRules');
+      // A rule left off, in a game where some other rule was on (a plain game is Vanilla's).
+      const on = RULE_ACH_IDS.filter((rule) => RULE_ACHIEVEMENTS[rule].on(g.rules));
+      for (const rule of RULE_ACH_IDS) if (!on.includes(rule) && on.length > 0) unlock(`ruleOff_${rule}`);
+      if (on.length === 0 && e.winners.includes(me)) unlock('vanilla');
       const total = g.players[me].total;
       if (e.winners.includes(me)) {
         unlock('champion');

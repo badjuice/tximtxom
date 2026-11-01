@@ -5,6 +5,16 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.44.0 (2026-11-01)
+- ✨ New rule, Magic Sort (support): turns on the Magic sort button. Magic sort now follows the room's rules and groups cards one short of a formation, after the formed ones.
+- ✨ New rule, Scramble (funny): no sorting, and every card someone picks up shuffles everyone's hand.
+- ✨ New achievements: Vanilla (win with the default rules), and one per rule for finishing a game with it off while another rule is on.
+- ✨ Achievements you haven't seen yet show a New! sign, on the Achievements button and on the card, until you look at them.
+- 🔧 Auto-pass waits 10 seconds when the formation could still take a card, 5 when it's full, and the button says "Auto-skipping in 9.4s" over a smooth bar.
+- 🔧 Thin scrollbars in the game's colours, beside the content instead of over it. The top of Achievements and the Changelog stays in view while you scroll.
+- 🔧 Boardgame card backs: variants 1 and 3 of each colour, and Random never shows one colour twice in a row.
+- 🔧 How to play colours "2–10 as printed" like the other card values.
+
 ## 0.43.2 (2026-11-01)
 - 🔧 The page checks for a newer version as it loads and reloads itself to get it. Game files are fetched fresh for each version.
 - 🔧 The achievement shine is slower and more see-through.

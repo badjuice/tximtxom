@@ -121,13 +121,15 @@ function Changelog({ onClose }: { onClose: () => void }) {
         </>
       }
     >
-      <p class="cl-legend">
-        {kinds.map((k) => (
-          <span class={`cl-kind k-${k}`}>
-            {KIND_ICON[k]} {t(`cl.${k}` as Key)}
-          </span>
-        ))}
-      </p>
+      <div class="sticky-top">
+        <p class="cl-legend">
+          {kinds.map((k) => (
+            <span class={`cl-kind k-${k}`}>
+              {KIND_ICON[k]} {t(`cl.${k}` as Key)}
+            </span>
+          ))}
+        </p>
+      </div>
       {CHANGELOG.map((rel, i) => (
         <section class="cl-release">
           <h3>

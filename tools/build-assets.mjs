@@ -111,7 +111,7 @@ const BOARD_SCALE = 3;
 const BW = AW * BOARD_SCALE;
 const BH = AH * BOARD_SCALE;
 const BOARD_SUITS = { H: 'Hearts', C: 'Clubs', D: 'Diamonds', S: 'Spades' };
-const BOARD_BACKS = ['blue', 'red', 'green'].flatMap((c) => [1, 2, 3, 4, 5].map((i) => `${c}${i}`));
+const BOARD_BACKS = ['blue', 'red', 'green'].flatMap((c) => [1, 3].map((i) => `${c}${i}`));
 
 async function boardLoad(file) {
   return sharp(path.join(BOARD, `${file}.png`))
@@ -183,6 +183,7 @@ const COLOURS = {
   orange: [253, 162, 0],
   green: [75, 194, 146],
   purple: [136, 103, 165],
+  funny: [181, 107, 224],
   grey: [58, 74, 77],
   gold: [234, 192, 88],
   silver: [168, 184, 192],
@@ -229,6 +230,8 @@ const RULE_ART = {
   help: ['cards_fan', 'purple'],
   turn: ['cards_take', 'purple'],
   txijog: ['cards_under', 'red'],
+  magicsort: ['cards_order', 'green'],
+  scramble: ['cards_shuffle', 'funny'],
 };
 
 /** A white Board Game icon at `size` px, hard-edged so it reads as pixel art. */

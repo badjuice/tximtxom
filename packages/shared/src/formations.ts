@@ -1,4 +1,4 @@
-import { type Card, cardPoints, rankOf, suitOf } from './cards.js';
+import { type Card, cardPoints, fullDeck, rankOf, suitOf } from './cards.js';
 import { HAND_SIZE, type Rules } from './rules.js';
 
 export type FormationKind = 'pair' | 'trio' | 'quad' | 'straight';
@@ -247,4 +247,33 @@ function pick<T>(arr: readonly T[], mask: number): T[] {
   const out: T[] = [];
   for (let i = 0; i < arr.length; i++) if (mask & (1 << i)) out.push(arr[i]);
   return out;
+}
+
+/**
+ * Magic sort: the hand's formations under these rules (the best way to form it),
+ * then cards that are one card short of a formation, two by two (same rank first),
+ * then the loose cards by rank. `unformedLeft` mirrors it: loose cards on the left.
+ */
+export function magicOrder(hand: readonly Card[], rules: RuleFlags, unformedLeft = false): Card[] {
+  const byRank = (a: Card, b: Card) => rankOf(a) - rankOf(b) || suitOf(a) - suitOf(b);
+  const low = (g: readonly Card[]) => Math.min(...g.map(rankOf));
+  const p = bestPartition(hand, rules);
+  const formed = [...p.formations].sort((a, b) => low(a.cards) - low(b.cards)).map((f) => f.cards);
+  // Two loose cards are almost a formation when a card you could still get would complete it.
+  const outside = fullDeck().filter((c) => !hand.includes(c));
+  const almost = (a: Card, b: Card) => outside.some((c) => classifyFormation([a, b, c], rules) !== null);
+  const rest = [...p.leftover].sort(byRank);
+  const pairs: [Card, Card][] = [];
+  for (let i = 0; i < rest.length; i++) for (let j = i + 1; j < rest.length; j++) if (almost(rest[i], rest[j])) pairs.push([rest[i], rest[j]]);
+  pairs.sort((x, y) => Number(rankOf(y[0]) === rankOf(y[1])) - Number(rankOf(x[0]) === rankOf(x[1])) || low(x) - low(y));
+  const used = new Set<Card>();
+  const near: Card[][] = [];
+  for (const [a, b] of pairs) {
+    if (used.has(a) || used.has(b)) continue;
+    used.add(a).add(b);
+    near.push([a, b]);
+  }
+  near.sort((a, b) => low(a) - low(b));
+  const loose = rest.filter((c) => !used.has(c));
+  return unformedLeft ? [...loose, ...near.flat(), ...formed.flat()] : [...formed.flat(), ...near.flat(), ...loose];
 }

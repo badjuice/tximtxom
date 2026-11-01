@@ -11,7 +11,8 @@ export const CARD_ATLAS: Record<CardStyle, string> = { pixel: 'cards', board: 'c
 export type CardBack = string;
 const BACKS: Record<CardStyle, CardBack[]> = {
   pixel: ['back_red', 'back_blue', 'back_yellow', 'back_green', 'back_black', 'back_purple'],
-  board: ['blue', 'red', 'green'].flatMap((c) => [1, 2, 3, 4, 5].map((i) => `back_${c}${i}`)),
+  // Variants 1 and 3 of each colour, colours taking turns: Random never shows one colour twice running.
+  board: [1, 3].flatMap((i) => ['blue', 'red', 'green'].map((c) => `back_${c}${i}`)),
 };
 /** The backs of the card style in use. */
 export const cardBacks = (style = getSettings().cardStyle): CardBack[] => BACKS[style];
@@ -24,10 +25,12 @@ export function rollRandomBack(): void {
   const all = cardBacks();
   backBag = backBag.filter((b) => all.includes(b));
   if (!backBag.length) backBag = [...all];
-  const pick = backBag.filter((b) => b !== randomBack);
-  // Only the current back is left in the bag: it goes back in with the next set.
+  // Never the back just used, nor (Boardgame backs) another of its colour.
+  const colour = (b: CardBack) => b.replace(/\d+$/, '');
+  const pick = backBag.filter((b) => colour(b) !== colour(randomBack));
+  // Only the current colour is left in the bag: the next set starts with the others.
   if (!pick.length) {
-    backBag = all.filter((b) => b !== randomBack);
+    backBag = all.filter((b) => colour(b) !== colour(randomBack));
     return rollRandomBack();
   }
   randomBack = pick[Math.floor(Math.random() * pick.length)];

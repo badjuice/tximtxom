@@ -1,5 +1,5 @@
-import { useState } from 'preact/hooks';
-import { type Achievement, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
 import { formatCount, type MyStats, refreshInfected, refreshSpread, useStats } from '../stats';
@@ -14,6 +14,11 @@ const RARITIES: Rarity[] = ['common', 'uncommon', 'epic', 'legendary', 'secret']
 const Art = ({ a, scale, shine }: { a: Achievement; scale: number; shine?: boolean }) =>
   a.art.startsWith('cards:') ? (
     <CardBackIcon back={a.art.slice(6)} scale={scale} />
+  ) : a.off ? (
+    // A rule left off: its card, faded to grey.
+    <span class="art-off">
+      <ArtIcon name={a.art} scale={scale} shine={shine ? RARITY_SHINE[a.rarity] : undefined} />
+    </span>
   ) : (
     <ArtIcon name={a.art} scale={scale} shine={shine ? RARITY_SHINE[a.rarity] : undefined} />
   );
@@ -24,6 +29,13 @@ function ruleName(rule: RuleAch): string {
   if (rule === 'inTurns') return `${t('rule.rideOrder')}: ${t('rule.inTurns')}`;
   const key: Record<string, Key> = { notice: 'rule.notice', timer: 'rule.timer' };
   return t(key[rule] ?? (`rule.${rule}` as Key));
+}
+
+/** The rule left at its default, as a name ("Bust at 40", "Softcore: Off"). */
+function ruleOffName(rule: RuleAch): string {
+  if (rule === 'bust100') return `${t('rule.bust')} 40`;
+  if (rule === 'inTurns') return `${t('rule.rideOrder')}: ${t('rule.together')}`;
+  return t('ach.ruleOff.name', { rule: ruleName(rule) });
 }
 
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
@@ -57,6 +69,11 @@ const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => {
     return part === 'desc' ? t(`ach.track.${a.track}.desc${a.goal === 1 ? '1' : ''}` as Key, { n: a.goal! }) : '';
   }
   if (!a.rule) return t(`ach.${a.id}.${part}` as Key);
+  if (a.off) {
+    const name = ruleOffName(a.rule);
+    const phrase = a.rule === 'bust100' || a.rule === 'inTurns' ? name : t('ach.ruleOff.phrase', { rule: ruleName(a.rule) });
+    return part === 'name' ? name : part === 'desc' ? t('ach.ruleOff.desc', { rule: phrase }) : t('ach.ruleOff.flavor');
+  }
   const name = ruleName(a.rule);
   return part === 'name' ? name : part === 'desc' ? t('ach.rule.desc', { rule: name }) : t(`ach.rule.${a.rule}.flavor` as Key);
 };
@@ -98,41 +115,68 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
     setTaps(taps + 1);
   };
   const n = ACHIEVEMENTS.filter((a) => unlocked[a.id]).length;
+  // New when the window opened: the sign stays up until it closes, even once seen.
+  const [fresh] = useState(() => new Set(ACHIEVEMENTS.filter((a) => isNew(a.id)).map((a) => a.id)));
+  const list = useRef<HTMLUListElement>(null);
+  // A New card counts as seen after a second on screen.
+  useEffect(() => {
+    const timers = new Map<Element, ReturnType<typeof setTimeout>>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const en of entries) {
+          const id = (en.target as HTMLElement).dataset.id as AchievementId;
+          if (en.isIntersecting) timers.set(en.target, setTimeout(() => markSeen(id), 1000));
+          else clearTimeout(timers.get(en.target));
+        }
+      },
+      { threshold: 0.6 },
+    );
+    list.current?.querySelectorAll('li.new').forEach((el) => io.observe(el));
+    return () => {
+      io.disconnect();
+      timers.forEach(clearTimeout);
+    };
+  }, []);
   return (
     <Modal title={t('ach.title')} onClose={onClose} class="ach-modal">
-      <p class="ach-count">
-        {t('ach.count', { n, total: ACHIEVEMENTS.length })}
-        {counts && global.infected !== null && (
-          <span class="ach-infected">
-            {'\u00a0· '}
-            {t('ach.infectedCount', { n: formatCount(global.infected) })}
-            {' · '}
-            {t('ach.spreadCount', { n: formatCount(global.spread ?? 0) })}
-          </span>
-        )}
-      </p>
-      <div class="ach-progress" role="progressbar" aria-valuemin={0} aria-valuemax={ACHIEVEMENTS.length} aria-valuenow={n} aria-label={t('ach.title')}>
-        <span class="ach-progress-fill" style={{ width: `${(100 * n) / ACHIEVEMENTS.length}%` }} />
-        <span class="ach-progress-text">{Math.round((100 * n) / ACHIEVEMENTS.length)}%</span>
+      {/* Count, bar and legend stay at the top while the list scrolls. */}
+      <div class="sticky-top">
+        <p class="ach-count">
+          {t('ach.count', { n, total: ACHIEVEMENTS.length })}
+          {counts && global.infected !== null && (
+            <span class="ach-infected">
+              {'\u00a0· '}
+              {t('ach.infectedCount', { n: formatCount(global.infected) })}
+              {' · '}
+              {t('ach.spreadCount', { n: formatCount(global.spread ?? 0) })}
+            </span>
+          )}
+        </p>
+        <div class="ach-progress" role="progressbar" aria-valuemin={0} aria-valuemax={ACHIEVEMENTS.length} aria-valuenow={n} aria-label={t('ach.title')}>
+          <span class="ach-progress-fill" style={{ width: `${(100 * n) / ACHIEVEMENTS.length}%` }} />
+          <span class="ach-progress-text">{Math.round((100 * n) / ACHIEVEMENTS.length)}%</span>
+        </div>
+        {/* What the colours round the cards mean, as the rules' legend does. */}
+        <p class="rules-legend ach-legend">
+          {RARITIES.map((r) => (
+            <span class={`lg rarity-${r}`}>{t(`ach.rarity.${r}`)}</span>
+          ))}
+          <span class="lg rarity-locked">{t('ach.locked')}</span>
+        </p>
       </div>
-      {/* What the colours round the cards mean, as the rules' legend does. */}
-      <p class="rules-legend ach-legend">
-        {RARITIES.map((r) => (
-          <span class={`lg rarity-${r}`}>{t(`ach.rarity.${r}`)}</span>
-        ))}
-        <span class="lg rarity-locked">{t('ach.locked')}</span>
-      </p>
-      <ul class="ach-list">
+      <ul class="ach-list" ref={list}>
         {ACHIEVEMENTS.map((a) => {
           const got = !!unlocked[a.id];
           const hidden = a.secret && !got;
           return (
             <li
-              class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}`}
+              class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}${fresh.has(a.id) ? ' new' : ''}`}
+              data-id={a.id}
               title={got ? undefined : t('ach.locked')}
               onClick={got && a.id === 'infected' ? tapInfected : undefined}
             >
               <AchievementIcon a={a} got={got} />
+              {fresh.has(a.id) && <NewSign />}
               <span class="ach-text">
                 <span class="ach-name">{hidden ? t('ach.secret') : got ? <Name a={a} /> : text(a, 'name')}</span>
                 <span class="ach-desc">{hidden ? t('ach.secretDesc') : withHighlights(text(a, 'desc'))}</span>
@@ -149,6 +193,13 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
     </Modal>
   );
 }
+
+/** "New!" on a just-unlocked achievement (and on the Achievements button). */
+export const NewSign = () => (
+  <span class="new-sign" aria-label={t('ach.new')}>
+    <WaveText text={t('ach.new')} />
+  </span>
+);
 
 /** "Achievement unlocked", top middle: the art and what you did. One at a time. */
 export function AchievementToast() {

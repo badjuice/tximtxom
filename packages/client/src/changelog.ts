@@ -19,6 +19,20 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.44.0',
+    date: '2026-11-01',
+    items: [
+      n('New rule, Magic Sort (support): turns on the Magic sort button. Magic sort now follows the room\'s rules and groups cards one short of a formation, after the formed ones.', 'Nova regra, Ordem Mágica (apoio): liga o botão de ordenar Magia. A Magia segue agora as regras da sala e junta as cartas a uma de formar, depois das já formadas.'),
+      n('New rule, Scramble (funny): no sorting, and every card someone picks up shuffles everyone\'s hand.', 'Nova regra, Baralhada (divertida): nada de ordenar, e cada carta que alguém apanha baralha a mão de todos.'),
+      n('New achievements: Vanilla (win with the default rules), and one per rule for finishing a game with it off while another rule is on.', 'Novas conquistas: Baunilha (ganha com as regras de origem), e uma por regra por acabar um jogo com ela desligada e outra ligada.'),
+      n('Achievements you haven\'t seen yet show a New! sign, on the Achievements button and on the card, until you look at them.', 'As conquistas que ainda não viste mostram um sinal Nova!, no botão Conquistas e no cartão, até as veres.'),
+      c('Auto-pass waits 10 seconds when the formation could still take a card, 5 when it\'s full, and the button says "Auto-skipping in 9.4s" over a smooth bar.', 'A passagem automática espera 10 segundos quando a formação ainda pode levar cartas, 5 quando está completa, e o botão diz "Passa sozinho em 9,4s" sobre uma barra suave.'),
+      c('Thin scrollbars in the game\'s colours, beside the content instead of over it. The top of Achievements and the Changelog stays in view while you scroll.', 'Barras de deslocamento finas nas cores do jogo, ao lado do conteúdo em vez de por cima. O topo das Conquistas e das Alterações fica à vista ao deslizar.'),
+      c('Boardgame card backs: variants 1 and 3 of each colour, and Random never shows one colour twice in a row.', 'Costas de cartas do Boardgame: variantes 1 e 3 de cada cor, e o Aleatório nunca mostra a mesma cor duas vezes seguidas.'),
+      c('How to play colours "2–10 as printed" like the other card values.', 'O Como jogar dá cor a "2–10 o que diz a carta" como aos outros valores.'),
+    ],
+  },
+  {
     version: '0.43.2',
     date: '2026-11-01',
     items: [

@@ -12,6 +12,7 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         <span class="lg tone-punish">{t('rule.tone.punish')}</span>
         <span class="lg tone-info">{t('rule.tone.info')}</span>
         <span class="lg tone-support">{t('rule.tone.support')}</span>
+        <span class="lg tone-funny">{t('rule.tone.funny')}</span>
         <span class="lg">{t('rule.tone.neutral')}</span>
       </p>
       <Choice
@@ -46,6 +47,7 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         locked={rules.superposition ? undefined : t('rule.requires', { rule: t('rule.superposition') })}
       />
       <Toggle label={t('rule.smeared')} desc={t('rule.smeared.desc')} joker="mixed" tone="support" checked={rules.smeared} onChange={(smeared) => onChange({ smeared })} disabled={readOnly} />
+      <Toggle label={t('rule.magicSort')} desc={t('rule.magicSort.desc')} joker="magicsort" tone="support" checked={rules.magicSort} onChange={(magicSort) => onChange({ magicSort })} disabled={readOnly} />
       <Choice
         label={t('rule.rideOrder')}
         desc={t('rule.rideOrder.desc')}
@@ -90,6 +92,7 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         onChange={(turnTimer) => onChange({ turnTimer })}
         disabled={readOnly}
       />
+      <Toggle label={t('rule.scramble')} desc={t('rule.scramble.desc')} joker="scramble" tone="funny" checked={rules.scramble} onChange={(scramble) => onChange({ scramble })} disabled={readOnly} />
     </div>
   );
 }
@@ -105,6 +108,7 @@ export function RulesSummary({ rules }: { rules: Rules }) {
     ['ace', t('rule.superposition'), t('rule.superposition.desc'), onOff(rules.superposition), 'support'],
     ['ace', t('rule.mobius'), t('rule.mobius.desc'), onOff(rules.mobius), 'support'],
     ['mixed', t('rule.smeared'), t('rule.smeared.desc'), onOff(rules.smeared), 'support'],
+    ['magicsort', t('rule.magicSort'), t('rule.magicSort.desc'), onOff(rules.magicSort), 'support'],
     ['ride', t('rule.rideOrder'), t('rule.rideOrder.desc'), <b class="rs-val">{rules.rideOrder === 'roundRobin' ? t('rule.inTurns') : t('rule.together')}</b>],
     ['autoride', t('rule.autoRide'), t('rule.autoRide.desc'), onOff(rules.autoRide), 'support'],
     ['peek', t('rule.sixthSense'), t('rule.sixthSense.desc'), onOff(rules.sixthSense), 'info'],
@@ -112,6 +116,7 @@ export function RulesSummary({ rules }: { rules: Rules }) {
     ['penalty', t('rule.penalty10'), t('rule.penalty10.desc'), onOff(rules.penalty10), 'punish'],
     ['double', t('rule.doubleDown'), t('rule.doubleDown.desc'), onOff(rules.doubleDown), 'punish'],
     ['timer', t('rule.timer'), t('rule.timer.desc'), rules.turnTimer ? <b class="rs-val">{rules.turnTimer}s</b> : onOff(false)],
+    ['scramble', t('rule.scramble'), t('rule.scramble.desc'), onOff(rules.scramble), 'funny'],
   ];
   return (
     <ul class="rules-summary">

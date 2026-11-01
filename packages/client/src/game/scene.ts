@@ -1,4 +1,4 @@
-import { bestPartition, type Card, type GameView, rankOf, type Rules, suitOf } from '@tximtxom/shared';
+import { type Card, magicOrder, type GameView, rankOf, type Rules, suitOf } from '@tximtxom/shared';
 import { SEAT_COLORS } from '../seatColors';
 import type { Staged } from '../store';
 import type { CardTarget } from './cardView';
@@ -131,13 +131,7 @@ export function revealGroups(game: GameView, layout: Layout): FormationGroup[] {
 export type SortKey = 'rank' | 'suit' | 'magic' | 'magicLeft';
 
 export function sortedCards(hand: readonly Card[], by: SortKey, rules?: Rules): Card[] {
-  if ((by === 'magic' || by === 'magicLeft') && rules) {
-    // The best way to form the hand (fewest points left), each formation in its own order, lowest first.
-    const p = bestPartition(hand, rules);
-    const forms = [...p.formations].sort((a, b) => Math.min(...a.cards.map(rankOf)) - Math.min(...b.cards.map(rankOf))).flatMap((f) => f.cards);
-    const rest = sortedCards(p.leftover, 'rank');
-    return by === 'magicLeft' ? [...rest, ...forms] : [...forms, ...rest];
-  }
+  if ((by === 'magic' || by === 'magicLeft') && rules) return magicOrder(hand, rules, by === 'magicLeft');
   return [...hand].sort((a, b) =>
     by === 'suit' ? suitOf(a) - suitOf(b) || rankOf(a) - rankOf(b) : rankOf(a) - rankOf(b) || suitOf(a) - suitOf(b),
   );

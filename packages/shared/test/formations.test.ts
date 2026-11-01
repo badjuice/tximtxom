@@ -7,6 +7,7 @@ import {
   isFullyFormed,
   isTximTxom,
   leftoverRange,
+  magicOrder,
   handPoints,
   parseCards as P,
 } from '../src/index.js';
@@ -144,5 +145,20 @@ describe('leftoverRange', () => {
   });
   it('follows the rules: no pairs without Softcore', () => {
     expect(leftoverRange(P('7H 7S KC'), strict)).toEqual({ min: handPoints(P('7H 7S KC')), max: handPoints(P('7H 7S KC')) });
+  });
+});
+
+describe('magic sort', () => {
+  it('formations first, then cards one short of one, in rank order, then the rest', () => {
+    // No straight in clubs (no 9C) and no pairs without Softcore: the 8s and the Ks are almost trios.
+    const order = magicOrder(P('8H 8C 9H 10C JC KH KD'), strict);
+    expect(order).toEqual(P('8H 8C 10C JC KH KD 9H'));
+  });
+  it('a formed straight goes together, then the rest', () => {
+    expect(magicOrder(P('8C 9C 10C JC KH KD 2S'), strict)).toEqual(P('8C 9C 10C JC KH KD 2S'));
+    expect(magicOrder(P('8C 9C 10C JC KH KD 2S'), strict, true)).toEqual(P('2S KH KD 8C 9C 10C JC'));
+  });
+  it('follows the rules: with Softcore a pair is formed', () => {
+    expect(magicOrder(P('KH 3S KD 7C'), base)).toEqual(P('KH KD 3S 7C'));
   });
 });

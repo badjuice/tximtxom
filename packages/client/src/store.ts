@@ -58,7 +58,7 @@ export interface ClientState {
   /** The cards are being dealt: the pile counters wait until they've landed. */
   dealing: boolean;
   /** No card of yours fits the open formation: when you pass on your own (ms timestamp). */
-  autoPassAt: number | null;
+  autoPass: { at: number; ms: number } | null;
 }
 
 /** The History and Chat buttons (and H, C): open the side panel on that tab, or close it if it's showing it already. */
@@ -112,7 +112,7 @@ export const store = createStore<ClientState>({
   chatSeen: { code: '', id: 0 },
   sideTab: 'history',
   dealing: false,
-  autoPassAt: null,
+  autoPass: null,
 });
 
 /** Preact hook: re-renders when the selected slice changes. */

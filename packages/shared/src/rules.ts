@@ -25,6 +25,10 @@ export interface Rules {
   sixthSense: boolean;
   /** Straights may mix suits. TximTxom still needs a single suit. */
   smeared: boolean;
+  /** Players can use Magic sort (formations together, then cards one short of one). */
+  magicSort: boolean;
+  /** No sorting, and every card someone picks up shuffles everyone's hand. */
+  scramble: boolean;
 }
 
 export const DEFAULT_RULES: Rules = {
@@ -40,6 +44,8 @@ export const DEFAULT_RULES: Rules = {
   turnTimer: 0,
   sixthSense: false,
   smeared: false,
+  magicSort: false,
+  scramble: false,
 };
 
 /** Rules that only work on top of another: off, and locked in the room, until that one is on. */
@@ -63,6 +69,8 @@ export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
     turnTimer: (TIMER_OPTIONS as readonly number[]).includes(r.turnTimer) ? r.turnTimer : 0,
     sixthSense: !!r.sixthSense,
     smeared: !!r.smeared,
+    magicSort: !!r.magicSort,
+    scramble: !!r.scramble,
   };
 }
 
