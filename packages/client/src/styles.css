@@ -4272,9 +4272,29 @@ input.rename {
 .modal.ach-modal {
   width: min(880px, 96vw);
 }
-/* Only ever scrolls down. */
+/* The header stays and only the list scrolls, so the scrollbar starts level with
+   the first row. The list's own padding leaves room for the cards' glow on every side. */
 .ach-modal .modal-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+  padding-right: 2px;
+}
+.ach-modal .sticky-top {
+  position: static;
+  margin: 0;
+  box-shadow: none;
+  background: none;
+}
+.ach-modal .ach-list {
+  flex: 1;
+  min-height: 0;
   overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding: 12px 8px 8px;
 }
 .ach-count {
   margin: 0 0 4px;
@@ -4317,7 +4337,7 @@ input.rename {
   /* Room above the first row for its New! signs, clear of the pinned header. */
   padding: 12px 0 4px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 6px;
 }
 .ach-list li {
@@ -5259,7 +5279,17 @@ td.num.pts {
   transition: box-shadow 0.45s ease-out;
 }
 .ach-list > li.new:not(.seen) {
-  box-shadow: 0 0 0 2px #ffcf4a, 0 0 14px rgba(255, 207, 74, 0.55);
+  box-shadow: 0 0 0 2px #ffcf4a, 0 0 8px rgba(255, 207, 74, 0.5);
+  /* The same beat as its New! sign. */
+  animation: new-glow 0.9s ease-in-out infinite alternate;
+}
+@keyframes new-glow {
+  to {
+    box-shadow: 0 0 0 2px #ffe08a, 0 0 18px rgba(255, 207, 74, 1);
+  }
+}
+.reduced-motion .ach-list > li.new:not(.seen) {
+  animation: none;
 }
 /* Hovered or tapped: the sign pops up a little and fades out. */
 .ach-list > li.seen .new-sign {
@@ -5331,4 +5361,40 @@ td.num.pts {
   padding: 6px 0 2px;
   background: #3e575c;
   box-shadow: 0 6px 6px -4px rgba(0, 0, 0, 0.35);
+}
+
+/* Credits: a section per kind of help, each name linked to its page. */
+.cr-intro {
+  text-align: center;
+  margin: 0 0 8px;
+}
+.cr-section h3 {
+  margin: 10px 0 4px;
+  color: var(--gold);
+  font-size: 1em;
+}
+.cr-section ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.cr-section li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  align-items: baseline;
+  padding: 4px 8px;
+  background: var(--panel-d);
+  border-radius: 6px;
+}
+.cr-section a,
+.cr-section b {
+  color: #6fcfff;
+  font-weight: normal;
+}
+.cr-what {
+  color: var(--muted);
+  font-size: 0.9em;
 }

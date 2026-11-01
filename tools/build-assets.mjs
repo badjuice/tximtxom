@@ -313,7 +313,7 @@ async function icons() {
 // ---------------------------------------------------------------- menu button icons
 
 // Plain white shapes, used as CSS masks so the buttons can colour them.
-const UI_ICONS = { help: 'question', settings: 'gear', leave: 'exitLeft', history: 'menuList' };
+const UI_ICONS = { help: 'question', settings: 'gear', leave: 'exitLeft', history: 'menuList', credits: 'star' };
 
 async function uiIcons() {
   fs.mkdirSync(path.join(OUT, 'ui'), { recursive: true });

@@ -1,3 +1,4 @@
+import { CreditsMenu } from './CreditsMenu';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { unlock } from '../achievements';
 import { play } from '../audio';
@@ -39,6 +40,8 @@ export function Overlays() {
       return <StatsMenu onClose={close} />;
     case 'achievements':
       return <AchievementsMenu onClose={close} />;
+    case 'credits':
+      return <CreditsMenu onClose={close} />;
     default:
       return null;
   }

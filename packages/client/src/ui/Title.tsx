@@ -7,7 +7,7 @@ import { unlock, useNewCount } from '../achievements';
 import { NewSign } from './Achievements';
 import { formatCount, refreshGlobalRounds, useStats } from '../stats';
 import { store, useStore } from '../store';
-import { Button, Credits, MiniButton, WaveText } from './common';
+import { Button, Credits, MiniButton, UiIcon, WaveText } from './common';
 import { EditionCard } from './EditionCard';
 import { EDITIONS, type Edition } from './editions';
 import { spawnElement } from './textSpawn';
@@ -386,6 +386,10 @@ export function Title() {
   return (
     <main class="title-screen">
       <div class="top-menu">
+        <MiniButton color="purple" onClick={() => store.set({ overlay: 'credits' })} label={t('cr.title')}>
+          <UiIcon name="credits" />
+          {t('cr.title')}
+        </MiniButton>
         <MiniButton color="blue" onClick={() => store.set({ overlay: 'language' })} label={t('language')}>
           <LanguageIcon />
           {t('language')}
