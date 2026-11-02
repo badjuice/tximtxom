@@ -6,6 +6,7 @@ import { DEFAULT_RULES, makeCard, parseCards, type Rules, type Suit } from '@txi
 import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE, setRules } from '../net';
 import { CARD_STYLES, cardBacks, currentBack, FONTS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
+import { ownedOf } from '../shop';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, HintBalloon, Modal, Seen, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
 import { SEAT_COLORS } from './Hud';
@@ -14,6 +15,7 @@ import { CONTACT_EMAIL, ISSUES_URL, VERSION } from '../version';
 import { RulesForm, RulesSummary } from './RulesForm';
 import { AchievementsMenu } from './Achievements';
 import { StatsMenu } from './Stats';
+import { backName, ShopMenu } from './Shop';
 import { ArtIcon, Badge, BADGE_KINDS, badgeCount, CardBackIcon, CardIcon, RandomBackIcon } from './sprites';
 
 export function Overlays() {
@@ -42,6 +44,8 @@ export function Overlays() {
       return <AchievementsMenu onClose={close} />;
     case 'credits':
       return <CreditsMenu onClose={close} />;
+    case 'shop':
+      return <ShopMenu onClose={close} />;
     default:
       return null;
   }
@@ -490,13 +494,6 @@ const SPEEDS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4];
 const FPS: Settings['fps'][] = ['auto', 15, 30, 60, 120];
 const fpsText = (v: Settings['fps']) => (v === 'auto' ? t('set.fps.autoDesc') : t('set.fps.desc', { n: v }));
 
-/** "Red" for `back_red` and the plain `back_red1`, "Red Frame" for `back_red3`. */
-function backName(b: string): string {
-  const [, colour, n] = /^back_([a-z]+)(\d*)$/.exec(b) ?? [];
-  if (!colour) return b;
-  const name = t(`colour.${colour}` as Key);
-  return n === '3' ? t('set.cardBack.framed', { c: name }) : name;
-}
 
 /** Card art, card back and font, each on a cycler like the game speed, over a preview of the cards. */
 function StyleTab() {
@@ -524,6 +521,13 @@ function StyleTab() {
         value={back}
         options={[...backs.map((b) => ({ value: b, label: backName(b) })), { value: 'random', label: t('set.cardBack.random') }]}
         onChange={(cardBack) => updateSettings({ cardBack })}
+      />
+      <Choice
+        label={t('set.table')}
+        desc={t('set.table.desc')}
+        value={s.table !== 'random' && ownedOf('table').includes(s.table) ? s.table : 'random'}
+        options={[...ownedOf('table').map((id) => ({ value: id, label: t(`table.${id}` as Key) })), { value: 'random', label: t('set.cardBack.random') }]}
+        onChange={(table) => updateSettings({ table })}
       />
       <Choice label={t('set.font')} desc={t('set.font.by', { author: FONTS.find((f) => f.id === s.font)?.author ?? '' })} value={s.font} options={FONTS.map((f) => ({ value: f.id, label: f.name }))} onChange={(font) => updateSettings({ font, fontPicked: true })} />
     </>

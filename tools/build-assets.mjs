@@ -16,7 +16,7 @@ const OUT = path.join(ROOT, 'packages/client/public/assets');
 const NEEDS = {
   cards: ['playing-cards-pack'],
   boardCards: ['boardgame-pack'],
-  art: ['tiny-dungeon', 'board-game-icons'],
+  art: ['tiny-dungeon', 'board-game-icons', '1-bit-pack'],
   icons: ['board-game-icons'],
   ui: ['game-icons'],
   audio: ['casino-audio', 'interface-sounds', 'impact-sounds', 'music-jingles', 'rpg-audio', 'ui-pack', 'digital-audio'],
@@ -57,6 +57,13 @@ const BACKS = {
   back_green: [75, 194, 146],
   back_black: [58, 74, 77],
   back_purple: [136, 103, 165],
+  // Sold in the shop (client shop.ts).
+  back_teal: [42, 157, 155],
+  back_pink: [255, 126, 182],
+  back_orange: [255, 138, 61],
+  back_navy: [45, 63, 115],
+  back_gold: [234, 192, 88],
+  back_crimson: [163, 35, 58],
 };
 
 const hex = (d, i) => ((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]).toString(16).padStart(6, '0');
@@ -111,7 +118,8 @@ const BOARD_SCALE = 3;
 const BW = AW * BOARD_SCALE;
 const BH = AH * BOARD_SCALE;
 const BOARD_SUITS = { H: 'Hearts', C: 'Clubs', D: 'Diamonds', S: 'Spades' };
-const BOARD_BACKS = ['blue', 'red', 'green'].flatMap((c) => [1, 3].map((i) => `${c}${i}`));
+// Variants 1 and 3 are free; 2 and 5 are sold in the shop.
+const BOARD_BACKS = ['blue', 'red', 'green'].flatMap((c) => [1, 3, 2, 5].map((i) => `${c}${i}`));
 
 async function boardLoad(file) {
   return sharp(path.join(BOARD, `${file}.png`))
@@ -213,6 +221,28 @@ const AVATARS = {
   boar: [124, 'orange'],
 };
 
+// Sold in the shop (client shop.ts): 1-Bit Pack characters, [column, row] in its
+// packed coloured tilesheet (16px tiles), on a card like the Tiny Dungeon ones.
+const ONE_BIT = path.join(KENNEY, '1-bit-pack/Tilesheet/colored-transparent_packed.png');
+const SHOP_AVATARS = {
+  brute: [25, 0, 'red'],
+  bandit: [27, 1, 'grey'],
+  goblin: [25, 2, 'green'],
+  king: [28, 3, 'red'],
+  queen: [29, 3, 'purple'],
+  ghoul: [31, 4, 'grey'],
+  beetle: [25, 5, 'blue'],
+  web: [27, 5, 'purple'],
+  skeleton: [29, 6, 'grey'],
+  cow: [27, 7, 'green'],
+  horse: [28, 7, 'orange'],
+  cat: [29, 7, 'blue'],
+  octopus: [25, 8, 'red'],
+  serpent: [28, 8, 'green'],
+  bear: [30, 8, 'orange'],
+  gnome: [26, 9, 'blue'],
+};
+
 // Board Game Icons for rules and help, on a card in the rule's colour.
 const RULE_ART = {
   bust: ['skull', 'red'],
@@ -264,6 +294,10 @@ async function art() {
   const entries = [];
   for (const [k, [tile, colour]] of Object.entries(AVATARS)) {
     const fg = await sharp(path.join(TILES, `tile_${String(tile).padStart(4, '0')}.png`)).resize(32, 32, { kernel: 'nearest' }).png().toBuffer();
+    entries.push([k, await onCard(colour, fg, 32)]);
+  }
+  for (const [k, [col, row, colour]] of Object.entries(SHOP_AVATARS)) {
+    const fg = await sharp(ONE_BIT).extract({ left: col * 16, top: row * 16, width: 16, height: 16 }).resize(32, 32, { kernel: 'nearest' }).png().toBuffer();
     entries.push([k, await onCard(colour, fg, 32)]);
   }
   for (const [k, [icon, colour]] of Object.entries(RULE_ART)) entries.push([k, await onCard(colour, await whiteIcon(icon, 28), 28)]);

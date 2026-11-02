@@ -5,6 +5,13 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.53.0 (2026-11-01)
+- ✨ The Shop, on the main menu: spend chips on 12 card backs, 8 table colours and 16 characters. Tap the price, then "Buy?" to confirm.
+- ✨ The Shop is also where you choose what you use, free items included. Tables show behind it while you browse.
+- ✨ New setting, Table colours: Random, or a fixed one of yours.
+- 🔧 In a room, tapping your character also cycles through the ones you bought.
+- 🔧 The main menu has room for the Shop: four buttons under Play.
+
 ## 0.52.1 (2026-11-01)
 - ✨ Achievements: a button switches between all of them, only the locked ones and only the unlocked ones. Its hint says which comes next.
 - ✨ Credits: nevesfred, who made Odj c*, the game that inspired this one, and the testers SFGrey and the.red_angel. Each section's icon now sits on a little card.

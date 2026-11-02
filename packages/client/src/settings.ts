@@ -1,4 +1,5 @@
 import { assetUrl } from './version';
+import { FREE_PIXEL_BACKS, ownedOf } from './shop';
 import { useEffect, useState } from 'preact/hooks';
 
 /** The card art: Kenney's pixel cards, or the smooth cards of his Boardgame Pack. */
@@ -9,15 +10,10 @@ export const CARD_ATLAS: Record<CardStyle, string> = { pixel: 'cards', board: 'c
 
 /** A card back frame in the style's atlas (`back_red`, `back_blue3`...). */
 export type CardBack = string;
-const BACKS: Record<CardStyle, CardBack[]> = {
-  pixel: ['back_red', 'back_blue', 'back_yellow', 'back_green', 'back_black', 'back_purple'],
-  // Variants 1 and 3 of each colour, colours taking turns: Random never shows one colour twice running.
-  board: [1, 3].flatMap((i) => ['blue', 'red', 'green'].map((c) => `back_${c}${i}`)),
-};
-/** The backs of the card style in use. */
-export const cardBacks = (style = getSettings().cardStyle): CardBack[] => BACKS[style];
+/** Your backs (free and bought, shop.ts) of the card style in use. */
+export const cardBacks = (style = getSettings().cardStyle): CardBack[] => ownedOf('back', style);
 
-let randomBack: CardBack = BACKS.pixel[0];
+let randomBack: CardBack = FREE_PIXEL_BACKS[0];
 /** Backs not yet dealt on in this round of picks; every back comes up once before any repeats. */
 let backBag: CardBack[] = [];
 /** Picks the next random back for a new deal: never the one just used. */
@@ -123,6 +119,8 @@ export interface Settings {
   achSortDesc: boolean;
   /** Which achievements the list shows. */
   achView: AchView;
+  /** The table's colours: one of yours (shop.ts), or `random` (a different one each room and game). */
+  table: string;
   announce: boolean;
   /** Mirrors the bottom button bar for left-handed players. */
   leftHanded: boolean;
@@ -170,6 +168,7 @@ export const DEFAULT_SETTINGS: Settings = {
   achSort: 'default',
   achSortDesc: false,
   achView: 'all',
+  table: 'random',
   announce: true,
   leftHanded: false,
   historyOpen: false,

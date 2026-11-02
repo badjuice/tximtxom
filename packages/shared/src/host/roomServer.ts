@@ -242,7 +242,7 @@ export class RoomServer {
       if (!target) return { ok: false, error: 'Unknown player' };
       if (target.id !== member.id && !(target.isBot && room.hostId === member.id)) return { ok: false, error: 'Only the host can do that' };
       if (req.event === 'room:rename') room.rename(target.id, cleanName(req.msg?.name));
-      else room.cycleAvatar(target.id);
+      else room.cycleAvatar(target.id, target.id === member.id && Array.isArray(req.msg?.owned) ? req.msg.owned.filter((a): a is string => typeof a === 'string') : []);
       return { ok: true };
     }
 

@@ -653,7 +653,7 @@ input[type='text'] {
    importance, the last two smaller. Six columns, so 3 + 2 split evenly. */
 .main-menu {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(12, 1fr);
   gap: 10px;
   width: min(460px, 94vw);
 }
@@ -665,11 +665,12 @@ input[type='text'] {
   min-height: 72px;
   font-size: 2em;
 }
+/* Four main buttons a row (Stats, Achievements, Shop, Settings), then two small ones. */
 .main-menu .menu-main {
-  grid-column: span 2;
+  grid-column: span 3;
 }
 .main-menu .menu-minor {
-  grid-column: span 3;
+  grid-column: span 6;
   min-height: 40px;
   font-size: 0.95em;
 }
@@ -5912,4 +5913,146 @@ td.num.pts {
 }
 .reduced-motion .chip-pop {
   animation: none;
+}
+
+/* --- shop: a grid of tiles (preview, name, price or Use), grouped by card style. */
+.modal.shop-modal {
+  width: min(760px, 96vw);
+}
+.shop-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.shop-section h4 {
+  margin: 8px 0 6px;
+  color: var(--gold);
+  text-align: center;
+}
+.shop-grid {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 8px;
+}
+.shop-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  background: var(--panel-d);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  text-align: center;
+}
+.shop-item.on {
+  border-color: var(--gold);
+}
+/* Phones: three tiles a row. */
+@media (max-width: 600px) {
+  .shop-grid {
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 6px;
+  }
+  .shop-item {
+    padding: 6px 4px;
+  }
+  .shop-btn,
+  .shop-state {
+    min-width: 0;
+    width: 100%;
+    padding: 0 4px;
+  }
+}
+.shop-preview {
+  display: grid;
+  place-items: center;
+  height: 66px;
+}
+.shop-name {
+  font-size: 0.85em;
+  line-height: 1.15;
+  min-height: 2.3em;
+  display: grid;
+  place-items: center;
+}
+.shop-table {
+  display: block;
+  width: 80px;
+  height: 56px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+/* Random: a card-sized "?" (or table-sized, on the tables). */
+.shop-random {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 59px;
+  font-size: 1.8em;
+  color: #fff;
+  background: var(--grey);
+  border: 2px solid #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+.shop-table.shop-random {
+  width: 80px;
+  height: 56px;
+  border-radius: 8px;
+}
+/* Use, the price, and "Buy?" on the first tap: one fixed height, so tiles never jump. */
+.shop-btn,
+.shop-state {
+  font: inherit;
+  font-size: 0.9em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 84px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+}
+.shop-btn {
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+}
+.shop-btn.equip {
+  background: var(--blue);
+  box-shadow: 0 2px 0 var(--blue-d);
+}
+.shop-btn.buy {
+  color: var(--gold);
+  background: #1b2426;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
+}
+.shop-btn.buy.asking {
+  color: #fff;
+  background: var(--green);
+  box-shadow: 0 2px 0 var(--green-d);
+}
+.shop-btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+.shop-btn:active:not(:disabled) {
+  translate: 0 2px;
+  box-shadow: none;
+}
+.shop-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.shop-state {
+  color: var(--gold);
+}
+.menu-shop .chip-icon {
+  margin-right: 2px;
 }

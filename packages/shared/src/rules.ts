@@ -99,6 +99,12 @@ export const HUMAN_JOKERS = [
   'slime', 'crab', 'ranger', 'bat', 'spider', 'snail', 'boar',
 ] as const;
 
+/** Characters sold in the client's shop. The host takes a player's word that they own one. */
+export const SHOP_AVATARS = [
+  'brute', 'bandit', 'goblin', 'king', 'queen', 'ghoul', 'beetle', 'web',
+  'skeleton', 'cow', 'horse', 'cat', 'octopus', 'serpent', 'bear', 'gnome',
+] as const;
+
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;
 export const HAND_SIZE = 7;

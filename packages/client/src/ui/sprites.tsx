@@ -1,5 +1,6 @@
 import { assetUrl } from '../version';
 import type { ComponentChildren } from 'preact';
+import { useEffect, useState } from 'preact/hooks';
 import { type Card, cardCode, type LobbyPlayer } from '@tximtxom/shared';
 import { cardSpoken, type Key, t } from '../i18n';
 import { upscaled } from '../pixelArt';
@@ -212,6 +213,21 @@ export function CardIcon({ card, scale: sc = 0.5, dim, class: cls, children }: {
 
 export function CardBackIcon({ back, scale = 0.5 }: { back: string; scale?: number }) {
   return <span class="sprite card tilt" style={spriteStyle('cards', back, fit('cards', scale))} aria-hidden="true" {...tilt} />;
+}
+
+/** A back from either card style, loading that style's atlas if it isn't in use (the shop shows both). */
+export function StyleBackIcon({ style, back, scale = 0.5 }: { style: CardStyle; back: string; scale?: number }) {
+  const key = `cards:${style}`;
+  const [, redraw] = useState(0);
+  useEffect(() => {
+    if (atlases[key]) return;
+    cardAtlases[style] ??= loadAtlas(CARD_ATLAS[style], style === 'pixel');
+    void cardAtlases[style]!.then((a) => {
+      atlases[key] = a;
+      redraw((n) => n + 1);
+    });
+  }, [key]);
+  return <span class="sprite card tilt" style={spriteStyle(key, back, fit(key, scale))} aria-hidden="true" {...tilt} />;
 }
 
 /** The "random" back: it fades through every back in turn, with a question mark on top. */

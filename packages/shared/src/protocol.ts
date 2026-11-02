@@ -83,7 +83,8 @@ export interface ClientToServer {
   /** Rename yourself, or (host only) a bot. Lobby only. */
   'room:rename': (msg: { playerId: string; name: string }, ack: Ack) => void;
   /** Switch to the next free Joker art: your own, or (host only) a bot's, which also renames it. Lobby only. */
-  'room:avatar': (msg: { playerId: string }, ack: Ack) => void;
+  /** `owned`: your shop characters, which the cycle includes (only for your own art). */
+  'room:avatar': (msg: { playerId: string; owned?: string[] }, ack: Ack) => void;
   'room:start': (ack: Ack) => void;
   /** A player who isn't the host says they're ready to start (or not). Lobby only. */
   'room:ready': (msg: { ready: boolean }, ack: Ack) => void;

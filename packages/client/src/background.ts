@@ -3,6 +3,7 @@
 // up with `image-rendering: pixelated`, which gives the pixel look for free.
 import { frameRate } from './power';
 import { getSettings, onSettings } from './settings';
+import { FREE_TABLES, ownedOf, owns } from './shop';
 
 const VERT = `
 attribute vec2 aPos;
@@ -72,15 +73,30 @@ export const MOODS = {
 
 export type Mood = keyof typeof MOODS | 'table';
 
-/** Palettes for rooms and tables, picked at random. */
-const TABLE_PALETTES: [RGB, RGB, RGB][] = [
-  [hex('#2f8a5f'), hex('#1b5e4a'), hex('#0e2f2a')], // green felt
-  [hex('#d9a92c'), hex('#9aa3ad'), hex('#202328')], // gold and silver
-  [hex('#8a5cc4'), hex('#4e2f7a'), hex('#1d1230')], // purple
-  [hex('#2a9d9b'), hex('#1a5f66'), hex('#0b2a2e')], // teal
-  [hex('#c4497f'), hex('#6e2350'), hex('#220c1b')], // magenta
-];
-let tablePalette = TABLE_PALETTES[Math.floor(Math.random() * TABLE_PALETTES.length)];
+/** Table palettes by shop.ts id: the free ones, then the ones sold in the shop. */
+export const TABLES: Record<string, [RGB, RGB, RGB]> = {
+  felt: [hex('#2f8a5f'), hex('#1b5e4a'), hex('#0e2f2a')],
+  goldSilver: [hex('#d9a92c'), hex('#9aa3ad'), hex('#202328')],
+  purple: [hex('#8a5cc4'), hex('#4e2f7a'), hex('#1d1230')],
+  teal: [hex('#2a9d9b'), hex('#1a5f66'), hex('#0b2a2e')],
+  magenta: [hex('#c4497f'), hex('#6e2350'), hex('#220c1b')],
+  ocean: [hex('#2d6fd1'), hex('#1a3f80'), hex('#0a1630')],
+  crimson: [hex('#c8313a'), hex('#7a1b2a'), hex('#20080c')],
+  sunset: [hex('#ff8a3d'), hex('#c4416a'), hex('#2a1030')],
+  rose: [hex('#e8a0b4'), hex('#a35a72'), hex('#2e1520')],
+  wood: [hex('#b7834a'), hex('#6e4526'), hex('#241409')],
+  lava: [hex('#ffb000'), hex('#d8361c'), hex('#1e0805')],
+  neon: [hex('#ff3fb4'), hex('#2ad4ff'), hex('#120a24')],
+  royal: [hex('#3f5bd8'), hex('#b8902c'), hex('#141836')],
+};
+/** The random pick, for when the Table setting is Random. */
+let randomTable = FREE_TABLES[Math.floor(Math.random() * FREE_TABLES.length)];
+
+/** The table's palette: the one chosen in Settings (if it's yours), or the random pick. */
+function tablePalette(): [RGB, RGB, RGB] {
+  const chosen = getSettings().table;
+  return TABLES[chosen !== 'random' && owns(chosen) ? chosen : randomTable] ?? TABLES.felt;
+}
 
 function hex(h: string): RGB {
   const n = parseInt(h.slice(1), 16);
@@ -91,18 +107,30 @@ let target: [RGB, RGB, RGB] = MOODS.menu;
 let colours = MOODS.menu.map((c) => [...c]) as [RGB, RGB, RGB];
 let spinBoost = 0;
 
+let mood: Mood = 'menu';
+
 export function setMood(name: Mood): void {
-  const next = name === 'table' ? tablePalette : MOODS[name];
+  mood = name;
+  const next = name === 'table' ? tablePalette() : MOODS[name];
   if (next === target) return;
   target = next;
   // Like moving between screens in Balatro: the paint spins up while the colours change.
   swirl(1.2);
 }
 
+/** Shows table `id` behind whatever is open (the shop's tables), or, with null, goes back to the mood. */
+export function previewTable(id: string | null): void {
+  const next = id && TABLES[id] ? TABLES[id] : mood === 'table' ? tablePalette() : MOODS[mood];
+  if (next === target) return;
+  target = next;
+  swirl(0.6);
+}
+
 /** Picks a different random palette for the table (used by the next setMood('table')). */
 export function shuffleTablePalette(): void {
-  const others = TABLE_PALETTES.filter((p) => p !== tablePalette);
-  tablePalette = others[Math.floor(Math.random() * others.length)];
+  const mine = ownedOf('table');
+  const others = mine.filter((id) => id !== randomTable);
+  randomTable = others.length ? others[Math.floor(Math.random() * others.length)] : (mine[0] ?? 'felt');
 }
 
 /** Briefly speeds up the swirl, for big plays and screen changes. */
@@ -181,4 +209,6 @@ export function startBackground(canvas: HTMLCanvasElement): void {
   };
   requestAnimationFrame(frame);
   onSettings(() => (frameSkip = 0));
+  // A new Table setting shows at once if the table is up.
+  onSettings(() => mood === 'table' && setMood('table'));
 }

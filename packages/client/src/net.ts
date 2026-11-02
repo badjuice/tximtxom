@@ -7,6 +7,7 @@ import { goingToSleep } from './power';
 import type { Socket } from 'socket.io-client';
 import { carrierId, hasAchievement, onUnlock, unlock } from './achievements';
 import { recordLeftGame } from './stats';
+import { chipsNow } from './chips';
 
 /** Sent when joining: whether you're Infected, and your carrier id if so. */
 const infection = () => (hasAchievement('infected') ? { infected: true, carrier: carrierId() } : { infected: false });
@@ -43,8 +44,13 @@ export function saveName(name: string): void {
   if (name) localStorage.setItem(NAME_KEY, name);
 }
 
-function savedAvatar(): string | undefined {
+export function savedAvatar(): string | undefined {
   return localStorage.getItem(AVATAR_KEY) ?? undefined;
+}
+
+/** Your character for the next room you join (the shop's Equip). */
+export function saveAvatar(art: string): void {
+  localStorage.setItem(AVATAR_KEY, art);
 }
 
 /** Remembers your character, and the rules while you are the host. */
@@ -349,7 +355,8 @@ export const renamePlayer = (playerId: string, name: string) => {
 export const cycleAvatar = (playerId: string) => {
   // A new look for yourself (avatars only change in the lobby).
   if (playerId === store.get().room?.youId) unlock('newLook');
-  return call({ event: 'room:avatar', msg: { playerId } });
+  const owned = playerId === store.get().room?.youId ? chipsNow().owned : undefined;
+  return call({ event: 'room:avatar', msg: { playerId, owned } });
 };
 
 export function leaveRoom(): void {

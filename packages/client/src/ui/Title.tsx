@@ -7,7 +7,7 @@ import { unlock, useNewCount } from '../achievements';
 import { NewSign } from './Achievements';
 import { formatCount, refreshGlobalRounds, useStats } from '../stats';
 import { store, useStore } from '../store';
-import { Button, ChipCount, Credits, Fit, MiniButton, UiIcon, WaveText } from './common';
+import { Button, ChipCount, ChipIcon, Credits, Fit, MiniButton, UiIcon, WaveText } from './common';
 import { EditionCard } from './EditionCard';
 import { EDITIONS, type Edition } from './editions';
 import { spawnElement } from './textSpawn';
@@ -223,7 +223,7 @@ function PlayerCounter() {
 
 /** Balatro's main menu: Play first and biggest, the rest in order of importance. */
 function MainMenu({ onPlay }: { onPlay: () => void }) {
-  const open = (overlay: 'stats' | 'achievements' | 'settings' | 'changelog' | 'help') => () => store.set({ overlay });
+  const open = (overlay: 'stats' | 'achievements' | 'shop' | 'settings' | 'changelog' | 'help') => () => store.set({ overlay });
   const newAch = useNewCount();
   return (
     <nav class="main-menu panel" aria-label={t('menu.play')}>
@@ -241,13 +241,17 @@ function MainMenu({ onPlay }: { onPlay: () => void }) {
         </Fit>
         {newAch > 0 && <NewSign />}
       </Button>
+      <Button color="red" class="menu-main menu-shop" onClick={open('shop')}>
+        <ChipIcon size={22} />
+        {t('menu.shop')}
+      </Button>
       <Button color="orange" class="menu-main" onClick={open('settings')}>
         {t('title.settings')}
       </Button>
       <Button color="grey" class="menu-minor" onClick={open('changelog')}>
         {t('title.changelog')}
       </Button>
-      <Button color="red" class="menu-minor" onClick={open('help')}>
+      <Button color="blue" class="menu-minor" onClick={open('help')}>
         {t('title.howToPlay')}
       </Button>
     </nav>

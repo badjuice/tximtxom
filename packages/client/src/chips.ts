@@ -48,6 +48,8 @@ export interface Chips {
   lastWinDay: string;
   /** Achievements unlocked before chips existed have been paid for. */
   backPaid: boolean;
+  /** Shop items bought (shop.ts ids). */
+  owned: string[];
   /** The latest changes, newest last; older ones live on only in the totals above. */
   log: ChipEntry[];
 }
@@ -70,6 +72,7 @@ const EMPTY: Chips = {
   bestDailyStreak: 0,
   lastWinDay: '',
   backPaid: false,
+  owned: [],
   log: [],
 };
 
@@ -180,6 +183,21 @@ export function earn(src: ChipSource, n: number, at?: { x: number; y: number; de
     const pop = { id: ++popId, n, x: at.x, y: at.y, delay: at.delay ?? 0 };
     popListeners.forEach((l) => l(pop));
   }
+}
+
+/** Buys shop item `id` for `price` chips. False if it's owned already or there aren't enough chips. */
+export function buyItem(id: string, price: number): boolean {
+  if (chips.owned.includes(id) || chips.balance < price) return false;
+  chips = {
+    ...chips,
+    balance: chips.balance - price,
+    spentShop: chips.spentShop + price,
+    owned: [...chips.owned, id],
+    log: [...chips.log, { at: Date.now(), src: 'shop' as const, n: -price }].slice(-LOG_KEEP),
+  };
+  save();
+  notify();
+  return true;
 }
 
 export const chipsNow = (): Chips => chips;

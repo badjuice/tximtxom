@@ -19,6 +19,17 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.53.0',
+    date: '2026-11-01',
+    items: [
+      n("The Shop, on the main menu: spend chips on 12 card backs, 8 table colours and 16 characters. Tap the price, then \"Buy?\" to confirm.", "A Loja, no menu principal: gasta fichas em 12 costas de cartas, 8 cores de mesa e 16 personagens. Toca no preço e depois em \"Comprar?\" para confirmar."),
+      n("The Shop is also where you choose what you use, free items included. Tables show behind it while you browse.", "A Loja é também onde escolhes o que usas, incluindo o que é grátis. As mesas aparecem por trás enquanto as vês."),
+      n("New setting, Table colours: Random, or a fixed one of yours.", "Nova opção, Cores da mesa: Aleatória, ou uma fixa das tuas."),
+      c("In a room, tapping your character also cycles through the ones you bought.", "Numa sala, tocar na tua personagem também passa pelas que compraste."),
+      c("The main menu has room for the Shop: four buttons under Play.", "O menu principal tem lugar para a Loja: quatro botões por baixo de Jogar."),
+    ],
+  },
+  {
     version: '0.52.1',
     date: '2026-11-01',
     items: [

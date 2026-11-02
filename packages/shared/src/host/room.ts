@@ -2,7 +2,7 @@ import { botAction } from '../bot.js';
 import { applyAction, newGame } from '../engine.js';
 import { CHAT_BURST, CHAT_KEEP, CHAT_WINDOW_MS, type ChatLine, EMOTE_GAP_MS, EMOTE_KEEP, type EmoteId, type EmoteLine, type LobbyPlayer, type RoomView } from '../protocol.js';
 import { randomSeed } from '../rng.js';
-import { BOT_PERSONAS, DEFAULT_RULES, HUMAN_JOKERS, MAX_PLAYERS, MIN_PLAYERS, type Rules, sanitizeRules } from '../rules.js';
+import { BOT_PERSONAS, DEFAULT_RULES, HUMAN_JOKERS, MAX_PLAYERS, MIN_PLAYERS, type Rules, sanitizeRules, SHOP_AVATARS } from '../rules.js';
 import type { Action, GameState, Seat } from '../types.js';
 import { viewFor } from '../view.js';
 
@@ -170,14 +170,15 @@ export class Room {
     return this.nextFree(BOT_PERSONAS, (p) => p.avatar, current);
   }
 
-  /** Humans pick from their own set of characters. */
-  private freeHumanArt(current = ''): string | null {
-    return this.nextFree(HUMAN_JOKERS, (a) => a, current);
+  /** Humans pick from their own set of characters, plus the shop ones in `owned`. */
+  private freeHumanArt(current = '', owned: readonly string[] = []): string | null {
+    const bought = SHOP_AVATARS.filter((a) => owned.includes(a));
+    return this.nextFree([...HUMAN_JOKERS, ...bought], (a) => a, current);
   }
 
   /** `preferred` is the character this player used last time; they get it back if nobody has it. */
   addHuman(name: string, clientId: string, preferred?: string, infected?: boolean): Member {
-    const known = (HUMAN_JOKERS as readonly string[]).includes(preferred ?? '');
+    const known = ([...HUMAN_JOKERS, ...SHOP_AVATARS] as readonly string[]).includes(preferred ?? '');
     const taken = this.members.some((x) => x.avatar === preferred);
     const art = known && !taken ? preferred! : (this.freeHumanArt() ?? 'villager');
     const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: art, clientId, infected: !!infected };
@@ -204,8 +205,9 @@ export class Room {
     return true;
   }
 
-  /** Moves a member to the next character nobody else has. Bots take that character's name too. */
-  cycleAvatar(id: string): boolean {
+  /** Moves a member to the next character nobody else has. Bots take that character's name too.
+   *  `owned`: the shop characters a human has bought, which join their set. */
+  cycleAvatar(id: string, owned: readonly string[] = []): boolean {
     const m = this.members.find((x) => x.id === id);
     if (!m) return false;
     if (m.isBot) {
@@ -214,7 +216,7 @@ export class Room {
       m.avatar = next.avatar;
       m.name = next.name;
     } else {
-      const next = this.freeHumanArt(m.avatar);
+      const next = this.freeHumanArt(m.avatar, owned);
       if (!next) return false;
       m.avatar = next;
     }
