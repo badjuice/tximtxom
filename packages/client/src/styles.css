@@ -5032,6 +5032,70 @@ input.rename {
 .rule-ref.tone-funny {
   --rc: #e39bff;
 }
+/* A rarity's name: its colour, a shine across it, and a slow pump. */
+.rarity-text {
+  --rc: #6b7780;
+  display: inline-block;
+  font-weight: bold;
+  background: linear-gradient(100deg, var(--rc) 42%, #fff 50%, var(--rc) 58%) 100% 0 / 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.55));
+  animation:
+    rule-shine 3.2s linear infinite,
+    rarity-pump 1.6s ease-in-out infinite;
+}
+.rarity-common {
+  --rc: #38b0ff;
+}
+.rarity-uncommon {
+  --rc: #4bc292;
+}
+.rarity-epic {
+  --rc: #b385f7;
+}
+.rarity-legendary {
+  --rc: var(--gold);
+}
+.rarity-secret {
+  --rc: #ff6b61;
+}
+/* Unique: the rainbow slides through, no letter wave. */
+.rarity-text.rarity-unique {
+  background: linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #a26bf2, #fe5f55) 0 0 / 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation:
+    rainbow-slide 3s linear infinite,
+    rarity-pump 1.6s ease-in-out infinite;
+}
+@keyframes rarity-pump {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+.reduced-motion .rarity-text {
+  animation: none;
+}
+/* A card in the Cards stats: the card, then how often. */
+.fav-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat-list:has(.fav-card) {
+  align-items: center;
+  row-gap: 4px;
+}
+.ach-name-ref.rarity-common {
+  --rc: #38b0ff;
+}
 @keyframes rule-shine {
   0% {
     background-position: 100% 0;
@@ -5164,12 +5228,6 @@ input.rename {
   gap: 16px;
   max-width: 100%;
 }
-.deck-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
 .deck-row {
   display: flex;
   padding-right: calc(var(--deck-cw, 37px) - var(--deck-step, 17px));
@@ -5190,11 +5248,18 @@ input.rename {
 .deck-card > .sprite {
   box-shadow: -2px 0 3px rgba(0, 0, 0, 0.3);
 }
-/* The back, apart from the rest past a thin line. */
+/* The back, apart from the rest past a thin line; a click turns the suit. */
 .deck-back {
   flex: none;
-  padding-left: 16px;
+  padding: 0 0 0 16px;
+  border: none;
   border-left: 2px solid rgba(255, 255, 255, 0.12);
+  background: none;
+  cursor: pointer;
+  transition: translate 0.12s;
+}
+.deck-back:hover {
+  translate: 0 -4px;
 }
 @media (max-width: 420px) {
   .deck-view {
@@ -6408,7 +6473,12 @@ td.num.pts {
 }
 .shop-random-roll {
   opacity: 0.55;
-  animation: shop-roll 0.42s ease-out;
+  animation: shop-fade 0.7s ease-in-out;
+}
+/* The one before fades out under the new one as it comes in. */
+.shop-random-roll.out {
+  opacity: 0;
+  animation: shop-fade-out 0.7s ease-in-out;
 }
 .shop-random-box > .shop-random {
   border: none;
@@ -6420,10 +6490,15 @@ td.num.pts {
     0 2px 0 rgba(0, 0, 0, 0.6),
     0 0 6px rgba(0, 0, 0, 0.6);
 }
-@keyframes shop-roll {
+@keyframes shop-fade {
   from {
-    translate: 0 -6px;
     opacity: 0;
+    scale: 0.94;
+  }
+}
+@keyframes shop-fade-out {
+  from {
+    opacity: 0.55;
   }
 }
 .reduced-motion .shop-random-roll {

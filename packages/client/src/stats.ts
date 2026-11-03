@@ -3,7 +3,7 @@
 // Abacus (https://jasoncameron.dev/abacus/), a free counting service: the game
 // has no server of its own.
 import { useEffect, useState } from 'preact/hooks';
-import { bustLimit, type FormationKind, type GameEvent, type GameView, type RoomView } from '@tximtxom/shared';
+import { bustLimit, type Card, type FormationKind, rankOf, suitOf, type GameEvent, type GameView, type RoomView } from '@tximtxom/shared';
 import { store } from './store';
 
 /** What this device has played. */
@@ -59,6 +59,20 @@ export interface MyStats {
   visits: number;
   /** When this device first opened the game (ms timestamp). */
   since: number;
+  /** How often each card ("rank-suit") was in a formation you showed, thrown away by you, taken
+   *  from the Discard Pile by you, and left in your hand when a round was scored. */
+  cards: Record<CardCount, Record<string, number>>;
+}
+export type CardCount = 'shown' | 'discarded' | 'taken' | 'leftover';
+const cardKey = (c: Card) => `${rankOf(c)}-${suitOf(c)}`;
+/** Adds one to each of these cards' counts. */
+function countCards(which: CardCount, cards: Card[]): void {
+  if (!cards.length) return;
+  bump((s) => {
+    const next = { ...s.cards[which] };
+    for (const c of cards) next[cardKey(c)] = (next[cardKey(c)] ?? 0) + 1;
+    return { cards: { ...s.cards, [which]: next } };
+  });
 }
 
 export interface GlobalStats {
@@ -92,6 +106,7 @@ const EMPTY: MyStats = {
   tximtxoms: 0,
   formations: 0,
   kinds: { pair: 0, trio: 0, quad: 0, quintet: 0, sextet: 0, septet: 0, octet: 0, straight: 0 },
+  cards: { shown: {}, discarded: {}, taken: {}, leftover: {} },
   longestStraight: 0,
   longStraights: 0,
   rides: 0,
@@ -113,7 +128,7 @@ const EMPTY: MyStats = {
 function load(): MyStats {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}');
-    return { ...EMPTY, ...saved, kinds: { ...EMPTY.kinds, ...saved.kinds } };
+    return { ...EMPTY, ...saved, kinds: { ...EMPTY.kinds, ...saved.kinds }, cards: { ...EMPTY.cards, ...saved.cards } };
   } catch {
     return { ...EMPTY };
   }
@@ -208,7 +223,8 @@ export const locale = () => document.documentElement.lang || 'en';
 
 /** 1234 → "1,234" in English, "1 234" in Portuguese. */
 export function formatCount(n: number): string {
-  return n.toLocaleString(locale());
+  // Thousands split by a dot in every language (1.000.000); a fraction keeps the language's own mark.
+  return Number.isInteger(n) ? n.toLocaleString('de-DE') : n.toLocaleString(locale());
 }
 
 // ---------------------------------------------------------------- counting
@@ -229,6 +245,7 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
       const pts = r.points[me];
       const won = pts === Math.min(...r.points);
       const total = r.totals[me];
+      countCards('leftover', r.leftovers[me]);
       bump((s) => ({
         roundsWon: s.roundsWon + (won ? 1 : 0),
         roundsLost: s.roundsLost + (won ? 0 : 1),
@@ -244,7 +261,13 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
       if (e.seat === me) bump((s) => ({ cardsDrawn: s.cardsDrawn + 1 }));
       break;
     case 'take':
-      if (e.seat === me) bump((s) => ({ cardsTaken: s.cardsTaken + 1 }));
+      if (e.seat === me) {
+        bump((s) => ({ cardsTaken: s.cardsTaken + 1 }));
+        countCards('taken', [e.card]);
+      }
+      break;
+    case 'discard':
+      if (e.seat === me) countCards('discarded', [e.card]);
       break;
     case 'end':
       if (e.seat === me && e.kind === 'manual') bump((s) => ({ roundsEnded: s.roundsEnded + 1 }));
@@ -253,6 +276,7 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
       if (e.seat === me) bump((s) => ({ tximtxoms: s.tximtxoms + 1 }));
       break;
     case 'lay':
+      if (e.seat === me) countCards('shown', e.cards);
       if (e.seat === me)
         bump((s) => ({
           formations: s.formations + 1,

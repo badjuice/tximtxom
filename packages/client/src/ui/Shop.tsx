@@ -40,23 +40,29 @@ function TableSwatch({ id }: { id: string }) {
   return <span class={`shop-table${id === 'negative' ? ' shop-sheen' : ''}${id === 'holo' ? ' shop-holo shop-sheen' : ''}`} style={{ background: bg }} aria-hidden="true" />;
 }
 
-/** How often Random's tile turns to another of its group. */
-const RANDOM_STEP_MS = 420;
+/** How often Random's tile turns to another of its group (each change crossfades, styles.css shop-fade). */
+const RANDOM_STEP_MS = 1100;
 
 /** Random: its tile keeps turning to a different item of its group, under a "?". */
 function RandomPreview({ item }: { item: ShopItem }) {
   const group = SHOP.filter((i) => i.kind === item.kind && i.style === item.style && !i.random).flatMap((i): ShopItem[] =>
     i.pack ? i.pack.map((id) => ({ id, kind: i.kind, price: 0, style: i.style })) : [i],
   );
-  const [k, setK] = useState(() => Math.floor(Math.random() * group.length));
+  // The one showing and the one fading out under it.
+  const [[k, was], setK] = useState<[number, number | null]>(() => [Math.floor(Math.random() * group.length), null]);
   useEffect(() => {
     if (getSettings().reducedMotion) return;
-    const id = setInterval(() => setK((n) => (n + 1 + Math.floor(Math.random() * (group.length - 1))) % group.length), RANDOM_STEP_MS);
+    const id = setInterval(() => setK(([n]) => [(n + 1 + Math.floor(Math.random() * (group.length - 1))) % group.length, n]), RANDOM_STEP_MS);
     return () => clearInterval(id);
   }, []);
   return (
     <span class="shop-random-box">
-      <span class="shop-random-roll" key={k}>
+      {was !== null && (
+        <span class="shop-random-roll out" key={`o${was}-${k}`}>
+          <Preview item={group[was]} />
+        </span>
+      )}
+      <span class="shop-random-roll" key={`i${k}`}>
         <Preview item={group[k]} />
       </span>
       <span class="shop-random">?</span>
@@ -145,7 +151,7 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
         {on ? (
           <span class="shop-state">{t('shop.equipped')}</span>
         ) : from && !mine ? (
-          <span class="shop-btn reward" title={t('shop.reward', { name: from.secret && !hasAchievement(from.id) ? t('ach.secret') : t(`ach.${from.id}.name` as Key) })}>
+          <span class="shop-btn reward" title={t('shop.reward', { name: from.secret && !hasAchievement(from.id) ? `[${t('ach.secret')}]` : t(`ach.${from.id}.name` as Key) })}>
             <UiIcon name="lock" />
           </span>
         ) : mine ? (
@@ -164,8 +170,8 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
               t('shop.confirm')
             ) : (
               <>
-                <ChipIcon size={16} />
                 {formatCount(i.price)}
+                <ChipIcon size={16} />
               </>
             )}
           </button>

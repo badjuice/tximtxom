@@ -5,11 +5,21 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.57.0 (2026-11-03)
+- ✨ Card stats: your favourite card, suit and value, and the cards you throw away, pick up and get stuck with most.
+- ✨ Rarities in their colours, with a shine and a pulse, wherever they're written. The changelog puts an achievement's rarity before its name.
+- 🔧 Rules have their Rules-window colour everywhere they're named.
+- 🔧 Amounts of chips put the chip after the number (+30 chips), and thousands are split by a dot: 1.000.000.
+- 🔧 No chip counter on the main menu or in the lobby. The Chips stats keep the big chips only.
+- 🔧 Style shows Ace to King in one row, each card half over the last, in a random suit. Click the back to turn to the next suit.
+- 🔧 Random items in the Shop fade from one option to the next.
+- 🔧 A Shop item from a hidden achievement says "Unlocked by the achievement [Secret achievement]".
+
 ## 0.56.0 (2026-11-03)
-- ✨ Four Unique achievements for the long haul, each with a reward: Average TximTxom Enjoyer (play 100 games, the Negative table), Local TximTxom Legend (win 250, the Polychrome back), Final Boss of TximTxom (win 10 in a row, the Boss frame) and CEO of TximTxom (earn 1,000,000 chips, the Gold Foil back).
+- ✨ Four Unique achievements for the long haul, each with a reward: Average TximTxom Enjoyer (play 100 games, the Negative table), Local TximTxom Legend (win 250, the Polychrome back), Final Boss of TximTxom (win 10 in a row, the Boss frame) and CEO of TximTxom (earn 1.000.000 chips, the Gold Foil back).
 - ✨ Plate frames: a new Shop tab. The Boss frame glows dark red round your plate, and everyone at the table sees it.
 - ✨ Three characters you can't buy: The Boss (Flawless), Top Hat CEO (Royal Flush) and Suited CEO (Rulebook).
-- ✨ A new table, Holographic: a rainbow film over silver (2,500).
+- ✨ A new table, Holographic: a rainbow film over silver (2.500).
 - ✨ 10 new common achievements for the small firsts: How to play, a new table, a setting changed, History in a game, a 4-player round, a round with a bot, your first Txi jog, first card from the Discard Pile, first ride, and 3 games in one day.
 - 🔧 An achievement that gives something says what, in rainbow letters: "Unlocks Negative (table)". Completionist and Completionist+ now pay chips only.
 - 🔧 The Achievements button (and any other) no longer stays outlined after you close what it opened with a click.
@@ -38,7 +48,7 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 - ✨ +30 chips when your hand runs out of cards (a full hand, a TximTxom, or your last card gone on a ride), once a round. Big sets and long straights pay extra.
 - ✨ Chip pops say what paid ("3-Straight", "Hand emptied"), and the chips of a round or game roll up like an odometer.
 - 🔧 Your name instead of "You" everywhere, framed in gold among the others.
-- 🔧 The Shop starts smaller: two of each card back style, two tables and six characters are free. Recoloured backs come in packs, and Random is the last buy of each group (2,000). What you bought stays yours.
+- 🔧 The Shop starts smaller: two of each card back style, two tables and six characters are free. Recoloured backs come in packs, and Random is the last buy of each group (2.000). What you bought stays yours.
 - 🔧 Whose turn it is: the plate keeps its gold border, with the player's colour still showing inside it, and their character glows in their colour.
 - 🔧 The Full hand and TximTxom note sits centred above the formations.
 - 🔧 Formations: clearer card values, and the rule each formation needs written under it.
@@ -77,7 +87,7 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 - ✨ Chips! Each card you form pays its rank, a ride card half that. Not busting, winning rounds and games, achievements and the first game of the day pay too.
 - ✨ Your chips show on the main menu and in the lobby, float up over your formations, and add up in the round and game summaries.
 - ✨ Stats has a Chips tab: balance, most ever held, and where they came from.
-- ✨ Achievements you already had pay their chips once. The chip achievements are back, at 1,000, 10,000 and 100,000 chips earned.
+- ✨ Achievements you already had pay their chips once. The chip achievements are back, at 1.000, 10.000 and 100.000 chips earned.
 
 ## 0.50.2 (2026-11-01)
 - 🔧 Seat colours are easier to tell apart: the orange seat is now purple (orange looked like the gold of the current turn), and plate borders are brighter.

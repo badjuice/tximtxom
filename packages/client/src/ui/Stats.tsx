@@ -1,12 +1,12 @@
 import { useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
-import type { FormationKind } from '@tximtxom/shared';
+import { type Card, type FormationKind, makeCard, RANK_CODES, type Suit, SUIT_SYMBOLS } from '@tximtxom/shared';
 import { type Key, t } from '../i18n';
 import { useSettings } from '../settings';
 import { formatCount, locale, type MyStats, useStats } from '../stats';
 import { ACH_PAY, CHIP_SOURCES, type ChipSource, chipsEarned, PAY, useChips } from '../chips';
 import { ChipAmount, ChipIcon, Modal, Rainbow, Tabs, tj, WaveText, withTximTxom } from './common';
-import { Icon } from './sprites';
+import { CardIcon, Icon } from './sprites';
 
 /** "2h 05m", "12m 30s", "45s". */
 function formatDuration(ms: number): string {
@@ -95,7 +95,7 @@ function ChipsPanel() {
       <div class="chip-tiles">
         <div class="stat-tile big">
           <span class="stat-value">
-            <ChipIcon size={28} /> {formatCount(c.balance)}
+            {formatCount(c.balance)} <ChipIcon size={28} />
           </span>
           <span class="stat-label">
             <Rainbow text={t('chips.now')} />
@@ -103,25 +103,25 @@ function ChipsPanel() {
         </div>
         <div class="stat-tile">
           <span class="stat-value">
-            <ChipAmount n={c.most} />
+            <ChipAmount n={c.most} size={22} />
           </span>
           <span class="stat-label">{t('chips.most')}</span>
         </div>
         <div class="stat-tile">
           <span class="stat-value">
-            <ChipAmount n={chipsEarned(c)} />
+            <ChipAmount n={chipsEarned(c)} size={22} />
           </span>
           <span class="stat-label">{t('chips.earned')}</span>
         </div>
       </div>
       <div class="stat-cols">
-        <StatList title="chips.earnedTitle" rows={CHIP_SOURCES.map((s): [Key, ComponentChildren] => [`chips.src.${s}`, <ChipAmount n={c.earned[s]} />])} colors={CHIP_SOURCES.map((s) => SRC_COLORS[s])} />
+        <StatList title="chips.earnedTitle" rows={CHIP_SOURCES.map((s): [Key, ComponentChildren] => [`chips.src.${s}`, formatCount(c.earned[s])])} colors={CHIP_SOURCES.map((s) => SRC_COLORS[s])} />
         <StatList
           title="chips.spentTitle"
           rows={[
-            ['chips.spentShop', <ChipAmount n={c.spentShop} />],
-            ['chips.wagerWon', <ChipAmount n={c.wagerWon} />],
-            ['chips.wagerLost', <ChipAmount n={c.wagerLost} />],
+            ['chips.spentShop', formatCount(c.spentShop)],
+            ['chips.wagerWon', formatCount(c.wagerWon)],
+            ['chips.wagerLost', formatCount(c.wagerLost)],
             ['chips.streak', formatCount(c.dailyStreak)],
             ['chips.bestStreak', formatCount(c.bestDailyStreak)],
           ]}
@@ -137,6 +137,55 @@ function ChipsPanel() {
         ))}
       </p>
     </>
+  );
+}
+
+/** The card a count is highest for, from "rank-suit" keys, with its count. */
+function top(counts: Record<string, number>): [Card, number] | null {
+  let best: [string, number] | null = null;
+  for (const [k, n] of Object.entries(counts)) if (!best || n > best[1]) best = [k, n];
+  if (!best) return null;
+  const [r, su] = best[0].split('-').map(Number);
+  return [makeCard(r, su as Suit), best[1]];
+}
+
+/** Sums of a card count by suit or by rank: the biggest one, and its count. */
+function topBy(counts: Record<string, number>, part: 0 | 1): [number, number] | null {
+  const sums = new Map<number, number>();
+  for (const [k, n] of Object.entries(counts)) {
+    const v = Number(k.split('-')[part]);
+    sums.set(v, (sums.get(v) ?? 0) + n);
+  }
+  let best: [number, number] | null = null;
+  for (const e of sums) if (!best || e[1] > best[1]) best = e;
+  return best;
+}
+
+/** Your cards: the ones you show, throw away, pick up and get stuck with most. */
+function CardFavourites({ s }: { s: MyStats }) {
+  const card = (c: [Card, number] | null) =>
+    c ? (
+      <span class="fav-card">
+        <CardIcon card={c[0]} scale={0.32} />
+        {t('stats.times', { n: formatCount(c[1]) })}
+      </span>
+    ) : (
+      '–'
+    );
+  const suit = topBy(s.cards.shown, 1);
+  const rank = topBy(s.cards.shown, 0);
+  return (
+    <StatList
+      title="stats.cardsTitle"
+      rows={[
+        ['stats.favCard', card(top(s.cards.shown))],
+        ['stats.favSuit', suit ? `${SUIT_SYMBOLS[suit[0] as Suit]} ${t('stats.times', { n: formatCount(suit[1]) })}` : '–'],
+        ['stats.favRank', rank ? `${RANK_CODES[rank[0]]} ${t('stats.times', { n: formatCount(rank[1]) })}` : '–'],
+        ['stats.mostDiscarded', card(top(s.cards.discarded))],
+        ['stats.mostTaken', card(top(s.cards.taken))],
+        ['stats.unlucky', card(top(s.cards.leftover))],
+      ]}
+    />
   );
 }
 
@@ -267,6 +316,7 @@ function StatsPanel() {
         </div>
         <div class={`tab-panel${tab === 'cards' ? '' : ' hidden'}`} inert={tab !== 'cards'}>
           <PileBar s={s} />
+          <CardFavourites s={s} />
           <p class="center muted small">{t('stats.note')}</p>
         </div>
         <div class={`tab-panel${tab === 'badges' ? '' : ' hidden'}`} inert={tab !== 'badges'}>

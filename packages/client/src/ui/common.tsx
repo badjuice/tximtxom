@@ -2,7 +2,8 @@ import type { ComponentChildren } from 'preact';
 import { createPortal } from 'preact/compat';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { play } from '../audio';
-import { type Key, otherTexts, t, tEvery } from '../i18n';
+import { type Key, lang, otherTexts, t, tEvery } from '../i18n';
+import type { Rarity } from '../achievements';
 import { useSettings } from '../settings';
 import { store } from '../store';
 import { assetUrl, AUTHOR_URL, VERSION } from '../version';
@@ -122,20 +123,67 @@ export function withTximTxom(text: string): ComponentChildren {
 
 /** Rules worth pointing out when prose names them, with the tone of their card
  *  (Peek and Bust at are left out: those words also turn up as plain words). */
-const RULE_REFS: [Key, string][] = [
+/** Every rule's tone, as the Rules window colours it: its name has that colour wherever it's written. */
+export const RULE_TONES: [Key, Tone | 'neutral'][] = [
+  ['rule.rounds', 'neutral'],
+  ['rule.bust', 'neutral'],
   ['rule.softcore', 'support'],
   ['rule.superposition', 'support'],
   ['rule.mobius', 'support'],
   ['rule.smeared', 'support'],
   ['rule.magicSort', 'support'],
-  ['rule.scramble', 'funny'],
-  ['rule.autoRide', 'support'],
   ['rule.rideOrder', 'neutral'],
+  ['rule.rides', 'neutral'],
+  ['rule.autoRide', 'support'],
+  ['rule.sixthSense', 'info'],
   ['rule.notice', 'info'],
-  ['rule.timer', 'neutral'],
   ['rule.penalty10', 'punish'],
   ['rule.doubleDown', 'punish'],
+  ['rule.timer', 'neutral'],
+  ['rule.scramble', 'funny'],
+  ['rule.polydactyly', 'funny'],
+  ['rule.twoDecks', 'support'],
 ];
+
+/** The rarities as words in each language (singular and plural, capitalised or not), for colouring
+ *  them in text. Portuguese "única" only capitalised: in lower case it's mostly the plain word. */
+const RARITY_WORDS: Record<'en' | 'pt', Partial<Record<Rarity, string[]>>> = {
+  en: {
+    common: ['common', 'commons'],
+    uncommon: ['uncommon', 'uncommons'],
+    epic: ['epic', 'epics'],
+    legendary: ['legendary', 'legendaries'],
+    unique: ['unique'],
+    // Lower case only before "achievement": "your secrets are safe" stays plain.
+    secret: ['Secret', 'Secrets'],
+  },
+  pt: {
+    common: ['comum', 'comuns'],
+    uncommon: ['invulgar', 'invulgares'],
+    epic: ['épica', 'épicas'],
+    legendary: ['lendária', 'lendárias'],
+    unique: ['Única', 'Únicas'],
+    secret: ['secreta', 'secretas'],
+  },
+};
+const cap = (w: string) => w[0].toUpperCase() + w.slice(1);
+function rarityWords(): Map<string, Rarity> {
+  const out = new Map<string, Rarity>();
+  for (const [r, ws] of Object.entries(RARITY_WORDS[lang() === 'pt' ? 'pt' : 'en']) as [Rarity, string[]][]) for (const w of ws) for (const v of new Set([w, cap(w)])) out.set(v, r);
+  return out;
+}
+const SECRET_BEFORE = String.raw`secret(?= achievements?)`;
+
+/** A rarity's name in its colour, with a shine across it and a slow pulse (unique: the rainbow). */
+export const RarityName = ({ rarity, text }: { rarity: Rarity | 'locked'; text: string }) => (
+  <span class={`rarity-text rarity-${rarity}`}>{text}</span>
+);
+
+/** An achievement's name with its rarity, for finding achievements named in text. */
+export interface AchName {
+  rarity: Rarity;
+  rainbow?: boolean;
+}
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /** A rule's name in its tone's colour with a shine sweeping across, wherever rules are named. */
@@ -156,15 +204,32 @@ const CHIP_WORD = String.raw`(?<![\wç]|graphics )(?:[Cc]hips?|[Ff]ichas?)(?![\w
 
 /** `text` with "TximTxom" glowing and waving, rule names in their colour with a shine across them,
  *  amounts of chips as the chip and the number, and the currency's name in a rainbow. */
-export function withHighlights(text: string): ComponentChildren {
-  const tones = new Map(RULE_REFS.map(([k, tone]) => [t(k), tone]));
-  const re = new RegExp(`(${CHIP_AMOUNT})|(${CHIP_WORD})|TximTxom|${[...tones.keys()].map(escape).join('|')}`, 'g');
+/** `achs`, when given (the changelog), also finds achievement names and puts their rarity in front:
+ *  "COMMON Curious". */
+export function withHighlights(text: string, achs?: Map<string, AchName>): ComponentChildren {
+  const tones = new Map(RULE_TONES.map(([k, tone]) => [t(k), tone]));
+  const rarities = rarityWords();
+  // Rule names and rarities only as whole words; the longest first ("Uncommon" before "Common").
+  const names = [...tones.keys(), ...rarities.keys(), ...(achs?.keys() ?? [])].sort((a, b) => b.length - a.length).map(escape).join('|');
+  const re = new RegExp(`(${CHIP_AMOUNT})|(${CHIP_WORD})|(?<![\\p{L}\\d])(?:${names}${lang() === 'pt' ? '' : `|${SECRET_BEFORE}`})(?![\\p{L}\\d])|TximTxom`, 'gu');
   const parts: ComponentChildren[] = [];
   let last = 0;
   for (const m of text.matchAll(re)) {
     if (m.index! > last) parts.push(text.slice(last, m.index));
     parts.push(
-      m[1] ? <ChipAmount n={m[1].replace(/\s\S+$/, '')} /> : m[2] ? <Rainbow text={m[2]} /> : m[0] === 'TximTxom' ? withTximTxom(m[0]) : <span class={`rule-ref tone-${tones.get(m[0])}`}>{m[0]}</span>,
+      m[1] ? (
+        <ChipAmount n={m[1].replace(/\s\S+$/, '')} />
+      ) : m[2] ? (
+        <Rainbow text={m[2]} />
+      ) : achs?.has(m[0]) ? (
+        <AchRef name={m[0]} a={achs.get(m[0])!} />
+      ) : m[0] === 'TximTxom' ? (
+        withTximTxom(m[0])
+      ) : rarities.has(m[0]) || m[0] === 'secret' ? (
+        <RarityName rarity={rarities.get(m[0]) ?? 'secret'} text={m[0]} />
+      ) : (
+        <span class={`rule-ref tone-${tones.get(m[0])}`}>{m[0]}</span>
+      ),
     );
     last = m.index! + m[0].length;
   }
@@ -172,6 +237,14 @@ export function withHighlights(text: string): ComponentChildren {
   if (last < text.length) parts.push(text.slice(last));
   return <>{parts}</>;
 }
+
+/** An achievement named in text: "COMMON Curious", the rarity pulsing before the name. */
+const AchRef = ({ name, a }: { name: string; a: AchName }) => (
+  <span>
+    <RarityName rarity={a.rarity} text={t(`ach.rarity.${a.rarity}`).toUpperCase()} />{' '}
+    <span class={`rule-ref ach-name-ref rarity-${a.rarity}${a.rainbow ? ' rainbow-text' : ''}`}>{name}</span>
+  </span>
+);
 
 /** t() for JSX: placeholders can be elements (coloured names, cards, amounts of chips). */
 export function tj(key: Key, vars: Record<string, ComponentChildren>): ComponentChildren {
@@ -472,7 +545,8 @@ export function Toggle(props: {
 /** A rule's chip multiplier in the corner of its card: green above ×1, red below, grey at ×1. */
 export const PayTag = ({ k }: { k: number }) => (
   <span class={`pay-tag${k > 1 ? ' up' : k < 1 ? ' down' : ''}`}>
-    <ChipIcon size={12} />×{k}
+    ×{k}
+    <ChipIcon size={12} />
   </span>
 );
 
@@ -888,8 +962,8 @@ export const ChipIcon = ({ size }: { size?: number }) => {
 /** An amount of chips: the chip, then the number ("+30"). */
 export const ChipAmount = ({ n, sign, size }: { n: number | string; sign?: boolean; size?: number }) => (
   <span class="chip-amt">
-    <ChipIcon size={size} />
     {typeof n === 'number' ? `${sign && n > 0 ? '+' : ''}${formatCount(n)}` : n}
+    <ChipIcon size={size} />
   </span>
 );
 
@@ -898,8 +972,8 @@ export function ChipCount({ class: cls }: { class?: string }) {
   const c = useChips();
   return (
     <span class={`chip-count${cls ? ` ${cls}` : ''}`} role="status" aria-label={t('chips.balance', { n: formatCount(c.balance) })} title={t('chips.title')}>
-      <ChipIcon />
       <b>{formatCount(c.balance)}</b>
+      <ChipIcon />
     </span>
   );
 }

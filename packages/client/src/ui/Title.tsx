@@ -7,7 +7,7 @@ import { unlock, useNewCount } from '../achievements';
 import { NewSign } from './Achievements';
 import { formatCount, refreshGlobalRounds, useStats } from '../stats';
 import { store, useStore } from '../store';
-import { Button, ChipCount, ChipIcon, Credits, Fit, MiniButton, UiIcon, WaveText } from './common';
+import { Button, ChipIcon, Credits, Fit, MiniButton, UiIcon, WaveText } from './common';
 import { EditionCard } from './EditionCard';
 import { EDITIONS, type Edition } from './editions';
 import { spawnElement } from './textSpawn';
@@ -227,7 +227,6 @@ function MainMenu({ onPlay }: { onPlay: () => void }) {
   const newAch = useNewCount();
   return (
     <nav class="main-menu panel" aria-label={t('menu.play')}>
-      <ChipCount class="menu-chips" />
       <Button color="blue" big class="menu-play" onClick={onPlay}>
         {t('menu.play')}
       </Button>

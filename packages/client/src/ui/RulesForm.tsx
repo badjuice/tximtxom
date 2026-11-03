@@ -6,7 +6,7 @@ import { t } from '../i18n';
 import { toast } from '../store';
 
 const RULE_KEY = { magicSort: 'rule.magicSort', scramble: 'rule.scramble' } as const;
-import { ChipIcon, Choice, RuleName, Toggle } from './common';
+import { ChipIcon, Choice, RuleName, Toggle, withHighlights } from './common';
 import { ArtIcon } from './sprites';
 
 /** The room settings, each next to its Joker. */
@@ -209,7 +209,7 @@ export function RulesSummary({ rules }: { rules: Rules }) {
           <ArtIcon name={art} scale={0.3} rule />
           <span class="rs-name">
             <RuleName name={name} tone={tone} />
-            <span class="rs-desc">{desc}</span>
+            <span class="rs-desc">{withHighlights(desc)}</span>
           </span>
           {state}
         </li>

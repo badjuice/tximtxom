@@ -13,10 +13,10 @@ import { SEAT_COLORS } from './Hud';
 import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
 import { CONTACT_EMAIL, ISSUES_URL, VERSION } from '../version';
 import { RulesForm, RulesSummary } from './RulesForm';
-import { AchievementsMenu } from './Achievements';
+import { achievementNames, AchievementsMenu } from './Achievements';
 import { StatsMenu } from './Stats';
 import { backName, ShopMenu } from './Shop';
-import { ArtIcon, Badge, BADGE_KINDS, badgeCount, CardBackIcon, CardIcon, RandomBackIcon } from './sprites';
+import { ArtIcon, Badge, BADGE_KINDS, badgeCount, CardBackIcon, CardIcon, cardSize, RandomBackIcon } from './sprites';
 
 export function Overlays() {
   const overlay = useStore((s) => s.overlay);
@@ -107,6 +107,7 @@ function LeaveConfirm({ onClose }: { onClose: () => void }) {
 function Changelog({ onClose }: { onClose: () => void }) {
   const { lang } = useSettings();
   const kinds: ChangeKind[] = ['new', 'change', 'fix', 'removed'];
+  const achs = achievementNames();
   return (
     <Modal
       title={t('cl.title')}
@@ -149,7 +150,7 @@ function Changelog({ onClose }: { onClose: () => void }) {
                 <span class="cl-icon" title={t(`cl.${it.kind}` as Key)} aria-label={t(`cl.${it.kind}` as Key)}>
                   {KIND_ICON[it.kind]}
                 </span>
-                <span>{withHighlights(lang === 'pt' ? it.pt : it.en)}</span>
+                <span>{withHighlights(lang === 'pt' ? it.pt : it.en, achs)}</span>
               </li>
             ))}
           </ul>
@@ -513,23 +514,26 @@ function StyleTab() {
   const tables = ownedOf('table');
   const randomTable = ownsRandom('table');
   const random = { value: 'random', label: t('set.cardBack.random') };
+  // A random suit each time the tab opens.
+  const [suit, setSuit] = useState(() => Math.floor(Math.random() * 4) as Suit);
+  // Each card half over the one before: 7 widths for the row, one for the back.
+  const deckScale = innerWidth < 560 ? 0.5 : 0.8;
+  const cw = cardSize(deckScale).w;
   return (
     <>
-      {/* The whole deck, a row per suit, each card on top when pointed at; the back on the right. */}
-      <div class="style-preview" aria-hidden="true">
-        <div class="deck-view">
-          <div class="deck-rows">
-            {[0, 1, 2, 3].map((suit) => (
-              <div class="deck-row">
-                {Array.from({ length: 13 }, (_, i) => (
-                  <span class="deck-card" tabIndex={-1}>
-                    <CardIcon card={makeCard(i + 1, suit as Suit)} scale={0.56} />
-                  </span>
-                ))}
-              </div>
+      {/* Ace to King in one suit, each card on top when pointed at; the back on the right turns the suit. */}
+      <div class="style-preview">
+        <div class="deck-view" style={{ '--deck-cw': `${cw}px`, '--deck-step': `${cw / 2}px` }}>
+          <div class="deck-row" aria-hidden="true">
+            {Array.from({ length: 13 }, (_, i) => (
+              <span class="deck-card" tabIndex={-1}>
+                <CardIcon card={makeCard(i + 1, suit)} scale={deckScale} />
+              </span>
             ))}
           </div>
-          <span class="deck-back">{back === 'random' ? <RandomBackIcon backs={backs} scale={0.8} /> : <CardBackIcon back={back} scale={0.8} />}</span>
+          <button type="button" class="deck-back" title={t('set.nextSuit')} aria-label={t('set.nextSuit')} onClick={() => setSuit((x) => ((x + 1) % 4) as Suit)}>
+            {back === 'random' ? <RandomBackIcon backs={backs} scale={deckScale} /> : <CardBackIcon back={back} scale={deckScale} />}
+          </button>
         </div>
         <p class="style-sample">{withHighlights(t('set.fontSample'))}</p>
       </div>

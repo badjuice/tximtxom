@@ -675,7 +675,8 @@ function ChipPops({ L, me }: { L: Layout; me: number | null }) {
             <span class="chip-pop" key={p.id} style={toScreen(L, at)} aria-hidden="true">
               {p.label && <span class="chip-pop-why">{p.label}</span>}
               <span class="chip-pop-n">
-                <ChipIcon size={18} />+{p.n}
+                +{p.n}
+                <ChipIcon size={18} />
               </span>
             </span>
           )
@@ -692,12 +693,11 @@ function ChipsEarned({ n, label }: { n: number; label: 'chips.round' | 'chips.ga
   if (n <= 0) return null;
   return (
     <p class="chips-earned center">
-      <ChipIcon />
-      {/* One piece of text, so the counter sits in it with no gap. */}
+      {/* One piece of text, so the counter (and the chip after it) sits in it with no gap. */}
       <span>
         {t(label, { n: '\u0000' })
           .split('\u0000')
-          .map((part, i) => (i ? [<Odometer n={n} key={n} />, part] : part))}
+          .map((part, i) => (i ? [<Odometer n={n} key={n} />, <ChipIcon />, part] : part))}
       </span>
     </p>
   );

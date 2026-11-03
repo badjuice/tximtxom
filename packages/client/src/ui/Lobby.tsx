@@ -5,7 +5,7 @@ import { play } from '../audio';
 import { t } from '../i18n';
 import { addBot, cycleAvatar, kick, renamePlayer, setReady, startGame } from '../net';
 import { store, useStore } from '../store';
-import { Button, ChipCount, Label, MiniButton, TopMenu, WaveText } from './common';
+import { Button, Label, MiniButton, TopMenu, WaveText } from './common';
 import { activeRules } from './Hud';
 import { ChatBox } from './Chat';
 import { SEAT_COLORS } from './Hud';
@@ -97,7 +97,6 @@ export function Lobby() {
     <main class="lobby">
       {/* How to play, Formations and Settings in the screen's top corner, as in the game. */}
       <TopMenu>
-        <ChipCount />
         <MiniButton color="green" onClick={() => store.set({ overlay: 'help' })}>
           <Label k="top.help" />
         </MiniButton>

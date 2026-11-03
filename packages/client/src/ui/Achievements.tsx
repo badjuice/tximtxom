@@ -5,7 +5,7 @@ import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, c
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
 import { formatCount, type MyStats, refreshInfected, refreshSpread, useStats } from '../stats';
-import { ChipAmount, Cycler, Rainbow, HintBalloon, Modal, UiIcon, type UiIconName, WaveText, withHighlights } from './common';
+import { type AchName, ChipAmount, Cycler, Rainbow, RarityName, HintBalloon, Modal, UiIcon, type UiIconName, WaveText, withHighlights } from './common';
 import { type AchSort, type AchView, updateSettings, useSettings } from '../settings';
 import { ArtIcon, CardBackIcon } from './sprites';
 import { SHOP } from '../shop';
@@ -58,6 +58,11 @@ function meter(a: Achievement, mine: MyStats, unlocked: Unlocked): { count: numb
   if (a.meter && a.meter in STAT_METERS && a.goal) return { count: STAT_METERS[a.meter as keyof typeof STAT_METERS](mine), goal: a.goal };
   if (a.meter === 'minutes') return { count: Math.min(ADDICTED_MINUTES, Math.floor(mine.timePlayed / 60000)), goal: ADDICTED_MINUTES, unit: t('ach.minutes') };
   return null;
+}
+
+/** Every achievement's name in the current language, with its rarity (for the changelog). */
+export function achievementNames(): Map<string, AchName> {
+  return new Map(ACHIEVEMENTS.map((a) => [text(a, 'name'), { rarity: a.rarity, rainbow: a.rainbow }]));
 }
 
 const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => {
@@ -233,7 +238,9 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
         {/* What the colours round the cards mean, as the rules' legend does. */}
         <p class="rules-legend ach-legend">
           {RARITIES.map((r) => (
-            <span class={`lg rarity-${r}`}>{r === 'unique' ? <Rainbow text={t('ach.rarity.unique')} /> : t(`ach.rarity.${r}`)}</span>
+            <span class={`lg rarity-${r}`}>
+              <RarityName rarity={r} text={t(`ach.rarity.${r}`)} />
+            </span>
           ))}
           <span class="lg rarity-locked">{t('ach.locked')}</span>
         </p>

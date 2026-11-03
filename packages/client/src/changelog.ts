@@ -19,13 +19,27 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.57.0',
+    date: '2026-11-03',
+    items: [
+      n("Card stats: your favourite card, suit and value, and the cards you throw away, pick up and get stuck with most.", "Estatísticas das cartas: a tua carta, naipe e valor favoritos, e as cartas que mais deitas fora, apanhas e ficam encalhadas."),
+      n("Rarities in their colours, with a shine and a pulse, wherever they're written. The changelog puts an achievement's rarity before its name.", "As raridades nas suas cores, com brilho e pulsação, onde quer que apareçam. As Alterações põem a raridade de uma conquista antes do nome."),
+      c("Rules have their Rules-window colour everywhere they're named.", "As regras têm a cor da janela das Regras em todo o lado onde aparecem."),
+      c("Amounts of chips put the chip after the number (+30 chips), and thousands are split by a dot: 1.000.000.", "As quantias de fichas põem a ficha depois do número (+30 fichas), e os milhares separam-se com um ponto: 1.000.000."),
+      c("No chip counter on the main menu or in the lobby. The Chips stats keep the big chips only.", "Sem contador de fichas no menu principal nem na sala. As estatísticas das Fichas ficam só com as fichas grandes."),
+      c("Style shows Ace to King in one row, each card half over the last, in a random suit. Click the back to turn to the next suit.", "O Estilo mostra do Ás ao Rei numa fila, cada carta meio por cima da anterior, num naipe ao calhas. Clica nas costas para passar ao naipe seguinte."),
+      c("Random items in the Shop fade from one option to the next.", "Os itens Aleatórios da Loja passam de uma opção à outra a esbater."),
+      c("A Shop item from a hidden achievement says \"Unlocked by the achievement [Secret achievement]\".", "Um item da Loja de uma conquista escondida diz \"Desbloqueia-se com a conquista [Conquista secreta]\"."),
+    ],
+  },
+  {
     version: '0.56.0',
     date: '2026-11-03',
     items: [
-      n("Four Unique achievements for the long haul, each with a reward: Average TximTxom Enjoyer (play 100 games, the Negative table), Local TximTxom Legend (win 250, the Polychrome back), Final Boss of TximTxom (win 10 in a row, the Boss frame) and CEO of TximTxom (earn 1,000,000 chips, the Gold Foil back).", "Quatro conquistas Únicas para quem fica, cada uma com um prémio: Apreciador Médio de TximTxom (joga 100 jogos, a mesa Negativo), Lenda Local do TximTxom (ganha 250, as costas Policromadas), Chefe Final do TximTxom (ganha 10 seguidos, a moldura Chefe) e CEO do TximTxom (ganha 1.000.000 fichas, as costas Folha de Ouro)."),
+      n("Four Unique achievements for the long haul, each with a reward: Average TximTxom Enjoyer (play 100 games, the Negative table), Local TximTxom Legend (win 250, the Polychrome back), Final Boss of TximTxom (win 10 in a row, the Boss frame) and CEO of TximTxom (earn 1.000.000 chips, the Gold Foil back).", "Quatro conquistas Únicas para quem fica, cada uma com um prémio: Apreciador Médio de TximTxom (joga 100 jogos, a mesa Negativo), Lenda Local do TximTxom (ganha 250, as costas Policromadas), Chefe Final do TximTxom (ganha 10 seguidos, a moldura Chefe) e CEO do TximTxom (ganha 1.000.000 fichas, as costas Folha de Ouro)."),
       n("Plate frames: a new Shop tab. The Boss frame glows dark red round your plate, and everyone at the table sees it.", "Molduras: um separador novo na Loja. A moldura Chefe brilha a vermelho escuro à volta da tua placa, e toda a mesa a vê."),
       n("Three characters you can't buy: The Boss (Flawless), Top Hat CEO (Royal Flush) and Suited CEO (Rulebook).", "Três personagens que não se compram: O Chefe (Imbatível), CEO de Cartola (Sequência Real) e CEO de Fato (Livro de Regras)."),
-      n("A new table, Holographic: a rainbow film over silver (2,500).", "Uma mesa nova, Holográfica: uma película de arco-íris sobre prata (2.500)."),
+      n("A new table, Holographic: a rainbow film over silver (2.500).", "Uma mesa nova, Holográfica: uma película de arco-íris sobre prata (2.500)."),
       n("10 new common achievements for the small firsts: How to play, a new table, a setting changed, History in a game, a 4-player round, a round with a bot, your first Txi jog, first card from the Discard Pile, first ride, and 3 games in one day.", "10 conquistas comuns novas para as pequenas estreias: Como jogar, uma mesa nova, uma definição mudada, o Histórico num jogo, uma ronda com 4 jogadores, uma ronda com um bot, o teu primeiro Txi jog, a primeira carta do Descarte, a primeira boleia, e 3 jogos no mesmo dia."),
       c("An achievement that gives something says what, in rainbow letters: \"Unlocks Negative (table)\". Completionist and Completionist+ now pay chips only.", "Uma conquista que dá alguma coisa diz o quê, em letras de arco-íris: \"Desbloqueia Negativo (mesa)\". Completista e Completista+ passam a pagar só fichas."),
       c("The Achievements button (and any other) no longer stays outlined after you close what it opened with a click.", "O botão das Conquistas (e os outros) já não fica contornado depois de fechares o que abriu com um clique."),
@@ -62,7 +76,7 @@ export const CHANGELOG: Release[] = [
       n("+30 chips when your hand runs out of cards (a full hand, a TximTxom, or your last card gone on a ride), once a round. Big sets and long straights pay extra.", "+30 fichas quando a tua mão fica sem cartas (mão completa, TximTxom ou a última carta numa boleia), uma vez por ronda. Conjuntos grandes e escadas longas pagam mais."),
       n("Chip pops say what paid (\"3-Straight\", \"Hand emptied\"), and the chips of a round or game roll up like an odometer.", "As fichas que aparecem dizem o que pagou (\"Escada de 3\", \"Mão vazia\"), e as fichas da ronda ou do jogo sobem como um conta-quilómetros."),
       c("Your name instead of \"You\" everywhere, framed in gold among the others.", "O teu nome em vez de \"Tu\" em todo o lado, com uma moldura dourada entre os outros."),
-      c("The Shop starts smaller: two of each card back style, two tables and six characters are free. Recoloured backs come in packs, and Random is the last buy of each group (2,000). What you bought stays yours.", "A Loja começa mais pequena: duas costas de cada estilo, duas mesas e seis personagens são grátis. As costas recoloridas vêm em pacotes, e Aleatória é a última compra de cada grupo (2.000). O que compraste continua teu."),
+      c("The Shop starts smaller: two of each card back style, two tables and six characters are free. Recoloured backs come in packs, and Random is the last buy of each group (2.000). What you bought stays yours.", "A Loja começa mais pequena: duas costas de cada estilo, duas mesas e seis personagens são grátis. As costas recoloridas vêm em pacotes, e Aleatória é a última compra de cada grupo (2.000). O que compraste continua teu."),
       c("Whose turn it is: the plate keeps its gold border, with the player's colour still showing inside it, and their character glows in their colour.", "De quem é a vez: a placa mantém a borda dourada, com a cor do jogador por dentro, e a personagem brilha na cor do jogador."),
       c("The Full hand and TximTxom note sits centred above the formations.", "A nota de Mão completa e TximTxom fica centrada por cima das formações."),
       c("Formations: clearer card values, and the rule each formation needs written under it.", "Formações: valores das cartas mais claros, e a regra que cada formação precisa escrita por baixo."),
@@ -121,7 +135,7 @@ export const CHANGELOG: Release[] = [
       n("Chips! Each card you form pays its rank, a ride card half that. Not busting, winning rounds and games, achievements and the first game of the day pay too.", "Fichas! Cada carta que formas vale o seu valor, uma carta de boleia metade. Não rabentar, ganhar rondas e jogos, conquistas e o primeiro jogo do dia também dão fichas."),
       n("Your chips show on the main menu and in the lobby, float up over your formations, and add up in the round and game summaries.", "As tuas fichas aparecem no menu principal e na sala, sobem por cima das tuas formações e somam-se nos resumos da ronda e do jogo."),
       n("Stats has a Chips tab: balance, most ever held, and where they came from.", "As Estatísticas têm um separador Fichas: saldo, o máximo que já tiveste e de onde vieram."),
-      n("Achievements you already had pay their chips once. The chip achievements are back, at 1,000, 10,000 and 100,000 chips earned.", "As conquistas que já tinhas pagam as suas fichas uma vez. As conquistas de fichas voltaram, aos 1000, 10 000 e 100 000 fichas ganhas."),
+      n("Achievements you already had pay their chips once. The chip achievements are back, at 1.000, 10.000 and 100.000 chips earned.", "As conquistas que já tinhas pagam as suas fichas uma vez. As conquistas de fichas voltaram, aos 1000, 10.000 e 100.000 fichas ganhas."),
     ],
   },
   {
