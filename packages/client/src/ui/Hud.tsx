@@ -1,8 +1,9 @@
+import type { ComponentChildren } from 'preact';
 import { play } from '../audio';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { EmoteBubble, EmotePicker } from './Emotes';
-import { deckCount, fullDeck, type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
-import { canDrop, cardsSeenOut, computeBar, layWait, readyForNextRound, sortHand, toggleAutoSort, txiJogBlock, type BarButton } from '../controller';
+import { bustLimit, deckCount, fullDeck, type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
+import { canDrop, cardsSeenOut, lastLandAt, computeBar, layWait, readyForNextRound, sortHand, toggleAutoSort, txiJogBlock, type BarButton } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { drawPileTop, type FormationGroup, revealGroups } from '../game/scene';
 import { cardShort, type Key, kindName, lang, t } from '../i18n';
@@ -44,15 +45,56 @@ export function Hud() {
       <ChipPops L={L} me={g.you} />
       <HandBar g={g} L={L} />
       <ActionBar />
-      {g.phase === 'roundOver' && <RoundSummary g={g} />}
-      {g.phase === 'gameOver' && <GameOver g={g} room={room} />}
+      <Summary g={g} room={room} />
     </div>
   );
+}
+
+/** After the last formation lands: time for its chip pops (and an emptied hand's) to play out. */
+const SETTLE_MS = 2400;
+
+/** The round's (or game's) summary, once the table has settled: the last formations and their
+ *  chips show first. Holding the Table button hides it, to look at the cards. */
+function Summary({ g, room }: { g: GameView; room: RoomView }) {
+  const over = g.phase === 'roundOver' || g.phase === 'gameOver';
+  const [shown, setShown] = useState(false);
+  const [peek, setPeek] = useState(false);
+  useEffect(() => {
+    setShown(false);
+    setPeek(false);
+    if (!over) return;
+    const id = setTimeout(() => setShown(true), Math.max(0, lastLandAt() - Date.now()) + SETTLE_MS);
+    return () => clearTimeout(id);
+  }, [over, g.round]);
+  if (!over || !shown) return null;
+  const hold = (on: boolean) => (e: Event) => {
+    e.preventDefault();
+    setPeek(on);
+  };
+  // Hold to see the table (pointer, or Space / Enter while focused): only the footer stays.
+  const peekBtn = (
+    <button
+      type="button"
+      class={`btn btn-grey btn-big table-peek${peek ? ' held' : ''}`}
+        onPointerDown={hold(true)}
+        onPointerUp={hold(false)}
+        onPointerLeave={hold(false)}
+        onPointerCancel={hold(false)}
+        onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && hold(true)(e)}
+        onKeyUp={(e) => (e.key === ' ' || e.key === 'Enter') && hold(false)(e)}
+      onContextMenu={(e) => e.preventDefault()}
+      title={t('sum.peek')}
+    >
+      <span class="btn-label">{t('sum.peekShort')}</span>
+    </button>
+  );
+  return <div class={peek ? 'summary-peek' : undefined}>{g.phase === 'roundOver' ? <RoundSummary g={g} peek={peekBtn} /> : <GameOver g={g} room={room} peek={peekBtn} />}</div>;
 }
 
 /** The rules changed from the defaults, as [art, name, description] for the round chip. */
 export function activeRules(r: GameView['rules']): [string, Key, Key][] {
   const out: [string, Key, Key][] = [];
+  if (r.rounds) out.push(['timer', 'rule.rounds', 'rule.rounds.desc']);
   if (r.softcore) out.push(['softcore', 'rule.softcore', 'rule.softcore.desc']);
   if (r.superposition) out.push(['ace', 'rule.superposition', 'rule.superposition.desc']);
   if (r.mobius) out.push(['ace', 'rule.mobius', 'rule.mobius.desc']);
@@ -112,7 +154,7 @@ function TopBar({ g }: { g: GameView }) {
       <div class="round-chip">
         <Label k="top.round" vars={{ n: g.round }} />
         <span class="bust-chip">
-          <Label k="top.bust" vars={{ n: g.rules.threshold }} />
+          {g.rules.rounds ? <Label k="top.rounds" vars={{ n: g.round, of: g.rules.rounds }} /> : <Label k="top.bust" vars={{ n: g.rules.threshold }} />}
         </span>
         <RuleCards g={g} />
         <button class="rules-btn" onClick={() => open('rules')}>
@@ -165,6 +207,43 @@ function TopBar({ g }: { g: GameView }) {
   );
 }
 
+/** Smallest size a plate's name shrinks to (of the plate's text size) rather than being cut short. */
+const NAME_MIN = 0.4;
+
+/** A plate's name, whole: a long one (wide letters) shrinks until it fits instead of ending in "…". */
+function FitName({ name, me }: { name: string; me: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const L = useStore((s) => s.layout);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      let k = 1;
+      el.style.fontSize = '';
+      while (el.scrollWidth > el.clientWidth + 0.5 && k > NAME_MIN) {
+        k = Math.max(NAME_MIN, k - 0.05);
+        el.style.fontSize = `${k}em`;
+      }
+    };
+    fit();
+    // Again once the pixel font is in, and whenever the plate's room for the name changes.
+    void document.fonts.ready.then(fit);
+    let w = el.parentElement?.clientWidth;
+    const ro = new ResizeObserver(() => {
+      if (el.parentElement?.clientWidth === w) return;
+      w = el.parentElement?.clientWidth;
+      fit();
+    });
+    if (el.parentElement) ro.observe(el.parentElement);
+    return () => ro.disconnect();
+  }, [name, L]);
+  return (
+    <span ref={ref} class={`plate-nm${me ? ' me-name' : ''}`}>
+      {name}
+    </span>
+  );
+}
+
 function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number; L: Layout }) {
   const p = g.players[seat];
   const me = seat === g.you;
@@ -183,10 +262,10 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
   const result = g.results.at(-1);
   const pos = L.seats[seat]?.plate;
   if (!pos) return null;
-  const danger = p.total > g.rules.threshold * 0.75;
+  const danger = p.total > bustLimit(g.rules) * 0.75;
   return (
     <div
-      class={`plate${p.avatar ? ' has-art' : ''}${active ? ' active' : ''}${me ? ' me' : ''}${offline ? ' offline' : ''}`}
+      class={`plate${p.avatar ? ' has-art' : ''}${p.avatar === 'kingJohn' ? ' john' : ''}${active ? ' active' : ''}${me ? ' me' : ''}${offline ? ' offline' : ''}`}
       style={{ ...onScreen(toScreen(L, pos)), '--seat': SEAT_COLORS[seat] }}
       aria-label={`${p.name}: ${p.total} ${t('pts')}`}
     >
@@ -199,7 +278,7 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
       <div class="plate-name">
         {!p.isBot && p.botControlled && <span class="tag" title={t('plate.botFor')}>{t('lobby.bot')}</span>}
         <span class="seat-dot" aria-hidden="true" />
-        <span class={`plate-nm${me ? ' me-name' : ''}`}>{p.name}</span>
+        <FitName name={p.name} me={me} />
         <Wins n={lobby?.wins ?? 0} scale={0.5} />
         {g.dealer === seat && (
           <span class="dealer-chip" title={t('dealer')}>
@@ -624,7 +703,7 @@ function ChipsEarned({ n, label }: { n: number; label: 'chips.round' | 'chips.ga
   );
 }
 
-function RoundSummary({ g }: { g: GameView }) {
+function RoundSummary({ g, peek }: { g: GameView; peek: ComponentChildren }) {
   const r = g.results.at(-1);
   if (!r) return null;
   const me = g.you;
@@ -637,13 +716,16 @@ function RoundSummary({ g }: { g: GameView }) {
       wide
       class="summary-modal"
       footer={
-        ready ? (
-          <span class="muted">{t('st.waitingOthers')}</span>
-        ) : (
-          <Button color="blue" big onClick={readyForNextRound} kbd="⏎">
-            {t('act.nextRound')}
-          </Button>
-        )
+        <>
+          {peek}
+          {ready ? (
+            <span class="muted">{t('st.waitingOthers')}</span>
+          ) : (
+            <Button color="blue" big onClick={readyForNextRound} kbd="⏎">
+              {t('act.nextRound')}
+            </Button>
+          )}
+        </>
       }
     >
       <p class="center muted">
@@ -708,7 +790,7 @@ function RoundEnterKey({ onEnter }: { onEnter: () => void }) {
   return null;
 }
 
-function GameOver({ g, room }: { g: GameView; room: RoomView }) {
+function GameOver({ g, room, peek }: { g: GameView; room: RoomView; peek: ComponentChildren }) {
   const isHost = room.hostId === room.youId;
   const tximtxom = g.events.some((e) => e.e.t === 'tximtxom');
   const who = (i: number) => g.players[i].name;
@@ -725,11 +807,12 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
           aria-label={t('go.copyReport')}
           onClick={async () => toast((await copyReport()) ? t('go.reportCopied') : t('go.reportFailed'), 'info')}
         >
-          <CopyIcon size={20} />
+          <CopyIcon />
         </button>
       }
       footer={
         <>
+          {peek}
           <Button color="orange" onClick={leaveRoom}>
             {t('top.leave')}
           </Button>
@@ -756,7 +839,7 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
       <table class="score-table">
         <tbody>
           {order.map((i, rank) => (
-            <tr class={g.winners.includes(i) ? 'winner' : g.players[i].total > g.rules.threshold ? 'bust' : ''} style={{ '--seat': SEAT_COLORS[i] }}>
+            <tr class={g.winners.includes(i) ? 'winner' : g.players[i].total > bustLimit(g.rules) ? 'bust' : ''} style={{ '--seat': SEAT_COLORS[i] }}>
               <td>{rank + 1}.</td>
               <td class="pname">
                 <span class="seat-dot" />
@@ -771,7 +854,7 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
               <td class="num total">
                 {g.players[i].total} {t('pts')}
               </td>
-              <td>{g.players[i].total > g.rules.threshold && <span class="bust-tag">{t('go.bust')}</span>}</td>
+              <td>{g.players[i].total > bustLimit(g.rules) && <span class="bust-tag">{t('go.bust')}</span>}</td>
             </tr>
           ))}
         </tbody>

@@ -1,17 +1,19 @@
 import { RULE_REQUIRES, type Rules } from '@tximtxom/shared';
-import { chipsEarned, chipsNow } from '../chips';
+import { ACH_PAY, chipsEarned, chipsNow } from '../chips';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
-import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, onUnlock, unlock, type Rarity, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
+import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, onUnlock, unlock, type Rarity, REWARDS, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
 import { formatCount, type MyStats, refreshInfected, refreshSpread, useStats } from '../stats';
-import { Cycler, HintBalloon, Modal, UiIcon, type UiIconName, WaveText, withHighlights } from './common';
+import { ChipAmount, Cycler, Rainbow, HintBalloon, Modal, UiIcon, type UiIconName, WaveText, withHighlights } from './common';
 import { type AchSort, type AchView, updateSettings, useSettings } from '../settings';
 import { ArtIcon, CardBackIcon } from './sprites';
+import { SHOP } from '../shop';
+import { itemName } from './Shop';
 
 /** Each rarity's colour, as the shine on unlocked achievements (lighter than the frame, to read as light). */
-const RARITY_SHINE: Record<Rarity, string> = { common: '#6fcfff', uncommon: '#6ee7a8', epic: '#c9a3ff', legendary: '#eac058', secret: '#ff8a82' };
-const RARITIES: Rarity[] = ['common', 'uncommon', 'epic', 'legendary', 'secret'];
+const RARITY_SHINE: Record<Rarity, string> = { common: '#6fcfff', uncommon: '#6ee7a8', epic: '#c9a3ff', legendary: '#eac058', unique: '#ffffff', secret: '#ff8a82' };
+const RARITIES: Rarity[] = ['common', 'uncommon', 'epic', 'legendary', 'unique', 'secret'];
 
 /** The achievement's art: a rule or character card, or a card from the deck. `shine`: the rarity's glint across it. */
 const Art = ({ a, scale, shine }: { a: Achievement; scale: number; shine?: boolean }) =>
@@ -58,11 +60,11 @@ function meter(a: Achievement, mine: MyStats, unlocked: Unlocked): { count: numb
 }
 
 const text = (a: Achievement, part: 'name' | 'desc' | 'flavor') => {
-  // A track's tier: "Hitchhiker II", "Take 100 rides", and no flavour line.
+  // A track's tier: "Hitchhiker II", "Take 100 rides".
   if (a.track && a.tier) {
     if (part === 'name') return `${t(`ach.track.${a.track}.name` as Key)} ${ROMAN[a.tier]}`;
-    // A goal of one has its own wording ("Show a quad").
-    return part === 'desc' ? t(`ach.track.${a.track}.desc${a.goal === 1 ? '1' : ''}` as Key, { n: a.goal! }) : '';
+    // A goal of one has its own wording ("Show a quad"); each tier has its own flavour.
+    return part === 'desc' ? t(`ach.track.${a.track}.desc${a.goal === 1 ? '1' : ''}` as Key, { n: a.goal! }) : t(`ach.track.${a.track}.flavor${a.tier}` as Key);
   }
   if (!a.rule) return t(`ach.${a.id}.${part}` as Key);
   const name = ruleName(a.rule);
@@ -79,10 +81,15 @@ function stamp(ms: number): string {
 }
 
 const VIEWS: AchView[] = ['all', 'locked', 'unlocked'];
+/** A reward's name, as the shop shows it. */
+const rewardName = (id: string) => {
+  const item = SHOP.find((i) => i.id === id);
+  return item ? itemName(item) : id;
+};
 const VIEW_ICON: Record<AchView, UiIconName> = { all: 'grid', locked: 'lock', unlocked: 'unlocked' };
 
 const SORTS: AchSort[] = ['default', 'complete', 'rarity', 'similar', 'date', 'name'];
-const RARITY_ORDER: Record<Rarity, number> = { common: 0, uncommon: 1, epic: 2, legendary: 3, secret: 4 };
+const RARITY_ORDER: Record<Rarity, number> = { common: 0, uncommon: 1, epic: 2, legendary: 3, unique: 5, secret: 4 };
 
 /** What an achievement is "like", for sorting similar ones together: its track
  *  (win x rounds, make x formations…), chips, rules, or everything else. */
@@ -225,24 +232,29 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
         {/* What the colours round the cards mean, as the rules' legend does. */}
         <p class="rules-legend ach-legend">
           {RARITIES.map((r) => (
-            <span class={`lg rarity-${r}`}>{t(`ach.rarity.${r}`)}</span>
+            <span class={`lg rarity-${r}`}>{r === 'unique' ? <Rainbow text={t('ach.rarity.unique')} /> : t(`ach.rarity.${r}`)}</span>
           ))}
           <span class="lg rarity-locked">{t('ach.locked')}</span>
         </p>
         <div class="ach-sort">
-          {/* Which cards show; the button names what it shows, its hint says what's next. */}
+          {/* Which cards show. Every option's word sits in the same spot, so the button keeps one width. */}
+          <span class="muted ach-sort-label">{t('ach.show')}</span>
           <button
             type="button"
             class={`ach-view ach-view-${view}`}
-            title={t(`ach.view.${view}Hint`)}
-            aria-label={t(`ach.view.${view}Hint`)}
+            title={`${t('ach.show')} ${t(`ach.view.${view}`)}`}
+            aria-label={`${t('ach.show')} ${t(`ach.view.${view}`)}`}
             onClick={() => {
               play('button', { volume: 0.4 });
               updateSettings({ achView: VIEWS[(VIEWS.indexOf(view) + 1) % VIEWS.length] });
             }}
           >
             <UiIcon name={VIEW_ICON[view]} />
-            <span class="ach-view-text">{t(`ach.view.${view}`)}</span>
+            <span class="ach-view-text cyc-val" aria-hidden="true">
+              {VIEWS.map((v) => (
+                <span class={v === view ? 'on' : ''}>{t(`ach.view.${v}`)}</span>
+              ))}
+            </span>
           </button>
           <span class="muted ach-sort-label">{t('ach.sortBy')}</span>
           <Cycler label={t('ach.sortBy')} value={sort} options={SORTS.map((s) => ({ value: s, label: t(`ach.sort.${s}`) }))} onChange={(achSort) => updateSettings({ achSort })} />
@@ -282,6 +294,7 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
                 <span class="ach-name">{hidden ? t('ach.secret') : got ? <Name a={a} /> : text(a, 'name')}</span>
                 <span class="ach-desc">{hidden ? t('ach.secretDesc') : withHighlights(text(a, 'desc'))}</span>
                 {!hidden && text(a, 'flavor') && <span class="ach-flavor">{withHighlights(text(a, 'flavor'))}</span>}
+                {!hidden && REWARDS[a.id] && <span class="ach-reward">{t('ach.reward', { item: rewardName(REWARDS[a.id]!) })}</span>}
                 {!hidden && (() => {
                   const m = meter(a, mine, unlocked);
                   return m && <Progress {...m} />;
@@ -320,6 +333,9 @@ export function AchievementToast() {
           <WaveText text={t('ach.unlocked')} />
         </span>
         <span>{withHighlights(text(a, 'desc'))}</span>
+      </span>
+      <span class="ach-toast-pay">
+        <ChipAmount n={ACH_PAY[a.rarity]} sign />
       </span>
     </div>
   );

@@ -122,7 +122,7 @@ function Callout() {
 }
 
 /** One of the loading screen's backs (after the two Jokers in its strip), new each time. */
-const randomLoadingBack = () => `${-(2 + Math.floor(Math.random() * 6)) * 84}px`;
+const randomLoadingBack = () => `${-(2 + Math.floor(Math.random() * 13)) * 84}px`;
 
 /** While connecting to a room takes a while: the loading screen's spinning card over the
  *  dimmed screen, which takes every tap and key until the connection is through. */
@@ -288,10 +288,10 @@ function Hint() {
       {tip.text.includes('\n') ? (
         <>
           <b>{tip.text.slice(0, tip.text.indexOf('\n'))}</b>
-          {tip.text.slice(tip.text.indexOf('\n'))}
+          {withHighlights(tip.text.slice(tip.text.indexOf('\n')))}
         </>
       ) : (
-        tip.text
+        withHighlights(tip.text)
       )}
     </div>
   );

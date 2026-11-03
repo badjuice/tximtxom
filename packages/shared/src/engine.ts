@@ -561,7 +561,9 @@ function scoreRound(state: GameState, reveal: RevealState): void {
   });
   emit(state, { t: 'score', round: state.round });
 
-  if (totals.some((t) => t > state.rules.threshold)) {
+  // Over the limit, or (Rounds mode) the last round played: lowest total wins.
+  const over = state.rules.rounds ? state.round >= state.rules.rounds : totals.some((t) => t > state.rules.threshold);
+  if (over) {
     const low = Math.min(...totals);
     state.winners = totals.flatMap((t, i) => (t === low ? [i] : []));
     state.phase = 'gameOver';

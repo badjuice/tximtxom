@@ -2,7 +2,7 @@ import { botAction } from '../bot.js';
 import { applyAction, newGame } from '../engine.js';
 import { CHAT_BURST, CHAT_KEEP, CHAT_WINDOW_MS, type ChatLine, EMOTE_GAP_MS, EMOTE_KEEP, type EmoteId, type EmoteLine, type LobbyPlayer, type RoomView } from '../protocol.js';
 import { randomSeed } from '../rng.js';
-import { BOT_PERSONAS, DEFAULT_RULES, HUMAN_JOKERS, MAX_PLAYERS, MIN_PLAYERS, type Rules, sanitizeRules, SHOP_AVATARS } from '../rules.js';
+import { BOT_PERSONAS, bustLimit, DEFAULT_RULES, HUMAN_JOKERS, MAX_PLAYERS, MIN_PLAYERS, type Rules, REWARD_AVATARS, sanitizeRules, SHOP_AVATARS } from '../rules.js';
 import type { Action, GameState, Seat } from '../types.js';
 import { viewFor } from '../view.js';
 
@@ -172,13 +172,13 @@ export class Room {
 
   /** Humans pick from their own set of characters, plus the shop ones in `owned`. */
   private freeHumanArt(current = '', owned: readonly string[] = []): string | null {
-    const bought = SHOP_AVATARS.filter((a) => owned.includes(a));
+    const bought = [...SHOP_AVATARS, ...REWARD_AVATARS].filter((a) => owned.includes(a));
     return this.nextFree([...HUMAN_JOKERS, ...bought], (a) => a, current);
   }
 
   /** `preferred` is the character this player used last time; they get it back if nobody has it. */
   addHuman(name: string, clientId: string, preferred?: string, infected?: boolean): Member {
-    const known = ([...HUMAN_JOKERS, ...SHOP_AVATARS] as readonly string[]).includes(preferred ?? '');
+    const known = ([...HUMAN_JOKERS, ...SHOP_AVATARS, ...REWARD_AVATARS] as readonly string[]).includes(preferred ?? '');
     const taken = this.members.some((x) => x.avatar === preferred);
     const art = known && !taken ? preferred! : (this.freeHumanArt() ?? 'villager');
     const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: art, clientId, infected: !!infected };
@@ -357,7 +357,7 @@ export class Room {
         const m = this.members.find((x) => x.id === p.id);
         if (!m) return;
         if (g.winners.includes(s)) m.wins = (m.wins ?? 0) + 1;
-        else if (p.total > g.rules.threshold) m.busts = (m.busts ?? 0) + 1;
+        else if (p.total > bustLimit(g.rules)) m.busts = (m.busts ?? 0) + 1;
         else m.silvers = (m.silvers ?? 0) + 1;
       });
     }

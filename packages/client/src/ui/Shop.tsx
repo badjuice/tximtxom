@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'preact/hooks';
 import { play } from '../audio';
-import { previewTable, TABLES } from '../background';
+import { previewTable, STRIPES, TABLES } from '../background';
+import { ACHIEVEMENTS, hasAchievement } from '../achievements';
 import { buyItem, useChips } from '../chips';
 import { type Key, t } from '../i18n';
 import { saveAvatar, savedAvatar } from '../net';
-import { CARD_STYLES, type CardStyle, updateSettings, useSettings } from '../settings';
+import { CARD_STYLES, type CardStyle, getSettings, updateSettings, useSettings } from '../settings';
 import { owns, randomOpen, SHOP, type ShopItem, type ShopKind } from '../shop';
 import { formatCount } from '../stats';
-import { ChipCount, ChipIcon, Modal } from './common';
+import { ChipCount, ChipIcon, Modal, UiIcon } from './common';
 import { ArtIcon, StyleBackIcon } from './sprites';
 
 const KINDS: ShopKind[] = ['back', 'table', 'avatar'];
@@ -31,11 +32,40 @@ const css = (rgb: number[]) => `rgb(${rgb.map((v) => Math.round(v * 255)).join('
 /** A table's three colours, swirled roughly as the background draws them. */
 function TableSwatch({ id }: { id: string }) {
   const [a, b, c] = TABLES[id] ?? TABLES.felt;
-  return <span class="shop-table" style={{ background: `radial-gradient(circle at 35% 40%, ${css(a)}, ${css(b)} 45%, ${css(c)})` }} aria-hidden="true" />;
+  // A flag shows its stripes.
+  const flag = STRIPES[id];
+  const bg = flag
+    ? `linear-gradient(${flag.map((rgb, i) => `${css(rgb)} ${(i * 100) / flag.length}% ${((i + 1) * 100) / flag.length}%`).join(', ')})`
+    : `radial-gradient(circle at 35% 40%, ${css(a)}, ${css(b)} 45%, ${css(c)})`;
+  return <span class={`shop-table${id === 'negative' ? ' shop-sheen' : ''}`} style={{ background: bg }} aria-hidden="true" />;
+}
+
+/** How often Random's tile turns to another of its group. */
+const RANDOM_STEP_MS = 420;
+
+/** Random: its tile keeps turning to a different item of its group, under a "?". */
+function RandomPreview({ item }: { item: ShopItem }) {
+  const group = SHOP.filter((i) => i.kind === item.kind && i.style === item.style && !i.random).flatMap((i): ShopItem[] =>
+    i.pack ? i.pack.map((id) => ({ id, kind: i.kind, price: 0, style: i.style })) : [i],
+  );
+  const [k, setK] = useState(() => Math.floor(Math.random() * group.length));
+  useEffect(() => {
+    if (getSettings().reducedMotion) return;
+    const id = setInterval(() => setK((n) => (n + 1 + Math.floor(Math.random() * (group.length - 1))) % group.length), RANDOM_STEP_MS);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span class="shop-random-box">
+      <span class="shop-random-roll" key={k}>
+        <Preview item={group[k]} />
+      </span>
+      <span class="shop-random">?</span>
+    </span>
+  );
 }
 
 function Preview({ item }: { item: ShopItem }) {
-  if (item.random) return <span class={`shop-random${item.kind === 'table' ? ' shop-table' : ''}`}>?</span>;
+  if (item.random) return <RandomPreview item={item} />;
   if (item.pack)
     return (
       <span class="shop-fan">
@@ -101,6 +131,8 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
     const short = i.price - chips.balance;
     // Random waits until the rest of its group is yours.
     const shut = i.random && !mine && !randomOpen(i.kind, i.style);
+    // A reward isn't sold: it says which achievement gives it (a hidden one stays hidden).
+    const from = i.reward ? ACHIEVEMENTS.find((a) => a.id === i.reward) : undefined;
     return (
       <li class={`shop-item${on ? ' on' : ''}${mine ? '' : ' for-sale'}`} key={i.id} onPointerEnter={i.kind === 'table' && !i.random ? () => previewTable(i.id) : undefined}>
         <span class="shop-preview">
@@ -109,6 +141,10 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
         <span class="shop-name">{itemName(i)}</span>
         {on ? (
           <span class="shop-state">{t('shop.equipped')}</span>
+        ) : from && !mine ? (
+          <span class="shop-btn reward" title={t('shop.reward', { name: from.secret && !hasAchievement(from.id) ? t('ach.secret') : t(`ach.${from.id}.name` as Key) })}>
+            <UiIcon name="lock" />
+          </span>
         ) : mine ? (
           <button type="button" class="shop-btn equip" onClick={() => equip(i)}>
             {t('shop.equip')}

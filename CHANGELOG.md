@@ -5,6 +5,23 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.55.0 (2026-11-03)
+- ✨ New game mode, Rounds: play 5 or 10 rounds with no bust limit. The lowest total wins.
+- ✨ Chip multipliers: rules that make formations easier pay less, harder ones pay more (×0.5 to ×2). The Rules window shows each rule's multiplier and the total on request.
+- ✨ A new rarity, Unique, in rainbow letters. Collection achievements: all commons, all uncommons, all epics, all legendaries, all secrets, every secret formation, Completionist, Completionist+ and Completionist++.
+- ✨ Rewards you can't buy: King John (a character with a rainbow plate) for John TximTxom, the Negative table for Completionist, the Polychrome card back for Completionist+.
+- ✨ 14 more achievements: straights of every length from 3 to 13, a first pair and trio, first purchases in the Shop, and Early Bird. Every achievement and tier has its own flavour text now.
+- ✨ Shop: Pride and Trans tables and a Rainbow card back. Random items flick through what they could be.
+- ✨ Chips have their own spinning icon, next to every amount, and "Chips" is written in rainbow letters. Achievement toasts show what they pay.
+- 🔧 End of a round: the summary waits for the last formation and its chips. Hold Table on it to look at the cards.
+- 🔧 History shows the cut for the first deal: who drew which card.
+- 🔧 Scramble shuffles only the hand of the player who takes a card.
+- 🔧 Rules window: two columns of equal width and equal card height, and only the rules scroll.
+- 🔧 Names are up to 10 characters and always show whole on the plates. The dealer's D sits on the plate's corner.
+- 🔧 Settings › Style shows every rank and suit in a flat row, with the back on its own. A hovered card comes to the front.
+- 🔧 The loading and battery-saving screens wait for their button, and both show the spinning card again (it showed halves of several cards).
+- 🔧 Bigger piles and copy buttons. Previewing a table in the Shop changes only its colours. Achievements filter: a "Show:" label and a button that keeps its width.
+
 ## 0.54.0 (2026-11-03)
 - ✨ New rule, Polydactyly: 9-card hands. All nine formed is -15, a hand emptied on rides is -10, and a TximTxom is a one-suit straight of 7 or more with the rest formed. Turning it on moves the bust limit to 50.
 - ✨ New rule, Two Decks: 104 cards, each card twice. Sets go up to eight of a rank (quintet to octet), and quads take rides too.

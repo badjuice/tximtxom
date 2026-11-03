@@ -36,6 +36,8 @@ export interface Rules {
   polydactyly: boolean;
   /** Two decks shuffled together (104 cards): twin cards, and sets of up to eight. */
   twoDecks: boolean;
+  /** Rounds mode: the game is this many rounds, lowest total wins, and nobody busts. 0: play to the bust limit. */
+  rounds: number;
 }
 
 export const DEFAULT_RULES: Rules = {
@@ -56,6 +58,7 @@ export const DEFAULT_RULES: Rules = {
   scramble: false,
   polydactyly: false,
   twoDecks: false,
+  rounds: 0,
 };
 
 /** Rules that only work on top of another: off, and locked in the room, until that one is on. */
@@ -65,6 +68,11 @@ export const RULE_REQUIRES: Partial<Record<keyof Rules, keyof Rules>> = { mobius
 export const RULE_EXCLUDES: [keyof Rules, keyof Rules][] = [['magicSort', 'scramble']];
 
 export const THRESHOLD_OPTIONS = [40, 50, 100] as const;
+/** Game lengths for Rounds mode (0: no, play to the bust limit). */
+export const ROUNDS_OPTIONS = [0, 5, 10] as const;
+
+/** The total a player busts over: none in Rounds mode. */
+export const bustLimit = (r: Pick<Rules, 'threshold' | 'rounds'>): number => (r.rounds ? Infinity : r.threshold);
 export const TIMER_OPTIONS = [0, 30, 60] as const;
 
 export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
@@ -88,6 +96,7 @@ export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
     scramble: !!r.scramble,
     polydactyly: !!r.polydactyly,
     twoDecks: !!r.twoDecks,
+    rounds: (ROUNDS_OPTIONS as readonly number[]).includes(r.rounds) ? r.rounds : 0,
   };
 }
 
@@ -110,6 +119,8 @@ export const SHOP_AVATARS = [
   'brute', 'bandit', 'goblin', 'king', 'queen', 'ghoul', 'beetle', 'web',
   'skeleton', 'cow', 'horse', 'cat', 'octopus', 'serpent', 'bear', 'gnome',
 ] as const;
+/** Characters an achievement gives (never sold): King John, for a 9-card TximTxom. */
+export const REWARD_AVATARS = ['kingJohn'] as const;
 
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;

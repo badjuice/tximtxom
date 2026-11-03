@@ -83,14 +83,13 @@ async function boot() {
   if (!slot) return close();
   slot.removeAttribute('aria-label');
   slot.replaceChildren();
+  // Only the button closes it (a stray key press, like Alt+Tab, used to).
   const start = () => {
-    removeEventListener('keydown', start);
     unlockAudio();
     close();
     // Back from sleep (power.ts) in a room: straight back to the seat.
     if (wokeInRoom() && savedRoom()) void rejoinRoom();
   };
-  addEventListener('keydown', start);
   render(
     <Button color="blue" onClick={start}>
       {t(matchMedia('(pointer: coarse)').matches ? 'load.tap' : 'load.click')}

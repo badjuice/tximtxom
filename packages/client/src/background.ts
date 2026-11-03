@@ -24,6 +24,12 @@ uniform float uSpinTime;
 uniform vec3 uC1;
 uniform vec3 uC2;
 uniform vec3 uC3;
+// A flag table's stripes (up to six, uStripeN of them) and how far it's faded in.
+uniform vec3 uS[6];
+uniform float uStripeN;
+uniform float uStripes;
+// The Negative table's sheen: a band of light sweeping across, and how strong.
+uniform float uSheen;
 
 // No sin() of big numbers (it falls apart at mediump): Inigo Quilez's multiply hash.
 float hash(vec2 p) {
@@ -53,6 +59,16 @@ void main() {
 
   vec3 col = mix(uC1, uC2, smoothstep(0.43, 0.47, n));
   col = mix(col, uC3, smoothstep(0.56, 0.6, n));
+  // A flag: the paint's folds cut into its stripes, in order, with hard edges.
+  if (uStripes > 0.0) {
+    float k = floor(clamp((n - 0.3) / 0.4, 0.0, 0.999) * uStripeN);
+    vec3 band = uS[0];
+    for (int i = 1; i < 6; i++) band = mix(band, uS[i], step(float(i), k));
+    col = mix(col, band, uStripes);
+  }
+  // A diagonal shine that crosses the screen every few seconds.
+  float d = fract((gl_FragCoord.x + gl_FragCoord.y) / (uRes.x + uRes.y) - uTime * 0.08);
+  col += uSheen * 0.5 * smoothstep(0.08, 0.0, abs(d - 0.5));
   // Keep the paint behind the UI: pull it towards the dark colour and grey it a little.
   col = mix(uC3, col, 0.55);
   col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 0.8);
@@ -88,15 +104,31 @@ export const TABLES: Record<string, [RGB, RGB, RGB]> = {
   lava: [hex('#ffb000'), hex('#d8361c'), hex('#1e0805')],
   neon: [hex('#ff3fb4'), hex('#2ad4ff'), hex('#120a24')],
   royal: [hex('#3f5bd8'), hex('#b8902c'), hex('#141836')],
+  pride: [hex('#e40303'), hex('#004dff'), hex('#1a0f24')],
+  trans: [hex('#5bcefa'), hex('#f5a9b8'), hex('#14202a')],
+  // Completionist's reward: the felt turned inside out, with a sheen (like the Negative edition).
+  negative: [hex('#d075a0'), hex('#4a1e6b'), hex('#0b0a14')],
 };
+/** Flag tables: their stripes, top to bottom, shown in the paint's folds. */
+export const STRIPES: Record<string, RGB[]> = {
+  pride: ['#e40303', '#ff8c00', '#ffed00', '#008026', '#004dff', '#750787'].map(hex),
+  trans: ['#5bcefa', '#f5a9b8', '#ffffff', '#f5a9b8', '#5bcefa'].map(hex),
+};
+/** Tables with a shine sweeping across. */
+const SHEEN = new Set(['negative']);
 /** The random pick, for when the Table setting is Random. */
 let randomTable = FREE_TABLES[Math.floor(Math.random() * FREE_TABLES.length)];
 
 /** The table's palette: the one chosen in Settings (if it's yours), or the random pick. */
 function tablePalette(): [RGB, RGB, RGB] {
+  return TABLES[tableId()];
+}
+
+/** The table that shows: the one chosen in Settings if it's yours, else felt. */
+function tableId(): string {
   const chosen = getSettings().table;
-  if (chosen === 'random') return TABLES[ownsRandom('table') ? randomTable : 'felt'];
-  return TABLES[owns(chosen) ? chosen : 'felt'] ?? TABLES.felt;
+  if (chosen === 'random') return ownsRandom('table') ? randomTable : 'felt';
+  return owns(chosen) && TABLES[chosen] ? chosen : 'felt';
 }
 
 function hex(h: string): RGB {
@@ -106,6 +138,10 @@ function hex(h: string): RGB {
 
 let target: [RGB, RGB, RGB] = MOODS.menu;
 let colours = MOODS.menu.map((c) => [...c]) as [RGB, RGB, RGB];
+/** The table on show, for its stripes and sheen (null for a mood). */
+let shownTable: string | null = null;
+let stripes = 0;
+let sheen = 0;
 let spinBoost = 0;
 
 let mood: Mood = 'menu';
@@ -113,6 +149,7 @@ let mood: Mood = 'menu';
 export function setMood(name: Mood): void {
   mood = name;
   const next = name === 'table' ? tablePalette() : MOODS[name];
+  shownTable = name === 'table' ? tableId() : null;
   if (next === target) return;
   target = next;
   // Like moving between screens in Balatro: the paint spins up while the colours change.
@@ -121,10 +158,10 @@ export function setMood(name: Mood): void {
 
 /** Shows table `id` behind whatever is open (the shop's tables), or, with null, goes back to the mood. */
 export function previewTable(id: string | null): void {
-  const next = id && TABLES[id] ? TABLES[id] : mood === 'table' ? tablePalette() : MOODS[mood];
-  if (next === target) return;
-  target = next;
-  swirl(0.6);
+  const shown = id && TABLES[id] ? id : mood === 'table' ? tableId() : null;
+  shownTable = shown;
+  // Only the colours change: no spin-up, so hovering along the list stays calm.
+  target = shown ? TABLES[shown] : MOODS[mood as keyof typeof MOODS];
 }
 
 /** Picks a different random palette for the table (used by the next setMood('table')). */
@@ -166,6 +203,7 @@ export function startBackground(canvas: HTMLCanvasElement): void {
   gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
   const u = (n: string) => gl.getUniformLocation(prog, n);
   const uRes = u('uRes'), uTime = u('uTime'), uSpin = u('uSpinTime'), uC1 = u('uC1'), uC2 = u('uC2'), uC3 = u('uC3');
+  const uS = u('uS'), uStripeN = u('uStripeN'), uStripes = u('uStripes'), uSheen = u('uSheen');
 
   // About 520 "pixels" across the diagonal, scaled up by CSS.
   const resize = () => {
@@ -193,6 +231,14 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     // Ease colours towards the current mood (mostly there in about half a second).
     for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) colours[i][j] += (target[i][j] - colours[i][j]) * Math.min(1, dt * 4);
     spinBoost = Math.max(0, spinBoost - dt * 1.5);
+    // Stripes and sheen fade with the colours.
+    const flag = shownTable ? STRIPES[shownTable] : undefined;
+    stripes += ((flag ? 1 : 0) - stripes) * Math.min(1, dt * 4);
+    sheen += ((shownTable && SHEEN.has(shownTable) ? 1 : 0) - sheen) * Math.min(1, dt * 4);
+    if (flag) {
+      gl.uniform3fv(uS, [...flag, ...Array(6 - flag.length).fill(flag.at(-1))].flat());
+      gl.uniform1f(uStripeN, flag.length);
+    }
     if (animate) {
       // Wrapped, so the shader's numbers stay small (and precise) however long the tab is open.
       time = (time + dt * (1 + spinBoost * 2)) % 2000;
@@ -206,6 +252,8 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     gl.uniform3f(uC1, ...colours[0]);
     gl.uniform3f(uC2, ...colours[1]);
     gl.uniform3f(uC3, ...colours[2]);
+    gl.uniform1f(uStripes, stripes);
+    gl.uniform1f(uSheen, sheen);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
   requestAnimationFrame(frame);

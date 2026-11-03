@@ -243,7 +243,9 @@ function MainMenu({ onPlay }: { onPlay: () => void }) {
       </Button>
       <Button color="red" class="menu-main menu-shop" onClick={open('shop')}>
         <ChipIcon size={22} />
-        {t('menu.shop')}
+        <Fit text={t('menu.shop')}>
+          <WaveText text={t('menu.shop')} />
+        </Fit>
       </Button>
       <Button color="orange" class="menu-main" onClick={open('settings')}>
         {t('title.settings')}

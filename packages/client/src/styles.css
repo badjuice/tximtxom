@@ -873,15 +873,132 @@ input[type='text'] {
   flex-direction: column;
   gap: 6px;
 }
-/* The room's Rules window: two columns where there's room, so every rule fits unscrolled. */
+/* The room's Rules window: the legend and the multiplier button stay at the top, only the
+   rules scroll; two columns of equal width where there's room, every card the same height. */
 .modal.lobby-rules-modal {
   width: min(940px, 96vw);
+  height: min(860px, 92dvh);
+}
+.lobby-rules-modal .modal-body {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.lobby-rules-modal .rules-form {
+  flex: 1;
+  min-height: 0;
+}
+/* While the Table button is held the summary goes, all but its buttons, so the cards show. */
+.summary-peek .modal-backdrop {
+  background: transparent;
+  backdrop-filter: none;
+}
+.summary-peek .modal {
+  background: transparent;
+  box-shadow: none;
+  border-color: transparent;
+}
+.summary-peek .modal > :not(.modal-foot) {
+  visibility: hidden;
+}
+.table-peek {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.table-peek.held {
+  filter: brightness(1.2);
+}
+/* The scroller holds a grid of its own: with no height to share out, two-column rows are all as tall as the tallest card. */
+.rules-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+.lobby-rules-modal .rules-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 4px 6px 2px;
 }
 @media (min-width: 900px) {
-  .lobby-rules-modal .rules-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  .lobby-rules-modal .rules-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-auto-rows: 1fr;
   }
+}
+.rules-head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.rules-pay-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.rules-pay-btn {
+  font: inherit;
+  font-size: 0.85em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  color: #fff;
+  background: var(--grey);
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 3px 0 var(--grey-d);
+  cursor: pointer;
+}
+.rules-pay-btn.on {
+  background: var(--blue);
+  box-shadow: 0 3px 0 var(--blue-d);
+}
+.rules-pay-btn:active {
+  translate: 0 2px;
+  box-shadow: 0 1px 0 var(--grey-d);
+}
+.rules-pay-total {
+  font-size: 0.9em;
+  color: var(--muted);
+  visibility: hidden;
+}
+.show-pay .rules-pay-total {
+  visibility: visible;
+}
+/* A rule's multiplier, in its card's corner while the button is on. */
+.toggle {
+  position: relative;
+}
+.pay-tag {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.75em;
+  color: var(--muted);
+  visibility: hidden;
+  pointer-events: none;
+}
+.show-pay .pay-tag {
+  visibility: visible;
+}
+:is(.pay-tag, .rules-pay-total).up {
+  color: #6ee7a8;
+}
+:is(.pay-tag, .rules-pay-total).down {
+  color: #ff8a82;
+}
+/* A choice that doesn't apply (the bust limit in Rounds mode). */
+.choice.off {
+  opacity: 0.55;
 }
 /* Short screens (a laptop): the room panel tightens so it fits without scrolling. */
 @media (max-height: 760px) {
@@ -1544,6 +1661,17 @@ input[type='text'] {
   width: var(--pw);
   min-width: 0;
 }
+/* King John (John TximTxom's reward): a rainbow frame that slides round, except on its turn (gold). */
+.plate.john:not(.active) {
+  border-color: transparent;
+  background:
+    linear-gradient(rgba(30, 43, 45, 0.95), rgba(30, 43, 45, 0.95)) padding-box,
+    linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #a26bf2, #fe5f55) 0 0 / 200% 100% border-box;
+  animation: rainbow-slide 3s linear infinite;
+}
+.reduced-motion .plate.john {
+  animation: none;
+}
 .plate-nm {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1607,6 +1735,13 @@ input[type='text'] {
   top: -12px;
   filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35));
   pointer-events: auto;
+}
+/* The dealer's D sits on the plate's corner, leaving the name its whole row. */
+.plate .dealer-chip {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.35));
 }
 /* Plates let clicks through to the table, but their little badges show hints on hover. */
 .plate .dealer-chip,
@@ -2284,15 +2419,16 @@ input[type='text'] {
   font: inherit;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  /* One size for every copy button: History's tab bar, a round's scores, the game report. */
+  min-width: 36px;
+  height: 32px;
   font-size: 0.8em;
   color: #fff;
   background: var(--blue);
   border: 0;
   border-radius: 6px;
   box-shadow: 0 3px 0 var(--blue-d);
-  padding: 0;
+  padding: 0 10px;
   margin: 0 6px;
   cursor: pointer;
 }
@@ -4000,12 +4136,10 @@ input.rename {
   position: absolute;
   right: 6px;
   top: 50%;
-  transform: translateY(-50%);
+  /* Centred with its shadow, inside the title bar. */
+  transform: translateY(calc(-50% - 1.5px));
 }
-/* The game report's copy button: the History's raised blue button, bigger. */
 .hcopy.report-btn {
-  width: 40px;
-  height: 38px;
   margin: 0;
 }
 
@@ -4531,8 +4665,19 @@ input.rename {
 .lg.rarity-secret {
   --tone: var(--red);
 }
+.lg.rarity-unique {
+  --tone: #fff;
+}
+.lg.rarity-unique::before {
+  background: linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #a26bf2);
+}
 .lg.rarity-locked {
   --tone: #6b7780;
+}
+/* What it gives: gold, under the flavour line. */
+.ach-reward {
+  color: var(--gold);
+  font-size: 0.85em;
 }
 .ach-list li > .sprite {
   flex: none;
@@ -4737,6 +4882,13 @@ input.rename {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+/* What it paid, on the right. */
+.ach-toast-pay {
+  flex: none;
+  margin-left: auto;
+  padding-left: 6px;
+  color: var(--gold);
 }
 .ach-toast-head {
   color: var(--gold);
@@ -4971,6 +5123,55 @@ input.rename {
   background: var(--panel-in);
   border-radius: 10px;
   box-shadow: 0 3px 0 var(--panel-d);
+}
+/* Settings > Style: every card of the deck, each suit a flat fan; the one pointed at comes forward. */
+.deck-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  max-width: 100%;
+}
+.deck-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.deck-row {
+  display: flex;
+  padding-right: calc(var(--deck-cw, 37px) - var(--deck-step, 17px));
+}
+.deck-card {
+  position: relative;
+  flex: none;
+  width: var(--deck-step, 17px);
+  transition: translate 0.12s;
+}
+.deck-card:hover,
+.deck-card:focus,
+.deck-card:active {
+  z-index: 1;
+  translate: 0 -4px;
+  outline: none;
+}
+.deck-card > .sprite {
+  box-shadow: -2px 0 3px rgba(0, 0, 0, 0.3);
+}
+/* The back, apart from the rest past a thin line. */
+.deck-back {
+  flex: none;
+  padding-left: 16px;
+  border-left: 2px solid rgba(255, 255, 255, 0.12);
+}
+@media (max-width: 420px) {
+  .deck-view {
+    --deck-step: 13px;
+    gap: 10px;
+  }
+  .deck-back {
+    padding-left: 10px;
+  }
 }
 .style-sample {
   flex-basis: 100%;
@@ -5481,8 +5682,8 @@ td.num.pts {
   margin-top: 4px;
 }
 .hcopy.small {
-  width: 24px;
-  height: 22px;
+  min-width: 30px;
+  height: 26px;
   margin: 0 0 0 auto;
   box-shadow: 0 2px 0 var(--blue-d);
 }
@@ -5840,16 +6041,84 @@ td.num.pts {
 
 /* ---------------------------------------------------------- chips */
 
+/* The currency's chip (ui/common.tsx ChipIcon): five layers, two faces and the edge between,
+   turning about its upright axis. The whole chip shifts through the rainbow and glows gold
+   in pulses; the filter sits on the outer box so the layers keep their 3D. */
 .chip-icon {
+  --cs: 1.05em;
+  position: relative;
   display: inline-block;
   flex: none;
+  width: var(--cs);
+  height: var(--cs);
   vertical-align: middle;
-  image-rendering: auto;
-  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+  perspective: calc(var(--cs) * 8);
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
-  -webkit-user-drag: none;
+  animation: chip-glow 6s linear infinite;
+}
+.chip-spin {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  animation: chip-spin 3.2s linear infinite;
+}
+.chip-spin > i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform: translateZ(calc(var(--z) * var(--cs) * 0.04));
+}
+.chip-face {
+  background: center / 100% 100% no-repeat;
+  image-rendering: auto;
+}
+/* The rim between the faces: the chip's red, a shade darker, with its white stripes. */
+.chip-edge {
+  background: repeating-conic-gradient(#b8283a 0 30deg, #e9e2dc 30deg 45deg);
+  scale: 0.97;
+}
+@keyframes chip-spin {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+@keyframes chip-glow {
+  0% {
+    filter: hue-rotate(0deg) drop-shadow(0 0 1px rgba(234, 192, 88, 0.5)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+  }
+  16.67% {
+    filter: hue-rotate(60deg) drop-shadow(0 0 5px rgba(234, 192, 88, 0.95)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+  }
+  33.33% {
+    filter: hue-rotate(120deg) drop-shadow(0 0 1px rgba(234, 192, 88, 0.5)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+  }
+  50% {
+    filter: hue-rotate(180deg) drop-shadow(0 0 5px rgba(234, 192, 88, 0.95)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+  }
+  66.67% {
+    filter: hue-rotate(240deg) drop-shadow(0 0 1px rgba(234, 192, 88, 0.5)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+  }
+  83.33% {
+    filter: hue-rotate(300deg) drop-shadow(0 0 5px rgba(234, 192, 88, 0.95)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+  }
+  100% {
+    filter: hue-rotate(360deg) drop-shadow(0 0 1px rgba(234, 192, 88, 0.5)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+  }
+}
+.reduced-motion .chip-icon,
+.reduced-motion .chip-spin {
+  animation: none;
+  filter: drop-shadow(0 0 3px rgba(234, 192, 88, 0.8)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+}
+/* An amount: the chip, then the number. */
+.chip-amt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  white-space: nowrap;
+  vertical-align: bottom;
 }
 /* Your balance: the chip on a dark pill, gold number. */
 .chip-count {
@@ -6091,6 +6360,67 @@ td.num.pts {
 }
 .menu-shop .chip-icon {
   margin-right: 2px;
+}
+/* Shop: one size whatever the tab, so nothing jumps when switching. */
+.modal.shop-modal {
+  height: min(860px, 92dvh);
+}
+/* Random: the group's items flick past under a big "?". */
+.shop-random-box {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.shop-random-box > * {
+  grid-area: 1 / 1;
+}
+.shop-random-roll {
+  opacity: 0.55;
+  animation: shop-roll 0.42s ease-out;
+}
+.shop-random-box > .shop-random {
+  border: none;
+  background: none;
+  box-shadow: none;
+  font-size: 1.6em;
+  color: #fff;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.6),
+    0 0 6px rgba(0, 0, 0, 0.6);
+}
+@keyframes shop-roll {
+  from {
+    translate: 0 -6px;
+    opacity: 0;
+  }
+}
+.reduced-motion .shop-random-roll {
+  animation: none;
+}
+/* The Negative table's swatch: a sheen sweeps across. */
+.shop-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.shop-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%) -100% 0 / 200% 100% no-repeat;
+  animation: shop-sheen 2.6s linear infinite;
+}
+@keyframes shop-sheen {
+  to {
+    background-position: 100% 0;
+  }
+}
+/* A reward still to win: a padlock where the price would be. */
+.shop-btn.reward {
+  display: grid;
+  place-items: center;
+  background: var(--grey);
+  box-shadow: 0 3px 0 var(--grey-d);
+  cursor: help;
 }
 /* A pack: its backs fanned out. */
 .shop-fan {

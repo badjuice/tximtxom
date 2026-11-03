@@ -41,7 +41,7 @@
     <style>
       /* Shown until the game's first assets load: a card turning over, red Joker,
          back, black Joker, back. The back's colour is picked at random below.
-         assets/ui/loading.png is a strip: the two Jokers, then the six backs.
+         assets/ui/loading.png is a strip: the two Jokers, then the thirteen pixel backs.
          Only transform and opacity animate, so the turn stays smooth while the
          page is busy starting the game. */
       @font-face {
@@ -113,7 +113,7 @@
       :is(#loading, .joining) .face > i {
         position: absolute;
         inset: 0;
-        background: url(assets/ui/loading.png?v=%APP_VERSION%) 0 0 / 672px 120px no-repeat;
+        background: url(assets/ui/loading.png?v=%APP_VERSION%) 0 0 / 1260px 120px no-repeat;
         image-rendering: pixelated;
       }
       :is(#loading, .joining) .face > .black {
@@ -174,7 +174,7 @@
     <script>
       // A new back colour on every load (one of the six in the strip, after the two Jokers).
       const loading = document.getElementById('loading');
-      loading.style.setProperty('--back', -(2 + Math.floor(Math.random() * 6)) * 84 + 'px');
+      loading.style.setProperty('--back', -(2 + Math.floor(Math.random() * 13)) * 84 + 'px');
       // In the player's language (Portuguese unless they picked English, as in settings.ts).
       try {
         if ((JSON.parse(localStorage.getItem('tximtxom.settings') || '{}').lang || 'pt') === 'pt') loading.querySelector('p').textContent = 'A carregar...';

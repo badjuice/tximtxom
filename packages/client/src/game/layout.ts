@@ -161,7 +161,7 @@ export function computeLayout(
     opponentScale: portrait ? 0.8 : 0.7,
     draw,
     discard,
-    pileScale: shortPortrait ? 1.3 : portrait ? 1.6 : 1.35,
+    pileScale: shortPortrait ? 1.42 : portrait ? 1.75 : 1.5,
     drawn: shortPortrait ? { x: w - 72, y: pileY } : portrait ? { x: w / 2, y: pileY + 215 } : { x: w / 2 + 260, y: pileY },
     endCard: shortPortrait ? { x: w - 72, y: pileY } : portrait ? { x: w / 2, y: pileY + 215 } : { x: w - 300, y: pileY },
     reveal: portrait

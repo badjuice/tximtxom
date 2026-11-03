@@ -18,6 +18,8 @@ export interface ShopItem {
   pack?: string[];
   /** Random: the last one of its group, sold once you own everything else in it. */
   random?: boolean;
+  /** Never sold: given by this achievement (achievements.ts REWARDS). */
+  reward?: string;
 }
 
 const PRICE: Record<ShopKind, number> = { avatar: 200, back: 300, table: 500 };
@@ -42,7 +44,8 @@ export const SHOP: ShopItem[] = [
   ...free('back', FREE_PIXEL_BACKS, 'pixel'),
   pack('pack_brights', 'pixel', ['back_yellow', 'back_orange', 'back_pink', 'back_purple']),
   pack('pack_deeps', 'pixel', ['back_green', 'back_teal', 'back_navy', 'back_black']),
-  ...sold('back', ['back_crimson', 'back_gold'], 'pixel', ['back_gold']),
+  ...sold('back', ['back_crimson', 'back_rainbow', 'back_gold'], 'pixel', ['back_rainbow', 'back_gold']),
+  { id: 'back_poly', kind: 'back', price: 0, style: 'pixel', reward: 'completionistPlus' },
   { id: randomId('back', 'pixel'), kind: 'back', price: RANDOM, style: 'pixel', random: true },
   ...free('back', FREE_BOARD_BACKS, 'board'),
   ...sold('back', ['back_green1'], 'board'),
@@ -51,28 +54,36 @@ export const SHOP: ShopItem[] = [
   pack('pack_emblem', 'board', board(5)),
   { id: randomId('back', 'board'), kind: 'back', price: RANDOM, style: 'board', random: true },
   ...free('table', FREE_TABLES),
-  ...sold('table', ['teal', 'magenta', 'goldSilver', 'ocean', 'crimson', 'sunset', 'rose', 'wood', 'lava', 'neon', 'royal'], undefined, ['neon', 'royal']),
+  ...sold('table', ['teal', 'magenta', 'goldSilver', 'ocean', 'crimson', 'sunset', 'rose', 'wood', 'lava', 'pride', 'trans', 'neon', 'royal'], undefined, ['neon', 'royal']),
+  { id: 'negative', kind: 'table', price: 0, reward: 'completionist' },
   { id: randomId('table'), kind: 'table', price: RANDOM, random: true },
   ...free('avatar', HUMAN_JOKERS),
   ...sold('avatar', SHOP_AVATARS),
+  { id: 'kingJohn', kind: 'avatar', price: 0, reward: 'johnTximtxom' },
 ];
+
+/** Everything that's sold: Completionist++ wants all of it. */
+export const SOLD = SHOP.filter((i) => i.price > 0);
+/** Whether every item for sale is yours. */
+export const ownsEverything = (): boolean => SOLD.every((i) => owns(i.id));
 
 /** Free, bought, or in a pack that's bought. */
 export function owns(id: string): boolean {
   const mine = chipsNow().owned;
-  return mine.includes(id) || SHOP.some((i) => (i.id === id && i.price === 0) || (i.pack?.includes(id) && mine.includes(i.id)));
+  return mine.includes(id) || SHOP.some((i) => (i.id === id && i.price === 0 && !i.reward) || (i.pack?.includes(id) && mine.includes(i.id)));
 }
 
-/** The items of one kind (and style) that can be used, packs opened into their backs, Random left out. */
-function usable(kind: ShopKind, style?: CardStyle): string[] {
-  return SHOP.filter((i) => i.kind === kind && (!style || i.style === style) && !i.random).flatMap((i) => i.pack ?? [i.id]);
+/** The items of one kind (and style) that can be used, packs opened into their backs, Random left out
+ *  (and rewards, with `sold`). */
+function usable(kind: ShopKind, style?: CardStyle, sold = false): string[] {
+  return SHOP.filter((i) => i.kind === kind && (!style || i.style === style) && !i.random && !(sold && i.reward)).flatMap((i) => i.pack ?? [i.id]);
 }
 
 /** The ids of one kind (and style) that are yours, in shop order (Random not included). */
 export const ownedOf = (kind: ShopKind, style?: CardStyle): string[] => usable(kind, style).filter(owns);
 
-/** Random is for sale once everything else in its group is yours. */
-export const randomOpen = (kind: ShopKind, style?: CardStyle): boolean => usable(kind, style).every(owns);
+/** Random is for sale once everything else in its group is yours (rewards aside). */
+export const randomOpen = (kind: ShopKind, style?: CardStyle): boolean => usable(kind, style, true).every(owns);
 
 /** Whether you can pick Random for this group. */
 export const ownsRandom = (kind: ShopKind, style?: CardStyle): boolean => chipsNow().owned.includes(randomId(kind, style));

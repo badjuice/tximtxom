@@ -64,7 +64,10 @@ const BACKS = {
   back_navy: [45, 63, 115],
   back_gold: [234, 192, 88],
   back_crimson: [163, 35, 58],
+  // The rainbow flag's six stripes, top to bottom, a little softened to sit with the other backs.
+  back_rainbow: (x, y, w, h) => PRIDE[Math.min(5, Math.floor((y / h) * 6))],
 };
+const PRIDE = [[232, 52, 52], [255, 146, 30], [255, 226, 40], [40, 160, 80], [40, 110, 255], [140, 50, 160]];
 
 const hex = (d, i) => ((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]).toString(16).padStart(6, '0');
 
@@ -73,6 +76,7 @@ async function load(file) {
 }
 
 /** Swaps one colour for another, leaving the outer outline ring alone. */
+/** Pixels of colour `from` (inside the art, not on its edge) become `to`: one colour, or one per spot (x, y, w, h). */
 function recolour({ data, info }, from, to) {
   const out = Buffer.from(data);
   const { width: w, height: h } = info;
@@ -82,7 +86,7 @@ function recolour({ data, info }, from, to) {
       const i = (y * w + x) * 4;
       if (!data[i + 3] || hex(data, i) !== from) continue;
       if (!(opaque(x - 1, y) && opaque(x + 1, y) && opaque(x, y - 1) && opaque(x, y + 1))) continue;
-      [out[i], out[i + 1], out[i + 2]] = to;
+      [out[i], out[i + 1], out[i + 2]] = typeof to === 'function' ? to(x, y, w, h) : to;
     }
   }
   return { data: out, info };
@@ -241,6 +245,8 @@ const SHOP_AVATARS = {
   serpent: [28, 8, 'green'],
   bear: [30, 8, 'orange'],
   gnome: [26, 9, 'blue'],
+  // John TximTxom's reward, never sold: the king on a gold card, inked dark to stand out on it.
+  kingJohn: [28, 3, 'gold', [58, 42, 0]],
 };
 
 // Board Game Icons for rules and help, on a card in the rule's colour.
@@ -298,8 +304,13 @@ async function art() {
     const fg = await sharp(path.join(TILES, `tile_${String(tile).padStart(4, '0')}.png`)).resize(32, 32, { kernel: 'nearest' }).png().toBuffer();
     entries.push([k, await onCard(colour, fg, 32)]);
   }
-  for (const [k, [col, row, colour]] of Object.entries(SHOP_AVATARS)) {
-    const fg = await sharp(ONE_BIT).extract({ left: col * 16, top: row * 16, width: 16, height: 16 }).resize(32, 32, { kernel: 'nearest' }).png().toBuffer();
+  for (const [k, [col, row, colour, ink]] of Object.entries(SHOP_AVATARS)) {
+    let fg = await sharp(ONE_BIT).extract({ left: col * 16, top: row * 16, width: 16, height: 16 }).resize(32, 32, { kernel: 'nearest' }).png().toBuffer();
+    if (ink) {
+      const { data, info } = await sharp(fg).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      for (let i = 0; i < data.length; i += 4) if (data[i + 3]) [data[i], data[i + 1], data[i + 2]] = ink;
+      fg = await sharp(data, { raw: info }).png().toBuffer();
+    }
     entries.push([k, await onCard(colour, fg, 32)]);
   }
   for (const [k, [icon, colour]] of Object.entries(RULE_ART)) entries.push([k, await onCard(colour, await whiteIcon(icon, 28), 28)]);
@@ -372,6 +383,8 @@ async function uiIcons() {
       .png({ compressionLevel: 9 })
       .toFile(path.join(OUT, 'ui', 'chip.png'));
   }
+  // The chip seen face on: the spinning 3D chip (ui/common.tsx ChipIcon) shows it on both sides.
+  await sharp(path.join(KENNEY, 'boardgame-pack/PNG/Chips/chipRedWhite_border.png')).png({ compressionLevel: 9 }).toFile(path.join(OUT, 'ui', 'chip-face.png'));
   // The loading screen's card (shown before the atlases load), as one strip:
   // the two Jokers, then the backs in BACKS order (index.html picks one at random).
   const { frames } = JSON.parse(fs.readFileSync(path.join(OUT, 'cards.json'), 'utf8'));

@@ -1,10 +1,11 @@
 import { useState } from 'preact/hooks';
+import type { ComponentChildren } from 'preact';
 import type { FormationKind } from '@tximtxom/shared';
 import { type Key, t } from '../i18n';
 import { useSettings } from '../settings';
 import { formatCount, locale, type MyStats, useStats } from '../stats';
 import { ACH_PAY, CHIP_SOURCES, type ChipSource, chipsEarned, PAY, useChips } from '../chips';
-import { ChipIcon, Modal, Tabs, WaveText, withTximTxom } from './common';
+import { ChipAmount, ChipIcon, Modal, Rainbow, Tabs, tj, WaveText, withTximTxom } from './common';
 import { Icon } from './sprites';
 
 /** "2h 05m", "12m 30s", "45s". */
@@ -96,25 +97,31 @@ function ChipsPanel() {
           <span class="stat-value">
             <ChipIcon size={28} /> {formatCount(c.balance)}
           </span>
-          <span class="stat-label">{t('chips.now')}</span>
+          <span class="stat-label">
+            <Rainbow text={t('chips.now')} />
+          </span>
         </div>
         <div class="stat-tile">
-          <span class="stat-value">{formatCount(c.most)}</span>
+          <span class="stat-value">
+            <ChipAmount n={c.most} />
+          </span>
           <span class="stat-label">{t('chips.most')}</span>
         </div>
         <div class="stat-tile">
-          <span class="stat-value">{formatCount(chipsEarned(c))}</span>
+          <span class="stat-value">
+            <ChipAmount n={chipsEarned(c)} />
+          </span>
           <span class="stat-label">{t('chips.earned')}</span>
         </div>
       </div>
       <div class="stat-cols">
-        <StatList title="chips.earnedTitle" rows={CHIP_SOURCES.map((s): [Key, string] => [`chips.src.${s}`, formatCount(c.earned[s])])} colors={CHIP_SOURCES.map((s) => SRC_COLORS[s])} />
+        <StatList title="chips.earnedTitle" rows={CHIP_SOURCES.map((s): [Key, ComponentChildren] => [`chips.src.${s}`, <ChipAmount n={c.earned[s]} />])} colors={CHIP_SOURCES.map((s) => SRC_COLORS[s])} />
         <StatList
           title="chips.spentTitle"
           rows={[
-            ['chips.spentShop', formatCount(c.spentShop)],
-            ['chips.wagerWon', formatCount(c.wagerWon)],
-            ['chips.wagerLost', formatCount(c.wagerLost)],
+            ['chips.spentShop', <ChipAmount n={c.spentShop} />],
+            ['chips.wagerWon', <ChipAmount n={c.wagerWon} />],
+            ['chips.wagerLost', <ChipAmount n={c.wagerLost} />],
             ['chips.streak', formatCount(c.dailyStreak)],
             ['chips.bestStreak', formatCount(c.bestDailyStreak)],
           ]}
@@ -125,7 +132,7 @@ function ChipsPanel() {
         {CHIP_SOURCES.map((s, i) => (
           <>
             {i > 0 && <span class="muted"> · </span>}
-            <span style={{ color: SRC_COLORS[s] }}>{t(`chips.how.${s}`, HOW)}</span>
+            <span style={{ color: SRC_COLORS[s] }}>{tj(`chips.how.${s}`, HOW_AMOUNTS)}</span>
           </>
         ))}
       </p>
@@ -135,7 +142,7 @@ function ChipsPanel() {
 
 /** A titled list of label / number rows. */
 /** `colors`, if given, puts a dot of each row's colour before its label. */
-function StatList({ title, rows, colors }: { title: Key; rows: [Key, string][]; colors?: string[] }) {
+function StatList({ title, rows, colors }: { title: Key; rows: [Key, ComponentChildren][]; colors?: string[] }) {
   return (
     <section class="stat-box">
       <h4>{t(title)}</h4>
@@ -166,7 +173,8 @@ const SRC_COLORS: Record<ChipSource, string> = {
   daily: '#5fd8d0',
   firstWin: '#ff6b61',
 };
-const HOW = { emptied: PAY.emptied, survived: PAY.survived, round: PAY.roundWin, game: PAY.gameWin, per: PAY.perOpponent, daily: PAY.daily, firstWin: PAY.firstWin, low: ACH_PAY.common, high: ACH_PAY.legendary };
+const HOW = { emptied: PAY.emptied, survived: PAY.survived, round: PAY.roundWin, game: PAY.gameWin, per: PAY.perOpponent, daily: PAY.daily, firstWin: PAY.firstWin, low: ACH_PAY.common, high: ACH_PAY.unique };
+const HOW_AMOUNTS = Object.fromEntries(Object.entries(HOW).map(([k, n]) => [k, <ChipAmount n={n} sign />]));
 
 type StatsTab = 'overview' | 'play' | 'cards' | 'badges' | 'chips';
 

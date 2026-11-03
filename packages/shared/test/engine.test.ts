@@ -277,6 +277,28 @@ describe('scoring', () => {
     expect(s.winners).toEqual([0]);
   });
 
+  it('Rounds mode: nobody busts, and the game ends after the last round', () => {
+    // Round 1 of 2 ends with player 1 far over the usual limit: the game goes on.
+    let s = rig(game(2, { rounds: 5 }), ['AH 2S 3D 4C 5H 6S 7D', 'KS KC QH QS JC JD 10H'], '3C', '8H');
+    s.rules.rounds = 2;
+    s = act(s, 0, { type: 'draw' });
+    s = act(s, 0, { type: 'endRound', card: C('3C') });
+    s = act(s, 0, { type: 'doneLaying' });
+    s = act(s, 1, { type: 'doneLaying' });
+    expect(s.players[1].total).toBeGreaterThan(40);
+    expect(s.phase).toBe('roundOver');
+    s = act(s, 0, { type: 'ready' });
+    s = act(s, 1, { type: 'ready' });
+    expect(s.round).toBe(2);
+    s = rig(s, ['AH 2S 3D 4C 5H 6S 7D', 'KS KC QH QS JC JD 10H'], '3C', '8H');
+    s = act(s, 0, { type: 'draw' });
+    s = act(s, 0, { type: 'endRound', card: C('3C') });
+    s = act(s, 0, { type: 'doneLaying' });
+    s = act(s, 1, { type: 'doneLaying' });
+    expect(s.phase).toBe('gameOver');
+    expect(s.winners).toEqual([0]);
+  });
+
   it('next round rotates the dealer', () => {
     let s = rig(game(), ['AH 2S 3D 4C 5H 6S 7D', 'AS 2C 3H 4S 5C 6H 8C'], '3C', '8H');
     s = act(s, 0, { type: 'draw' });

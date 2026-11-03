@@ -111,7 +111,8 @@ export interface ServerToClient {
   'room:closed': (reason: string) => void;
 }
 
-export const NAME_MAX = 16;
+/** Longest player name: short enough for a player's plate on a phone (see FitName in the client's Hud). */
+export const NAME_MAX = 10;
 /** Longest chat message, messages kept, and how many one player may send per CHAT_WINDOW_MS. */
 export const CHAT_MAX = 120;
 export const CHAT_KEEP = 50;

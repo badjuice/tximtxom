@@ -1,13 +1,13 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { type Card, type GameEvent, type GameView, suitOf } from '@tximtxom/shared';
-import { cardShort, cardSpoken, type Key, kindName, lang, t } from '../i18n';
+import { cardShort, cardSpoken, kindName, lang, t } from '../i18n';
 import { updateSettings, useSettings } from '../settings';
 import { historyText } from '../historyLog';
 import { copyText } from '../report';
 import { type PastGame, store, toast, useStore } from '../store';
 import { ChatBox, useUnreadChat } from './Chat';
-import { CopyIcon, Label } from './common';
+import { CopyIcon, Label, tj } from './common';
 import { SEAT_COLORS } from './Hud';
 import { ArtIcon } from './sprites';
 
@@ -19,12 +19,6 @@ function C({ card }: { card: Card }) {
       {cardShort(card)}
     </span>
   );
-}
-
-/** t() for JSX: placeholders can be elements (coloured names, cards). */
-function tj(key: Key, vars: Record<string, ComponentChildren>): ComponentChildren {
-  const raw = t(key, Object.fromEntries(Object.keys(vars).map((k) => [k, `\u0000${k}\u0000`])));
-  return raw.split('\u0000').map((part, i) => (i % 2 ? vars[part] : part));
 }
 
 function copied(ok: boolean): void {
@@ -98,7 +92,7 @@ function PastGameFold({ game, n }: { game: PastGame; n: number }) {
               copy();
             }}
           >
-            <CopyIcon size={12} />
+            <CopyIcon />
           </button>
         </summary>
         <ol class="hfold-list">
@@ -132,6 +126,25 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
     const count = lines.length;
     switch (e.t) {
       case 'cut':
+        // Who drew what for the first deal; a tie draws again.
+        e.draws.forEach((pass, i) =>
+          lines.push({
+            id: id + i / 10,
+            kind: 'move',
+            seat: null,
+            body: (
+              <>
+                {t(i ? 'h.cutAgain' : 'h.cutDraws')}{' '}
+                {pass.map((d, j) => (
+                  <span key={d.seat}>
+                    {j > 0 && ', '}
+                    {N(d.seat)} <C card={d.card} />
+                  </span>
+                ))}
+              </>
+            ),
+          }),
+        );
         lines.push({ id, kind: 'move', seat: e.dealer, body: tj('h.cut', { name: N(e.dealer) }) });
         break;
       case 'deal':

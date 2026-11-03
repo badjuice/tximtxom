@@ -19,6 +19,27 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.55.0',
+    date: '2026-11-03',
+    items: [
+      n("New game mode, Rounds: play 5 or 10 rounds with no bust limit. The lowest total wins.", "Novo modo, Rondas: joga 5 ou 10 rondas sem limite para rabentar. Ganha o total mais baixo."),
+      n("Chip multipliers: rules that make formations easier pay less, harder ones pay more (×0.5 to ×2). The Rules window shows each rule's multiplier and the total on request.", "Multiplicadores de fichas: regras que facilitam as formações pagam menos, as mais difíceis pagam mais (×0,5 a ×2). A janela das Regras mostra o multiplicador de cada regra e o total, se pedires."),
+      n("A new rarity, Unique, in rainbow letters. Collection achievements: all commons, all uncommons, all epics, all legendaries, all secrets, every secret formation, Completionist, Completionist+ and Completionist++.", "Uma raridade nova, Única, em letras de arco-íris. Conquistas de coleção: todas as comuns, incomuns, épicas, lendárias, secretas, todas as formações secretas, Completista, Completista+ e Completista++."),
+      n("Rewards you can't buy: King John (a character with a rainbow plate) for John TximTxom, the Negative table for Completionist, the Polychrome card back for Completionist+.", "Prémios que não se compram: Rei John (uma personagem com placa de arco-íris) pelo John TximTxom, a mesa Negativo pelo Completista, as costas Policromadas pelo Completista+."),
+      n("14 more achievements: straights of every length from 3 to 13, a first pair and trio, first purchases in the Shop, and Early Bird. Every achievement and tier has its own flavour text now.", "Mais 14 conquistas: escadas de todos os tamanhos de 3 a 13, o primeiro par e trio, as primeiras compras na Loja, e Madrugador. Todas as conquistas e níveis têm agora a sua frase."),
+      n("Shop: Pride and Trans tables and a Rainbow card back. Random items flick through what they could be.", "Loja: mesas Orgulho e Trans e costas Arco-íris. Os itens aleatórios vão mostrando o que podem ser."),
+      n("Chips have their own spinning icon, next to every amount, and \"Chips\" is written in rainbow letters. Achievement toasts show what they pay.", "As fichas têm um ícone próprio a girar ao lado de cada valor, e \"Fichas\" aparece em letras de arco-íris. Os avisos de conquista mostram quanto pagam."),
+      c("End of a round: the summary waits for the last formation and its chips. Hold Table on it to look at the cards.", "Fim da ronda: o resumo espera pela última formação e pelas suas fichas. Segura Mesa para ver as cartas."),
+      c("History shows the cut for the first deal: who drew which card.", "O Histórico mostra o corte para a primeira distribuição: quem tirou que carta."),
+      c("Scramble shuffles only the hand of the player who takes a card.", "Baralhada só baralha a mão de quem apanha uma carta."),
+      c("Rules window: two columns of equal width and equal card height, and only the rules scroll.", "Janela das Regras: duas colunas da mesma largura e cartas da mesma altura, e só as regras deslizam."),
+      c("Names are up to 10 characters and always show whole on the plates. The dealer's D sits on the plate's corner.", "Os nomes têm até 10 caracteres e aparecem sempre inteiros nas placas. O D de quem dá fica no canto da placa."),
+      c("Settings › Style shows every rank and suit in a flat row, with the back on its own. A hovered card comes to the front.", "Definições › Estilo mostra todos os valores e naipes numa fila direita, com as costas à parte. A carta por baixo do cursor vem para a frente."),
+      c("The loading and battery-saving screens wait for their button, and both show the spinning card again (it showed halves of several cards).", "Os ecrãs de carregar e de poupar bateria esperam pelo botão, e voltam a mostrar a carta a girar (mostravam metades de várias cartas)."),
+      c("Bigger piles and copy buttons. Previewing a table in the Shop changes only its colours. Achievements filter: a \"Show:\" label and a button that keeps its width.", "Montes e botões de copiar maiores. Ver uma mesa na Loja só muda as cores. Filtro das Conquistas: um rótulo \"Mostrar:\" e um botão que mantém a largura."),
+    ],
+  },
+  {
     version: '0.54.0',
     date: '2026-11-03',
     items: [

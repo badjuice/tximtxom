@@ -13,13 +13,13 @@ const cards = (cs: readonly Card[]) => cs.map(cardCode).join(' ');
 
 function rulesLine(r: Rules): string {
   const on = (Object.keys(r) as (keyof Rules)[]).filter((k) => r[k] === true);
-  return `Rules: bust>${r.threshold} ride=${r.rideOrder}${r.turnTimer ? ` timer=${r.turnTimer}s` : ''}${on.length ? ` on=${on.join(',')}` : ''}`;
+  return `Rules: ${r.rounds ? `rounds=${r.rounds}` : `bust>${r.threshold}`} ride=${r.rideOrder}${r.turnTimer ? ` timer=${r.turnTimer}s` : ''}${on.length ? ` on=${on.join(',')}` : ''}`;
 }
 
 function line(e: GameEvent, g: GameView, mine: Card | undefined): string | null {
   switch (e.t) {
     case 'cut':
-      return `${e.dealer}cut`;
+      return `${e.draws.map((pass) => pass.map((d) => `${d.seat}${cardCode(d.card)}`).join(',')).join('/')} ${e.dealer}cut`;
     case 'deal':
       return `R${e.round}:${e.dealer}`;
     case 'draw':

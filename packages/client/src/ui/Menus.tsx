@@ -209,7 +209,8 @@ function Scoreboard({ onClose }: { onClose: () => void }) {
   const lobby = useStore((s) => s.room?.players ?? []);
   const [tab, setTab] = useState<SbTab>('round');
   if (!g) return null;
-  const max = g.rules.threshold;
+  // Rounds mode has no limit: the bars run up to the highest total.
+  const max = g.rules.rounds ? Math.max(g.rules.threshold, ...g.players.map((p) => p.total)) : g.rules.threshold;
   const order = g.players.map((_, i) => i).sort((a, b) => g.players[a].total - g.players[b].total);
   const rounds = g.results.slice(-SB_ROUNDS);
   const last = g.results.at(-1);
@@ -514,10 +515,22 @@ function StyleTab() {
   const random = { value: 'random', label: t('set.cardBack.random') };
   return (
     <>
+      {/* The whole deck, a row per suit, each card on top when pointed at; the back on the right. */}
       <div class="style-preview" aria-hidden="true">
-        <CardIcon card={makeCard(1, 3)} scale={0.8} />
-        <CardIcon card={makeCard(13, 0)} scale={0.8} />
-        {back === 'random' ? <RandomBackIcon backs={backs} scale={0.8} /> : <CardBackIcon back={back} scale={0.8} />}
+        <div class="deck-view">
+          <div class="deck-rows">
+            {[0, 1, 2, 3].map((suit) => (
+              <div class="deck-row">
+                {Array.from({ length: 13 }, (_, i) => (
+                  <span class="deck-card" tabIndex={-1}>
+                    <CardIcon card={makeCard(i + 1, suit as Suit)} scale={0.56} />
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+          <span class="deck-back">{back === 'random' ? <RandomBackIcon backs={backs} scale={0.8} /> : <CardBackIcon back={back} scale={0.8} />}</span>
+        </div>
         <p class="style-sample">{withHighlights(t('set.fontSample'))}</p>
       </div>
       <Choice

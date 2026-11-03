@@ -3,7 +3,7 @@
 // Abacus (https://jasoncameron.dev/abacus/), a free counting service: the game
 // has no server of its own.
 import { useEffect, useState } from 'preact/hooks';
-import type { FormationKind, GameEvent, GameView, RoomView } from '@tximtxom/shared';
+import { bustLimit, type FormationKind, type GameEvent, type GameView, type RoomView } from '@tximtxom/shared';
 import { store } from './store';
 
 /** What this device has played. */
@@ -235,7 +235,7 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
         bestRound: s.bestRound === null ? pts : Math.min(s.bestRound, pts),
         worstRound: s.worstRound === null ? pts : Math.max(s.worstRound, pts),
         totalPoints: s.totalPoints + pts,
-        recordBust: total > g.rules.threshold ? Math.max(s.recordBust ?? total, total) : s.recordBust,
+        recordBust: total > bustLimit(g.rules) ? Math.max(s.recordBust ?? total, total) : s.recordBust,
         lowestTotal: s.lowestTotal === null ? total : Math.min(s.lowestTotal, total),
       }));
       break;
@@ -272,7 +272,7 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
     }
     case 'gameOver': {
       const won = e.winners.includes(me);
-      const bust = !won && g.players[me].total > g.rules.threshold;
+      const bust = !won && g.players[me].total > bustLimit(g.rules);
       bump((s) => {
         const winStreak = won ? s.winStreak + 1 : 0;
         return {

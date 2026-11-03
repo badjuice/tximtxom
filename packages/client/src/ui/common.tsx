@@ -141,20 +141,43 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 /** A rule's name in its tone's colour with a shine sweeping across, wherever rules are named. */
 export const RuleName = ({ name, tone }: { name: string; tone?: Tone | string }) => <span class={`rule-ref tone-${tone ?? 'neutral'}`}>{name}</span>;
 
-/** `text` with "TximTxom" glowing and waving, and rule names in their colour with a shine across them. */
+/** A word in TximTxom's glowing, waving rainbow: the currency's name. */
+export const Rainbow = ({ text }: { text: string }) => (
+  <span class="ttx">
+    {[...text].map((ch, i) => (
+      <TxLetter ch={ch} ti={i} />
+    ))}
+  </span>
+);
+
+/** An amount of chips in prose ("+30 chips", "10 000 fichas"): the number, its sign and the word. */
+const CHIP_AMOUNT = String.raw`[+−-]?\d(?:[\d,. \u00a0\u202f]*\d)?\s(?:chips?|fichas?)(?![\wçã])`;
+/** The currency named on its own (not a graphics chip). */
+const CHIP_WORD = String.raw`(?<![\wç]|graphics )(?:[Cc]hips?|[Ff]ichas?)(?![\wçã]| gráfico)`;
+
+/** `text` with "TximTxom" glowing and waving, rule names in their colour with a shine across them,
+ *  amounts of chips as the chip and the number, and the currency's name in a rainbow. */
 export function withHighlights(text: string): ComponentChildren {
   const tones = new Map(RULE_REFS.map(([k, tone]) => [t(k), tone]));
-  const re = new RegExp(`TximTxom|${[...tones.keys()].map(escape).join('|')}`, 'g');
+  const re = new RegExp(`(${CHIP_AMOUNT})|(${CHIP_WORD})|TximTxom|${[...tones.keys()].map(escape).join('|')}`, 'g');
   const parts: ComponentChildren[] = [];
   let last = 0;
   for (const m of text.matchAll(re)) {
     if (m.index! > last) parts.push(text.slice(last, m.index));
-    parts.push(m[0] === 'TximTxom' ? withTximTxom(m[0]) : <span class={`rule-ref tone-${tones.get(m[0])}`}>{m[0]}</span>);
+    parts.push(
+      m[1] ? <ChipAmount n={m[1].replace(/\s\S+$/, '')} /> : m[2] ? <Rainbow text={m[2]} /> : m[0] === 'TximTxom' ? withTximTxom(m[0]) : <span class={`rule-ref tone-${tones.get(m[0])}`}>{m[0]}</span>,
+    );
     last = m.index! + m[0].length;
   }
   if (!parts.length) return text;
   if (last < text.length) parts.push(text.slice(last));
   return <>{parts}</>;
+}
+
+/** t() for JSX: placeholders can be elements (coloured names, cards, amounts of chips). */
+export function tj(key: Key, vars: Record<string, ComponentChildren>): ComponentChildren {
+  const raw = t(key, Object.fromEntries(Object.keys(vars).map((k) => [k, `\u0000${k}\u0000`])));
+  return raw.split('\u0000').map((part, i) => (i % 2 ? vars[part] : part));
 }
 
 /** Text whose letters wobble and hop in turn. Longer text than `max` stays still.
@@ -163,7 +186,8 @@ export function WaveText({ text, max = WAVE_MAX, amp = 3, plain }: { text: strin
   const on = text.length <= max;
   const ref = useWave(amp, on);
   if (!on) return <>{plain ? text : withHighlights(text)}</>;
-  const ranges = plain ? [] : tximtxomRanges(text);
+  // TximTxom and the currency's name in the rainbow.
+  const ranges = plain ? [] : [...tximtxomRanges(text), ...[...text.matchAll(new RegExp(CHIP_WORD, 'g'))].map((m): [number, number] => [m.index!, m.index! + m[0].length])];
   const inWord = (i: number) => ranges.find(([a, b]) => i >= a && i < b);
   return (
     <span class="wave">
@@ -383,6 +407,8 @@ export function Toggle(props: {
   lockedBy?: string;
   /** Names this toggle for a locked one's `lockedBy`. */
   rule?: string;
+  /** What it does to the chips a game pays (the rules list shows it on request). */
+  pay?: number;
 }) {
   const disabled = props.disabled || !!props.locked;
   const nudge = (e: MouseEvent) => {
@@ -418,6 +444,7 @@ export function Toggle(props: {
         </span>
       )}
       {props.joker && <ArtIcon name={props.joker} scale={0.55} rule />}
+      {props.pay !== undefined && <PayTag k={props.pay} />}
       <span class="toggle-text">
         <span class="toggle-label">
           <Fit text={props.label}>{props.joker ? <RuleName name={props.label} tone={props.tone} /> : props.label}</Fit>
@@ -443,6 +470,13 @@ export function Toggle(props: {
   );
 }
 
+/** A rule's chip multiplier in the corner of its card: green above ×1, red below, grey at ×1. */
+export const PayTag = ({ k }: { k: number }) => (
+  <span class={`pay-tag${k > 1 ? ' up' : k < 1 ? ' down' : ''}`}>
+    <ChipIcon size={12} />×{k}
+  </span>
+);
+
 export function Choice<T extends string | number>(props: {
   label: string;
   desc?: DescText;
@@ -452,21 +486,26 @@ export function Choice<T extends string | number>(props: {
   joker?: string;
   disabled?: boolean;
   tone?: Tone;
+  /** What its current setting does to the chips a game pays. */
+  pay?: number;
+  /** Greyed out, with this reason as its description (Rounds mode has no bust limit). */
+  off?: string;
 }) {
   return (
-    <div class={`toggle choice${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`} role="group" aria-label={props.label}>
+    <div class={`toggle choice${props.off ? ' off' : ''}${props.disabled ? ' disabled' : ''}${props.tone ? ` tone-${props.tone}` : ''}`} role="group" aria-label={props.label}>
       {props.joker && <ArtIcon name={props.joker} scale={0.55} rule />}
+      {props.pay !== undefined && <PayTag k={props.pay} />}
       <span class="toggle-text">
         <span class="toggle-label">
           <Fit text={props.label}>{props.joker ? <RuleName name={props.label} tone={props.tone} /> : props.label}</Fit>
         </span>
-        {props.desc && (
+        {(props.off || props.desc) && (
           <span class="toggle-desc">
-            <Desc text={props.desc} />
+            <Desc text={props.off ?? props.desc!} />
           </span>
         )}
       </span>
-      <Cycler label={props.label} value={props.value} options={props.options} onChange={props.onChange} disabled={props.disabled} />
+      <Cycler label={props.label} value={props.value} options={props.options} onChange={props.onChange} disabled={props.disabled || !!props.off} />
     </div>
   );
 }
@@ -820,8 +859,36 @@ export function Label({ k, vars }: { k: Key; vars?: Record<string, string | numb
 /** Settings in the screen's top corner; `children` go before it (the lobby's How to play and Formations). */
 /** A casino chip: the icon of the game's currency. */
 /** The chip, seen from the side (68 × 42), `size` wide. Not draggable, and clicks go through it. */
-export const ChipIcon = ({ size = 20 }: { size?: number }) => (
-  <img class="chip-icon" src={assetUrl('ui/chip.png')} width={Math.round(size * 1.25)} height={Math.round(size * 1.25 * (48 / 68))} alt="" aria-hidden="true" draggable={false} />
+/** One turn of the chip; every chip on screen turns in step (styles.css: chip-spin). */
+const CHIP_SPIN_MS = 3200;
+/** One trip through the rainbow, with three pulses of the glow (styles.css: chip-glow). */
+const CHIP_GLOW_MS = 6000;
+/** The chip's layers front to back: a face, three of edge, a face. */
+const CHIP_LAYERS = [2, 1, 0, -1, -2];
+
+/** The currency: a chip turning in 3D, its colours shifting through the rainbow, in a pulsing gold glow.
+ *  `size` in px; without it the chip is as tall as the text around it. */
+export const ChipIcon = ({ size }: { size?: number }) => {
+  const face = { backgroundImage: `url(${assetUrl('ui/chip-face.png')})` };
+  // Set once: started that far into the cycle, it turns in step with the others.
+  const [t0] = useState(() => performance.now());
+  return (
+    <span class="chip-icon" style={{ '--cs': size ? `${size}px` : undefined, animationDelay: `${-(t0 % CHIP_GLOW_MS)}ms` }} aria-hidden="true">
+      <span class="chip-spin" style={{ animationDelay: `${-(t0 % CHIP_SPIN_MS)}ms` }}>
+        {CHIP_LAYERS.map((z) => (
+          <i class={Math.abs(z) === 2 ? 'chip-face' : 'chip-edge'} style={{ '--z': z, ...(Math.abs(z) === 2 ? face : {}) }} />
+        ))}
+      </span>
+    </span>
+  );
+};
+
+/** An amount of chips: the chip, then the number ("+30"). */
+export const ChipAmount = ({ n, sign, size }: { n: number | string; sign?: boolean; size?: number }) => (
+  <span class="chip-amt">
+    <ChipIcon size={size} />
+    {typeof n === 'number' ? `${sign && n > 0 ? '+' : ''}${formatCount(n)}` : n}
+  </span>
 );
 
 /** Your chips: the balance on a dark pill, with the chip in front. */
@@ -887,7 +954,7 @@ export function Rich({ text }: { text: string }) {
 }
 
 /** Two sheets, the front one solid: drawn on the same pixel grid as the game's icons. */
-export const CopyIcon = ({ size = 14 }: { size?: number }) => (
+export const CopyIcon = ({ size = 16 }: { size?: number }) => (
   <svg viewBox="0 0 16 16" width={size} height={size} shape-rendering="crispEdges" aria-hidden="true">
     <path d="M5 1h10v10h-3V9h1V3H7v1H5z" fill="currentColor" opacity="0.7" />
     <path d="M1 5h10v10H1z" fill="currentColor" />

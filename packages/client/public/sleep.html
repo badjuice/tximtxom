@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>TximTxom</title>
     <link rel="icon" href="favicon.png" />
-    <!-- The game left in the background sleeps here (see src/power.ts) and goes back when looked at again. -->
+    <!-- The game left in the background sleeps here (see src/power.ts) and goes back
+         when the player presses Continue. The card is the loading screen's (index.html). -->
     <style>
       @font-face {
         font-family: m6x11;
@@ -15,43 +16,149 @@
       body {
         height: 100%;
         margin: 0;
-        background: #1f3a3d;
+        background: #1b2b2a;
         color: #fff;
         font: 28px m6x11, monospace;
-        display: grid;
-        place-items: center;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
         text-align: center;
-        cursor: pointer;
+        perspective: 500px;
       }
       p {
-        margin: 8px 16px;
+        margin: 0 16px;
+        text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
       }
       .hint {
         color: #9fb4b6;
         font-size: 0.75em;
+        margin-top: -12px;
+      }
+      .card {
+        position: relative;
+        width: 84px;
+        height: 120px;
+        transform-style: preserve-3d;
+        animation:
+          turn 1.2s linear infinite,
+          float 1.2s ease-in-out infinite;
+      }
+      .face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+      }
+      .back {
+        transform: rotateY(180deg);
+      }
+      .face > i {
+        position: absolute;
+        inset: 0;
+        background: url(assets/ui/loading.png) 0 0 / 1260px 120px no-repeat;
+        image-rendering: pixelated;
+      }
+      .face > .black {
+        background-position-x: -84px;
+        opacity: 0;
+        animation: black 2.4s step-end infinite;
+      }
+      .back > i {
+        background-position-x: var(--back, -168px);
+      }
+      @keyframes turn {
+        to {
+          transform: rotateY(360deg);
+        }
+      }
+      @keyframes float {
+        0%,
+        100% {
+          translate: 0 2px;
+        }
+        50% {
+          translate: 0 -8px;
+        }
+      }
+      @keyframes black {
+        0% {
+          opacity: 0;
+        }
+        25% {
+          opacity: 1;
+        }
+        75% {
+          opacity: 0;
+        }
+      }
+      /* The game's blue button (styles.css .btn-blue). */
+      button {
+        font: inherit;
+        color: #fff;
+        background: #009dff;
+        border: none;
+        border-radius: 10px;
+        padding: 0.45em 0.9em;
+        min-height: 46px;
+        cursor: pointer;
+        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+        box-shadow: 0 5px 0 #0066a8;
+        transition:
+          transform 0.06s,
+          box-shadow 0.06s,
+          filter 0.1s;
+      }
+      button:hover {
+        filter: brightness(1.12);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 0 #0066a8;
+      }
+      button:active {
+        transform: translateY(4px);
+        box-shadow: 0 1px 0 #0066a8;
+      }
+      button:focus-visible {
+        outline: 3px solid #eac058;
+        outline-offset: 2px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .card {
+          animation: pulse 1.2s ease-in-out infinite alternate;
+        }
+        .face > .black {
+          animation: none;
+        }
+      }
+      @keyframes pulse {
+        to {
+          opacity: 0.4;
+        }
       }
     </style>
   </head>
   <body>
-    <div>
-      <p id="t">TximTxom is resting</p>
-      <p class="hint" id="h">Paused to save battery. Tap to continue.</p>
-    </div>
+    <div class="card" aria-hidden="true"><div class="face"><i></i><i class="black"></i></div><div class="face back"><i></i></div></div>
+    <p id="t">TximTxom is resting</p>
+    <p class="hint" id="h">Paused to save battery.</p>
+    <button id="go" type="button">Continue</button>
     <script>
+      document.body.style.setProperty('--back', -(2 + Math.floor(Math.random() * 13)) * 84 + 'px');
       try {
         if (JSON.parse(localStorage.getItem('tximtxom.settings') || '{}').lang !== 'en') {
           document.getElementById('t').textContent = 'O TximTxom está a descansar';
-          document.getElementById('h').textContent = 'Em pausa para poupar bateria. Toca para continuar.';
+          document.getElementById('h').textContent = 'Em pausa para poupar bateria.';
+          document.getElementById('go').textContent = 'Continuar';
         }
       } catch {}
       // Only back to a page of this site.
       const to = new URL(new URLSearchParams(location.search).get('to') || './', location.href);
-      const back = () => location.replace(to.origin === location.origin ? to : new URL('./', location.href));
-      const looked = () => !document.hidden && document.hasFocus();
-      addEventListener('pointerdown', back);
-      addEventListener('keydown', back);
-      addEventListener('focus', () => looked() && back());
-      document.addEventListener('visibilitychange', () => looked() && back());
+      const go = document.getElementById('go');
+      go.addEventListener('click', () => location.replace(to.origin === location.origin ? to : new URL('./', location.href)));
     </script>
   </body>
 </html>

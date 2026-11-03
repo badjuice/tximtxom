@@ -1,7 +1,9 @@
 import { assetUrl } from '../version';
-import { Application, Assets, CanvasSource, Container, type Spritesheet, type Texture } from 'pixi.js';
+import { Application, Assets, CanvasSource, Container, type Spritesheet, Texture } from 'pixi.js';
 import { type Card, type GameView, handSize } from '@tximtxom/shared';
 import { upscaled, UPSCALE } from '../pixelArt';
+import { attachEdition } from '../ui/editions';
+import { POLY_BACK, POLY_BASE } from '../ui/sprites';
 import { frameRate, onFrameRate } from '../power';
 import { CARD_ATLAS, type CardStyle, getSettings, historyInset, onSettings } from '../settings';
 import type { Staged } from '../store';
@@ -212,6 +214,18 @@ export class Table {
         const filter = () => (big.scaleMode = getSettings().smooth === 'all' ? 'linear' : 'nearest');
         filter();
         onSettings(filter);
+        // The Polychrome back: one canvas the edition shader keeps redrawing, shared by every back.
+        let poly: Texture | null = null;
+        const polyBack = () => {
+          if (poly) return poly;
+          const f = sheet.textures[POLY_BASE].frame;
+          const canvas = Object.assign(document.createElement('canvas'), { width: f.width * UPSCALE, height: f.height * UPSCALE });
+          attachEdition(canvas, POLY_BASE).setEdition('poly', false);
+          const source = new CanvasSource({ resource: canvas, resolution: UPSCALE });
+          this.app.ticker.add(() => source.update());
+          return (poly = new Texture({ source }));
+        };
+        return { get: (name: string) => (name === POLY_BACK ? polyBack() : (sheet.textures[name] as Texture)) };
       } else {
         // Smooth art, three times the pixel cards' size (the atlas's scale): always smoothed.
         sheet.textureSource.scaleMode = 'linear';

@@ -380,6 +380,8 @@ function handPos(g: GameView, seat: number, n: number): (Point & { scale?: numbe
 
 /** When each formation's cards land on the table: rides on it wait for that. */
 const layLandAt = new Map<number, number>();
+/** When the last formation laid this round lands on the table (ms timestamp, 0 for none). */
+export const lastLandAt = () => Math.max(0, ...layLandAt.values());
 
 /** Above a formation, once its cards have landed: where chips earned on it float up. */
 const chipSpot = (g: GameView) => (id: number) => {
@@ -388,8 +390,8 @@ const chipSpot = (g: GameView) => (id: number) => {
 };
 
 function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
-  // Scramble: anyone picking a card up (or swapping the drawn one in) shuffles every hand.
-  if (e.t === 'draw' || e.t === 'take' || (e.t === 'discard' && !e.fromDraw)) scrambleNow = true;
+  // Scramble: your hand shuffles when you add a card to it (draw, take, or swap the drawn one in).
+  if ((e.t === 'draw' || e.t === 'take' || (e.t === 'discard' && !e.fromDraw)) && e.seat === g.you) scrambleNow = true;
   const L = table.layout;
   const me = g.you;
   const sfx = (n: Sfx, o?: Parameters<typeof play>[1]) => play(n, o);

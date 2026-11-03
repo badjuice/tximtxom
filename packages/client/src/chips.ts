@@ -3,7 +3,7 @@
 // someone who reads the code, but an edit made in the browser's tools breaks the
 // signature, and the game goes back to the last save that was still valid.
 import { useEffect, useState } from 'preact/hooks';
-import { type GameEvent, type GameView, rankOf } from '@tximtxom/shared';
+import { bustLimit, type GameEvent, type GameView, rankOf, type Rules } from '@tximtxom/shared';
 import type { Rarity } from './achievements';
 import { kindName, t } from './i18n';
 
@@ -24,7 +24,42 @@ export const PAY = {
   /** The first game you win each day, on top of the win itself. */
   firstWin: 50,
 };
-export const ACH_PAY: Record<Rarity, number> = { common: 10, uncommon: 25, epic: 50, legendary: 100, secret: 50 };
+export const ACH_PAY: Record<Rarity, number> = { common: 10, uncommon: 25, epic: 50, legendary: 100, secret: 50, unique: 250 };
+
+/**
+ * What each rule does to the chips a game pays (cards formed, rides, emptied hands, rounds and games won,
+ * not busting; not achievements or the daily bonuses). Rules that make formations easier pay less,
+ * rules that make the game harder or riskier pay more. Each value is for the rule's current setting.
+ */
+export const RULE_PAY: { [K in keyof Rules]?: (r: Rules) => number } = {
+  softcore: (r) => (r.softcore ? 0.8 : 1),
+  superposition: (r) => (r.superposition ? 0.9 : 1),
+  mobius: (r) => (r.mobius ? 0.9 : 1),
+  smeared: (r) => (r.smeared ? 0.85 : 1),
+  magicSort: (r) => (r.magicSort ? 0.9 : 1),
+  sixthSense: (r) => (r.sixthSense ? 0.9 : 1),
+  twoDecks: (r) => (r.twoDecks ? 0.85 : 1),
+  polydactyly: (r) => (r.polydactyly ? 0.9 : 1),
+  rides: (r) => ({ any: 1, one: 1.1, none: 1.2 })[r.rides],
+  penalty10: (r) => (r.penalty10 ? 1.15 : 1),
+  doubleDown: (r) => (r.doubleDown ? 1.15 : 1),
+  turnTimer: (r) => (r.turnTimer === 30 ? 1.15 : r.turnTimer === 60 ? 1.05 : 1),
+  scramble: (r) => (r.scramble ? 1.2 : 1),
+};
+/** What a rule pays when it's on (for the rules list): the value at its riskiest setting for a choice. */
+export const RULE_PAY_ON: { [K in keyof Rules]?: number } = {
+  softcore: 0.8, superposition: 0.9, mobius: 0.9, smeared: 0.85, magicSort: 0.9, sixthSense: 0.9, twoDecks: 0.85, polydactyly: 0.9,
+  penalty10: 1.15, doubleDown: 1.15, scramble: 1.2,
+};
+/** All the rules together: their values multiplied, kept between ×0.5 and ×2. */
+export function chipMultiplier(r: Rules): number {
+  const k = Object.values(RULE_PAY).reduce((m, f) => m * f!(r), 1);
+  return Math.round(Math.min(2, Math.max(0.5, k)) * 100) / 100;
+}
+/** The sources a game's rules scale. */
+const RULED: ChipSource[] = ['formed', 'rides', 'emptied', 'survived', 'roundWins', 'gameWins'];
+/** This game's multiplier, from the event being paid. */
+let multiplier = 1;
 
 /** One change to the balance. */
 export interface ChipEntry {
@@ -174,6 +209,7 @@ let gameEarned = 0;
 /** Adds `n` earned chips from `src`. With `at`, a "+n" floats up there on the table. */
 export function earn(src: ChipSource, n: number, at?: Spot, label?: string): void {
   if (n <= 0) return;
+  if (RULED.includes(src)) n = Math.max(1, Math.round(n * multiplier));
   const balance = chips.balance + n;
   chips = {
     ...chips,
@@ -205,6 +241,14 @@ export function buyItem(id: string, price: number): boolean {
   save();
   notify();
   return true;
+}
+
+/** Gives item `id` for free (an achievement's reward). */
+export function grantItem(id: string): void {
+  if (chips.owned.includes(id)) return;
+  chips = { ...chips, owned: [...chips.owned, id] };
+  save();
+  notify();
 }
 
 export const chipsNow = (): Chips => chips;
@@ -267,6 +311,7 @@ function checkEmptied(g: GameView, me: number, at?: Spot): void {
 export function chipsEvent(e: GameEvent, g: GameView, spot: (formationId: number) => { x: number; y: number; delay: number } | null): void {
   const me = g.you;
   if (me === null) return;
+  multiplier = chipMultiplier(g.rules);
   switch (e.t) {
     case 'deal':
       roundEarned = 0;
@@ -312,7 +357,7 @@ export function chipsEvent(e: GameEvent, g: GameView, spot: (formationId: number
     case 'score': {
       const r = g.results.at(-1);
       if (!r) break;
-      if (r.totals[me] <= g.rules.threshold) earn('survived', PAY.survived);
+      if (r.totals[me] <= bustLimit(g.rules)) earn('survived', PAY.survived);
       if (r.points[me] === Math.min(...r.points)) earn('roundWins', PAY.roundWin);
       break;
     }

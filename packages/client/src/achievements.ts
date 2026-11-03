@@ -3,12 +3,13 @@
 // a time. Infected is the odd one: it passes between players who share a room
 // (see `infected` in the room protocol), and the very first player to start a
 // game gets it from nobody (see claimPatientZero in stats.ts).
-import { type Card, classifyFormation, type GameEvent, type GameView, rankOf, type RoomView, type Rules, suitOf } from '@tximtxom/shared';
+import { bustLimit, type Card, classifyFormation, type GameEvent, type GameView, rankOf, type RoomView, type Rules, suitOf } from '@tximtxom/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
 import { getSettings } from './settings';
 import { store } from './store';
-import { ACH_PAY, chipsEarned, chipsNow, earn, onChips, payBack } from './chips';
+import { ACH_PAY, chipsEarned, chipsNow, earn, grantItem, onChips, payBack } from './chips';
+import { ownsEverything, SOLD } from './shop';
 import { claimPatientZero, countInfected, creditCarrier, type MyStats, myStats, onStats } from './stats';
 
 const CARRIER_KEY = 'tximtxom.carrier';
@@ -38,11 +39,15 @@ export type AchievementId =
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd'
   | 'regular' | 'sayHi' | 'showDontTell' | 'anarchist' | 'nightOwl' | 'polyglot' | 'recycler' | 'throughAce' | 'royalFlush' | 'quickDraw' | 'sevenUp'
   | 'theBeast' | 'mirrorMatch' | 'luckySeven' | 'royalMess'
-  | 'eightStraight' | 'nineStraight' | 'johnTximtxom' | 'highFive' | 'sixPack' | 'seventhHeaven' | 'octopusPrime';
+  | 'eightStraight' | 'nineStraight' | 'johnTximtxom' | 'highFive' | 'sixPack' | 'seventhHeaven' | 'octopusPrime'
+  | 'straight3' | 'straight4' | 'straight6' | 'straight10' | 'straight11' | 'straight12' | 'straight13' | 'firstPair' | 'firstTrio'
+  | 'firstBuy' | 'firstBack' | 'firstTable' | 'firstAvatar' | 'earlyBird'
+  | 'allCommons' | 'allUncommons' | 'allEpics' | 'legendDary' | 'notSoSecret' | 'formationHunter' | 'completionist' | 'completionistPlus' | 'completionistPlusPlus';
 
 /** One achievement per rule, for playing a round with it on: its card art, and whether it's on. */
 export const RULE_ACHIEVEMENTS = {
-  bust100: { art: 'bust', on: (r: Rules) => r.threshold === 100 },
+  bust100: { art: 'bust', on: (r: Rules) => r.threshold === 100 && !r.rounds },
+  rounds: { art: 'timer', on: (r: Rules) => r.rounds > 0 },
   softcore: { art: 'softcore', on: (r: Rules) => r.softcore },
   superposition: { art: 'ace', on: (r: Rules) => r.superposition },
   mobius: { art: 'ace', on: (r: Rules) => r.mobius },
@@ -101,8 +106,8 @@ const COVERED: Partial<Record<Track, number[]>> = { gamesWon: [5, 10], ridesTake
 /** Rarity by goal, for a track that doesn't follow common, uncommon, epic. */
 const TRACK_RARITY: Partial<Record<Track, Rarity[]>> = { gamesWon: ['epic', 'epic', 'uncommon', 'epic', 'legendary'] };
 
-/** How hard it is to get, shown as the colour down the card's side. Secret ones are red. */
-export type Rarity = 'common' | 'uncommon' | 'epic' | 'legendary' | 'secret';
+/** How hard it is to get, shown as the colour down the card's side. Secret ones are red, unique ones a rainbow. */
+export type Rarity = 'common' | 'uncommon' | 'epic' | 'legendary' | 'unique' | 'secret';
 
 export interface Achievement {
   id: AchievementId;
@@ -142,6 +147,14 @@ const ALL: Achievement[] = [
   { id: 'polyglot', art: 'help', rarity: 'common' },
   { id: 'recycler', art: 'crab', rarity: 'common' },
   { id: 'chips10', art: 'guard', rarity: 'common', meter: 'chips', goal: 1000 },
+  { id: 'firstPair', art: 'softcore', rarity: 'common' },
+  { id: 'firstTrio', art: 'guard', rarity: 'common' },
+  { id: 'straight3', art: 'mixed', rarity: 'common' },
+  { id: 'straight4', art: 'mixed', rarity: 'common' },
+  { id: 'firstBuy', art: 'penalty', rarity: 'common' },
+  { id: 'firstBack', art: 'turn', rarity: 'common' },
+  { id: 'firstTable', art: 'magiku', rarity: 'common' },
+  { id: 'firstAvatar', art: 'king', rarity: 'common' },
   { id: 'competitor', art: 'barbarian', rarity: 'uncommon' },
   { id: 'fullHand', art: 'txijog', rarity: 'uncommon' },
   { id: 'fullParty', art: 'turn', rarity: 'uncommon' },
@@ -164,6 +177,7 @@ const ALL: Achievement[] = [
   { id: 'selfService', art: 'ride', rarity: 'epic' },
   { id: 'throughAce', art: 'ace', rarity: 'epic' },
   { id: 'quickDraw', art: 'txijog', rarity: 'epic' },
+  { id: 'straight6', art: 'serpent', rarity: 'epic' },
   { id: 'tximtxom', art: 'tximtxom', rarity: 'legendary' },
   { id: 'flawless', art: 'kabaleru', rarity: 'legendary' },
   { id: 'royalFlush', art: 'princess', rarity: 'legendary' },
@@ -179,6 +193,17 @@ const ALL: Achievement[] = [
   { id: 'chips1000', art: 'kabaleru', rarity: 'legendary', meter: 'chips', goal: 100000 },
   ...RULE_ACH_IDS.map((rule): Achievement => ({ id: `rule_${rule}`, art: RULE_ACHIEVEMENTS[rule].art, rarity: 'common', rule })),
   { id: 'vanilla', art: 'villager', rarity: 'uncommon' },
+  // For collecting the others: each rarity's set, one rarity up, then the unique ones.
+  { id: 'allCommons', art: 'villager', rarity: 'uncommon' },
+  { id: 'allUncommons', art: 'squire', rarity: 'epic' },
+  { id: 'allEpics', art: 'kabaleru', rarity: 'legendary' },
+  { id: 'legendDary', art: 'tximtxom', rarity: 'unique', rainbow: true },
+  { id: 'notSoSecret', art: 'fantasma', rarity: 'unique', rainbow: true },
+  { id: 'completionist', art: 'elder', rarity: 'unique', rainbow: true },
+  { id: 'completionistPlus', art: 'queen', rarity: 'unique', rainbow: true },
+  { id: 'completionistPlusPlus', art: 'king', rarity: 'unique', rainbow: true },
+  // A 9-card TximTxom: hidden until it happens, and outside every collection.
+  { id: 'johnTximtxom', art: 'kingJohn', rarity: 'unique', rainbow: true, secret: true },
   { id: 'infected', art: 'slime', rarity: 'secret', secret: true },
   { id: 'scholar', art: 'elder', rarity: 'secret', secret: true },
   { id: 'prettyBasic', art: 'cards:base', rarity: 'secret', secret: true },
@@ -191,11 +216,38 @@ const ALL: Achievement[] = [
   // Polydactyly's long straights, and two decks' big sets.
   { id: 'eightStraight', art: 'serpent', rarity: 'secret', secret: true },
   { id: 'nineStraight', art: 'web', rarity: 'secret', secret: true },
-  { id: 'johnTximtxom', art: 'king', rarity: 'secret', secret: true },
   { id: 'highFive', art: 'brute', rarity: 'secret', secret: true },
   { id: 'sixPack', art: 'beetle', rarity: 'secret', secret: true },
   { id: 'seventhHeaven', art: 'queen', rarity: 'secret', secret: true },
   { id: 'octopusPrime', art: 'octopus', rarity: 'secret', secret: true },
+  // Straights only rides can stretch that far.
+  { id: 'straight10', art: 'snail', rarity: 'secret', secret: true },
+  { id: 'straight11', art: 'cat', rarity: 'secret', secret: true },
+  { id: 'straight12', art: 'horse', rarity: 'secret', secret: true },
+  { id: 'straight13', art: 'bear', rarity: 'secret', secret: true },
+  { id: 'earlyBird', art: 'timer', rarity: 'secret', secret: true },
+  { id: 'formationHunter', art: 'web', rarity: 'secret', secret: true },
+];
+
+/** Straights of each length with a one-off of their own (5 is Long Haul I). */
+const STRAIGHT_ACH: Record<number, AchievementId> = { 3: 'straight3', 4: 'straight4', 6: 'straight6', 7: 'sevenUp', 8: 'eightStraight', 9: 'nineStraight', 10: 'straight10', 11: 'straight11', 12: 'straight12', 13: 'straight13' };
+/** The secret formations: Formation Hunter wants every one. */
+const SECRET_FORMATIONS: AchievementId[] = ['theBeast', 'eightStraight', 'nineStraight', 'straight10', 'straight11', 'straight12', 'straight13', 'highFive', 'sixPack', 'seventhHeaven', 'octopusPrime'];
+/** What an achievement gives: a shop item that's never sold. */
+export const REWARDS: Partial<Record<AchievementId, string>> = { johnTximtxom: 'kingJohn', completionist: 'negative', completionistPlus: 'back_poly' };
+
+/** Neither secret nor unique. */
+const isPlain = (a: Achievement) => a.rarity !== 'secret' && a.rarity !== 'unique';
+/** The collections: each unlocks once every achievement its test picks is in. */
+const COLLECTIONS: [AchievementId, (a: Achievement) => boolean][] = [
+  ['allCommons', (a) => a.rarity === 'common'],
+  ['allUncommons', (a) => a.rarity === 'uncommon'],
+  ['allEpics', (a) => a.rarity === 'epic'],
+  ['legendDary', (a) => a.rarity === 'legendary'],
+  ['formationHunter', (a) => SECRET_FORMATIONS.includes(a.id)],
+  ['notSoSecret', (a) => a.rarity === 'secret'],
+  ['completionist', (a) => isPlain(a) || a.id === 'legendDary'],
+  ['completionistPlus', (a) => isPlain(a) || a.rarity === 'secret' || ['legendDary', 'notSoSecret', 'completionist'].includes(a.id)],
 ];
 
 /** Sets bigger than a deck allows, by size. */
@@ -283,7 +335,26 @@ export function unlock(id: AchievementId, counted = false): void {
   unlockHooks.forEach((h) => h(id));
   const a = ACHIEVEMENTS.find((x) => x.id === id);
   if (a) earn('achievements', ACH_PAY[a.rarity]);
+  const gift = REWARDS[id];
+  if (gift) grantItem(gift);
   if (!showing) nextToast();
+  checkCollections();
+}
+
+/** Unlocks each collection whose achievements are all in (one collection can complete the next). */
+function checkCollections(): void {
+  for (const [id, of] of COLLECTIONS) if (!unlocked[id] && ALL.every((a) => a.id === id || !of(a) || unlocked[a.id])) unlock(id);
+  if (!unlocked.completionistPlusPlus && unlocked.completionistPlus && ownsEverything()) unlock('completionistPlusPlus');
+}
+
+/** The shop ones: something bought (rewards don't count), and the first of each kind. */
+function checkShop(): void {
+  const bought = SOLD.filter((i) => chipsNow().owned.includes(i.id));
+  if (bought.length) unlock('firstBuy');
+  if (bought.some((i) => i.kind === 'back')) unlock('firstBack');
+  if (bought.some((i) => i.kind === 'table')) unlock('firstTable');
+  if (bought.some((i) => i.kind === 'avatar')) unlock('firstAvatar');
+  if (!unlocked.completionistPlusPlus && unlocked.completionistPlus && ownsEverything()) unlock('completionistPlusPlus');
 }
 
 /** When each of the toast's three shines starts (ms after it shows). */
@@ -348,12 +419,13 @@ function formationShown(kind: string, cards: Card[]): void {
   const ranks = new Set(cards.map(rankOf));
   if (kind === 'trio' && cards.length === 3 && cards.every((c) => rankOf(c) === 6)) unlock('theBeast');
   if (kind !== 'straight') {
-    if (BIG_SET_ACH[cards.length]) unlock(BIG_SET_ACH[cards.length]);
+    if (cards.length === 2) unlock('firstPair');
+    if (cards.length >= 3) unlock('firstTrio');
+    for (let n = 5; n <= cards.length; n++) if (BIG_SET_ACH[n]) unlock(BIG_SET_ACH[n]);
     return;
   }
-  if (cards.length >= 7) unlock('sevenUp');
-  if (cards.length >= 8) unlock('eightStraight');
-  if (cards.length >= 9) unlock('nineStraight');
+  // Every length up to this one: a straight stretched by rides counts for the shorter ones too.
+  for (let n = 3; n <= cards.length; n++) if (STRAIGHT_ACH[n]) unlock(STRAIGHT_ACH[n]);
   // The Ace in the middle: only the Mobius Strip lets a straight run K-A-2.
   if (ranks.has(13) && ranks.has(1) && ranks.has(2)) unlock('throughAce');
   if ([10, 11, 12, 13, 1].every((r) => ranks.has(r)) && new Set(cards.map(suitOf)).size === 1) unlock('royalFlush');
@@ -363,7 +435,8 @@ function formationShown(kind: string, cards: Card[]): void {
 export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): void {
   const me = g.you;
   if (me === null) return;
-  const threshold = g.rules.threshold;
+  // Nobody busts in Rounds mode.
+  const threshold = bustLimit(g.rules);
   switch (e.t) {
     case 'deal':
       unlock('dealtIn');
@@ -465,7 +538,9 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       if (total === threshold) unlock('closeCall');
       // Everyone else went over in the last round, and you didn't.
       if (e.winners.includes(me) && total <= threshold && g.players.every((p, i) => i === me || p.total > threshold)) unlock('leastWorst');
-      if (new Date().getHours() < 5) unlock('nightOwl');
+      const hour = new Date().getHours();
+      if (hour < 5) unlock('nightOwl');
+      else if (hour < 9) unlock('earlyBird');
       break;
     }
   }
@@ -488,7 +563,11 @@ export function initAchievements(): void {
   const chipCheck = () => {
     for (const a of ACHIEVEMENTS) if (a.meter === 'chips' && a.goal && chipsEarned() >= a.goal) unlock(a.id);
     if (chipsNow().bestDailyStreak >= 7) unlock('regular');
+    checkShop();
   };
+  // Rewards for achievements unlocked before they had one, and collections already complete.
+  for (const [id, item] of Object.entries(REWARDS)) if (item && unlocked[id as AchievementId]) grantItem(item);
+  checkCollections();
   chipCheck();
   onChips(chipCheck);
   let room: RoomView | null = null;
