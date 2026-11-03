@@ -265,7 +265,7 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
   const danger = p.total > bustLimit(g.rules) * 0.75;
   return (
     <div
-      class={`plate${p.avatar ? ' has-art' : ''}${p.avatar === 'kingJohn' ? ' john' : ''}${active ? ' active' : ''}${me ? ' me' : ''}${offline ? ' offline' : ''}`}
+      class={`plate${p.avatar ? ' has-art' : ''}${p.avatar === 'kingJohn' ? ' john' : ''}${lobby?.frame ? ` frame-${lobby.frame}` : ''}${active ? ' active' : ''}${me ? ' me' : ''}${offline ? ' offline' : ''}`}
       style={{ ...onScreen(toScreen(L, pos)), '--seat': SEAT_COLORS[seat] }}
       aria-label={`${p.name}: ${p.total} ${t('pts')}`}
     >

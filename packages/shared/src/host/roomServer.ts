@@ -155,7 +155,7 @@ export class RoomServer {
         this.disconnect(clientId);
         const room = this.makeRoom(this.newCode());
         room.setRules(req.msg?.rules ?? {});
-        const m = room.addHuman(cleanName(req.msg?.name), clientId, req.msg?.avatar, req.msg?.infected === true);
+        const m = room.addHuman(cleanName(req.msg?.name), clientId, req.msg?.avatar, req.msg?.infected === true, req.msg?.frame);
         if (m.infected) m.carrier = cleanCarrier(req.msg?.carrier);
         this.clientRoom.set(clientId, room);
         room.connect(m, clientId);
@@ -174,7 +174,7 @@ export class RoomServer {
         } else {
           if (room.game) return { ok: false, error: 'That game has already started' };
           if (room.isFull) return { ok: false, error: 'That room is full' };
-          m = room.addHuman(cleanName(req.msg?.name), clientId, req.msg?.avatar, req.msg?.infected === true);
+          m = room.addHuman(cleanName(req.msg?.name), clientId, req.msg?.avatar, req.msg?.infected === true, req.msg?.frame);
         }
         // Caught it somewhere else since taking this seat.
         if (req.msg?.infected === true) {

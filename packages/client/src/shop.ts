@@ -1,11 +1,11 @@
 // The shop: card backs, table colours and avatars bought with chips. What's
 // bought is kept in the signed chips save (chips.ts `owned`); what's in use
 // lives in the settings (card back, table) and the saved avatar (net.ts).
-import { HUMAN_JOKERS, SHOP_AVATARS } from '@tximtxom/shared';
+import { FRAMES, HUMAN_JOKERS, SHOP_AVATARS } from '@tximtxom/shared';
 import { chipsNow } from './chips';
 import type { CardStyle } from './settings';
 
-export type ShopKind = 'back' | 'table' | 'avatar';
+export type ShopKind = 'back' | 'table' | 'avatar' | 'frame';
 
 export interface ShopItem {
   id: string;
@@ -22,9 +22,11 @@ export interface ShopItem {
   reward?: string;
 }
 
-const PRICE: Record<ShopKind, number> = { avatar: 200, back: 300, table: 500 };
+const PRICE: Record<ShopKind, number> = { avatar: 200, back: 300, table: 500, frame: 0 };
 /** The showpieces. */
 const PREMIUM = 1000;
+/** The Holographic table: dearer than everything but a reward. */
+const HOLO = 2500;
 const PACK = { pixel: 1000, board: 750 };
 const RANDOM = 2000;
 
@@ -40,12 +42,16 @@ export const FREE_TABLES = ['felt', 'purple'];
 /** Random's id in a group: `random_pixel`, `random_board`, `random_table`. */
 export const randomId = (kind: ShopKind, style?: CardStyle) => `random_${style ?? kind}`;
 
+/** Which achievement gives each plate frame. */
+const FRAME_REWARD: Record<(typeof FRAMES)[number], string> = { boss: 'finalBoss' };
+
 export const SHOP: ShopItem[] = [
   ...free('back', FREE_PIXEL_BACKS, 'pixel'),
   pack('pack_brights', 'pixel', ['back_yellow', 'back_orange', 'back_pink', 'back_purple']),
   pack('pack_deeps', 'pixel', ['back_green', 'back_teal', 'back_navy', 'back_black']),
   ...sold('back', ['back_crimson', 'back_rainbow', 'back_gold'], 'pixel', ['back_rainbow', 'back_gold']),
-  { id: 'back_poly', kind: 'back', price: 0, style: 'pixel', reward: 'completionistPlus' },
+  { id: 'back_poly', kind: 'back', price: 0, style: 'pixel', reward: 'localLegend' },
+  { id: 'back_foil', kind: 'back', price: 0, style: 'pixel', reward: 'ceo' },
   { id: randomId('back', 'pixel'), kind: 'back', price: RANDOM, style: 'pixel', random: true },
   ...free('back', FREE_BOARD_BACKS, 'board'),
   ...sold('back', ['back_green1'], 'board'),
@@ -55,11 +61,17 @@ export const SHOP: ShopItem[] = [
   { id: randomId('back', 'board'), kind: 'back', price: RANDOM, style: 'board', random: true },
   ...free('table', FREE_TABLES),
   ...sold('table', ['teal', 'magenta', 'goldSilver', 'ocean', 'crimson', 'sunset', 'rose', 'wood', 'lava', 'pride', 'trans', 'neon', 'royal'], undefined, ['neon', 'royal']),
-  { id: 'negative', kind: 'table', price: 0, reward: 'completionist' },
+  { id: 'holo', kind: 'table', price: HOLO },
+  { id: 'negative', kind: 'table', price: 0, reward: 'averageEnjoyer' },
   { id: randomId('table'), kind: 'table', price: RANDOM, random: true },
   ...free('avatar', HUMAN_JOKERS),
   ...sold('avatar', SHOP_AVATARS),
   { id: 'kingJohn', kind: 'avatar', price: 0, reward: 'johnTximtxom' },
+  { id: 'bigBoss', kind: 'avatar', price: 0, reward: 'flawless' },
+  { id: 'ceoHat', kind: 'avatar', price: 0, reward: 'royalFlush' },
+  { id: 'ceoSuit', kind: 'avatar', price: 0, reward: 'allRules' },
+  { id: 'none', kind: 'frame', price: 0 },
+  ...FRAMES.map((id): ShopItem => ({ id, kind: 'frame', price: 0, reward: FRAME_REWARD[id] })),
 ];
 
 /** Everything that's sold: Completionist++ wants all of it. */

@@ -30,6 +30,8 @@ uniform float uStripeN;
 uniform float uStripes;
 // The Negative table's sheen: a band of light sweeping across, and how strong.
 uniform float uSheen;
+// The Holographic table's rainbow film, and how far it's faded in.
+uniform float uHolo;
 
 // No sin() of big numbers (it falls apart at mediump): Inigo Quilez's multiply hash.
 float hash(vec2 p) {
@@ -69,6 +71,12 @@ void main() {
   // A diagonal shine that crosses the screen every few seconds.
   float d = fract((gl_FragCoord.x + gl_FragCoord.y) / (uRes.x + uRes.y) - uTime * 0.08);
   col += uSheen * 0.5 * smoothstep(0.08, 0.0, abs(d - 0.5));
+  // A rainbow that follows the paint's folds and drifts across, like a hologram tilted in the light.
+  if (uHolo > 0.0) {
+    float h = n * 2.5 + (gl_FragCoord.x - gl_FragCoord.y) / (uRes.x + uRes.y) * 1.5 + uTime * 0.04;
+    vec3 film = 0.5 + 0.5 * cos(6.2832 * (h + vec3(0.0, 0.33, 0.67)));
+    col = mix(col, col * 0.4 + film * 0.75, uHolo * 0.55);
+  }
   // Keep the paint behind the UI: pull it towards the dark colour and grey it a little.
   col = mix(uC3, col, 0.55);
   col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 0.8);
@@ -108,6 +116,8 @@ export const TABLES: Record<string, [RGB, RGB, RGB]> = {
   trans: [hex('#5bcefa'), hex('#f5a9b8'), hex('#14202a')],
   // Completionist's reward: the felt turned inside out, with a sheen (like the Negative edition).
   negative: [hex('#d075a0'), hex('#4a1e6b'), hex('#0b0a14')],
+  // Silver paint under a rainbow film (uHolo).
+  holo: [hex('#c4cedc'), hex('#6c7a96'), hex('#141822')],
 };
 /** Flag tables: their stripes, top to bottom, shown in the paint's folds. */
 export const STRIPES: Record<string, RGB[]> = {
@@ -115,7 +125,9 @@ export const STRIPES: Record<string, RGB[]> = {
   trans: ['#5bcefa', '#f5a9b8', '#ffffff', '#f5a9b8', '#5bcefa'].map(hex),
 };
 /** Tables with a shine sweeping across. */
-const SHEEN = new Set(['negative']);
+const SHEEN = new Set(['negative', 'holo']);
+/** Tables under a rainbow film. */
+const HOLO = new Set(['holo']);
 /** The random pick, for when the Table setting is Random. */
 let randomTable = FREE_TABLES[Math.floor(Math.random() * FREE_TABLES.length)];
 
@@ -142,6 +154,7 @@ let colours = MOODS.menu.map((c) => [...c]) as [RGB, RGB, RGB];
 let shownTable: string | null = null;
 let stripes = 0;
 let sheen = 0;
+let holo = 0;
 let spinBoost = 0;
 
 let mood: Mood = 'menu';
@@ -203,7 +216,7 @@ export function startBackground(canvas: HTMLCanvasElement): void {
   gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
   const u = (n: string) => gl.getUniformLocation(prog, n);
   const uRes = u('uRes'), uTime = u('uTime'), uSpin = u('uSpinTime'), uC1 = u('uC1'), uC2 = u('uC2'), uC3 = u('uC3');
-  const uS = u('uS'), uStripeN = u('uStripeN'), uStripes = u('uStripes'), uSheen = u('uSheen');
+  const uS = u('uS'), uStripeN = u('uStripeN'), uStripes = u('uStripes'), uSheen = u('uSheen'), uHolo = u('uHolo');
 
   // About 520 "pixels" across the diagonal, scaled up by CSS.
   const resize = () => {
@@ -235,6 +248,7 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     const flag = shownTable ? STRIPES[shownTable] : undefined;
     stripes += ((flag ? 1 : 0) - stripes) * Math.min(1, dt * 4);
     sheen += ((shownTable && SHEEN.has(shownTable) ? 1 : 0) - sheen) * Math.min(1, dt * 4);
+    holo += ((shownTable && HOLO.has(shownTable) ? 1 : 0) - holo) * Math.min(1, dt * 4);
     if (flag) {
       gl.uniform3fv(uS, [...flag, ...Array(6 - flag.length).fill(flag.at(-1))].flat());
       gl.uniform1f(uStripeN, flag.length);
@@ -254,6 +268,7 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     gl.uniform3f(uC3, ...colours[2]);
     gl.uniform1f(uStripes, stripes);
     gl.uniform1f(uSheen, sheen);
+    gl.uniform1f(uHolo, holo);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
   requestAnimationFrame(frame);

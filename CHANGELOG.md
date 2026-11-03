@@ -5,6 +5,15 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.56.0 (2026-11-03)
+- ✨ Four Unique achievements for the long haul, each with a reward: Average TximTxom Enjoyer (play 100 games, the Negative table), Local TximTxom Legend (win 250, the Polychrome back), Final Boss of TximTxom (win 10 in a row, the Boss frame) and CEO of TximTxom (earn 1,000,000 chips, the Gold Foil back).
+- ✨ Plate frames: a new Shop tab. The Boss frame glows dark red round your plate, and everyone at the table sees it.
+- ✨ Three characters you can't buy: The Boss (Flawless), Top Hat CEO (Royal Flush) and Suited CEO (Rulebook).
+- ✨ A new table, Holographic: a rainbow film over silver (2,500).
+- ✨ 10 new common achievements for the small firsts: How to play, a new table, a setting changed, History in a game, a 4-player round, a round with a bot, your first Txi jog, first card from the Discard Pile, first ride, and 3 games in one day.
+- 🔧 An achievement that gives something says what, in rainbow letters: "Unlocks Negative (table)". Completionist and Completionist+ now pay chips only.
+- 🔧 The Achievements button (and any other) no longer stays outlined after you close what it opened with a click.
+
 ## 0.55.0 (2026-11-03)
 - ✨ New game mode, Rounds: play 5 or 10 rounds with no bust limit. The lowest total wins.
 - ✨ Chip multipliers: rules that make formations easier pay less, harder ones pay more (×0.5 to ×2). The Rules window shows each rule's multiplier and the total on request.

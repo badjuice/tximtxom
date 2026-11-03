@@ -9,6 +9,7 @@ import { carrierId, hasAchievement, onUnlock, unlock } from './achievements';
 import { recordLeftGame } from './stats';
 import { chipsNow } from './chips';
 import { owns } from './shop';
+import { getSettings } from './settings';
 
 /** Sent when joining: whether you're Infected, and your carrier id if so. */
 const infection = () => (hasAchievement('infected') ? { infected: true, carrier: carrierId() } : { infected: false });
@@ -46,6 +47,12 @@ export function saveName(name: string): void {
 }
 
 /** Your saved character, if it's still yours (characters that were free once are sold now). */
+/** The plate frame picked in the shop, if it's yours. */
+export function savedFrame(): string | undefined {
+  const f = getSettings().frame;
+  return f !== 'none' && owns(f) ? f : undefined;
+}
+
 export function savedAvatar(): string | undefined {
   const art = localStorage.getItem(AVATAR_KEY) ?? undefined;
   return art && owns(art) ? art : undefined;
@@ -215,7 +222,7 @@ async function rejoinRoomNow(): Promise<void> {
   }
 }
 
-async function connectGuest(code: string, join: { code: string; name: string; token?: string; avatar?: string; infected?: boolean }): Promise<Result> {
+async function connectGuest(code: string, join: { code: string; name: string; token?: string; avatar?: string; frame?: string; infected?: boolean }): Promise<Result> {
   guest?.stop();
   const g = await Guest.connect(code, p2pEvents);
   guest = g;
@@ -299,7 +306,7 @@ async function createRoomNow(name: string, rules: Partial<Rules> | undefined) {
       return { ok: false as const, error: 'offline' };
     }
   }
-  const r = await call<JoinResult>({ event: 'room:create', msg: { name, rules, avatar: savedAvatar(), ...infection() } });
+  const r = await call<JoinResult>({ event: 'room:create', msg: { name, rules, avatar: savedAvatar(), frame: savedFrame(), ...infection() } });
   if (r.ok) saveSession(r, MODE === 'p2p');
   return r;
 }
@@ -308,7 +315,7 @@ async function joinRoomNow(code: string, name: string) {
   localStorage.setItem(NAME_KEY, name);
   if (MODE === 'p2p') {
     try {
-      const r = await connectGuest(code, { code, name, avatar: savedAvatar(), ...infection() });
+      const r = await connectGuest(code, { code, name, avatar: savedAvatar(), frame: savedFrame(), ...infection() });
       if (!r.ok) {
         toast(tError(r.error), 'error');
         return r;
@@ -320,7 +327,7 @@ async function joinRoomNow(code: string, name: string) {
       return { ok: false as const, error: 'not found' };
     }
   }
-  const r = await call<JoinResult>({ event: 'room:join', msg: { code, name, avatar: savedAvatar(), ...infection() } });
+  const r = await call<JoinResult>({ event: 'room:join', msg: { code, name, avatar: savedAvatar(), frame: savedFrame(), ...infection() } });
   if (r.ok) saveSession(r, false);
   return r;
 }

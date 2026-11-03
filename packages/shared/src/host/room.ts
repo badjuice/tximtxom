@@ -2,7 +2,7 @@ import { botAction } from '../bot.js';
 import { applyAction, newGame } from '../engine.js';
 import { CHAT_BURST, CHAT_KEEP, CHAT_WINDOW_MS, type ChatLine, EMOTE_GAP_MS, EMOTE_KEEP, type EmoteId, type EmoteLine, type LobbyPlayer, type RoomView } from '../protocol.js';
 import { randomSeed } from '../rng.js';
-import { BOT_PERSONAS, bustLimit, DEFAULT_RULES, HUMAN_JOKERS, MAX_PLAYERS, MIN_PLAYERS, type Rules, REWARD_AVATARS, sanitizeRules, SHOP_AVATARS } from '../rules.js';
+import { BOT_PERSONAS, bustLimit, cleanFrame, DEFAULT_RULES, HUMAN_JOKERS, MAX_PLAYERS, MIN_PLAYERS, type Rules, REWARD_AVATARS, sanitizeRules, SHOP_AVATARS } from '../rules.js';
 import type { Action, GameState, Seat } from '../types.js';
 import { viewFor } from '../view.js';
 
@@ -64,6 +64,8 @@ export interface Member {
   /** Has the Infected achievement. */
   infected?: boolean;
   carrier?: string;
+  /** A frame round their plate. */
+  frame?: string;
 }
 
 /** One line of the host's action log, kept for bug reports. */
@@ -177,11 +179,11 @@ export class Room {
   }
 
   /** `preferred` is the character this player used last time; they get it back if nobody has it. */
-  addHuman(name: string, clientId: string, preferred?: string, infected?: boolean): Member {
+  addHuman(name: string, clientId: string, preferred?: string, infected?: boolean, frame?: unknown): Member {
     const known = ([...HUMAN_JOKERS, ...SHOP_AVATARS, ...REWARD_AVATARS] as readonly string[]).includes(preferred ?? '');
     const taken = this.members.some((x) => x.avatar === preferred);
     const art = known && !taken ? preferred! : (this.freeHumanArt() ?? 'villager');
-    const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: art, clientId, infected: !!infected };
+    const m: Member = { id: randomId(8), token: randomId(18), name, isBot: false, avatar: art, clientId, infected: !!infected, frame: cleanFrame(frame) };
     this.members.push(m);
     if (!this.hostId) this.hostId = m.id;
     return m;
@@ -392,6 +394,7 @@ export class Room {
       ready: this.isReady(x),
       infected: !!x.infected,
       carrier: x.infected ? x.carrier : undefined,
+      frame: x.frame,
     }));
     return {
       code: this.code,

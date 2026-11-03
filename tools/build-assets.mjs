@@ -247,6 +247,10 @@ const SHOP_AVATARS = {
   gnome: [26, 9, 'blue'],
   // John TximTxom's reward, never sold: the king on a gold card, inked dark to stand out on it.
   kingJohn: [28, 3, 'gold', [58, 42, 0]],
+  // Rewards for legendaries: the Boss (Flawless), the CEO in a top hat (Royal Flush) and in a suit (Rulebook).
+  bigBoss: [30, 6, 'red'],
+  ceoHat: [28, 4, 'purple'],
+  ceoSuit: [30, 9, 'blue'],
 };
 
 // Board Game Icons for rules and help, on a card in the rule's colour.

@@ -593,7 +593,10 @@ function ResetButton() {
 function SettingsMenu({ onClose }: { onClose: () => void }) {
   const s = useSettings();
   const [tab, setTab] = useState<SetTab>('general');
-  const set = (p: Partial<Settings>) => updateSettings(p);
+  const set = (p: Partial<Settings>) => {
+    updateSettings(p);
+    unlock('tinkerer');
+  };
   // Touch-only screens have no keyboard or mouse: no Controls tab.
   const keyboard = !matchMedia('(hover: none)').matches;
   const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -794,6 +797,7 @@ function readHelp(tab: HelpTab, all: HelpTab[]): void {
   try {
     const read = new Set<string>(JSON.parse(localStorage.getItem(HELP_READ) ?? '[]'));
     read.add(tab);
+    unlock('curious');
     localStorage.setItem(HELP_READ, JSON.stringify([...read]));
     if (all.every((x) => read.has(x))) unlock('rtfm');
   } catch {

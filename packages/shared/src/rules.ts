@@ -119,8 +119,14 @@ export const SHOP_AVATARS = [
   'brute', 'bandit', 'goblin', 'king', 'queen', 'ghoul', 'beetle', 'web',
   'skeleton', 'cow', 'horse', 'cat', 'octopus', 'serpent', 'bear', 'gnome',
 ] as const;
-/** Characters an achievement gives (never sold): King John, for a 9-card TximTxom. */
-export const REWARD_AVATARS = ['kingJohn'] as const;
+/** Characters an achievement gives (never sold): King John for a 9-card TximTxom, the Boss for
+ *  Flawless, the CEO in a top hat for Royal Flush and in a suit for Rulebook. */
+export const REWARD_AVATARS = ['kingJohn', 'bigBoss', 'ceoHat', 'ceoSuit'] as const;
+/** Frames round a player's plate, given by achievements. The host takes the player's word for it. */
+export const FRAMES = ['boss'] as const;
+export type Frame = (typeof FRAMES)[number];
+/** A frame the host knows, or none. */
+export const cleanFrame = (f: unknown): Frame | undefined => ((FRAMES as readonly unknown[]).includes(f) ? (f as Frame) : undefined);
 
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;

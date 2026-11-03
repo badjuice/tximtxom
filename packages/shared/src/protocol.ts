@@ -21,6 +21,8 @@ export interface LobbyPlayer {
   infected: boolean;
   /** An infected player's anonymous carrier id: whoever catches it from them counts it towards theirs. */
   carrier?: string;
+  /** A frame round their plate (rules.ts FRAMES). */
+  frame?: string;
 }
 
 /** One chat message. */
@@ -75,8 +77,8 @@ export interface JoinResult {
 }
 
 export interface ClientToServer {
-  'room:create': (msg: { name: string; rules?: Partial<Rules>; avatar?: string; infected?: boolean; carrier?: string }, ack: Ack<JoinResult>) => void;
-  'room:join': (msg: { code: string; name: string; token?: string; avatar?: string; infected?: boolean; carrier?: string }, ack: Ack<JoinResult>) => void;
+  'room:create': (msg: { name: string; rules?: Partial<Rules>; avatar?: string; frame?: string; infected?: boolean; carrier?: string }, ack: Ack<JoinResult>) => void;
+  'room:join': (msg: { code: string; name: string; token?: string; avatar?: string; frame?: string; infected?: boolean; carrier?: string }, ack: Ack<JoinResult>) => void;
   'room:rules': (msg: { rules: Partial<Rules> }, ack: Ack) => void;
   'room:addBot': (ack: Ack) => void;
   'room:kick': (msg: { playerId: string }, ack: Ack) => void;

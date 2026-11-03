@@ -1,7 +1,7 @@
 import { assetUrl } from '../version';
 import type { ComponentChildren } from 'preact';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
-import { attachEdition } from './editions';
+import { attachEdition, type Edition } from './editions';
 import { type Card, cardCode, type LobbyPlayer } from '@tximtxom/shared';
 import { cardSpoken, type Key, t } from '../i18n';
 import { upscaled } from '../pixelArt';
@@ -215,26 +215,29 @@ export function CardIcon({ card, scale: sc = 0.5, dim, class: cls, children }: {
 }
 
 export function CardBackIcon({ back, scale = 0.5 }: { back: string; scale?: number }) {
-  if (back === POLY_BACK) return <PolyBack scale={scale} />;
+  if (EDITION_BACKS[back]) return <EditionBack back={back} scale={scale} />;
   return <span class="sprite card tilt" style={spriteStyle('cards', back, fit('cards', scale))} aria-hidden="true" {...tilt} />;
 }
 
-/** Completionist+'s back: a pixel back under the Polychrome edition (ui/editions.ts). */
-export const POLY_BACK = 'back_poly';
-/** The art the Polychrome back is drawn from. */
-export const POLY_BASE = 'back_blue';
-function PolyBack({ scale }: { scale: number }) {
+/** Backs that are a pixel back under an edition's shader (ui/editions.ts): the art each is drawn
+ *  from, and the edition. Polychrome is Local TximTxom Legend's, Gold Foil the CEO's. */
+export const EDITION_BACKS: Record<string, { base: string; edition: Edition }> = {
+  back_poly: { base: 'back_blue', edition: 'poly' },
+  back_foil: { base: 'back_gold', edition: 'foil' },
+};
+function EditionBack({ back, scale }: { back: string; scale: number }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const { w, h } = cardSize(scale);
   const dpr = Math.min(2, devicePixelRatio || 1);
+  const { base, edition } = EDITION_BACKS[back];
   useLayoutEffect(() => {
-    const c = attachEdition(canvas.current!, POLY_BASE);
-    c.setEdition('poly', false);
+    const c = attachEdition(canvas.current!, base);
+    c.setEdition(edition, false);
     c.drawNow();
     return () => c.detach();
-  }, []);
+  }, [base, edition]);
   return (
-    <span class="sprite card tilt" style={spriteStyle('cards', POLY_BASE, fit('cards', scale))} aria-hidden="true" {...tilt}>
+    <span class="sprite card tilt" style={spriteStyle('cards', base, fit('cards', scale))} aria-hidden="true" {...tilt}>
       <canvas ref={canvas} class="edition-layer" width={Math.round(w * dpr)} height={Math.round(h * dpr)} />
     </span>
   );
@@ -242,7 +245,7 @@ function PolyBack({ scale }: { scale: number }) {
 
 /** A back from either card style, loading that style's atlas if it isn't in use (the shop shows both). */
 export function StyleBackIcon(props: { style: CardStyle; back: string; scale?: number }) {
-  return props.back === POLY_BACK ? <PolyBack scale={props.scale ?? 0.5} /> : <StyleBack {...props} />;
+  return EDITION_BACKS[props.back] ? <EditionBack back={props.back} scale={props.scale ?? 0.5} /> : <StyleBack {...props} />;
 }
 /** The plain back for StyleBackIcon (its own component: its hooks only run for plain backs). */
 function StyleBack({ style, back, scale = 0.5 }: { style: CardStyle; back: string; scale?: number }) {

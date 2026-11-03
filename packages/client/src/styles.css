@@ -1672,6 +1672,22 @@ input[type='text'] {
 .reduced-motion .plate.john {
   animation: none;
 }
+/* The Boss frame (Final Boss of TximTxom): dark red, pulsing, except on its turn (gold). */
+.plate.frame-boss:not(.active) {
+  border-color: #8e1a24;
+  animation: boss-pulse 1.6s ease-in-out infinite alternate;
+}
+@keyframes boss-pulse {
+  from {
+    box-shadow: 0 0 0 0 rgba(200, 30, 40, 0), 0 4px 0 rgba(0, 0, 0, 0.35);
+  }
+  to {
+    box-shadow: 0 0 14px 3px rgba(200, 30, 40, 0.75), 0 4px 0 rgba(0, 0, 0, 0.35);
+  }
+}
+.reduced-motion .plate.frame-boss {
+  animation: none;
+}
 .plate-nm {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4676,8 +4692,24 @@ input.rename {
 }
 /* What it gives: gold, under the flavour line. */
 .ach-reward {
-  color: var(--gold);
+  position: relative;
+  align-self: flex-start;
+  overflow: hidden;
   font-size: 0.85em;
+}
+/* What an achievement gives: rainbow letters with a light sweeping across them. */
+.ach-reward::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.7) 50%, transparent 65%) -100% 0 / 200% 100% no-repeat;
+  mix-blend-mode: overlay;
+  animation: shop-sheen 2.2s linear infinite;
+  pointer-events: none;
+}
+.reduced-motion .ach-reward::after {
+  animation: none;
+  background: none;
 }
 .ach-list li > .sprite {
   flex: none;
@@ -6401,6 +6433,26 @@ td.num.pts {
 .shop-sheen {
   position: relative;
   overflow: hidden;
+}
+/* The Holographic table's swatch: a rainbow film drifting over silver. */
+.shop-holo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, #ff6b6b, #ffd93d, #6bff95, #4dd2ff, #b06bff, #ff6b6b) 0 0 / 300% 300%;
+  mix-blend-mode: color;
+  opacity: 0.8;
+  animation: rainbow-slide 4s linear infinite;
+}
+/* A frame in the shop: a small empty plate wearing it. */
+.shop-frame.plate {
+  position: static;
+  display: block;
+  width: 64px;
+  min-width: 0;
+  height: 34px;
+  padding: 0;
+  transform: none;
 }
 .shop-sheen::after {
   content: '';

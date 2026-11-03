@@ -6,7 +6,7 @@
 import { bustLimit, type Card, classifyFormation, type GameEvent, type GameView, rankOf, type RoomView, type Rules, suitOf } from '@tximtxom/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
-import { getSettings } from './settings';
+import { getSettings, onSettings } from './settings';
 import { store } from './store';
 import { ACH_PAY, chipsEarned, chipsNow, earn, grantItem, onChips, payBack } from './chips';
 import { ownsEverything, SOLD } from './shop';
@@ -42,7 +42,9 @@ export type AchievementId =
   | 'eightStraight' | 'nineStraight' | 'johnTximtxom' | 'highFive' | 'sixPack' | 'seventhHeaven' | 'octopusPrime'
   | 'straight3' | 'straight4' | 'straight6' | 'straight10' | 'straight11' | 'straight12' | 'straight13' | 'firstPair' | 'firstTrio'
   | 'firstBuy' | 'firstBack' | 'firstTable' | 'firstAvatar' | 'earlyBird'
-  | 'allCommons' | 'allUncommons' | 'allEpics' | 'legendDary' | 'notSoSecret' | 'formationHunter' | 'completionist' | 'completionistPlus' | 'completionistPlusPlus';
+  | 'allCommons' | 'allUncommons' | 'allEpics' | 'legendDary' | 'notSoSecret' | 'formationHunter' | 'completionist' | 'completionistPlus' | 'completionistPlusPlus'
+  | 'averageEnjoyer' | 'localLegend' | 'finalBoss' | 'ceo'
+  | 'curious' | 'redecorate' | 'tinkerer' | 'historian' | 'fullTable' | 'beepBoop' | 'firstTxiJog' | 'dumpsterDiver' | 'hitchhiker' | 'hatTrick';
 
 /** One achievement per rule, for playing a round with it on: its card art, and whether it's on. */
 export const RULE_ACHIEVEMENTS = {
@@ -126,7 +128,7 @@ export interface Achievement {
   /** Made from its track ("Hitchhiker II"): the tier's number, from 1. */
   tier?: number;
   /** A bar for a one-off that's reached bit by bit: rules played (Rulebook), minutes played (Addicted). */
-  meter?: 'rules' | 'minutes' | 'chips' | 'streak';
+  meter?: 'rules' | 'minutes' | 'chips' | 'streak' | 'played' | 'won' | 'winStreak';
 }
 
 /** Common to legendary, then the secret ones. */
@@ -155,6 +157,17 @@ const ALL: Achievement[] = [
   { id: 'firstBack', art: 'turn', rarity: 'common' },
   { id: 'firstTable', art: 'magiku', rarity: 'common' },
   { id: 'firstAvatar', art: 'king', rarity: 'common' },
+  // Small firsts, one each.
+  { id: 'curious', art: 'help', rarity: 'common' },
+  { id: 'redecorate', art: 'mixed', rarity: 'common' },
+  { id: 'tinkerer', art: 'notice', rarity: 'common' },
+  { id: 'historian', art: 'elder', rarity: 'common' },
+  { id: 'fullTable', art: 'turn', rarity: 'common' },
+  { id: 'beepBoop', art: 'bikingu', rarity: 'common' },
+  { id: 'firstTxiJog', art: 'txijog', rarity: 'common' },
+  { id: 'dumpsterDiver', art: 'crab', rarity: 'common' },
+  { id: 'hitchhiker', art: 'ride', rarity: 'common' },
+  { id: 'hatTrick', art: 'timer', rarity: 'common' },
   { id: 'competitor', art: 'barbarian', rarity: 'uncommon' },
   { id: 'fullHand', art: 'txijog', rarity: 'uncommon' },
   { id: 'fullParty', art: 'turn', rarity: 'uncommon' },
@@ -202,6 +215,11 @@ const ALL: Achievement[] = [
   { id: 'completionist', art: 'elder', rarity: 'unique', rainbow: true },
   { id: 'completionistPlus', art: 'queen', rarity: 'unique', rainbow: true },
   { id: 'completionistPlusPlus', art: 'king', rarity: 'unique', rainbow: true },
+  // The long haul, each with a reward: outside every collection, like John TximTxom.
+  { id: 'averageEnjoyer', art: 'villager', rarity: 'unique', rainbow: true, meter: 'played', goal: 100 },
+  { id: 'localLegend', art: 'princess', rarity: 'unique', rainbow: true, meter: 'won', goal: 250 },
+  { id: 'finalBoss', art: 'bigBoss', rarity: 'unique', rainbow: true, meter: 'winStreak', goal: 10 },
+  { id: 'ceo', art: 'ceoSuit', rarity: 'unique', rainbow: true, meter: 'chips', goal: 1_000_000 },
   // A 9-card TximTxom: hidden until it happens, and outside every collection.
   { id: 'johnTximtxom', art: 'kingJohn', rarity: 'unique', rainbow: true, secret: true },
   { id: 'infected', art: 'slime', rarity: 'secret', secret: true },
@@ -234,7 +252,16 @@ const STRAIGHT_ACH: Record<number, AchievementId> = { 3: 'straight3', 4: 'straig
 /** The secret formations: Formation Hunter wants every one. */
 const SECRET_FORMATIONS: AchievementId[] = ['theBeast', 'eightStraight', 'nineStraight', 'straight10', 'straight11', 'straight12', 'straight13', 'highFive', 'sixPack', 'seventhHeaven', 'octopusPrime'];
 /** What an achievement gives: a shop item that's never sold. */
-export const REWARDS: Partial<Record<AchievementId, string>> = { johnTximtxom: 'kingJohn', completionist: 'negative', completionistPlus: 'back_poly' };
+export const REWARDS: Partial<Record<AchievementId, string>> = {
+  johnTximtxom: 'kingJohn',
+  averageEnjoyer: 'negative',
+  localLegend: 'back_poly',
+  finalBoss: 'boss',
+  ceo: 'back_foil',
+  flawless: 'bigBoss',
+  royalFlush: 'ceoHat',
+  allRules: 'ceoSuit',
+};
 
 /** Neither secret nor unique. */
 const isPlain = (a: Achievement) => a.rarity !== 'secret' && a.rarity !== 'unique';
@@ -440,6 +467,8 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
   switch (e.t) {
     case 'deal':
       unlock('dealtIn');
+      if (g.players.length === 4) unlock('fullTable');
+      if (g.players.some((p) => p.isBot)) unlock('beepBoop');
       playedRoundIn(getSettings().lang);
       // Every round start, Infected passes to anyone at the table who doesn't have it yet.
       const carriers = room.players.filter((p) => p.id !== room.youId && p.infected);
@@ -481,6 +510,9 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       }
       break;
     }
+    case 'take':
+      if (e.seat === me) unlock('dumpsterDiver');
+      break;
     case 'lay': {
       if (e.seat !== me) break;
       formationShown(e.kind, e.cards);
@@ -490,6 +522,7 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       break;
     }
     case 'ride':
+      if (e.seat === me) unlock('hitchhiker');
       // Your own straight, once someone else stretched it.
       if (e.seat === me && g.events.some((x) => x.e.t === 'lay' && x.e.formationId === e.formationId && x.e.seat === me)) unlock('selfService');
       // A formation of yours that a ride turned into something.
@@ -500,6 +533,7 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       }
       break;
     case 'end':
+      if (e.seat === me) unlock('firstTxiJog');
       if (e.bonus && e.seat === me) unlock('fullHand');
       // Txi jog on your first turn of the round: one draw or take of yours so far.
       if (e.kind === 'manual' && e.seat === me) {
@@ -541,12 +575,34 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       const hour = new Date().getHours();
       if (hour < 5) unlock('nightOwl');
       else if (hour < 9) unlock('earlyBird');
+      if (gamesToday() >= 3) unlock('hatTrick');
       break;
     }
   }
 }
 
+const DAY_KEY = 'tximtxom.gamesToday';
+/** Counts a game finished today (local date) and returns today's count, for Hat Trick. */
+function gamesToday(): number {
+  const today = new Date().toDateString();
+  try {
+    const was = JSON.parse(localStorage.getItem(DAY_KEY) ?? '{}');
+    const n = was.day === today ? (was.n ?? 0) + 1 : 1;
+    localStorage.setItem(DAY_KEY, JSON.stringify({ day: today, n }));
+    return n;
+  } catch {
+    return 0;
+  }
+}
+
 export const ADDICTED_MINUTES = 60;
+
+/** The running count behind a meter achievement from your stats (games played, won, in a row). */
+export const STAT_METERS = {
+  played: (s: MyStats) => s.gamesPlayed,
+  won: (s: MyStats) => s.gamesWon,
+  winStreak: (s: MyStats) => s.bestStreak,
+};
 
 /** Achievements that come from your running stats, checked as they change. */
 export function initAchievements(): void {
@@ -554,7 +610,19 @@ export function initAchievements(): void {
     const s = myStats();
     for (const a of ACHIEVEMENTS) if (a.track && a.goal && TRACKS[a.track].count(s) >= a.goal) unlock(a.id);
     if (s.timePlayed >= ADDICTED_MINUTES * 60 * 1000) unlock('addicted');
+    for (const a of ACHIEVEMENTS) {
+      const count = a.meter && a.meter in STAT_METERS ? STAT_METERS[a.meter as keyof typeof STAT_METERS] : undefined;
+      if (count && a.goal && count(s) >= a.goal) unlock(a.id);
+    }
   };
+  // History opened during a game, and a table other than the green felt picked.
+  const settingsCheck = () => {
+    const st = getSettings();
+    if (st.table !== 'felt') unlock('redecorate');
+    if (st.historyOpen && store.get().sideTab === 'history' && store.get().room?.game) unlock('historian');
+  };
+  settingsCheck();
+  onSettings(settingsCheck);
   // Achievements unlocked before chips existed pay once (before any new unlock, which pays itself).
   payBack(ACHIEVEMENTS.filter((a) => unlocked[a.id]).map((a) => a.rarity));
   check();
@@ -572,6 +640,7 @@ export function initAchievements(): void {
   onChips(chipCheck);
   let room: RoomView | null = null;
   store.subscribe(() => {
+    settingsCheck();
     const next = store.get().room;
     if (next === room) return;
     room = next;

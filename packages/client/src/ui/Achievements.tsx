@@ -1,7 +1,7 @@
 import { RULE_REQUIRES, type Rules } from '@tximtxom/shared';
 import { ACH_PAY, chipsEarned, chipsNow } from '../chips';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
-import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, onUnlock, unlock, type Rarity, REWARDS, RULE_ACH_IDS, type RuleAch, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
+import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, onUnlock, unlock, type Rarity, REWARDS, RULE_ACH_IDS, type RuleAch, STAT_METERS, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
 import { formatCount, type MyStats, refreshInfected, refreshSpread, useStats } from '../stats';
@@ -55,6 +55,7 @@ function meter(a: Achievement, mine: MyStats, unlocked: Unlocked): { count: numb
   if (a.meter === 'chips' && a.goal) return { count: chipsEarned(), goal: a.goal };
   // The current run of days, or the full week once it's done.
   if (a.meter === 'streak' && a.goal) return { count: unlocked[a.id] ? a.goal : chipsNow().dailyStreak, goal: a.goal, unit: t('ach.days') };
+  if (a.meter && a.meter in STAT_METERS && a.goal) return { count: STAT_METERS[a.meter as keyof typeof STAT_METERS](mine), goal: a.goal };
   if (a.meter === 'minutes') return { count: Math.min(ADDICTED_MINUTES, Math.floor(mine.timePlayed / 60000)), goal: ADDICTED_MINUTES, unit: t('ach.minutes') };
   return null;
 }
@@ -81,10 +82,10 @@ function stamp(ms: number): string {
 }
 
 const VIEWS: AchView[] = ['all', 'locked', 'unlocked'];
-/** A reward's name, as the shop shows it. */
-const rewardName = (id: string) => {
+/** What an achievement unlocks, as the shop names it: "Unlocks Negative (table)". */
+const rewardText = (id: string) => {
   const item = SHOP.find((i) => i.id === id);
-  return item ? itemName(item) : id;
+  return item ? t('ach.unlocks', { item: itemName(item), kind: t(`shop.kind.${item.kind}`) }) : id;
 };
 const VIEW_ICON: Record<AchView, UiIconName> = { all: 'grid', locked: 'lock', unlocked: 'unlocked' };
 
@@ -294,7 +295,12 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
                 <span class="ach-name">{hidden ? t('ach.secret') : got ? <Name a={a} /> : text(a, 'name')}</span>
                 <span class="ach-desc">{hidden ? t('ach.secretDesc') : withHighlights(text(a, 'desc'))}</span>
                 {!hidden && text(a, 'flavor') && <span class="ach-flavor">{withHighlights(text(a, 'flavor'))}</span>}
-                {!hidden && REWARDS[a.id] && <span class="ach-reward">{t('ach.reward', { item: rewardName(REWARDS[a.id]!) })}</span>}
+                {/* In rainbow letters with a shine across them: this one gives you something. */}
+                {!hidden && REWARDS[a.id] && (
+                  <span class="ach-reward">
+                    <Rainbow text={rewardText(REWARDS[a.id]!)} />
+                  </span>
+                )}
                 {!hidden && (() => {
                   const m = meter(a, mine, unlocked);
                   return m && <Progress {...m} />;

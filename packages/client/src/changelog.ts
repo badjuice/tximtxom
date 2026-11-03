@@ -19,6 +19,19 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.56.0',
+    date: '2026-11-03',
+    items: [
+      n("Four Unique achievements for the long haul, each with a reward: Average TximTxom Enjoyer (play 100 games, the Negative table), Local TximTxom Legend (win 250, the Polychrome back), Final Boss of TximTxom (win 10 in a row, the Boss frame) and CEO of TximTxom (earn 1,000,000 chips, the Gold Foil back).", "Quatro conquistas Únicas para quem fica, cada uma com um prémio: Apreciador Médio de TximTxom (joga 100 jogos, a mesa Negativo), Lenda Local do TximTxom (ganha 250, as costas Policromadas), Chefe Final do TximTxom (ganha 10 seguidos, a moldura Chefe) e CEO do TximTxom (ganha 1.000.000 fichas, as costas Folha de Ouro)."),
+      n("Plate frames: a new Shop tab. The Boss frame glows dark red round your plate, and everyone at the table sees it.", "Molduras: um separador novo na Loja. A moldura Chefe brilha a vermelho escuro à volta da tua placa, e toda a mesa a vê."),
+      n("Three characters you can't buy: The Boss (Flawless), Top Hat CEO (Royal Flush) and Suited CEO (Rulebook).", "Três personagens que não se compram: O Chefe (Imbatível), CEO de Cartola (Sequência Real) e CEO de Fato (Livro de Regras)."),
+      n("A new table, Holographic: a rainbow film over silver (2,500).", "Uma mesa nova, Holográfica: uma película de arco-íris sobre prata (2.500)."),
+      n("10 new common achievements for the small firsts: How to play, a new table, a setting changed, History in a game, a 4-player round, a round with a bot, your first Txi jog, first card from the Discard Pile, first ride, and 3 games in one day.", "10 conquistas comuns novas para as pequenas estreias: Como jogar, uma mesa nova, uma definição mudada, o Histórico num jogo, uma ronda com 4 jogadores, uma ronda com um bot, o teu primeiro Txi jog, a primeira carta do Descarte, a primeira boleia, e 3 jogos no mesmo dia."),
+      c("An achievement that gives something says what, in rainbow letters: \"Unlocks Negative (table)\". Completionist and Completionist+ now pay chips only.", "Uma conquista que dá alguma coisa diz o quê, em letras de arco-íris: \"Desbloqueia Negativo (mesa)\". Completista e Completista+ passam a pagar só fichas."),
+      c("The Achievements button (and any other) no longer stays outlined after you close what it opened with a click.", "O botão das Conquistas (e os outros) já não fica contornado depois de fechares o que abriu com um clique."),
+    ],
+  },
+  {
     version: '0.55.0',
     date: '2026-11-03',
     items: [

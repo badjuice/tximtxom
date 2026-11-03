@@ -122,6 +122,8 @@ export interface Settings {
   achView: AchView;
   /** The table's colours: one of yours (shop.ts), or `random` (a different one each room and game). */
   table: string;
+  /** The frame round your plate (shop.ts frames), sent to the room you join. */
+  frame: string;
   announce: boolean;
   /** Mirrors the bottom button bar for left-handed players. */
   leftHanded: boolean;
@@ -170,6 +172,7 @@ export const DEFAULT_SETTINGS: Settings = {
   achSortDesc: false,
   achView: 'all',
   table: 'felt',
+  frame: 'none',
   announce: true,
   leftHanded: false,
   historyOpen: false,

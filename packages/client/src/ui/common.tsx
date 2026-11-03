@@ -144,9 +144,8 @@ export const RuleName = ({ name, tone }: { name: string; tone?: Tone | string })
 /** A word in TximTxom's glowing, waving rainbow: the currency's name. */
 export const Rainbow = ({ text }: { text: string }) => (
   <span class="ttx">
-    {[...text].map((ch, i) => (
-      <TxLetter ch={ch} ti={i} />
-    ))}
+    {/* Spaces stay plain text: a letter's box would swallow them. */}
+    {[...text].map((ch, i) => (ch === ' ' ? ' ' : <TxLetter ch={ch} ti={i} />))}
   </span>
 );
 
@@ -719,6 +718,9 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
+    // Focus goes back to what opened it on close, with its ring only if it had one (reached by
+    // keyboard): a clicked button mustn't stay outlined.
+    const ring = !!prev?.matches?.(':focus-visible');
     ref.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && props.onClose) {
@@ -730,7 +732,7 @@ export function Modal(props: { title: string; onClose?: () => void; children: Co
     addEventListener('keydown', onKey, true);
     return () => {
       removeEventListener('keydown', onKey, true);
-      prev?.focus?.();
+      prev?.focus?.({ focusVisible: ring } as FocusOptions);
     };
   }, []);
   return (

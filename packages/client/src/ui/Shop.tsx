@@ -11,7 +11,7 @@ import { formatCount } from '../stats';
 import { ChipCount, ChipIcon, Modal, UiIcon } from './common';
 import { ArtIcon, StyleBackIcon } from './sprites';
 
-const KINDS: ShopKind[] = ['back', 'table', 'avatar'];
+const KINDS: ShopKind[] = ['back', 'table', 'avatar', 'frame'];
 /** How long a Buy button waits for its second tap. */
 const CONFIRM_MS = 3000;
 
@@ -37,7 +37,7 @@ function TableSwatch({ id }: { id: string }) {
   const bg = flag
     ? `linear-gradient(${flag.map((rgb, i) => `${css(rgb)} ${(i * 100) / flag.length}% ${((i + 1) * 100) / flag.length}%`).join(', ')})`
     : `radial-gradient(circle at 35% 40%, ${css(a)}, ${css(b)} 45%, ${css(c)})`;
-  return <span class={`shop-table${id === 'negative' ? ' shop-sheen' : ''}`} style={{ background: bg }} aria-hidden="true" />;
+  return <span class={`shop-table${id === 'negative' ? ' shop-sheen' : ''}${id === 'holo' ? ' shop-holo shop-sheen' : ''}`} style={{ background: bg }} aria-hidden="true" />;
 }
 
 /** How often Random's tile turns to another of its group. */
@@ -76,6 +76,8 @@ function Preview({ item }: { item: ShopItem }) {
     );
   if (item.kind === 'back') return <StyleBackIcon style={item.style!} back={item.id} scale={0.62} />;
   if (item.kind === 'table') return <TableSwatch id={item.id} />;
+  // A frame: a little plate wearing it.
+  if (item.kind === 'frame') return <span class={`shop-frame plate frame-${item.id}`} aria-hidden="true" />;
   return <ArtIcon name={item.id} scale={0.62} />;
 }
 
@@ -100,7 +102,7 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
 
   const equipped = (i: ShopItem) => {
     const id = i.random ? 'random' : i.id;
-    return i.kind === 'back' ? s.cardBack === id && s.cardStyle === i.style : i.kind === 'table' ? s.table === id : avatar === id;
+    return i.kind === 'back' ? s.cardBack === id && s.cardStyle === i.style : i.kind === 'table' ? s.table === id : i.kind === 'frame' ? s.frame === id : avatar === id;
   };
   const equip = (i: ShopItem) => {
     play('button', { volume: 0.5 });
@@ -108,6 +110,7 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
     const id = i.random ? 'random' : (i.pack?.[0] ?? i.id);
     if (i.kind === 'back') updateSettings({ cardStyle: i.style, cardBack: id });
     else if (i.kind === 'table') updateSettings({ table: id });
+    else if (i.kind === 'frame') updateSettings({ frame: id });
     else {
       saveAvatar(i.id);
       setAvatar(i.id);
@@ -209,6 +212,12 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
         <section class="shop-section">
           <p class="muted small center">{t('shop.avatarHint')}</p>
           <ul class="shop-grid">{items('avatar').map(tile)}</ul>
+        </section>
+      )}
+      {tab === 'frame' && (
+        <section class="shop-section">
+          <p class="muted small center">{t('shop.frameHint')}</p>
+          <ul class="shop-grid">{items('frame').map(tile)}</ul>
         </section>
       )}
     </Modal>
