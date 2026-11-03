@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.58.0',
+    date: '2026-11-03',
+    items: [
+      n("10 new tables painted in more colours, dearer the more they have. 2 colours (600): Ice and Fire, Night and Day, Mint and Coral. 3 (900): Tropical, Berry, Autumn. 5 (1.500): Aurora, Carnival. 7 (2.500): Spectrum, Kaleidoscope.", "10 mesas novas pintadas em mais cores, mais caras quantas mais tiverem. 2 cores (600): Gelo e Fogo, Noite e Dia, Menta e Coral. 3 (900): Tropical, Frutos Silvestres, Outono. 5 (1.500): Aurora, Carnaval. 7 (2.500): Espectro, Caleidoscópio."),
+      n("7 simple frames: a ring round your plate in Bronze (300), Silver (500), Gold (800), Ruby, Emerald, Sapphire or Amethyst (600 each).", "7 molduras simples: um anel à volta da tua placa em Bronze (300), Prata (500), Ouro (800), Rubi, Esmeralda, Safira ou Ametista (600 cada)."),
+      c("Formations shows every card from Ace to King with its points, and says cards are worth their rank.", "As Formações mostram todas as cartas do Ás ao Rei com os seus pontos, e dizem que as cartas valem a sua posição."),
+      c("The rules of a game are in one column, the ones that shape the game first: length, timer, rides, penalties, then the helpers.", "As regras de um jogo ficam numa coluna, primeiro as que mudam o jogo: duração, tempo, boleias, multas, e depois as ajudas."),
+    ],
+  },
+  {
     version: '0.57.0',
     date: '2026-11-03',
     items: [

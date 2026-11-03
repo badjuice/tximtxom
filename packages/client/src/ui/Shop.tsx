@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { play } from '../audio';
-import { previewTable, STRIPES, TABLES } from '../background';
+import { PAINTS, previewTable, STRIPES, TABLES } from '../background';
 import { ACHIEVEMENTS, hasAchievement } from '../achievements';
 import { buyItem, useChips } from '../chips';
 import { type Key, t } from '../i18n';
@@ -34,9 +34,12 @@ function TableSwatch({ id }: { id: string }) {
   const [a, b, c] = TABLES[id] ?? TABLES.felt;
   // A flag shows its stripes.
   const flag = STRIPES[id];
+  const paints = PAINTS[id];
   const bg = flag
     ? `linear-gradient(${flag.map((rgb, i) => `${css(rgb)} ${(i * 100) / flag.length}% ${((i + 1) * 100) / flag.length}%`).join(', ')})`
-    : `radial-gradient(circle at 35% 40%, ${css(a)}, ${css(b)} 45%, ${css(c)})`;
+    : paints
+      ? `conic-gradient(from 200deg at 40% 45%, ${[...paints, paints[0]].map(css).join(', ')})`
+      : `radial-gradient(circle at 35% 40%, ${css(a)}, ${css(b)} 45%, ${css(c)})`;
   return <span class={`shop-table${id === 'negative' ? ' shop-sheen' : ''}${id === 'holo' ? ' shop-holo shop-sheen' : ''}`} style={{ background: bg }} aria-hidden="true" />;
 }
 

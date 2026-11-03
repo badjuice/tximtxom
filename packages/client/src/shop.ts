@@ -29,6 +29,11 @@ const PREMIUM = 1000;
 const HOLO = 2500;
 const PACK = { pixel: 1000, board: 750 };
 const RANDOM = 2000;
+/** Tables in more colours cost more: by how many colours they're painted in. */
+const BY_COLOURS: Record<number, number> = { 2: 600, 3: 900, 5: 1500, 7: 2500 };
+const PAINTED: [string, number][] = [["iceFire", 2], ["nightDay", 2], ["mintCoral", 2], ["tropical", 3], ["berry", 3], ["autumn", 3], ["aurora", 5], ["carnival", 5], ["spectrum", 7], ["kaleidoscope", 7]];
+/** Simple frames' prices (rewards are free). */
+const FRAME_PRICE: Partial<Record<(typeof FRAMES)[number], number>> = {"bronze": 300, "silver": 500, "gold": 800, "ruby": 600, "emerald": 600, "sapphire": 600, "amethyst": 600};
 
 const free = (kind: ShopKind, ids: readonly string[], style?: CardStyle): ShopItem[] => ids.map((id) => ({ id, kind, price: 0, style }));
 const sold = (kind: ShopKind, ids: readonly string[], style?: CardStyle, premium: string[] = []): ShopItem[] =>
@@ -43,7 +48,7 @@ export const FREE_TABLES = ['felt', 'purple'];
 export const randomId = (kind: ShopKind, style?: CardStyle) => `random_${style ?? kind}`;
 
 /** Which achievement gives each plate frame. */
-const FRAME_REWARD: Record<(typeof FRAMES)[number], string> = { boss: 'finalBoss' };
+const FRAME_REWARD: Partial<Record<(typeof FRAMES)[number], string>> = { boss: 'finalBoss' };
 
 export const SHOP: ShopItem[] = [
   ...free('back', FREE_PIXEL_BACKS, 'pixel'),
@@ -61,6 +66,7 @@ export const SHOP: ShopItem[] = [
   { id: randomId('back', 'board'), kind: 'back', price: RANDOM, style: 'board', random: true },
   ...free('table', FREE_TABLES),
   ...sold('table', ['teal', 'magenta', 'goldSilver', 'ocean', 'crimson', 'sunset', 'rose', 'wood', 'lava', 'pride', 'trans', 'neon', 'royal'], undefined, ['neon', 'royal']),
+  ...PAINTED.map(([id, n]): ShopItem => ({ id, kind: 'table', price: BY_COLOURS[n] })),
   { id: 'holo', kind: 'table', price: HOLO },
   { id: 'negative', kind: 'table', price: 0, reward: 'averageEnjoyer' },
   { id: randomId('table'), kind: 'table', price: RANDOM, random: true },
@@ -71,7 +77,7 @@ export const SHOP: ShopItem[] = [
   { id: 'ceoHat', kind: 'avatar', price: 0, reward: 'royalFlush' },
   { id: 'ceoSuit', kind: 'avatar', price: 0, reward: 'allRules' },
   { id: 'none', kind: 'frame', price: 0 },
-  ...FRAMES.map((id): ShopItem => ({ id, kind: 'frame', price: 0, reward: FRAME_REWARD[id] })),
+  ...FRAMES.map((id): ShopItem => ({ id, kind: 'frame', price: FRAME_PRICE[id] ?? 0, reward: FRAME_REWARD[id] })),
 ];
 
 /** Everything that's sold: Completionist++ wants all of it. */

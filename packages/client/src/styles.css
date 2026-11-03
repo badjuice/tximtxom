@@ -1685,6 +1685,39 @@ input[type='text'] {
     box-shadow: 0 0 14px 3px rgba(200, 30, 40, 0.75), 0 4px 0 rgba(0, 0, 0, 0.35);
   }
 }
+/* Simple frames: a ring in their colour round the plate, the seat's colour still inside. */
+.plate.frame-bronze:not(.active),
+.plate.frame-silver:not(.active),
+.plate.frame-gold:not(.active),
+.plate.frame-ruby:not(.active),
+.plate.frame-emerald:not(.active),
+.plate.frame-sapphire:not(.active),
+.plate.frame-amethyst:not(.active) {
+  box-shadow:
+    0 0 0 3px var(--ring),
+    0 4px 0 3px rgba(0, 0, 0, 0.35);
+}
+.plate.frame-bronze:not(.active) {
+  --ring: #b0703a;
+}
+.plate.frame-silver:not(.active) {
+  --ring: #c9d1d9;
+}
+.plate.frame-gold:not(.active) {
+  --ring: #eac058;
+}
+.plate.frame-ruby:not(.active) {
+  --ring: #e0314b;
+}
+.plate.frame-emerald:not(.active) {
+  --ring: #2fbf71;
+}
+.plate.frame-sapphire:not(.active) {
+  --ring: #2f6fe0;
+}
+.plate.frame-amethyst:not(.active) {
+  --ring: #9b59d0;
+}
 .reduced-motion .plate.frame-boss {
   animation: none;
 }
@@ -3452,7 +3485,7 @@ input[type='text'] {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px 18px;
+  gap: 6px 10px;
   margin: 0 0 10px;
 }
 .fp {
@@ -3475,6 +3508,12 @@ input[type='text'] {
   font-size: 0.65em;
   color: var(--muted);
   line-height: 1;
+}
+/* Under the row of card values. */
+.fp-caption {
+  flex-basis: 100%;
+  text-align: center;
+  font-size: 0.8em;
 }
 /* Under a formation's description: the rule it needs, like an achievement's flavour line. */
 .f-flavor {
@@ -4078,7 +4117,7 @@ input.rename {
 /* Mid-game rules: a compact two-column list, no scrolling. */
 .rules-summary {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 4px 10px;
   margin: 0;
   padding: 0;

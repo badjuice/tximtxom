@@ -123,7 +123,7 @@ export const SHOP_AVATARS = [
  *  Flawless, the CEO in a top hat for Royal Flush and in a suit for Rulebook. */
 export const REWARD_AVATARS = ['kingJohn', 'bigBoss', 'ceoHat', 'ceoSuit'] as const;
 /** Frames round a player's plate, given by achievements. The host takes the player's word for it. */
-export const FRAMES = ['boss'] as const;
+export const FRAMES = ['bronze', 'silver', 'gold', 'ruby', 'emerald', 'sapphire', 'amethyst', 'boss'] as const;
 export type Frame = (typeof FRAMES)[number];
 /** A frame the host knows, or none. */
 export const cleanFrame = (f: unknown): Frame | undefined => ((FRAMES as readonly unknown[]).includes(f) ? (f as Frame) : undefined);

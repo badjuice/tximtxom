@@ -360,13 +360,8 @@ const RULE_OF_CARD: Record<string, Key> = { softcore: 'rule.softcore', mixed: 'r
 /** What each card is worth: an Ace 1, number cards as printed, J 11, Q 12, K 13. */
 function PointValues({ narrow }: { narrow: boolean }) {
   const sc = narrow ? 0.3 : 0.4;
-  const values: [number[], string][] = [
-    [[makeCard(1, 3)], '1'],
-    [[makeCard(2, 0), makeCard(10, 1)], '2–10'],
-    [[makeCard(11, 2)], '11'],
-    [[makeCard(12, 3)], '12'],
-    [[makeCard(13, 0)], '13'],
-  ];
+  // Every card, Ace to King, the suits taking turns.
+  const values: [number[], string][] = Array.from({ length: 13 }, (_, i) => [[makeCard(i + 1, (i % 4) as Suit)], String(i + 1)]);
   return (
     <div class="f-points">
       {values.map(([cards, pts]) => (
@@ -377,9 +372,9 @@ function PointValues({ narrow }: { narrow: boolean }) {
             ))}
           </span>
           <b class="fp-n">{pts}</b>
-          {cards.length > 1 && <small class="fp-note">{t('f.faceValue')}</small>}
         </span>
       ))}
+      <small class="fp-note fp-caption">{t('f.faceValue')}</small>
     </div>
   );
 }

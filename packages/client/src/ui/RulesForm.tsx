@@ -177,7 +177,8 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
   );
 }
 
-/** The rules of a game in progress at a glance: two columns, each rule with its
+/** The rules of a game in progress at a glance: one column, the ones that shape the game first
+ *  (length, timer, rides, penalties), then the helpers. Each rule with its
  *  Joker and its state (On in green, Off in red, or the value it is set to). */
 export function RulesSummary({ rules }: { rules: Rules }) {
   const onOff = (on: boolean) => <b class={on ? 'rs-on' : 'rs-off'}>{on ? t('rule.on') : t('rule.off')}</b>;
@@ -185,22 +186,22 @@ export function RulesSummary({ rules }: { rules: Rules }) {
   const rows: [string, string, string, ComponentChildren, string?][] = [
     ['timer', t('rule.rounds'), t('rule.rounds.desc'), rules.rounds ? <b class="rs-val">{rules.rounds}</b> : onOff(false)],
     ['bust', t('rule.bust'), t('rule.bust.desc'), rules.rounds ? onOff(false) : <b class="rs-val">{rules.threshold}</b>],
+    ['timer', t('rule.timer'), t('rule.timer.desc'), rules.turnTimer ? <b class="rs-val">{rules.turnTimer}s</b> : onOff(false)],
+    ['ride', t('rule.rides'), t('rule.rides.desc'), <b class="rs-val">{t(`rule.rides.${rules.rides}`)}</b>],
+    ['ride', t('rule.rideOrder'), t('rule.rideOrder.desc'), <b class="rs-val">{rules.rideOrder === 'roundRobin' ? t('rule.inTurns') : t('rule.together')}</b>],
+    ['penalty', t('rule.penalty10'), t('rule.penalty10.desc'), onOff(rules.penalty10), 'punish'],
+    ['double', t('rule.doubleDown'), t('rule.doubleDown.desc'), onOff(rules.doubleDown), 'punish'],
+    ['twodecks', t('rule.twoDecks'), t('rule.twoDecks.desc'), onOff(rules.twoDecks), 'support'],
+    ['polydactyly', t('rule.polydactyly'), t('rule.polydactyly.desc'), onOff(rules.polydactyly), 'funny'],
     ['softcore', t('rule.softcore'), t('rule.softcore.desc'), onOff(rules.softcore), 'support'],
     ['ace', t('rule.superposition'), t('rule.superposition.desc'), onOff(rules.superposition), 'support'],
     ['ace', t('rule.mobius'), t('rule.mobius.desc'), onOff(rules.mobius), 'support'],
     ['mixed', t('rule.smeared'), t('rule.smeared.desc'), onOff(rules.smeared), 'support'],
-    ['magicsort', t('rule.magicSort'), t('rule.magicSort.desc'), onOff(rules.magicSort), 'support'],
-    ['ride', t('rule.rideOrder'), t('rule.rideOrder.desc'), <b class="rs-val">{rules.rideOrder === 'roundRobin' ? t('rule.inTurns') : t('rule.together')}</b>],
-    ['ride', t('rule.rides'), t('rule.rides.desc'), <b class="rs-val">{t(`rule.rides.${rules.rides}`)}</b>],
     ['autoride', t('rule.autoRide'), t('rule.autoRide.desc'), onOff(rules.autoRide), 'support'],
     ['peek', t('rule.sixthSense'), t('rule.sixthSense.desc'), onOff(rules.sixthSense), 'info'],
     ['notice', t('rule.notice'), t('rule.notice.desc'), onOff(rules.noMoreFormationsNotice), 'info'],
-    ['penalty', t('rule.penalty10'), t('rule.penalty10.desc'), onOff(rules.penalty10), 'punish'],
-    ['double', t('rule.doubleDown'), t('rule.doubleDown.desc'), onOff(rules.doubleDown), 'punish'],
-    ['timer', t('rule.timer'), t('rule.timer.desc'), rules.turnTimer ? <b class="rs-val">{rules.turnTimer}s</b> : onOff(false)],
+    ['magicsort', t('rule.magicSort'), t('rule.magicSort.desc'), onOff(rules.magicSort), 'support'],
     ['scramble', t('rule.scramble'), t('rule.scramble.desc'), onOff(rules.scramble), 'funny'],
-    ['polydactyly', t('rule.polydactyly'), t('rule.polydactyly.desc'), onOff(rules.polydactyly), 'funny'],
-    ['twodecks', t('rule.twoDecks'), t('rule.twoDecks.desc'), onOff(rules.twoDecks), 'support'],
   ];
   return (
     <ul class="rules-summary">

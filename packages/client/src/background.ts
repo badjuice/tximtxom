@@ -32,6 +32,10 @@ uniform float uStripes;
 uniform float uSheen;
 // The Holographic table's rainbow film, and how far it's faded in.
 uniform float uHolo;
+// A table painted in more colours: up to 7, blended in order through the paint's folds.
+uniform vec3 uP[7];
+uniform float uPN;
+uniform float uPaint;
 
 // No sin() of big numbers (it falls apart at mediump): Inigo Quilez's multiply hash.
 float hash(vec2 p) {
@@ -61,6 +65,12 @@ void main() {
 
   vec3 col = mix(uC1, uC2, smoothstep(0.43, 0.47, n));
   col = mix(col, uC3, smoothstep(0.56, 0.6, n));
+  if (uPaint > 0.0) {
+    float x = clamp((n - 0.28) / 0.44, 0.0, 1.0) * (uPN - 1.0);
+    vec3 paint = uP[0];
+    for (int i = 1; i < 7; i++) paint = mix(paint, uP[i], smoothstep(float(i) - 0.62, float(i) - 0.38, x));
+    col = mix(col, paint, uPaint);
+  }
   // A flag: the paint's folds cut into its stripes, in order, with hard edges.
   if (uStripes > 0.0) {
     float k = floor(clamp((n - 0.3) / 0.4, 0.0, 0.999) * uStripeN);
@@ -118,6 +128,30 @@ export const TABLES: Record<string, [RGB, RGB, RGB]> = {
   negative: [hex('#d075a0'), hex('#4a1e6b'), hex('#0b0a14')],
   // Silver paint under a rainbow film (uHolo).
   holo: [hex('#c4cedc'), hex('#6c7a96'), hex('#141822')],
+  // Tables in 2, 3, 5 and 7 colours (PAINTS): the first and last paint colour, and the backdrop.
+  iceFire: [hex('#4fc3f7'), hex('#ff5a36'), hex('#140c14')],
+  nightDay: [hex('#f2d16b'), hex('#3a4fb8'), hex('#0d1126')],
+  mintCoral: [hex('#6fe3b4'), hex('#ff7f6b'), hex('#10201c')],
+  tropical: [hex('#ffd23f'), hex('#ee4266'), hex('#0f1d1f')],
+  berry: [hex('#ff5d8f'), hex('#00bbf9'), hex('#140f26')],
+  autumn: [hex('#e9c46a'), hex('#7f4f24'), hex('#1c120a')],
+  aurora: [hex('#00f5d4'), hex('#fee440'), hex('#0b1020')],
+  carnival: [hex('#ff595e'), hex('#6a4c93'), hex('#120f1e')],
+  spectrum: [hex('#ff4d4d'), hex('#b14dff'), hex('#0f0d1a')],
+  kaleidoscope: [hex('#f72585'), hex('#ffd166'), hex('#100a1e')],
+};
+/** Tables painted in their own list of colours, blended in order through the folds. */
+export const PAINTS: Record<string, RGB[]> = {
+  iceFire: ['#4fc3f7', '#ff5a36'].map(hex),
+  nightDay: ['#f2d16b', '#3a4fb8'].map(hex),
+  mintCoral: ['#6fe3b4', '#ff7f6b'].map(hex),
+  tropical: ['#ffd23f', '#3bceac', '#ee4266'].map(hex),
+  berry: ['#ff5d8f', '#9b5de5', '#00bbf9'].map(hex),
+  autumn: ['#e9c46a', '#e76f51', '#7f4f24'].map(hex),
+  aurora: ['#00f5d4', '#00bbf9', '#9b5de5', '#f15bb5', '#fee440'].map(hex),
+  carnival: ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93'].map(hex),
+  spectrum: ['#ff4d4d', '#ff9f1c', '#ffe14d', '#4cd97b', '#2ec4f1', '#4d6bff', '#b14dff'].map(hex),
+  kaleidoscope: ['#f72585', '#b5179e', '#7209b7', '#4361ee', '#4cc9f0', '#80ffdb', '#ffd166'].map(hex),
 };
 /** Flag tables: their stripes, top to bottom, shown in the paint's folds. */
 export const STRIPES: Record<string, RGB[]> = {
@@ -155,6 +189,7 @@ let shownTable: string | null = null;
 let stripes = 0;
 let sheen = 0;
 let holo = 0;
+let paint = 0;
 let spinBoost = 0;
 
 let mood: Mood = 'menu';
@@ -217,6 +252,7 @@ export function startBackground(canvas: HTMLCanvasElement): void {
   const u = (n: string) => gl.getUniformLocation(prog, n);
   const uRes = u('uRes'), uTime = u('uTime'), uSpin = u('uSpinTime'), uC1 = u('uC1'), uC2 = u('uC2'), uC3 = u('uC3');
   const uS = u('uS'), uStripeN = u('uStripeN'), uStripes = u('uStripes'), uSheen = u('uSheen'), uHolo = u('uHolo');
+  const uP = u('uP'), uPN = u('uPN'), uPaint = u('uPaint');
 
   // About 520 "pixels" across the diagonal, scaled up by CSS.
   const resize = () => {
@@ -249,6 +285,12 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     stripes += ((flag ? 1 : 0) - stripes) * Math.min(1, dt * 4);
     sheen += ((shownTable && SHEEN.has(shownTable) ? 1 : 0) - sheen) * Math.min(1, dt * 4);
     holo += ((shownTable && HOLO.has(shownTable) ? 1 : 0) - holo) * Math.min(1, dt * 4);
+    const paints = shownTable ? PAINTS[shownTable] : undefined;
+    paint += ((paints ? 1 : 0) - paint) * Math.min(1, dt * 4);
+    if (paints) {
+      gl.uniform3fv(uP, [...paints, ...Array(7 - paints.length).fill(paints.at(-1))].flat());
+      gl.uniform1f(uPN, paints.length);
+    }
     if (flag) {
       gl.uniform3fv(uS, [...flag, ...Array(6 - flag.length).fill(flag.at(-1))].flat());
       gl.uniform1f(uStripeN, flag.length);
@@ -269,6 +311,7 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     gl.uniform1f(uStripes, stripes);
     gl.uniform1f(uSheen, sheen);
     gl.uniform1f(uHolo, holo);
+    gl.uniform1f(uPaint, paint);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
   requestAnimationFrame(frame);

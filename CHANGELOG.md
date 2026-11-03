@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.58.0 (2026-11-03)
+- ✨ 10 new tables painted in more colours, dearer the more they have. 2 colours (600): Ice and Fire, Night and Day, Mint and Coral. 3 (900): Tropical, Berry, Autumn. 5 (1.500): Aurora, Carnival. 7 (2.500): Spectrum, Kaleidoscope.
+- ✨ 7 simple frames: a ring round your plate in Bronze (300), Silver (500), Gold (800), Ruby, Emerald, Sapphire or Amethyst (600 each).
+- 🔧 Formations shows every card from Ace to King with its points, and says cards are worth their rank.
+- 🔧 The rules of a game are in one column, the ones that shape the game first: length, timer, rides, penalties, then the helpers.
+
 ## 0.57.0 (2026-11-03)
 - ✨ Card stats: your favourite card, suit and value, and the cards you throw away, pick up and get stuck with most.
 - ✨ Rarities in their colours, with a shine and a pulse, wherever they're written. The changelog puts an achievement's rarity before its name.
