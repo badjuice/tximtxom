@@ -31,6 +31,7 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         value={rules.threshold}
         options={[
           { value: 40, label: '40' },
+          { value: 50, label: '50' },
           { value: 100, label: '100' },
         ]}
         onChange={(threshold) => onChange({ threshold })}
@@ -118,6 +119,19 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
         disabled={readOnly}
       />
       <Toggle label={t('rule.scramble')} desc={t('rule.scramble.desc')} joker="scramble" tone="funny" checked={rules.scramble} onChange={(scramble) => onChange(exclusive('scramble', 'magicSort', scramble))} disabled={readOnly} />
+      <Toggle
+        label={t('rule.polydactyly')}
+        desc={t('rule.polydactyly.desc')}
+        joker="polydactyly"
+        tone="funny"
+        checked={rules.polydactyly}
+        // Bigger hands hold more points: the limit moves from 40 to 50 with it (and back).
+        onChange={(polydactyly) =>
+          onChange({ polydactyly, ...(polydactyly && rules.threshold === 40 ? { threshold: 50 } : !polydactyly && rules.threshold === 50 ? { threshold: 40 } : {}) })
+        }
+        disabled={readOnly}
+      />
+      <Toggle label={t('rule.twoDecks')} desc={t('rule.twoDecks.desc')} joker="twodecks" tone="support" checked={rules.twoDecks} onChange={(twoDecks) => onChange({ twoDecks })} disabled={readOnly} />
     </div>
   );
 }
@@ -143,6 +157,8 @@ export function RulesSummary({ rules }: { rules: Rules }) {
     ['double', t('rule.doubleDown'), t('rule.doubleDown.desc'), onOff(rules.doubleDown), 'punish'],
     ['timer', t('rule.timer'), t('rule.timer.desc'), rules.turnTimer ? <b class="rs-val">{rules.turnTimer}s</b> : onOff(false)],
     ['scramble', t('rule.scramble'), t('rule.scramble.desc'), onOff(rules.scramble), 'funny'],
+    ['polydactyly', t('rule.polydactyly'), t('rule.polydactyly.desc'), onOff(rules.polydactyly), 'funny'],
+    ['twodecks', t('rule.twoDecks'), t('rule.twoDecks.desc'), onOff(rules.twoDecks), 'support'],
   ];
   return (
     <ul class="rules-summary">

@@ -57,6 +57,8 @@ export function computeLayout(
   widePiles = false,
   /** Text size setting: the HTML under and beside the hand grows with it. */
   textScale = 1,
+  /** Cards dealt to each hand (9 with Polydactyly). */
+  handCards = 7,
 ): Layout {
   const portrait = screenH > screenW * 1.05;
   let w: number, h: number;
@@ -119,10 +121,13 @@ export function computeLayout(
   };
 
   // Your plate sits left of the hand, clear of its first card however wide the text makes it.
+  const halfPlate = (172 * ts) / 2 / scale + 14; // .plate width, plus its tags
+  const halfHand = (handCards - 1) / 2;
+  // A bigger hand closes up so its first card still clears the plate.
+  if (!portrait && handCards > 7) hand.spacing = Math.min(hand.spacing, (hand.x - (CARD_W * hand.cardScale) / 2 - 2 * halfPlate - 22) / (halfHand + 0.5));
   const myPlateX = () => {
-    const firstCardLeft = hand.x - 3 * hand.spacing - (CARD_W * hand.cardScale) / 2;
-    const halfPlate = (172 * ts) / 2 / scale + 14; // .plate width, plus its tags
-    return Math.max(halfPlate + 6, Math.min(hand.x - 4 * hand.spacing - 60, firstCardLeft - 10 - halfPlate));
+    const firstCardLeft = hand.x - halfHand * hand.spacing - (CARD_W * hand.cardScale) / 2;
+    return Math.max(halfPlate + 6, Math.min(hand.x - (halfHand + 1) * hand.spacing - 60, firstCardLeft - 10 - halfPlate));
   };
 
   const seats: SeatAnchor[] = [];

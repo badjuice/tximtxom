@@ -5,6 +5,20 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.54.0 (2026-11-03)
+- ✨ New rule, Polydactyly: 9-card hands. All nine formed is -15, a hand emptied on rides is -10, and a TximTxom is a one-suit straight of 7 or more with the rest formed. Turning it on moves the bust limit to 50.
+- ✨ New rule, Two Decks: 104 cards, each card twice. Sets go up to eight of a rank (quintet to octet), and quads take rides too.
+- ✨ Nine new achievements: one for each new rule, and seven secret ones for the big formations they allow.
+- ✨ +30 chips when your hand runs out of cards (a full hand, a TximTxom, or your last card gone on a ride), once a round. Big sets and long straights pay extra.
+- ✨ Chip pops say what paid ("3-Straight", "Hand emptied"), and the chips of a round or game roll up like an odometer.
+- 🔧 Your name instead of "You" everywhere, framed in gold among the others.
+- 🔧 The Shop starts smaller: two of each card back style, two tables and six characters are free. Recoloured backs come in packs, and Random is the last buy of each group (2,000). What you bought stays yours.
+- 🔧 Whose turn it is: the plate keeps its gold border, with the player's colour still showing inside it, and their character glows in their colour.
+- 🔧 The Full hand and TximTxom note sits centred above the formations.
+- 🔧 Formations: clearer card values, and the rule each formation needs written under it.
+- 🔧 Achievements: cards shine only while hovered or tapped, the modal keeps its size when filtered, and the filter hints are shorter.
+- 🔧 A thicker chip, and a bigger copy button on the end-of-game screen.
+
 ## 0.53.0 (2026-11-01)
 - ✨ The Shop, on the main menu: spend chips on 12 card backs, 8 table colours and 16 characters. Tap the price, then "Buy?" to confirm.
 - ✨ The Shop is also where you choose what you use, free items included. Tables show behind it while you browse.

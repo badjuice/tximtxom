@@ -133,6 +133,8 @@ const RULE_TONES: Record<string, string> = {
   double: 'punish',
   magicsort: 'support',
   scramble: 'funny',
+  polydactyly: 'funny',
+  twodecks: 'support',
 };
 
 /** Art on a card: a player's character or a rule's picture. Unknown names (old saves) show the default character.

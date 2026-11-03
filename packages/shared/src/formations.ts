@@ -1,7 +1,8 @@
-import { type Card, cardPoints, fullDeck, rankOf, suitOf } from './cards.js';
-import { HAND_SIZE, type Rules } from './rules.js';
+import { type Card, cardPoints, deckCount, fullDeck, rankOf, suitOf } from './cards.js';
+import { handSize, type Rules, TXIMTXOM_MIN } from './rules.js';
 
-export type FormationKind = 'pair' | 'trio' | 'quad' | 'straight';
+/** Quintets and up only happen with two decks (a deck has four of each rank). */
+export type FormationKind = 'pair' | 'trio' | 'quad' | 'quintet' | 'sextet' | 'septet' | 'octet' | 'straight';
 
 export interface FormationInfo {
   kind: FormationKind;
@@ -9,10 +10,11 @@ export interface FormationInfo {
   cards: Card[];
 }
 
-type RuleFlags = Pick<Rules, 'softcore' | 'superposition'> & { smeared?: boolean; mobius?: boolean };
+type RuleFlags = Pick<Rules, 'softcore' | 'superposition'> & { smeared?: boolean; mobius?: boolean; polydactyly?: boolean; twoDecks?: boolean };
 
+const SET_KINDS: (FormationKind | null)[] = [null, null, 'pair', 'trio', 'quad', 'quintet', 'sextet', 'septet', 'octet'];
 function setKind(n: number): FormationKind | null {
-  return n === 2 ? 'pair' : n === 3 ? 'trio' : n === 4 ? 'quad' : null;
+  return SET_KINDS[n] ?? null;
 }
 
 /** Sorts straight cards low to high, or returns null if they are not a straight. */
@@ -102,11 +104,22 @@ export function canRide(formation: readonly Card[], card: Card, rules: RuleFlags
   return wasSet === isSet ? after : null;
 }
 
-/** A 7-card straight of one suit. Smeared does not apply here. */
+/**
+ * A whole hand that is one straight of one suit (Smeared does not apply here).
+ * With Polydactyly a straight of 7 or more is enough, so long as the rest of the hand is formed too.
+ */
 export function isTximTxom(hand: readonly Card[], rules: RuleFlags): boolean {
-  if (hand.length !== HAND_SIZE) return false;
-  const f = classifyFormation(hand, { ...rules, smeared: false });
-  return f?.kind === 'straight';
+  if (hand.length !== handSize(rules)) return false;
+  const oneSuit = { ...rules, smeared: false };
+  if (classifyFormation(hand, oneSuit)?.kind === 'straight') return true;
+  if (!rules.polydactyly) return false;
+  const n = hand.length;
+  for (let m = 1; m < 1 << n; m++) {
+    if (popcount(m) < TXIMTXOM_MIN || classifyFormation(pick(hand, m), oneSuit)?.kind !== 'straight') continue;
+    const rest = hand.filter((_, i) => !(m & (1 << i)));
+    if (!rest.length || bestPartition(rest, rules).leftover.length === 0) return true;
+  }
+  return false;
 }
 
 export interface Partition {
@@ -261,7 +274,7 @@ export function magicOrder(hand: readonly Card[], rules: RuleFlags, unformedLeft
   const p = bestPartition(hand, rules);
   const formed = [...p.formations].sort((a, b) => low(a.cards) - low(b.cards)).map((f) => f.cards);
   // Two loose cards are almost a formation when a card you could still get would complete it.
-  const outside = fullDeck().filter((c) => !hand.includes(c));
+  const outside = fullDeck(deckCount(rules)).filter((c) => !hand.includes(c));
   const almost = (a: Card, b: Card) => outside.some((c) => classifyFormation([a, b, c], rules) !== null);
   const rest = [...p.leftover].sort(byRank);
   const pairs: [Card, Card][] = [];

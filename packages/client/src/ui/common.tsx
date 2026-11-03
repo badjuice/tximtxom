@@ -821,7 +821,7 @@ export function Label({ k, vars }: { k: Key; vars?: Record<string, string | numb
 /** A casino chip: the icon of the game's currency. */
 /** The chip, seen from the side (68 × 42), `size` wide. Not draggable, and clicks go through it. */
 export const ChipIcon = ({ size = 20 }: { size?: number }) => (
-  <img class="chip-icon" src={assetUrl('ui/chip.png')} width={Math.round(size * 1.25)} height={Math.round(size * 1.25 * (42 / 68))} alt="" aria-hidden="true" draggable={false} />
+  <img class="chip-icon" src={assetUrl('ui/chip.png')} width={Math.round(size * 1.25)} height={Math.round(size * 1.25 * (48 / 68))} alt="" aria-hidden="true" draggable={false} />
 );
 
 /** Your chips: the balance on a dark pill, with the chip in front. */
@@ -884,4 +884,44 @@ export function Rich({ text }: { text: string }) {
   }
   if (last < text.length) parts.push(withHighlights(text.slice(last)));
   return <>{parts}</>;
+}
+
+/** Two sheets, the front one solid: drawn on the same pixel grid as the game's icons. */
+export const CopyIcon = ({ size = 14 }: { size?: number }) => (
+  <svg viewBox="0 0 16 16" width={size} height={size} shape-rendering="crispEdges" aria-hidden="true">
+    <path d="M5 1h10v10h-3V9h1V3H7v1H5z" fill="currentColor" opacity="0.7" />
+    <path d="M1 5h10v10H1z" fill="currentColor" />
+  </svg>
+);
+
+/** A number that rolls into place digit by digit, like an odometer; from all zeros, so its width never changes. */
+export function Odometer({ n, ms = 1400 }: { n: number; ms?: number }) {
+  const s = useSettings();
+  const text = formatCount(n);
+  const [on, setOn] = useState(s.reducedMotion);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setOn(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  let digit = 0;
+  const digits = [...text].filter((ch) => /\d/.test(ch)).length;
+  return (
+    <span class="odometer" role="img" aria-label={text}>
+      {[...text].map((ch) => {
+        if (!/\d/.test(ch)) return <span aria-hidden="true">{ch}</span>;
+        // The last digit rolls longest and furthest, as on a real counter.
+        const i = digit++;
+        const d = Number(ch) + 10 * (digits - 1 - i === 0 ? 2 : 1);
+        return (
+          <span class="odo-digit" aria-hidden="true">
+            <span class="odo-strip" style={{ translate: `0 ${on ? -d : 0}em`, transitionDuration: `${ms * (0.6 + (0.4 * (i + 1)) / digits)}ms` }}>
+              {Array.from({ length: 30 }, (_, k) => (
+                <span>{k % 10}</span>
+              ))}
+            </span>
+          </span>
+        );
+      })}
+    </span>
+  );
 }

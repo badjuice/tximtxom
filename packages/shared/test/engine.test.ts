@@ -119,6 +119,15 @@ describe('turns', () => {
 });
 
 describe('scoring', () => {
+  it('Polydactyly: -15 for all nine formed', () => {
+    let s = rig(game(2, { polydactyly: true }), ['7H 7S 7D 2D 3D 4D KC KH KS', 'QH QS 9D 9C 6H 6S 10C 10H 8C'], '5C', '8H');
+    s = act(s, 0, { type: 'draw' });
+    s = act(s, 0, { type: 'endRound', card: C('5C') });
+    expect(s.reveal!.bonus).toBe(true);
+    s = act(s, 1, { type: 'doneLaying' });
+    expect(s.results[0].points[0]).toBe(-15);
+  });
+
   it('-10 for a full hand ended with a 5 or lower; no rides', () => {
     let s = rig(game(), ['7H 7S 2D 3D 4D KC KH', 'QH QS 9D 9C 6H 6S 10C'], '5C', '8H');
     s = act(s, 0, { type: 'draw' });

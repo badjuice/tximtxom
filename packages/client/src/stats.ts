@@ -91,7 +91,7 @@ const EMPTY: MyStats = {
   roundsEnded: 0,
   tximtxoms: 0,
   formations: 0,
-  kinds: { pair: 0, trio: 0, quad: 0, straight: 0 },
+  kinds: { pair: 0, trio: 0, quad: 0, quintet: 0, sextet: 0, septet: 0, octet: 0, straight: 0 },
   longestStraight: 0,
   longStraights: 0,
   rides: 0,

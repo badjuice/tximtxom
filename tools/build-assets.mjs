@@ -262,6 +262,8 @@ const RULE_ART = {
   txijog: ['cards_under', 'red'],
   magicsort: ['cards_order', 'green'],
   scramble: ['cards_shuffle', 'funny'],
+  polydactyly: ['hand', 'funny'],
+  twodecks: ['cards_stack_high', 'green'],
 };
 
 /** A white Board Game icon at `size` px, hard-edged so it reads as pixel art. */
@@ -359,9 +361,17 @@ async function uiIcons() {
   }
   console.log(`ui icons: ${Object.keys(UI_ICONS).length}`);
   // The chip, in its own colours (not a mask): the currency's icon, seen from the side so it has depth.
-  await sharp(path.join(KENNEY, 'boardgame-pack/PNG/Chips/chipRedWhite_sideBorder.png'))
-    .png({ compressionLevel: 9 })
-    .toFile(path.join(OUT, 'ui', 'chip.png'));
+  // Its edge is made CHIP_EDGE rows thicker by repeating a row from the middle of the edge.
+  {
+    const CHIP_EDGE = 6, EDGE_ROW = 28;
+    const { data, info } = await sharp(path.join(KENNEY, 'boardgame-pack/PNG/Chips/chipRedWhite_sideBorder.png')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const row = info.width * 4;
+    const edge = data.subarray(EDGE_ROW * row, (EDGE_ROW + 1) * row);
+    const out = Buffer.concat([data.subarray(0, EDGE_ROW * row), ...Array(CHIP_EDGE).fill(edge), data.subarray(EDGE_ROW * row)]);
+    await sharp(out, { raw: { width: info.width, height: info.height + CHIP_EDGE, channels: 4 } })
+      .png({ compressionLevel: 9 })
+      .toFile(path.join(OUT, 'ui', 'chip.png'));
+  }
   // The loading screen's card (shown before the atlases load), as one strip:
   // the two Jokers, then the backs in BACKS order (index.html picks one at random).
   const { frames } = JSON.parse(fs.readFileSync(path.join(OUT, 'cards.json'), 'utf8'));

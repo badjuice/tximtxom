@@ -1,4 +1,5 @@
-// A card is a number 0..51: suit * 13 + (rank - 1).
+// A card is a number 0..51: suit * 13 + (rank - 1). A second deck's cards are 52..103,
+// the same cards again: rank and suit come from the card's place in its own deck.
 // Ranks: 1 = Ace, 2..10, 11 = J, 12 = Q, 13 = K.
 export type Card = number;
 export type Suit = 0 | 1 | 2 | 3;
@@ -21,7 +22,7 @@ export function rankOf(c: Card): number {
 }
 
 export function suitOf(c: Card): Suit {
-  return Math.floor(c / 13) as Suit;
+  return Math.floor((c % 52) / 13) as Suit;
 }
 
 /** Points a card is worth when left unformed. Aces are always 1. */
@@ -65,6 +66,10 @@ export function parseCards(codes: string): Card[] {
   return codes.split(/[\s,]+/).filter(Boolean).map(parseCard);
 }
 
-export function fullDeck(): Card[] {
-  return Array.from({ length: 52 }, (_, i) => i);
+/** Every card of `decks` decks (two: each card twice, under different numbers). */
+export function fullDeck(decks = 1): Card[] {
+  return Array.from({ length: 52 * decks }, (_, i) => i);
 }
+
+/** The decks a game is played with. */
+export const deckCount = (r: { twoDecks?: boolean }): number => (r.twoDecks ? 2 : 1);

@@ -1,4 +1,4 @@
-import { type Action, type Card, canEndWith, canRide, fullDeck, type PassWhy, type GameEvent, type GameView, type RoomView } from '@tximtxom/shared';
+import { type Action, type Card, canEndWith, canRide, deckCount, fullDeck, type PassWhy, type GameEvent, type GameView, type RoomView } from '@tximtxom/shared';
 import { play, type Sfx, vibrate } from './audio';
 import { setMood, shuffleTablePalette, swirl } from './background';
 import { drawPileTop, revealGroups, type SortKey, sortedCards } from './game/scene';
@@ -55,7 +55,7 @@ function cannotRide(g: GameView): PassWhy | null {
   if (f.kind !== 'straight' && f.rides.some((r) => r.seat === me)) return 'done';
   if ((g.players[me].hand ?? []).some((c) => canRide(f.cards, c, g.rules))) return null;
   // No card in the whole deck would fit: the formation is complete.
-  return fullDeck().some((c) => !f.cards.includes(c) && canRide(f.cards, c, g.rules)) ? 'noFit' : 'full';
+  return fullDeck(deckCount(g.rules)).some((c) => !f.cards.includes(c) && canRide(f.cards, c, g.rules)) ? 'noFit' : 'full';
 }
 
 /** How long Pass waits: shorter when the formation takes no more cards, longer when it could but yours don't fit. */
@@ -186,7 +186,7 @@ function trackSeen(e: GameEvent | null, g: GameView): void {
 
 function name(g: GameView, seat: number | null): string {
   if (seat === null) return '—';
-  return seat === g.you ? t('you') : g.players[seat].name;
+  return g.players[seat].name;
 }
 
 let prevRoom: RoomView | null = null;
@@ -496,7 +496,7 @@ function handleEvent(e: GameEvent, g: GameView, hints: SpawnHints): void {
       table.shake.add(8);
       swirl(2);
       setMood('reveal');
-      const how = e.kind === 'pileOut' ? t('b.pileOut') : e.kind === 'exhausted' ? t('b.noCards') : e.seat === me ? t('b.txiJogYou') : t('b.txiJog', { name: who });
+      const how = e.kind === 'pileOut' ? t('b.pileOut') : e.kind === 'exhausted' ? t('b.noCards') : t('b.txiJog', { name: who });
       if (e.bonus) {
         setTimeout(() => {
           sfx('foil1');

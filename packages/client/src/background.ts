@@ -3,7 +3,7 @@
 // up with `image-rendering: pixelated`, which gives the pixel look for free.
 import { frameRate } from './power';
 import { getSettings, onSettings } from './settings';
-import { FREE_TABLES, ownedOf, owns } from './shop';
+import { FREE_TABLES, ownedOf, owns, ownsRandom } from './shop';
 
 const VERT = `
 attribute vec2 aPos;
@@ -95,7 +95,8 @@ let randomTable = FREE_TABLES[Math.floor(Math.random() * FREE_TABLES.length)];
 /** The table's palette: the one chosen in Settings (if it's yours), or the random pick. */
 function tablePalette(): [RGB, RGB, RGB] {
   const chosen = getSettings().table;
-  return TABLES[chosen !== 'random' && owns(chosen) ? chosen : randomTable] ?? TABLES.felt;
+  if (chosen === 'random') return TABLES[ownsRandom('table') ? randomTable : 'felt'];
+  return TABLES[owns(chosen) ? chosen : 'felt'] ?? TABLES.felt;
 }
 
 function hex(h: string): RGB {

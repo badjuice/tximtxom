@@ -1,4 +1,3 @@
-import type { ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { play } from '../audio';
 import { previewTable, TABLES } from '../background';
@@ -6,7 +5,7 @@ import { buyItem, useChips } from '../chips';
 import { type Key, t } from '../i18n';
 import { saveAvatar, savedAvatar } from '../net';
 import { CARD_STYLES, type CardStyle, updateSettings, useSettings } from '../settings';
-import { owns, SHOP, type ShopItem, type ShopKind } from '../shop';
+import { owns, randomOpen, SHOP, type ShopItem, type ShopKind } from '../shop';
 import { formatCount } from '../stats';
 import { ChipCount, ChipIcon, Modal } from './common';
 import { ArtIcon, StyleBackIcon } from './sprites';
@@ -24,7 +23,8 @@ export function backName(b: string): string {
   return variant[n] ? t(variant[n], { c }) : c;
 }
 
-export const itemName = (i: ShopItem): string => (i.kind === 'back' ? backName(i.id) : t(`${i.kind}.${i.id}` as Key));
+export const itemName = (i: ShopItem): string =>
+  i.random ? t('set.cardBack.random') : i.pack ? t('shop.pack', { name: t(`shop.${i.id}` as Key), n: i.pack.length }) : i.kind === 'back' ? backName(i.id) : t(`${i.kind}.${i.id}` as Key);
 
 const css = (rgb: number[]) => `rgb(${rgb.map((v) => Math.round(v * 255)).join(' ')})`;
 
@@ -35,6 +35,15 @@ function TableSwatch({ id }: { id: string }) {
 }
 
 function Preview({ item }: { item: ShopItem }) {
+  if (item.random) return <span class={`shop-random${item.kind === 'table' ? ' shop-table' : ''}`}>?</span>;
+  if (item.pack)
+    return (
+      <span class="shop-fan">
+        {item.pack.map((b) => (
+          <StyleBackIcon style={item.style!} back={b} scale={0.5} />
+        ))}
+      </span>
+    );
   if (item.kind === 'back') return <StyleBackIcon style={item.style!} back={item.id} scale={0.62} />;
   if (item.kind === 'table') return <TableSwatch id={item.id} />;
   return <ArtIcon name={item.id} scale={0.62} />;
@@ -59,11 +68,16 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
   }, [tab, s.table]);
   useEffect(() => () => previewTable(null), []);
 
-  const equipped = (i: ShopItem) => (i.kind === 'back' ? s.cardBack === i.id && s.cardStyle === i.style : i.kind === 'table' ? s.table === i.id : avatar === i.id);
+  const equipped = (i: ShopItem) => {
+    const id = i.random ? 'random' : i.id;
+    return i.kind === 'back' ? s.cardBack === id && s.cardStyle === i.style : i.kind === 'table' ? s.table === id : avatar === id;
+  };
   const equip = (i: ShopItem) => {
     play('button', { volume: 0.5 });
-    if (i.kind === 'back') updateSettings({ cardStyle: i.style, cardBack: i.id });
-    else if (i.kind === 'table') updateSettings({ table: i.id });
+    // A pack is put on with its first back.
+    const id = i.random ? 'random' : (i.pack?.[0] ?? i.id);
+    if (i.kind === 'back') updateSettings({ cardStyle: i.style, cardBack: id });
+    else if (i.kind === 'table') updateSettings({ table: id });
     else {
       saveAvatar(i.id);
       setAvatar(i.id);
@@ -85,8 +99,10 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
     const mine = owns(i.id);
     const on = equipped(i);
     const short = i.price - chips.balance;
+    // Random waits until the rest of its group is yours.
+    const shut = i.random && !mine && !randomOpen(i.kind, i.style);
     return (
-      <li class={`shop-item${on ? ' on' : ''}${mine ? '' : ' for-sale'}`} key={i.id} onPointerEnter={i.kind === 'table' ? () => previewTable(i.id) : undefined}>
+      <li class={`shop-item${on ? ' on' : ''}${mine ? '' : ' for-sale'}`} key={i.id} onPointerEnter={i.kind === 'table' && !i.random ? () => previewTable(i.id) : undefined}>
         <span class="shop-preview">
           <Preview item={i} />
         </span>
@@ -101,8 +117,8 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             class={`shop-btn buy${asking === i.id ? ' asking' : ''}`}
-            disabled={short > 0}
-            title={short > 0 ? t('shop.need', { n: formatCount(short) }) : undefined}
+            disabled={short > 0 || shut}
+            title={shut ? t(`shop.randomShut.${i.kind}` as Key) : short > 0 ? t('shop.need', { n: formatCount(short) }) : undefined}
             onClick={() => buy(i)}
           >
             {asking === i.id ? (
@@ -118,28 +134,11 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
       </li>
     );
   };
-  /** "Random" heads the backs of each style, and the tables. */
-  const randomTile = (on: boolean, pick: () => void, preview: ComponentChildren) => (
-    <li class={`shop-item${on ? ' on' : ''}`} key="random">
-      <span class="shop-preview">{preview}</span>
-      <span class="shop-name">{t('set.cardBack.random')}</span>
-      {on ? (
-        <span class="shop-state">{t('shop.equipped')}</span>
-      ) : (
-        <button
-          type="button"
-          class="shop-btn equip"
-          onClick={() => {
-            play('button', { volume: 0.5 });
-            pick();
-          }}
-        >
-          {t('shop.equip')}
-        </button>
-      )}
-    </li>
-  );
-  const items = (kind: ShopKind, style?: CardStyle) => SHOP.filter((i) => i.kind === kind && (!style || i.style === style));
+  /** The group's items in shop order; a pack you own opens into its backs. Random comes last. */
+  const items = (kind: ShopKind, style?: CardStyle) =>
+    SHOP.filter((i) => i.kind === kind && (!style || i.style === style)).flatMap((i): ShopItem[] =>
+      i.pack && owns(i.id) ? i.pack.map((id) => ({ id, kind, price: 0, style })) : [i],
+    );
 
   return (
     <Modal title={t('shop.title')} onClose={onClose} class="shop-modal">
@@ -158,7 +157,6 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
           <section class="shop-section">
             <h4>{t(`set.cardStyle.${style}`)}</h4>
             <ul class="shop-grid">
-              {randomTile(s.cardBack === 'random' && s.cardStyle === style, () => updateSettings({ cardStyle: style, cardBack: 'random' }), <span class="shop-random">?</span>)}
               {items('back', style).map(tile)}
             </ul>
           </section>
@@ -167,7 +165,6 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
         <section class="shop-section">
           <p class="muted small center">{t('shop.tableHint')}</p>
           <ul class="shop-grid" onPointerLeave={() => previewTable(s.table !== 'random' ? s.table : null)}>
-            {randomTile(s.table === 'random', () => updateSettings({ table: 'random' }), <span class="shop-table shop-random">?</span>)}
             {items('table').map(tile)}
           </ul>
         </section>

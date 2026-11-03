@@ -1,6 +1,6 @@
 import { assetUrl } from '../version';
 import { Application, Assets, CanvasSource, Container, type Spritesheet, type Texture } from 'pixi.js';
-import type { Card, GameView } from '@tximtxom/shared';
+import { type Card, type GameView, handSize } from '@tximtxom/shared';
 import { upscaled, UPSCALE } from '../pixelArt';
 import { frameRate, onFrameRate } from '../power';
 import { CARD_ATLAS, type CardStyle, getSettings, historyInset, onSettings } from '../settings';
@@ -155,7 +155,7 @@ export class Table {
     const viewport = `${innerWidth - historyInset()}x${innerHeight}`;
     const resized = this.viewport !== '' && viewport !== this.viewport;
     this.viewport = viewport;
-    this.layout = computeLayout(innerWidth - historyInset(), innerHeight, g?.players.length ?? 2, g?.you ?? 0, s.clockwise, s.uiScale, !!g?.rules.sixthSense, s.textScale);
+    this.layout = computeLayout(innerWidth - historyInset(), innerHeight, g?.players.length ?? 2, g?.you ?? 0, s.clockwise, s.uiScale, !!g?.rules.sixthSense, s.textScale, g ? handSize(g.rules) : 7);
     this.world.scale.set(this.layout.scale);
     this.world.position.set(this.layout.offsetX, this.layout.offsetY);
     this.onLayout(this.layout);
@@ -173,6 +173,7 @@ export class Table {
     const prevPlayers = this.input.game?.players.length;
     const prevYou = this.input.game?.you;
     const prevSixth = this.input.game?.rules.sixthSense;
+    const prevPoly = this.input.game?.rules.polydactyly;
     this.input = input;
     const g = input.game;
     if (g) {
@@ -189,7 +190,7 @@ export class Table {
         if (v.deal) this.dealPending.add(k);
       }
     }
-    if (g && (g.players.length !== prevPlayers || g.you !== prevYou || g.rules.sixthSense !== prevSixth)) this.relayout();
+    if (g && (g.players.length !== prevPlayers || g.you !== prevYou || g.rules.sixthSense !== prevSixth || g.rules.polydactyly !== prevPoly)) this.relayout();
     else this.sync();
   }
 

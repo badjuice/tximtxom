@@ -1,5 +1,5 @@
 import { assetUrl } from './version';
-import { FREE_PIXEL_BACKS, ownedOf } from './shop';
+import { FREE_PIXEL_BACKS, ownedOf, ownsRandom } from './shop';
 import { useEffect, useState } from 'preact/hooks';
 
 /** The card art: Kenney's pixel cards, or the smooth cards of his Boardgame Pack. */
@@ -36,7 +36,8 @@ export function rollRandomBack(): void {
 export function currentBack(): CardBack {
   const b = getSettings().cardBack;
   const all = cardBacks();
-  if (b === 'random') {
+  // Random until it's bought falls back to your first back.
+  if (b === 'random' && ownsRandom('back', getSettings().cardStyle)) {
     if (!all.includes(randomBack)) rollRandomBack();
     return randomBack;
   }
@@ -168,7 +169,7 @@ export const DEFAULT_SETTINGS: Settings = {
   achSort: 'default',
   achSortDesc: false,
   achView: 'all',
-  table: 'random',
+  table: 'felt',
   announce: true,
   leftHanded: false,
   historyOpen: false,

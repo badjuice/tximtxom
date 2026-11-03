@@ -32,6 +32,10 @@ export interface Rules {
   magicSort: boolean;
   /** No sorting, and every card someone picks up shuffles everyone's hand. */
   scramble: boolean;
+  /** Polydactyly: 9-card hands. A full hand is -15, an emptied one -10; a TximTxom is a 7+ straight with the rest formed. */
+  polydactyly: boolean;
+  /** Two decks shuffled together (104 cards): twin cards, and sets of up to eight. */
+  twoDecks: boolean;
 }
 
 export const DEFAULT_RULES: Rules = {
@@ -50,6 +54,8 @@ export const DEFAULT_RULES: Rules = {
   smeared: false,
   magicSort: false,
   scramble: false,
+  polydactyly: false,
+  twoDecks: false,
 };
 
 /** Rules that only work on top of another: off, and locked in the room, until that one is on. */
@@ -58,7 +64,7 @@ export const RULE_REQUIRES: Partial<Record<keyof Rules, keyof Rules>> = { mobius
 /** Rules that can't be on together (Scramble undoes any sorting): turning one on turns the other off. */
 export const RULE_EXCLUDES: [keyof Rules, keyof Rules][] = [['magicSort', 'scramble']];
 
-export const THRESHOLD_OPTIONS = [40, 100] as const;
+export const THRESHOLD_OPTIONS = [40, 50, 100] as const;
 export const TIMER_OPTIONS = [0, 30, 60] as const;
 
 export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
@@ -80,6 +86,8 @@ export function sanitizeRules(input: Partial<Rules> | undefined): Rules {
     // Never both: Scramble wins.
     magicSort: !!r.magicSort && !r.scramble,
     scramble: !!r.scramble,
+    polydactyly: !!r.polydactyly,
+    twoDecks: !!r.twoDecks,
   };
 }
 
@@ -94,13 +102,11 @@ export const BOT_PERSONAS = [
 ] as const;
 
 /** Character art human players cycle through in the room. */
-export const HUMAN_JOKERS = [
-  'villager', 'bearded', 'barbarian', 'guard', 'squire', 'princess', 'elder',
-  'slime', 'crab', 'ranger', 'bat', 'spider', 'snail', 'boar',
-] as const;
+export const HUMAN_JOKERS = ['villager', 'bearded', 'princess', 'guard', 'slime', 'crab'] as const;
 
 /** Characters sold in the client's shop. The host takes a player's word that they own one. */
 export const SHOP_AVATARS = [
+  'barbarian', 'squire', 'elder', 'ranger', 'bat', 'spider', 'snail', 'boar',
   'brute', 'bandit', 'goblin', 'king', 'queen', 'ghoul', 'beetle', 'web',
   'skeleton', 'cow', 'horse', 'cat', 'octopus', 'serpent', 'bear', 'gnome',
 ] as const;
@@ -108,5 +114,13 @@ export const SHOP_AVATARS = [
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;
 export const HAND_SIZE = 7;
+/** Cards dealt to each player under these rules. */
+export const handSize = (r: { polydactyly?: boolean }): number => (r.polydactyly ? 9 : HAND_SIZE);
 export const FULL_HAND_BONUS = -10;
+/** Polydactyly's full hand (all nine formed). */
+export const BIG_FULL_HAND_BONUS = -15;
+/** Polydactyly: a hand emptied any other way (rides, or a Txi jog and then rides). */
+export const EMPTIED_BONUS = -10;
+/** The shortest straight that makes a TximTxom with Polydactyly (the rest of the hand formed). */
+export const TXIMTXOM_MIN = 7;
 export const PENALTY_POINTS = 10;

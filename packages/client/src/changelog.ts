@@ -19,6 +19,24 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.54.0',
+    date: '2026-11-03',
+    items: [
+      n("New rule, Polydactyly: 9-card hands. All nine formed is -15, a hand emptied on rides is -10, and a TximTxom is a one-suit straight of 7 or more with the rest formed. Turning it on moves the bust limit to 50.", "Nova regra, Polidactilia: mãos de 9 cartas. As nove formadas valem -15, uma mão esvaziada com boleias vale -10, e um TximTxom é uma escada de 7 ou mais do mesmo naipe com o resto formado. Ligá-la passa o limite para 50."),
+      n("New rule, Two Decks: 104 cards, each card twice. Sets go up to eight of a rank (quintet to octet), and quads take rides too.", "Nova regra, Dois Baralhos: 104 cartas, cada uma duas vezes. Os conjuntos vão até oito do mesmo valor (quinteto a octeto), e as quadras também levam boleias."),
+      n("Nine new achievements: one for each new rule, and seven secret ones for the big formations they allow.", "Nove conquistas novas: uma por cada regra nova, e sete secretas para as formações grandes que elas permitem."),
+      n("+30 chips when your hand runs out of cards (a full hand, a TximTxom, or your last card gone on a ride), once a round. Big sets and long straights pay extra.", "+30 fichas quando a tua mão fica sem cartas (mão completa, TximTxom ou a última carta numa boleia), uma vez por ronda. Conjuntos grandes e escadas longas pagam mais."),
+      n("Chip pops say what paid (\"3-Straight\", \"Hand emptied\"), and the chips of a round or game roll up like an odometer.", "As fichas que aparecem dizem o que pagou (\"Escada de 3\", \"Mão vazia\"), e as fichas da ronda ou do jogo sobem como um conta-quilómetros."),
+      c("Your name instead of \"You\" everywhere, framed in gold among the others.", "O teu nome em vez de \"Tu\" em todo o lado, com uma moldura dourada entre os outros."),
+      c("The Shop starts smaller: two of each card back style, two tables and six characters are free. Recoloured backs come in packs, and Random is the last buy of each group (2,000). What you bought stays yours.", "A Loja começa mais pequena: duas costas de cada estilo, duas mesas e seis personagens são grátis. As costas recoloridas vêm em pacotes, e Aleatória é a última compra de cada grupo (2.000). O que compraste continua teu."),
+      c("Whose turn it is: the plate keeps its gold border, with the player's colour still showing inside it, and their character glows in their colour.", "De quem é a vez: a placa mantém a borda dourada, com a cor do jogador por dentro, e a personagem brilha na cor do jogador."),
+      c("The Full hand and TximTxom note sits centred above the formations.", "A nota de Mão completa e TximTxom fica centrada por cima das formações."),
+      c("Formations: clearer card values, and the rule each formation needs written under it.", "Formações: valores das cartas mais claros, e a regra que cada formação precisa escrita por baixo."),
+      c("Achievements: cards shine only while hovered or tapped, the modal keeps its size when filtered, and the filter hints are shorter.", "Conquistas: as cartas só brilham quando lhes passas por cima ou lhes tocas, o painel mantém o tamanho ao filtrar, e as dicas do filtro são mais curtas."),
+      c("A thicker chip, and a bigger copy button on the end-of-game screen.", "Uma ficha mais grossa, e um botão de copiar maior no fim do jogo."),
+    ],
+  },
+  {
     version: '0.53.0',
     date: '2026-11-01',
     items: [

@@ -5,12 +5,15 @@
 import { useEffect, useState } from 'preact/hooks';
 import { type GameEvent, type GameView, rankOf } from '@tximtxom/shared';
 import type { Rarity } from './achievements';
+import { kindName, t } from './i18n';
 
-export type ChipSource = 'formed' | 'rides' | 'survived' | 'roundWins' | 'gameWins' | 'achievements' | 'daily' | 'firstWin';
-export const CHIP_SOURCES: ChipSource[] = ['formed', 'rides', 'survived', 'roundWins', 'gameWins', 'achievements', 'daily', 'firstWin'];
+export type ChipSource = 'formed' | 'rides' | 'emptied' | 'survived' | 'roundWins' | 'gameWins' | 'achievements' | 'daily' | 'firstWin';
+export const CHIP_SOURCES: ChipSource[] = ['formed', 'rides', 'emptied', 'survived', 'roundWins', 'gameWins', 'achievements', 'daily', 'firstWin'];
 
 /** What pays, and how much. */
 export const PAY = {
+  /** Your hand runs out of cards: a full hand, a TximTxom, or the last card gone on a ride. Once a round. */
+  emptied: 30,
   /** Not over the bust total when a round is scored. */
   survived: 10,
   roundWin: 15,
@@ -63,7 +66,7 @@ const SECRET = 'txim-txom:chips:7f3a91c2';
 const EMPTY: Chips = {
   balance: 0,
   most: 0,
-  earned: { formed: 0, rides: 0, survived: 0, roundWins: 0, gameWins: 0, achievements: 0, daily: 0, firstWin: 0 },
+  earned: { formed: 0, rides: 0, emptied: 0, survived: 0, roundWins: 0, gameWins: 0, achievements: 0, daily: 0, firstWin: 0 },
   spentShop: 0,
   wagerWon: 0,
   wagerLost: 0,
@@ -153,10 +156,14 @@ function save(): void {
 export interface ChipPop {
   id: number;
   n: number;
-  x: number;
-  y: number;
+  /** Without a spot it floats up from your plate. */
+  x?: number;
+  y?: number;
   delay: number;
+  /** What paid: "3-Straight", "Hand emptied". */
+  label?: string;
 }
+type Spot = { x?: number; y?: number; delay?: number };
 const popListeners = new Set<(p: ChipPop) => void>();
 let popId = 0;
 
@@ -165,7 +172,7 @@ let roundEarned = 0;
 let gameEarned = 0;
 
 /** Adds `n` earned chips from `src`. With `at`, a "+n" floats up there on the table. */
-export function earn(src: ChipSource, n: number, at?: { x: number; y: number; delay?: number }): void {
+export function earn(src: ChipSource, n: number, at?: Spot, label?: string): void {
   if (n <= 0) return;
   const balance = chips.balance + n;
   chips = {
@@ -180,7 +187,7 @@ export function earn(src: ChipSource, n: number, at?: { x: number; y: number; de
   save();
   notify();
   if (at) {
-    const pop = { id: ++popId, n, x: at.x, y: at.y, delay: at.delay ?? 0 };
+    const pop = { id: ++popId, n, x: at.x, y: at.y, delay: at.delay ?? 0, label };
     popListeners.forEach((l) => l(pop));
   }
 }
@@ -234,6 +241,25 @@ export function payBack(rarities: Rarity[]): void {
 /** A ride card pays half its rank, rounded up. */
 export const ridePay = (card: number) => Math.ceil(rankOf(card) / 2);
 
+/** On top of the cards' ranks, for formations bigger than a normal hand allows (Polydactyly, two decks). */
+export const BIG_PAY: { straight: Record<number, number>; set: Record<number, number> } = {
+  straight: { 8: 50, 9: 100 },
+  set: { 5: 40, 6: 60, 7: 100, 8: 150 },
+};
+const bigPay = (kind: string, size: number) => (kind === 'straight' ? BIG_PAY.straight : BIG_PAY.set)[size] ?? 0;
+
+/** Formation sizes this round, so a ride that makes a formation big pays its bonus. */
+const sizes = new Map<number, { kind: string; n: number }>();
+/** The once-a-round bonus for an empty hand has been paid. */
+let emptiedPaid = false;
+
+/** After a play of yours: an empty hand pays, once a round, a moment after the play's own pop. */
+function checkEmptied(g: GameView, me: number, at?: Spot): void {
+  if (emptiedPaid || g.players[me].handCount > 0) return;
+  emptiedPaid = true;
+  earn('emptied', PAY.emptied, { ...at, delay: (at?.delay ?? 0) + 500 }, t('chips.pop.emptied'));
+}
+
 /**
  * Chips from one game event, for you. Called once per event, as it happens.
  * `spot` says where a formation is on the table, for the floating "+n".
@@ -244,6 +270,8 @@ export function chipsEvent(e: GameEvent, g: GameView, spot: (formationId: number
   switch (e.t) {
     case 'deal':
       roundEarned = 0;
+      sizes.clear();
+      emptiedPaid = false;
       if (g.round === 1) {
         gameEarned = 0;
         const today = new Date().toDateString();
@@ -256,11 +284,30 @@ export function chipsEvent(e: GameEvent, g: GameView, spot: (formationId: number
         }
       }
       break;
-    case 'lay':
-      if (e.seat === me) earn('formed', e.cards.reduce((n, c) => n + rankOf(c), 0), spot(e.formationId) ?? undefined);
+    case 'lay': {
+      sizes.set(e.formationId, { kind: e.kind, n: e.cards.length });
+      if (e.seat !== me) break;
+      const at = spot(e.formationId) ?? undefined;
+      const name = kindName(e.kind, e.cards.length);
+      earn('formed', e.cards.reduce((n, c) => n + rankOf(c), 0) + bigPay(e.kind, e.cards.length), at, name);
+      checkEmptied(g, me, at);
       break;
-    case 'ride':
-      if (e.seat === me) earn('rides', ridePay(e.card), spot(e.formationId) ?? undefined);
+    }
+    case 'ride': {
+      const f = sizes.get(e.formationId);
+      if (f) f.n++;
+      if (e.seat !== me) break;
+      const at = spot(e.formationId) ?? undefined;
+      const big = f ? bigPay(f.kind, f.n) : 0;
+      earn('rides', ridePay(e.card) + big, at, big && f ? kindName(f.kind, f.n) : t('chips.pop.ride'));
+      checkEmptied(g, me, at);
+      break;
+    }
+    case 'tximtxom':
+      if (e.seat === me && !emptiedPaid) {
+        emptiedPaid = true;
+        earn('emptied', PAY.emptied, {}, 'TximTxom!');
+      }
       break;
     case 'score': {
       const r = g.results.at(-1);

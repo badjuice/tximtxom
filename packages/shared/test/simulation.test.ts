@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyAction, botAction, DEFAULT_RULES, type GameState, HAND_SIZE, newGame, type Rules } from '../src/index.js';
+import { applyAction, botAction, deckCount, DEFAULT_RULES, type GameState, handSize, newGame, type Rules } from '../src/index.js';
 
 function allCards(s: GameState): number[] {
   const cards = [...s.draw, ...s.discard, ...s.players.flatMap((p) => p.hand)];
@@ -14,12 +14,13 @@ function playGame(n: number, rules: Rules, seed: number): GameState {
   for (let step = 0; step < 20000 && s.phase !== 'gameOver'; step++) {
     // Card conservation and hand size invariants.
     const cards = allCards(s);
-    expect(cards.length).toBe(52);
-    expect(new Set(cards).size).toBe(52);
+    const deck = 52 * deckCount(rules);
+    expect(cards.length).toBe(deck);
+    expect(new Set(cards).size).toBe(deck);
     if (s.phase === 'playing') {
       s.players.forEach((p, i) => {
         const extra = i === s.turn && s.step === 'tookDiscard' ? 1 : 0;
-        expect(p.hand.length).toBe(HAND_SIZE + extra);
+        expect(p.hand.length).toBe(handSize(rules) + extra);
       });
     }
     let acted = false;
@@ -44,6 +45,9 @@ describe('bot simulation', () => {
     ['round robin + penalties', { rideOrder: 'roundRobin', doubleDown: true, penalty10: true }],
     ['auto ride, 100 points', { autoRide: true, threshold: 100 }],
     ['smeared + superposition', { smeared: true, superposition: true }],
+    ['polydactyly', { polydactyly: true, threshold: 50 }],
+    ['two decks + softcore', { twoDecks: true, softcore: true }],
+    ['polydactyly + two decks + auto ride', { polydactyly: true, twoDecks: true, autoRide: true, threshold: 50 }],
   ];
   for (const [name, overrides] of variants) {
     it(`plays full games without breaking invariants (${name})`, () => {

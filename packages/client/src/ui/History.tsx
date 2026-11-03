@@ -7,7 +7,7 @@ import { historyText } from '../historyLog';
 import { copyText } from '../report';
 import { type PastGame, store, toast, useStore } from '../store';
 import { ChatBox, useUnreadChat } from './Chat';
-import { Label } from './common';
+import { CopyIcon, Label } from './common';
 import { SEAT_COLORS } from './Hud';
 import { ArtIcon } from './sprites';
 
@@ -26,14 +26,6 @@ function tj(key: Key, vars: Record<string, ComponentChildren>): ComponentChildre
   const raw = t(key, Object.fromEntries(Object.keys(vars).map((k) => [k, `\u0000${k}\u0000`])));
   return raw.split('\u0000').map((part, i) => (i % 2 ? vars[part] : part));
 }
-
-/** Two sheets, the front one solid: drawn on the same pixel grid as the game's icons. */
-const CopyIcon = ({ size = 14 }: { size?: number }) => (
-  <svg viewBox="0 0 16 16" width={size} height={size} shape-rendering="crispEdges" aria-hidden="true">
-    <path d="M5 1h10v10h-3V9h1V3H7v1H5z" fill="currentColor" opacity="0.7" />
-    <path d="M1 5h10v10H1z" fill="currentColor" />
-  </svg>
-);
 
 function copied(ok: boolean): void {
   toast(ok ? t('h.copied') : t('h.copyFailed'), ok ? 'info' : 'error');
@@ -131,8 +123,8 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
     s === null ? (
       '—'
     ) : (
-      <b class="hname" style={{ color: SEAT_COLORS[s] }}>
-        {s === g.you ? t('you') : g.players[s]?.name ?? `#${s + 1}`}
+      <b class={`hname${s === g.you ? ' me-name' : ''}`} style={{ color: SEAT_COLORS[s] }}>
+        {g.players[s]?.name ?? `#${s + 1}`}
       </b>
     );
   const lines: Line[] = [];
@@ -147,7 +139,7 @@ function describe(events: { id: number; e: GameEvent }[], g: GameView, myDraws: 
         break;
       case 'draw': {
         const c = myDraws[id];
-        lines.push({ id, kind: 'move', seat: e.seat, body: c !== undefined ? tj('h.youDrew', { card: <C card={c} /> }) : tj('h.drew', { name: N(e.seat) }) });
+        lines.push({ id, kind: 'move', seat: e.seat, body: c !== undefined ? tj('h.youDrew', { name: N(e.seat), card: <C card={c} /> }) : tj('h.drew', { name: N(e.seat) }) });
         break;
       }
       case 'take':

@@ -28,8 +28,14 @@ const KINDS: { kind: FormationKind; color: string }[] = [
   { kind: 'pair', color: 'blue' },
   { kind: 'trio', color: 'blue' },
   { kind: 'quad', color: 'blue' },
+  { kind: 'quintet', color: 'blue' },
+  { kind: 'sextet', color: 'blue' },
+  { kind: 'septet', color: 'blue' },
+  { kind: 'octet', color: 'blue' },
   { kind: 'straight', color: 'red' },
 ];
+/** The two-deck sets only show once you've made one. */
+const BIG_SETS: FormationKind[] = ['quintet', 'sextet', 'septet', 'octet'];
 
 /** Balatro's hand stats: one bar per formation, longest for the most shown, with its count and share. */
 function FormationChart({ s }: { s: MyStats }) {
@@ -37,7 +43,7 @@ function FormationChart({ s }: { s: MyStats }) {
   const total = KINDS.reduce((n, { kind }) => n + s.kinds[kind], 0);
   return (
     <div class="f-chart" role="table" aria-label={t('stats.formationsTitle')}>
-      {KINDS.map(({ kind, color }) => {
+      {KINDS.filter(({ kind }) => !BIG_SETS.includes(kind) || s.kinds[kind] > 0).map(({ kind, color }) => {
         const n = s.kinds[kind];
         return (
           <div class="f-chart-row" role="row">
@@ -152,6 +158,7 @@ function StatList({ title, rows, colors }: { title: Key; rows: [Key, string][]; 
 const SRC_COLORS: Record<ChipSource, string> = {
   formed: '#38b6ff',
   rides: '#b58cf5',
+  emptied: '#9be15d',
   survived: '#4bc292',
   roundWins: '#ff9a52',
   gameWins: '#f7c948',
@@ -159,7 +166,7 @@ const SRC_COLORS: Record<ChipSource, string> = {
   daily: '#5fd8d0',
   firstWin: '#ff6b61',
 };
-const HOW = { survived: PAY.survived, round: PAY.roundWin, game: PAY.gameWin, per: PAY.perOpponent, daily: PAY.daily, firstWin: PAY.firstWin, low: ACH_PAY.common, high: ACH_PAY.legendary };
+const HOW = { emptied: PAY.emptied, survived: PAY.survived, round: PAY.roundWin, game: PAY.gameWin, per: PAY.perOpponent, daily: PAY.daily, firstWin: PAY.firstWin, low: ACH_PAY.common, high: ACH_PAY.legendary };
 
 type StatsTab = 'overview' | 'play' | 'cards' | 'badges' | 'chips';
 

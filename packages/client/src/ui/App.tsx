@@ -36,11 +36,11 @@ export function App() {
       else if (k === 'F') store.set({ overlay: 'formations' });
       else if (k === 'H') toggleSide('history');
       else if (k === 'C') toggleSide('chat');
-      else if (/^[1-8]$/.test(k)) {
+      else if (/^[0-9]$/.test(k)) {
         const hand = g.players[g.you].hand ?? [];
         const order = getHandOrder().filter((c) => hand.includes(c));
         for (const c of hand) if (!order.includes(c)) order.push(c);
-        const i = Number(k) - 1;
+        const i = (Number(k) + 9) % 10; // 0 is the tenth card
         if (i < order.length) tapHand(order[i]);
         else if (i === order.length && g.drawn !== null) tapDrawn(g.drawn);
       }
@@ -165,17 +165,23 @@ function Joining() {
 function Glory() {
   const g = useStore((s) => s.room?.game);
   const banner = useStore((s) => s.banner);
-  if (!g) return null;
+  const L = useStore((s) => s.layout);
+  if (!g || !L) return null;
   const deals = g.events.map((x, i) => (x.e.t === 'deal' ? i : 0));
   const e = g.events.slice(Math.max(...deals, 0)).find((x) => (x.e.t === 'end' && x.e.bonus) || x.e.t === 'tximtxom')?.e;
   // Its banner says it first.
   if (!e || (e.t !== 'end' && e.t !== 'tximtxom') || e.seat === null || banner) return null;
   const seat = e.seat;
-  const who = seat === g.you ? t('you') : (g.players[seat]?.name ?? '');
+  const who = g.players[seat]?.name ?? '';
   const tximtxom = e.t === 'tximtxom';
   return (
-    <div class={`glory${tximtxom ? ' tx' : ''}`} style={{ '--seat': SEAT_COLORS[seat] }} role="status">
-      <ArtIcon name={tximtxom ? 'tximtxom' : 'ride'} scale={0.4} />
+    // Centred over the formations being shown.
+    <div
+      class={`glory${tximtxom ? ' tx' : ''}`}
+      style={{ '--seat': SEAT_COLORS[seat], left: `${L.offsetX + (L.reveal.x + L.reveal.w / 2) * L.scale}px`, top: `${L.offsetY + L.reveal.y * L.scale}px` }}
+      role="status"
+    >
+      <ArtIcon name={tximtxom ? 'tximtxom' : 'ride'} scale={0.34} />
       <span>
         <b class="glory-who">{who}</b>
         <span class="glory-what">{tximtxom ? <WaveText text="TximTxom!" /> : t('b.fullHand')}</span>

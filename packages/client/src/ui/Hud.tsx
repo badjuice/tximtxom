@@ -1,7 +1,7 @@
 import { play } from '../audio';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { EmoteBubble, EmotePicker } from './Emotes';
-import { type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
+import { deckCount, fullDeck, type GameView, handPoints, leftoverRange, type RoomView, SUIT_SYMBOLS, makeCard, type Suit, RANK_CODES } from '@tximtxom/shared';
 import { canDrop, cardsSeenOut, computeBar, layWait, readyForNextRound, sortHand, toggleAutoSort, txiJogBlock, type BarButton } from '../controller';
 import { CARD_H, type Layout, type Point } from '../game/layout';
 import { drawPileTop, type FormationGroup, revealGroups } from '../game/scene';
@@ -10,9 +10,8 @@ import { leaveRoom, playAgain, startGame } from '../net';
 import { useSettings } from '../settings';
 import { copyReport } from '../report';
 import { type Overlay, store, toast, toggleSide, useStore } from '../store';
-import { Button, CardText, ChipIcon, HintBalloon, HoldButton, Label, MiniButton, Modal, RuleName, ShortLabel, UiIcon, withHighlights } from './common';
+import { Button, CardText, ChipIcon, CopyIcon, Odometer, HintBalloon, HoldButton, Label, MiniButton, Modal, RuleName, ShortLabel, UiIcon, withHighlights } from './common';
 import { type ChipPop, gameChips, onChipPop, roundChips, useChips } from '../chips';
-import { formatCount } from '../stats';
 import { useUnreadChat } from './Chat';
 import { Badge, BADGE_KINDS, badgeCount, CardIcon, EmoteIcon, Icon, ArtIcon, Wins } from './sprites';
 
@@ -42,7 +41,7 @@ export function Hud() {
       <PileInfo g={g} L={L} />
       <TxiJogDrop g={g} L={L} />
       {(g.phase === 'reveal' || g.phase === 'roundOver') && <FormationLabels g={g} L={L} />}
-      <ChipPops L={L} />
+      <ChipPops L={L} me={g.you} />
       <HandBar g={g} L={L} />
       <ActionBar />
       {g.phase === 'roundOver' && <RoundSummary g={g} />}
@@ -189,7 +188,7 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
     <div
       class={`plate${p.avatar ? ' has-art' : ''}${active ? ' active' : ''}${me ? ' me' : ''}${offline ? ' offline' : ''}`}
       style={{ ...onScreen(toScreen(L, pos)), '--seat': SEAT_COLORS[seat] }}
-      aria-label={`${me ? t('you') : p.name}: ${p.total} ${t('pts')}`}
+      aria-label={`${p.name}: ${p.total} ${t('pts')}`}
     >
       {p.avatar && (
         // The Joker shakes like a Balatro trigger when this player's turn starts.
@@ -200,7 +199,7 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
       <div class="plate-name">
         {!p.isBot && p.botControlled && <span class="tag" title={t('plate.botFor')}>{t('lobby.bot')}</span>}
         <span class="seat-dot" aria-hidden="true" />
-        <span class="plate-nm">{me ? t('you') : p.name}</span>
+        <span class={`plate-nm${me ? ' me-name' : ''}`}>{p.name}</span>
         <Wins n={lobby?.wins ?? 0} scale={0.5} />
         {g.dealer === seat && (
           <span class="dealer-chip" title={t('dealer')}>
@@ -283,7 +282,10 @@ function SixthSense({ g, L }: { g: GameView; L: Layout }) {
   const out = cardsSeenOut();
   const ranks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
   const inPlay = (c: number) => !hand.has(c) && !out.has(c);
-  const total = Array.from({ length: 52 }, (_, i) => i).filter(inPlay).length;
+  // With two decks each card is there twice (c and c + 52): how many of it are left.
+  const decks = deckCount(g.rules);
+  const left = (c: number) => Array.from({ length: decks }, (_, k) => c + 52 * k).filter(inPlay).length;
+  const total = fullDeck(decks).filter(inPlay).length;
   return (
     <div class="peek" style={toScreen(L, mid)} onPointerEnter={() => setOpen(true)} onPointerLeave={() => setOpen(false)}>
       <button class="peek-btn" type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
@@ -299,11 +301,16 @@ function SixthSense({ g, L }: { g: GameView; L: Layout }) {
             {[0, 1, 2, 3].map((s) => (
               <div class="peek-row">
                 <span class={`peek-suit suit-${'hcds'[s]}`}>
-                  {SUIT_SYMBOLS[s]} {ranks.filter((r) => inPlay(makeCard(r, s as Suit))).length}
+                  {SUIT_SYMBOLS[s]} {ranks.reduce((n, r) => n + left(makeCard(r, s as Suit)), 0)}
                 </span>
                 {ranks.map((r) => {
                   const c = makeCard(r, s as Suit);
-                  return <CardIcon card={c} scale={0.36} dim={!inPlay(c)} />;
+                  const n = left(c);
+                  return (
+                    <CardIcon card={c} scale={0.36} dim={n === 0}>
+                      {decks > 1 && n > 1 && <b class="peek-twice">×{n}</b>}
+                    </CardIcon>
+                  );
                 })}
               </div>
             ))}
@@ -312,7 +319,7 @@ function SixthSense({ g, L }: { g: GameView; L: Layout }) {
               {ranks.map((r) => (
                 <span class="peek-rank">
                   {RANK_CODES[r]}
-                  <b>{[0, 1, 2, 3].filter((s) => inPlay(makeCard(r, s as Suit))).length}</b>
+                  <b>{[0, 1, 2, 3].reduce((n, s) => n + left(makeCard(r, s as Suit)), 0)}</b>
                 </span>
               ))}
             </div>
@@ -375,7 +382,7 @@ function FormationLabel({ grp, g, L }: { grp: FormationGroup; g: GameView; L: La
   const first = fresh.current;
   fresh.current = false;
   wasActive.current = grp.active;
-  const owner = grp.owner === g.you ? t('you') : g.players[grp.owner].name;
+  const owner = g.players[grp.owner].name;
   const name = kindName(grp.kind, grp.cards.length - grp.rides);
   const h = CARD_H * L.reveal.cardScale * L.scale;
   return (
@@ -567,7 +574,7 @@ export function ActionBar() {
 }
 
 /** Chips you earn on the table float up from there as "+13". */
-function ChipPops({ L }: { L: Layout }) {
+function ChipPops({ L, me }: { L: Layout; me: number | null }) {
   const [pops, setPops] = useState<ChipPop[]>([]);
   useEffect(
     () =>
@@ -579,15 +586,26 @@ function ChipPops({ L }: { L: Layout }) {
   );
   return (
     <>
-      {pops.map((p) => (
-        <span class="chip-pop" key={p.id} style={toScreen(L, p)} aria-hidden="true">
-          <ChipIcon size={18} />+{p.n}
-        </span>
-      ))}
+      {pops.map((p) => {
+        // Without a spot on the table: up from your plate.
+        const plate = me !== null ? L.seats[me]?.plate : undefined;
+        // Above the plate, clear of the name.
+        const at = p.x !== undefined && p.y !== undefined ? { x: p.x, y: p.y } : plate && { x: plate.x, y: plate.y - 30 / L.scale };
+        return (
+          at && (
+            <span class="chip-pop" key={p.id} style={toScreen(L, at)} aria-hidden="true">
+              {p.label && <span class="chip-pop-why">{p.label}</span>}
+              <span class="chip-pop-n">
+                <ChipIcon size={18} />+{p.n}
+              </span>
+            </span>
+          )
+        );
+      })}
     </>
   );
 }
-const POP_MS = 1500;
+const POP_MS = 1900;
 
 /** "+42 chips" under a summary (none while there are none). */
 function ChipsEarned({ n, label }: { n: number; label: 'chips.round' | 'chips.game' }) {
@@ -595,7 +613,13 @@ function ChipsEarned({ n, label }: { n: number; label: 'chips.round' | 'chips.ga
   if (n <= 0) return null;
   return (
     <p class="chips-earned center">
-      <ChipIcon /> {t(label, { n: formatCount(n) })}
+      <ChipIcon />
+      {/* One piece of text, so the counter sits in it with no gap. */}
+      <span>
+        {t(label, { n: '\u0000' })
+          .split('\u0000')
+          .map((part, i) => (i ? [<Odometer n={n} key={n} />, part] : part))}
+      </span>
     </p>
   );
 }
@@ -606,7 +630,7 @@ function RoundSummary({ g }: { g: GameView }) {
   const me = g.you;
   const ready = me !== null && g.players[me].ready;
   const order = g.players.map((_, i) => i).sort((a, b) => r.points[a] - r.points[b]);
-  const who = (i: number) => (i === me ? t('you') : g.players[i].name);
+  const who = (i: number) => g.players[i].name;
   return (
     <Modal
       title={t('sum.round', { n: r.round })}
@@ -643,7 +667,7 @@ function RoundSummary({ g }: { g: GameView }) {
               <tr style={{ '--seat': SEAT_COLORS[i] }}>
                 <td class="pname">
                   <span class="seat-dot" />
-                  {who(i)}
+                  <span class={i === g.you ? 'me-name' : undefined}>{who(i)}</span>
                 </td>
                 <td class="cards">
                   {r.leftovers[i].map((c) => (
@@ -687,25 +711,21 @@ function RoundEnterKey({ onEnter }: { onEnter: () => void }) {
 function GameOver({ g, room }: { g: GameView; room: RoomView }) {
   const isHost = room.hostId === room.youId;
   const tximtxom = g.events.some((e) => e.e.t === 'tximtxom');
-  const who = (i: number) => (i === g.you ? t('you') : g.players[i].name);
+  const who = (i: number) => g.players[i].name;
   const order = g.players.map((_, i) => i).sort((a, b) => g.players[a].total - g.players[b].total);
-  const title = g.winners.length > 1 ? t('go.tie') : g.winners[0] === g.you ? t('go.youWin') : t('go.wins', { name: who(g.winners[0]) });
+  const title = g.winners.length > 1 ? t('go.tie') : t('go.wins', { name: who(g.winners[0]) });
   return (
     <Modal
       title={title}
       class="summary-modal"
       corner={
         <button
-          class="report-btn"
+          class="hcopy report-btn"
           title={t('go.copyReport')}
           aria-label={t('go.copyReport')}
           onClick={async () => toast((await copyReport()) ? t('go.reportCopied') : t('go.reportFailed'), 'info')}
         >
-          {/* Two overlapping sheets: copy. A drawn icon, so it sits dead centre (the ⧉ glyph didn't). */}
-          <svg viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true">
-            <path d="M5 1h9v9h-2V3H5z" fill="currentColor" />
-            <path d="M2 5h9v10H2zm2 2v6h5V7z" fill="currentColor" fill-rule="evenodd" />
-          </svg>
+          <CopyIcon size={20} />
         </button>
       }
       footer={
@@ -740,7 +760,7 @@ function GameOver({ g, room }: { g: GameView; room: RoomView }) {
               <td>{rank + 1}.</td>
               <td class="pname">
                 <span class="seat-dot" />
-                {who(i)}
+                <span class={i === g.you ? 'me-name' : undefined}>{who(i)}</span>
               </td>
               {/* One column per badge, so they line up down the table. */}
               {BADGE_KINDS.map((kind) => (

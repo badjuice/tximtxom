@@ -8,6 +8,7 @@ import type { Socket } from 'socket.io-client';
 import { carrierId, hasAchievement, onUnlock, unlock } from './achievements';
 import { recordLeftGame } from './stats';
 import { chipsNow } from './chips';
+import { owns } from './shop';
 
 /** Sent when joining: whether you're Infected, and your carrier id if so. */
 const infection = () => (hasAchievement('infected') ? { infected: true, carrier: carrierId() } : { infected: false });
@@ -44,8 +45,10 @@ export function saveName(name: string): void {
   if (name) localStorage.setItem(NAME_KEY, name);
 }
 
+/** Your saved character, if it's still yours (characters that were free once are sold now). */
 export function savedAvatar(): string | undefined {
-  return localStorage.getItem(AVATAR_KEY) ?? undefined;
+  const art = localStorage.getItem(AVATAR_KEY) ?? undefined;
+  return art && owns(art) ? art : undefined;
 }
 
 /** Your character for the next room you join (the shop's Equip). */

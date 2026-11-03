@@ -3,7 +3,7 @@
 // a time. Infected is the odd one: it passes between players who share a room
 // (see `infected` in the room protocol), and the very first player to start a
 // game gets it from nobody (see claimPatientZero in stats.ts).
-import { type Card, type GameEvent, type GameView, rankOf, type RoomView, type Rules, suitOf } from '@tximtxom/shared';
+import { type Card, classifyFormation, type GameEvent, type GameView, rankOf, type RoomView, type Rules, suitOf } from '@tximtxom/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { play } from './audio';
 import { getSettings } from './settings';
@@ -37,7 +37,8 @@ export type AchievementId =
   | 'closeCall' | 'leastWorst' | 'flawless' | 'comeback' | 'generous' | 'selfService' | `${Track}${number}`
   | 'infected' | 'scholar' | 'prettyBasic' | 'nerd'
   | 'regular' | 'sayHi' | 'showDontTell' | 'anarchist' | 'nightOwl' | 'polyglot' | 'recycler' | 'throughAce' | 'royalFlush' | 'quickDraw' | 'sevenUp'
-  | 'theBeast' | 'mirrorMatch' | 'luckySeven' | 'royalMess';
+  | 'theBeast' | 'mirrorMatch' | 'luckySeven' | 'royalMess'
+  | 'eightStraight' | 'nineStraight' | 'johnTximtxom' | 'highFive' | 'sixPack' | 'seventhHeaven' | 'octopusPrime';
 
 /** One achievement per rule, for playing a round with it on: its card art, and whether it's on. */
 export const RULE_ACHIEVEMENTS = {
@@ -57,6 +58,8 @@ export const RULE_ACHIEVEMENTS = {
   timer: { art: 'timer', on: (r: Rules) => r.turnTimer > 0 },
   magicSort: { art: 'magicsort', on: (r: Rules) => r.magicSort },
   scramble: { art: 'scramble', on: (r: Rules) => r.scramble },
+  polydactyly: { art: 'polydactyly', on: (r: Rules) => r.polydactyly },
+  twoDecks: { art: 'twodecks', on: (r: Rules) => r.twoDecks },
 } satisfies Record<string, { art: string; on: (r: Rules) => boolean }>;
 export type RuleAch = keyof typeof RULE_ACHIEVEMENTS;
 export const RULE_ACH_IDS = Object.keys(RULE_ACHIEVEMENTS) as RuleAch[];
@@ -185,7 +188,18 @@ const ALL: Achievement[] = [
   { id: 'mirrorMatch', art: 'magiku', rarity: 'secret', secret: true },
   { id: 'luckySeven', art: 'ziku', rarity: 'secret', secret: true },
   { id: 'royalMess', art: 'barbarian', rarity: 'secret', secret: true },
+  // Polydactyly's long straights, and two decks' big sets.
+  { id: 'eightStraight', art: 'serpent', rarity: 'secret', secret: true },
+  { id: 'nineStraight', art: 'web', rarity: 'secret', secret: true },
+  { id: 'johnTximtxom', art: 'king', rarity: 'secret', secret: true },
+  { id: 'highFive', art: 'brute', rarity: 'secret', secret: true },
+  { id: 'sixPack', art: 'beetle', rarity: 'secret', secret: true },
+  { id: 'seventhHeaven', art: 'queen', rarity: 'secret', secret: true },
+  { id: 'octopusPrime', art: 'octopus', rarity: 'secret', secret: true },
 ];
+
+/** Sets bigger than a deck allows, by size. */
+const BIG_SET_ACH: Record<number, AchievementId> = { 5: 'highFive', 6: 'sixPack', 7: 'seventhHeaven', 8: 'octopusPrime' };
 /** The achievements you can get now. */
 export const ACHIEVEMENTS = ALL;
 
@@ -333,8 +347,13 @@ function playedRoundIn(lang: string): void {
 function formationShown(kind: string, cards: Card[]): void {
   const ranks = new Set(cards.map(rankOf));
   if (kind === 'trio' && cards.length === 3 && cards.every((c) => rankOf(c) === 6)) unlock('theBeast');
-  if (kind !== 'straight') return;
+  if (kind !== 'straight') {
+    if (BIG_SET_ACH[cards.length]) unlock(BIG_SET_ACH[cards.length]);
+    return;
+  }
   if (cards.length >= 7) unlock('sevenUp');
+  if (cards.length >= 8) unlock('eightStraight');
+  if (cards.length >= 9) unlock('nineStraight');
   // The Ace in the middle: only the Mobius Strip lets a straight run K-A-2.
   if (ranks.has(13) && ranks.has(1) && ranks.has(2)) unlock('throughAce');
   if ([10, 11, 12, 13, 1].every((r) => ranks.has(r)) && new Set(cards.map(suitOf)).size === 1) unlock('royalFlush');
@@ -403,7 +422,8 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       // A formation of yours that a ride turned into something.
       {
         const f = g.reveal?.formations.find((x) => x.id === e.formationId);
-        if (f && f.owner === me) formationShown(f.kind, f.cards);
+        // Yours, or one your own card just made big.
+        if (f && (f.owner === me || e.seat === me)) formationShown(f.kind, f.cards);
       }
       break;
     case 'end':
@@ -415,7 +435,12 @@ export function achievementEvent(e: GameEvent, g: GameView, room: RoomView): voi
       }
       break;
     case 'tximtxom':
-      if (e.seat === me) unlock('tximtxom');
+      if (e.seat === me) {
+        unlock('tximtxom');
+        // Polydactyly's whole hand in one straight, all nine.
+        const hand = g.players[me].hand ?? [];
+        if (hand.length === 9 && classifyFormation(hand, { ...g.rules, smeared: false })?.kind === 'straight') unlock('johnTximtxom');
+      }
       else if (g.round === 1) unlock('bitter');
       break;
     case 'gameOver': {

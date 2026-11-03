@@ -162,3 +162,31 @@ describe('magic sort', () => {
     expect(magicOrder(P('KH 3S KD 7C'), base)).toEqual(P('KH KD 3S 7C'));
   });
 });
+
+describe('two decks', () => {
+  // The second deck's copy of a card is 52 on.
+  const twin = (code: string) => P(code)[0] + 52;
+  it('twins make a pair, and sets go up to eight', () => {
+    expect(classifyFormation([P('7H')[0], twin('7H')], base)?.kind).toBe('pair');
+    const sevens = [...P('7H 7S 7D 7C'), twin('7H'), twin('7S'), twin('7D'), twin('7C')];
+    expect(classifyFormation(sevens.slice(0, 5), base)?.kind).toBe('quintet');
+    expect(classifyFormation(sevens, base)?.kind).toBe('octet');
+  });
+  it('a straight never uses both twins', () => {
+    expect(classifyFormation([...P('4H 5H'), twin('5H')], base)).toBeNull();
+  });
+  it('a quad takes a ride from the other deck', () => {
+    expect(canRide(P('7H 7S 7D 7C'), twin('7H'), base)?.kind).toBe('quintet');
+  });
+});
+
+describe('polydactyly', () => {
+  const poly = { ...strict, polydactyly: true };
+  it('a TximTxom is a 7+ straight of one suit with the rest formed', () => {
+    expect(isTximTxom(P('2H 3H 4H 5H 6H 7H 8H 9H 10H'), poly)).toBe(true);
+    expect(isTximTxom(P('2H 3H 4H 5H 6H 7H 8H KS KD'), { ...poly, softcore: true })).toBe(true);
+    expect(isTximTxom(P('2H 3H 4H 5H 6H 7H 8H KS QD'), poly)).toBe(false);
+    // Seven cards is not a Polydactyly hand.
+    expect(isTximTxom(P('2H 3H 4H 5H 6H 7H 8H'), poly)).toBe(false);
+  });
+});

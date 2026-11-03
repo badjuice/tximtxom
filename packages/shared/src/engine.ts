@@ -1,7 +1,7 @@
-import { type Card, canEndWith, fullDeck, handPoints, rankOf } from './cards.js';
+import { type Card, canEndWith, deckCount, fullDeck, handPoints, rankOf } from './cards.js';
 import { bestPartition, canRide, classifyFormation, isFullyFormed, isTximTxom } from './formations.js';
 import { shuffle } from './rng.js';
-import { FULL_HAND_BONUS, HAND_SIZE, MAX_PLAYERS, MIN_PLAYERS, PENALTY_POINTS, type Rules } from './rules.js';
+import { BIG_FULL_HAND_BONUS, EMPTIED_BONUS, FULL_HAND_BONUS, handSize, MAX_PLAYERS, MIN_PLAYERS, PENALTY_POINTS, type Rules } from './rules.js';
 import type {
   Action,
   ActionResult,
@@ -91,14 +91,14 @@ export function nextSeat(state: GameState, seat: Seat): Seat {
 
 function startRound(state: GameState): void {
   state.round += 1;
-  const deck = shuffle(state, fullDeck());
+  const deck = shuffle(state, fullDeck(deckCount(state.rules)));
   for (const p of state.players) {
     p.hand = [];
     p.ready = false;
   }
   // Deal one at a time, starting with the player after the dealer.
   let seat = nextSeat(state, state.dealer);
-  for (let i = 0; i < HAND_SIZE * state.players.length; i++) {
+  for (let i = 0; i < handSize(state.rules) * state.players.length; i++) {
     state.players[seat].hand.push(deck.pop()!);
     seat = nextSeat(state, seat);
   }
@@ -438,7 +438,7 @@ export function rideError(state: GameState, f: Formation, seat: Seat, card: Card
   if (state.rules.rides === 'none') return 'No rides in this game';
   if (state.rules.rides === 'one' && f.rides.length > 0) return 'Only one ride per formation';
   if (f.kind !== 'straight' && f.rides.some((r) => r.seat === seat)) {
-    return 'Only one card per player on a pair or trio';
+    return 'Only one card per player on a set';
   }
   if (!canRide(f.cards, card, state.rules)) return "That card doesn't fit";
   return null;
@@ -530,7 +530,9 @@ function scoreRound(state: GameState, reveal: RevealState): void {
   const penalties: { seat: Seat; doubled: boolean; plus10: boolean }[] = [];
   const ender = reveal.ender;
 
-  if (ender !== null && reveal.bonus) points[ender] = FULL_HAND_BONUS;
+  // Polydactyly: a hand emptied on rides is worth something too.
+  if (state.rules.polydactyly) for (let i = 0; i < n; i++) if (leftovers[i].length === 0) points[i] = EMPTIED_BONUS;
+  if (ender !== null && reveal.bonus) points[ender] = state.rules.polydactyly ? BIG_FULL_HAND_BONUS : FULL_HAND_BONUS;
 
   if (ender !== null && reveal.endKind === 'manual' && (state.rules.doubleDown || state.rules.penalty10)) {
     const others = points.filter((_, i) => i !== ender);

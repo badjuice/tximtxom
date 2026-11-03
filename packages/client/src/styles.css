@@ -795,14 +795,18 @@ input[type='text'] {
   min-width: 0;
   white-space: nowrap;
 }
-/* A long name gets cut with "…"; "(you)" and the wins stay whole. */
+/* A long name gets cut with "…"; the wins stay whole. */
 .pname-nm {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.pname-you {
-  flex: none;
+/* Your own name, wherever it sits among others: framed in gold. */
+.me-name {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(234, 192, 88, 0.16);
+  box-shadow: inset 0 0 0 2px var(--gold);
 }
 .dot {
   width: 10px;
@@ -1473,7 +1477,7 @@ input[type='text'] {
   position: absolute;
   transform: translate(-50%, -50%);
   background: rgba(30, 43, 45, 0.88);
-  border: 3px solid #4f6a70;
+  border: 4px solid #4f6a70;
   border-radius: 10px;
   padding: 3px 10px;
   text-align: center;
@@ -1487,7 +1491,9 @@ input[type='text'] {
 .plate.active {
   border-color: var(--gold);
   transform: translate(-50%, -50%) scale(1.06);
+  /* Gold outside, the player's colour still showing as a ring inside. */
   box-shadow:
+    inset 0 0 0 3px var(--seat, #4f6a70),
     0 0 0 3px rgba(234, 192, 88, 0.3),
     0 4px 0 rgba(0, 0, 0, 0.35);
 }
@@ -2074,9 +2080,9 @@ input[type='text'] {
 }
 .glory {
   position: fixed;
-  left: 16px;
-  top: 52px;
+  translate: -50% -100%;
   z-index: 17;
+  white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2085,7 +2091,7 @@ input[type='text'] {
   background: var(--panel);
   border: 3px solid var(--seat);
   box-shadow: 0 4px 0 var(--panel-d);
-  font-size: 1.2em;
+  font-size: 1.05em;
   line-height: 1.1;
   animation: glory-in 0.4s ease-out;
 }
@@ -2104,7 +2110,8 @@ input[type='text'] {
 }
 @keyframes glory-in {
   from {
-    transform: translateX(-120%);
+    opacity: 0;
+    transform: scale(0.6);
   }
 }
 .reduced-motion .glory {
@@ -3312,6 +3319,19 @@ input[type='text'] {
   font-size: 0.85em;
   color: var(--gold);
 }
+.fp-note {
+  font-size: 0.65em;
+  color: var(--muted);
+  line-height: 1;
+}
+/* Under a formation's description: the rule it needs, like an achievement's flavour line. */
+.f-flavor {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.9em;
+  color: var(--gold);
+  opacity: 0.8;
+}
 /* A rule card on the Formations screen: tap it to read the rule below the list. */
 .f-rule {
   flex: none;
@@ -3574,24 +3594,22 @@ input.rename {
     column-gap: 5px;
   }
 }
-/* Whose turn it is: their card itself glows gold, pulsing, not just the plate's border. */
+/* Whose turn it is: their card itself glows in their colour, pulsing, not just the plate's border. */
 .plate.active .plate-art > * {
   border-radius: 4px;
   animation: turn-glow 0.9s ease-in-out infinite alternate;
 }
 @keyframes turn-glow {
   from {
-    box-shadow: 0 0 0 2px #ffcf4a, 0 0 6px 1px rgba(255, 207, 74, 0.6);
-    filter: brightness(1.05);
+    box-shadow: 0 0 0 2px var(--seat), 0 0 6px 1px color-mix(in srgb, var(--seat) 60%, transparent);
   }
   to {
-    box-shadow: 0 0 0 2px #ffe08a, 0 0 14px 4px rgba(255, 207, 74, 0.95);
-    filter: brightness(1.25);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--seat) 70%, #fff), 0 0 14px 4px color-mix(in srgb, var(--seat) 95%, transparent);
   }
 }
 .reduced-motion .plate.active .plate-art > * {
   animation: none;
-  box-shadow: 0 0 0 2px #ffcf4a, 0 0 10px 2px rgba(255, 207, 74, 0.8);
+  box-shadow: 0 0 0 2px var(--seat), 0 0 10px 2px color-mix(in srgb, var(--seat) 80%, transparent);
 }
 /* Balatro's Joker trigger: a quick pop with a wobble that settles. */
 .plate-art.juice {
@@ -3984,23 +4002,11 @@ input.rename {
   top: 50%;
   transform: translateY(-50%);
 }
-.report-btn {
-  font: inherit;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.25);
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  border-radius: 6px;
-  cursor: pointer;
-  opacity: 0.7;
-}
-.report-btn:hover,
-.report-btn:focus-visible {
-  opacity: 1;
+/* The game report's copy button: the History's raised blue button, bigger. */
+.hcopy.report-btn {
+  width: 40px;
+  height: 38px;
+  margin: 0;
 }
 
 /* Version and author link (title screen, Settings). */
@@ -4376,6 +4382,9 @@ input.rename {
 /* Two columns of cards: art, name, what to do and a quiet line of flavour. */
 .modal.ach-modal {
   width: min(880px, 96vw);
+  /* A fixed height: a short (filtered) list never shrinks the modal. */
+  height: min(860px, 92vh);
+  height: min(860px, 92dvh);
 }
 /* The header stays and only the list scrolls, so the scrollbar starts level with
    the first row. The list's own padding leaves room for the cards' glow on every side. */
@@ -5594,8 +5603,8 @@ td.num.pts {
       0 0 18px rgba(255, 207, 74, 1);
   }
 }
-/* Unlocked: after the shine crosses its art and its name, a wider one crosses the whole
-   card, then all wait for the next beat (the same 3.2s loop as the rule cards). */
+/* Unlocked, and hovered or tapped: a wide shine crosses the whole card, over and over.
+   Its own loop, not the page clock's, so it starts the moment the card is picked up. */
 .ach-list > li.got::after {
   content: '';
   position: absolute;
@@ -5611,7 +5620,23 @@ td.num.pts {
       transparent 60%
     )
     100% 0 / 300% 100% no-repeat;
-  animation: ach-card-shine 3.2s linear infinite;
+}
+.ach-list > li.got.lifted::after {
+  animation: ach-card-hover 1.6s linear infinite;
+}
+@media (hover: hover) {
+  .ach-list > li.got:hover::after {
+    animation: ach-card-hover 1.6s linear infinite;
+  }
+}
+@keyframes ach-card-hover {
+  0% {
+    background-position: 100% 0;
+  }
+  60%,
+  100% {
+    background-position: 0% 0;
+  }
 }
 @keyframes ach-card-shine {
   0%,
@@ -5852,8 +5877,9 @@ td.num.pts {
   position: absolute;
   z-index: 6;
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  white-space: nowrap;
   translate: -50% -100%;
   color: var(--gold);
   font-size: 1.25em;
@@ -5861,7 +5887,17 @@ td.num.pts {
     0 2px 0 rgba(0, 0, 0, 0.7),
     0 0 8px rgba(0, 0, 0, 0.5);
   pointer-events: none;
-  animation: chip-pop 1.5s ease-out forwards;
+  animation: chip-pop 1.9s ease-out forwards;
+}
+.chip-pop-n {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* What paid, over the amount. */
+.chip-pop-why {
+  font-size: 0.7em;
+  color: #fff;
 }
 @keyframes chip-pop {
   0% {
@@ -6055,4 +6091,51 @@ td.num.pts {
 }
 .menu-shop .chip-icon {
   margin-right: 2px;
+}
+/* A pack: its backs fanned out. */
+.shop-fan {
+  display: flex;
+}
+.shop-fan > .sprite + .sprite {
+  margin-left: -22px;
+}
+.shop-fan > .sprite:nth-child(odd) {
+  rotate: -6deg;
+}
+.shop-fan > .sprite:nth-child(even) {
+  rotate: 6deg;
+  translate: 0 -3px;
+}
+/* Odometer: each digit a strip of 0-9 (three times over) that slides up into place. */
+.odometer {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+}
+.odo-digit {
+  display: inline-block;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+}
+.odo-strip {
+  display: flex;
+  flex-direction: column;
+  transition-property: translate;
+  transition-timing-function: cubic-bezier(0.2, 0.7, 0.25, 1);
+}
+.odo-strip > span {
+  height: 1em;
+  text-align: center;
+}
+/* Sixth sense with two decks: both copies of a card still in play. */
+.peek-twice {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  padding: 0 2px;
+  font-size: 9px;
+  line-height: 1.2;
+  color: #fff;
+  background: var(--blue);
+  border-radius: 3px;
 }

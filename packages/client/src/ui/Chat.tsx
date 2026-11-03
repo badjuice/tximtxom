@@ -89,8 +89,7 @@ export function ChatBox({ room }: { room: RoomView }) {
               <li key={l.id} class={l.from === room.youId ? 'mine' : ''}>
                 <span>
                   <b style={{ color: i >= 0 ? SEAT_COLORS[i] : undefined }}>
-                    <span class="chat-nm">{name}</span>
-                    {mine && ` (${t('you').toLowerCase()})`}
+                    <span class={`chat-nm${mine ? ' me-name' : ''}`}>{name}</span>
                   </b>{' '}
                   {l.text}
                 </span>

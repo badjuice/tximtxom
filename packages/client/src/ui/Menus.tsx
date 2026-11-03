@@ -6,7 +6,7 @@ import { DEFAULT_RULES, makeCard, parseCards, type Rules, type Suit } from '@txi
 import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE, setRules } from '../net';
 import { CARD_STYLES, cardBacks, currentBack, FONTS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
-import { ownedOf } from '../shop';
+import { ownedOf, ownsRandom } from '../shop';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, HintBalloon, Modal, Seen, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
 import { SEAT_COLORS } from './Hud';
@@ -213,7 +213,7 @@ function Scoreboard({ onClose }: { onClose: () => void }) {
   const order = g.players.map((_, i) => i).sort((a, b) => g.players[a].total - g.players[b].total);
   const rounds = g.results.slice(-SB_ROUNDS);
   const last = g.results.at(-1);
-  const who = (i: number) => (i === g.you ? t('you') : g.players[i].name);
+  const who = (i: number) => <span class={i === g.you ? 'me-name' : undefined}>{g.players[i].name}</span>;
   const member = (i: number) => lobby.find((x) => x.id === g.players[i].id);
   const games = Math.max(0, ...lobby.map((p) => p.wins + p.silvers + p.busts));
   return (
@@ -327,6 +327,8 @@ const EX = {
   pair: parseCards('7H 7S'),
   trio: parseCards('9C 9D 9S'),
   quad: parseCards('KH KC KD KS'),
+  // A second deck's 7 of Hearts is 52 cards on.
+  bigSet: [...parseCards('7H 7C 7D 7S'), parseCards('7H')[0] + 52],
   straight: parseCards('4D 5D 6D 7D'),
   mixed: parseCards('8H 9S 10D JC'),
   aceLow: parseCards('AS 2S 3S'),
@@ -351,14 +353,14 @@ function useTximTxomExample(superposition: boolean, mobius: boolean) {
 }
 
 /** The rule behind each rule card on the Formations screen. */
-const RULE_OF_CARD: Record<string, Key> = { softcore: 'rule.softcore', mixed: 'rule.smeared', ace: 'rule.superposition' };
+const RULE_OF_CARD: Record<string, Key> = { softcore: 'rule.softcore', mixed: 'rule.smeared', ace: 'rule.superposition', twodecks: 'rule.twoDecks' };
 
 /** What each card is worth: an Ace 1, number cards as printed, J 11, Q 12, K 13. */
 function PointValues({ narrow }: { narrow: boolean }) {
   const sc = narrow ? 0.3 : 0.4;
   const values: [number[], string][] = [
     [[makeCard(1, 3)], '1'],
-    [[makeCard(2, 0), makeCard(10, 1)], `2–10 ${t('f.faceValue')}`],
+    [[makeCard(2, 0), makeCard(10, 1)], '2–10'],
     [[makeCard(11, 2)], '11'],
     [[makeCard(12, 3)], '12'],
     [[makeCard(13, 0)], '13'],
@@ -373,6 +375,7 @@ function PointValues({ narrow }: { narrow: boolean }) {
             ))}
           </span>
           <b class="fp-n">{pts}</b>
+          {cards.length > 1 && <small class="fp-note">{t('f.faceValue')}</small>}
         </span>
       ))}
     </div>
@@ -385,6 +388,8 @@ function Formations({ onClose }: { onClose: () => void }) {
   const superposition = !!rules?.superposition;
   const smeared = !!rules?.smeared;
   const mobius = !!rules?.mobius;
+  const twoDecks = !!rules?.twoDecks;
+  const polydactyly = !!rules?.polydactyly;
   const tximtxom = useTximTxomExample(superposition, mobius);
   // The rule card last tapped, and where it is: its rule shows in a balloon pointing at it.
   const [rule, setRule] = useState<string | null>(null);
@@ -392,7 +397,7 @@ function Formations({ onClose }: { onClose: () => void }) {
   const closeRule = useCallback(() => setRule(null), []);
   // Smaller example cards on phones so the list fits without scrolling.
   const narrow = innerWidth <= 700 || innerHeight <= 500;
-  const row = (name: string, color: string, cards: number[], desc: string, opts: { off?: boolean; joker?: string } = {}) => (
+  const row = (name: string, color: string, cards: number[], desc: string, opts: { off?: boolean; joker?: string; needs?: string } = {}) => (
     <div class={`f-row${opts.off ? ' off' : ''}`}>
       <span class={`level-tag tag-${color}`}>
         <WaveText text={name} />
@@ -420,10 +425,12 @@ function Formations({ onClose }: { onClose: () => void }) {
         )}
         <span>
           <Rich text={desc} />
+          {opts.needs && <i class="f-flavor">{opts.needs}</i>}
         </span>
       </span>
     </div>
   );
+  const needs = (rule: Key) => t('f.needs', { rule: t(rule) });
   return (
     <Modal title={t('f.title')} onClose={onClose} wide>
       <p class="center f-lead">
@@ -431,14 +438,15 @@ function Formations({ onClose }: { onClose: () => void }) {
       </p>
       <PointValues narrow={narrow} />
       <div class="f-grid">
-        {row(t('pair'), 'blue', EX.pair, softcore ? t('f.pair') : t('f.pairOff'), { off: !softcore, joker: 'softcore' })}
+        {row(t('pair'), 'blue', EX.pair, t('f.pair'), { off: !softcore, joker: 'softcore', needs: softcore ? undefined : needs('rule.softcore') })}
         {row(t('trio'), 'blue', EX.trio, t('f.trio'))}
         {row(t('quad'), 'blue', EX.quad, t('f.quad'))}
+        {row(t('f.bigSet'), 'blue', EX.bigSet, t('f.bigSetDesc'), { off: !twoDecks, joker: 'twodecks', needs: twoDecks ? undefined : needs('rule.twoDecks') })}
         {row(t('straight'), 'red', EX.straight, t('f.straight'))}
-        {row(t('f.mixed'), 'red', EX.mixed, smeared ? t('f.mixedOn') : t('f.mixedOff'), { off: !smeared, joker: 'mixed' })}
+        {row(t('f.mixed'), 'red', EX.mixed, t('f.mixedOn'), { off: !smeared, joker: 'mixed', needs: smeared ? undefined : needs('rule.smeared') })}
         {row(t('f.aceLow'), 'red', EX.aceLow, t('f.aceLowDesc'))}
-        {row(t('f.aceHigh'), 'red', EX.aceHigh, superposition ? t('f.aceHighOn') : t('f.aceHighOff'), { off: !superposition, joker: 'ace' })}
-        {mobius ? row(t('f.loop'), 'red', EX.bad, t('f.loopDesc'), { joker: 'ace' }) : row(t('f.noWrap'), 'grey', EX.bad, t('f.noWrapDesc'), { off: true })}
+        {row(t('f.aceHigh'), 'red', EX.aceHigh, t('f.aceHighOn'), { off: !superposition, joker: 'ace', needs: superposition ? undefined : needs('rule.superposition') })}
+        {mobius ? row(t('f.loop'), 'red', EX.bad, t('f.loopDesc'), { joker: 'ace' }) : row(t('f.noWrap'), 'grey', EX.bad, t('f.noWrapDesc'), { off: true, needs: t('f.wrapNeeds', { rule: t('rule.mobius'), base: t('rule.superposition') }) })}
       </div>
       <div class="f-row f-tximtxom">
         <span class="level-tag tag-orange">
@@ -451,7 +459,7 @@ function Formations({ onClose }: { onClose: () => void }) {
         </span>
         <span class="f-desc">
           <span>
-            <Rich text={smeared ? t('f.tximtxomSmeared') : t('f.tximtxomDesc')} />
+            <Rich text={polydactyly ? t('f.tximtxomPoly') : smeared ? t('f.tximtxomSmeared') : t('f.tximtxomDesc')} />
           </span>
         </span>
       </div>
@@ -472,7 +480,7 @@ type SetTab = 'general' | 'controls' | 'access' | 'style' | 'cards' | 'motion' |
 /** Keyboard shortcuts shown in the Controls tab. `hold` keys need a press and hold. */
 /** `keys` is shown as is; `mouse` is a translated mouse action in its place. */
 const KEYS: { keys?: string; mouse?: Key; label: Key; hold?: boolean }[] = [
-  { keys: '1–8', label: 'key.select' },
+  { keys: '1–9, 0', label: 'key.select' },
   { mouse: 'key.rightClick', label: 'key.deselect' },
   { keys: 'D', label: 'key.draw' },
   { keys: 'P', label: 'key.take' },
@@ -499,7 +507,11 @@ const fpsText = (v: Settings['fps']) => (v === 'auto' ? t('set.fps.autoDesc') : 
 function StyleTab() {
   const s = useSettings();
   const backs = cardBacks(s.cardStyle);
-  const back = s.cardBack === 'random' ? 'random' : currentBack();
+  const randomBack = ownsRandom('back', s.cardStyle);
+  const back = s.cardBack === 'random' && randomBack ? 'random' : currentBack();
+  const tables = ownedOf('table');
+  const randomTable = ownsRandom('table');
+  const random = { value: 'random', label: t('set.cardBack.random') };
   return (
     <>
       <div class="style-preview" aria-hidden="true">
@@ -513,20 +525,20 @@ function StyleTab() {
         desc={t(`set.cardStyle.${s.cardStyle}.by` as Key)}
         value={s.cardStyle}
         options={CARD_STYLES.map((v) => ({ value: v, label: t(`set.cardStyle.${v}` as Key) }))}
-        onChange={(cardStyle) => updateSettings({ cardStyle, cardBack: s.cardBack === 'random' ? 'random' : cardBacks(cardStyle)[0] })}
+        onChange={(cardStyle) => updateSettings({ cardStyle, cardBack: s.cardBack === 'random' && ownsRandom('back', cardStyle) ? 'random' : cardBacks(cardStyle)[0] })}
       />
       <Choice
         label={t('set.cardBack')}
         desc={t(`set.cardStyle.${s.cardStyle}.by` as Key)}
         value={back}
-        options={[...backs.map((b) => ({ value: b, label: backName(b) })), { value: 'random', label: t('set.cardBack.random') }]}
+        options={[...backs.map((b) => ({ value: b, label: backName(b) })), ...(randomBack ? [random] : [])]}
         onChange={(cardBack) => updateSettings({ cardBack })}
       />
       <Choice
         label={t('set.table')}
         desc={t('set.table.desc')}
-        value={s.table !== 'random' && ownedOf('table').includes(s.table) ? s.table : 'random'}
-        options={[...ownedOf('table').map((id) => ({ value: id, label: t(`table.${id}` as Key) })), { value: 'random', label: t('set.cardBack.random') }]}
+        value={s.table === 'random' && randomTable ? 'random' : tables.includes(s.table) ? s.table : 'felt'}
+        options={[...tables.map((id) => ({ value: id, label: t(`table.${id}` as Key) })), ...(randomTable ? [random] : [])]}
         onChange={(table) => updateSettings({ table })}
       />
       <Choice label={t('set.font')} desc={t('set.font.by', { author: FONTS.find((f) => f.id === s.font)?.author ?? '' })} value={s.font} options={FONTS.map((f) => ({ value: f.id, label: f.name }))} onChange={(font) => updateSettings({ font, fontPicked: true })} />
