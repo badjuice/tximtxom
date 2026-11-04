@@ -446,13 +446,15 @@ function formationShown(kind: string, cards: Card[]): void {
   const ranks = new Set(cards.map(rankOf));
   if (kind === 'trio' && cards.length === 3 && cards.every((c) => rankOf(c) === 6)) unlock('theBeast');
   if (kind !== 'straight') {
+    // Each size is its own achievement: a quad isn't a trio, six of a rank isn't five.
     if (cards.length === 2) unlock('firstPair');
-    if (cards.length >= 3) unlock('firstTrio');
-    for (let n = 5; n <= cards.length; n++) if (BIG_SET_ACH[n]) unlock(BIG_SET_ACH[n]);
+    if (cards.length === 3) unlock('firstTrio');
+    if (BIG_SET_ACH[cards.length]) unlock(BIG_SET_ACH[cards.length]);
     return;
   }
-  // Every length up to this one: a straight stretched by rides counts for the shorter ones too.
-  for (let n = 3; n <= cards.length; n++) if (STRAIGHT_ACH[n]) unlock(STRAIGHT_ACH[n]);
+  // This length only: a 7-card straight doesn't count as a 3, 4 or 6. A straight that
+  // rides stretch one card at a time comes back here at each new length.
+  if (STRAIGHT_ACH[cards.length]) unlock(STRAIGHT_ACH[cards.length]);
   // The Ace in the middle: only the Mobius Strip lets a straight run K-A-2.
   if (ranks.has(13) && ranks.has(1) && ranks.has(2)) unlock('throughAce');
   if ([10, 11, 12, 13, 1].every((r) => ranks.has(r)) && new Set(cards.map(suitOf)).size === 1) unlock('royalFlush');

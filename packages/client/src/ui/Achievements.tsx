@@ -12,7 +12,7 @@ import { SHOP } from '../shop';
 import { itemName } from './Shop';
 
 /** Each rarity's colour, as the shine on unlocked achievements (lighter than the frame, to read as light). */
-const RARITY_SHINE: Record<Rarity, string> = { common: '#6fcfff', uncommon: '#6ee7a8', epic: '#c9a3ff', legendary: '#eac058', unique: '#ffffff', secret: '#ff8a82' };
+export const RARITY_SHINE: Record<Rarity, string> = { common: '#6fcfff', uncommon: '#6ee7a8', epic: '#c9a3ff', legendary: '#eac058', unique: '#ffffff', secret: '#ff8a82' };
 const RARITIES: Rarity[] = ['common', 'uncommon', 'epic', 'legendary', 'unique', 'secret'];
 
 /** The achievement's art: a rule or character card, or a card from the deck. `shine`: the rarity's glint across it. */

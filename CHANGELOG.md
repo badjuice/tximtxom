@@ -5,6 +5,17 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.59.0 (2026-11-04)
+- ✨ Shop items have rarities: an item's name is in its rarity's colour, with the colours' legend under the tabs. Tables are rarer the more colours they have.
+- ✨ Hold a table in the Shop (and drag about if you like) to hide the Shop and see the table behind it. Let go to bring the Shop back.
+- ✨ Shop items say which pack they came from: "Starter pack", or the pack an opened pack's backs belong to.
+- 🔧 The Rules window in the lobby is one column. Chip multipliers are shown with a switch, "Show Chips Multipliers", that no longer moves as the total changes.
+- 🔧 Achievements for showing a formation need that exact size: a quad doesn't count as a trio, six of a rank isn't five, a 7-card straight isn't a 3, 4 or 6, and Long Haul counts straights of exactly 5.
+- 🔧 Scrollbars stay in their own lane and never sit over what they scroll.
+- 🐛 Polydactyly and Two Decks count as changed rules in the lobby and show their cards in the game.
+- 🐛 The Polychrome and Gold Foil backs show in the Shop when you play with board game cards.
+- 🐛 The light across an achievement's reward crosses only its letters, not a box round them.
+
 ## 0.58.0 (2026-11-03)
 - ✨ 10 new tables painted in more colours, dearer the more they have. 2 colours (600): Ice and Fire, Night and Day, Mint and Coral. 3 (900): Tropical, Berry, Autumn. 5 (1.500): Aurora, Carnival. 7 (2.500): Spectrum, Kaleidoscope.
 - ✨ 7 simple frames: a ring round your plate in Bronze (300), Silver (500), Gold (800), Ruby, Emerald, Sapphire or Amethyst (600 each).

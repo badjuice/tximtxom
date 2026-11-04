@@ -19,6 +19,21 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.59.0',
+    date: '2026-11-04',
+    items: [
+      n("Shop items have rarities: an item's name is in its rarity's colour, with the colours' legend under the tabs. Tables are rarer the more colours they have.", "Os artigos da Loja têm raridade: o nome de cada um vem na cor da sua raridade, com a legenda das cores por baixo dos separadores. As mesas são mais raras quantas mais cores tiverem."),
+      n("Hold a table in the Shop (and drag about if you like) to hide the Shop and see the table behind it. Let go to bring the Shop back.", "Mantém uma mesa carregada na Loja (e arrasta, se quiseres) para esconder a Loja e ver a mesa por trás. Larga para a Loja voltar."),
+      n("Shop items say which pack they came from: \"Starter pack\", or the pack an opened pack's backs belong to.", "Os artigos da Loja dizem de que pacote vieram: \"Pacote inicial\", ou o pacote a que pertencem as costas de um pacote aberto."),
+      c("The Rules window in the lobby is one column. Chip multipliers are shown with a switch, \"Show Chips Multipliers\", that no longer moves as the total changes.", "A janela das Regras na sala tem uma só coluna. Os multiplicadores de fichas mostram-se com um interruptor, \"Mostrar Multiplicadores de Fichas\", que já não salta quando o total muda."),
+      c("Achievements for showing a formation need that exact size: a quad doesn't count as a trio, six of a rank isn't five, a 7-card straight isn't a 3, 4 or 6, and Long Haul counts straights of exactly 5.", "As conquistas de mostrar uma formação pedem esse tamanho exato: uma quadra não conta como trio, seis do mesmo valor não são cinco, uma escada de 7 não é de 3, 4 ou 6, e o Longo Curso conta escadas de exatamente 5."),
+      c("Scrollbars stay in their own lane and never sit over what they scroll.", "As barras de deslocamento ficam no seu espaço e nunca por cima do que deslizam."),
+      f("Polydactyly and Two Decks count as changed rules in the lobby and show their cards in the game.", "Polidactilia e Dois Baralhos contam como regras mudadas na sala e mostram as suas cartas no jogo."),
+      f("The Polychrome and Gold Foil backs show in the Shop when you play with board game cards.", "As costas Policromado e Folha de Ouro aparecem na Loja quando jogas com as cartas de jogo de tabuleiro."),
+      f("The light across an achievement's reward crosses only its letters, not a box round them.", "O brilho na recompensa de uma conquista passa só pelas letras, e não por uma caixa à volta delas."),
+    ],
+  },
+  {
     version: '0.58.0',
     date: '2026-11-03',
     items: [

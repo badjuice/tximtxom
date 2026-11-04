@@ -109,6 +109,8 @@ export function activeRules(r: GameView['rules']): [string, Key, Key][] {
   if (r.turnTimer > 0) out.push(['timer', 'rule.timer', 'rule.timer.desc']);
   if (r.magicSort) out.push(['magicsort', 'rule.magicSort', 'rule.magicSort.desc']);
   if (r.scramble) out.push(['scramble', 'rule.scramble', 'rule.scramble.desc']);
+  if (r.polydactyly) out.push(['polydactyly', 'rule.polydactyly', 'rule.polydactyly.desc']);
+  if (r.twoDecks) out.push(['twodecks', 'rule.twoDecks', 'rule.twoDecks.desc']);
   return out;
 }
 

@@ -196,9 +196,9 @@ function loadImage(url: string): Promise<HTMLImageElement> {
 const arts = new Map<string, { art: HTMLCanvasElement; w: number; h: number }>();
 
 /** The card's art (base plus face) as one texture. Synchronous once the art is cached. */
-function cardTexture(e: Entry, face: string): void | Promise<void> {
-  const base = atlasFrame('cards', 'base');
-  const top = atlasFrame('cards', face);
+function cardTexture(e: Entry, face: string, atlas = 'cards'): void | Promise<void> {
+  const base = atlasFrame(atlas, 'base');
+  const top = atlasFrame(atlas, face);
   if (!base || !top || !setup()) return;
   const key = `${base.url}|${face}`;
   const cached = arts.get(key);
@@ -285,11 +285,12 @@ function loop(now: number): void {
  * `setEdition(null)` clears the canvas, showing the plain card underneath;
  * `setTilt` takes the pointer position over the card, -0.5..0.5 on each axis.
  */
-export function attachEdition(canvas: HTMLCanvasElement, face: string) {
+/** `atlas`: where `face` is drawn from (the card style in use, unless one is named). */
+export function attachEdition(canvas: HTMLCanvasElement, face: string, atlas = 'cards') {
   const ctx = canvas.getContext('2d')!;
   const e: Entry = { canvas, ctx, tex: null, texSize: [1, 1], edition: null, tilt: [0, 0], landedAt: 0, spawning: null, pixels: null };
   entries.add(e);
-  void cardTexture(e, face);
+  void cardTexture(e, face, atlas);
   if (!frame) frame = requestAnimationFrame(loop);
   return {
     /** `land` plays the white landing flash. */

@@ -2,6 +2,7 @@
 // bought is kept in the signed chips save (chips.ts `owned`); what's in use
 // lives in the settings (card back, table) and the saved avatar (net.ts).
 import { FRAMES, HUMAN_JOKERS, SHOP_AVATARS } from '@tximtxom/shared';
+import type { Rarity } from './achievements';
 import { chipsNow } from './chips';
 import type { CardStyle } from './settings';
 
@@ -84,6 +85,43 @@ export const SHOP: ShopItem[] = [
 export const SOLD = SHOP.filter((i) => i.price > 0);
 /** Whether every item for sale is yours. */
 export const ownsEverything = (): boolean => SOLD.every((i) => owns(i.id));
+
+/** Where an item came from, once a pack has opened into it and lost its name: 'starter' for
+ *  what everyone has from the start, a pack's id for a back from that pack, else null. */
+export function packOf(id: string): string | null {
+  const pack = SHOP.find((i) => i.pack?.includes(id));
+  if (pack) return pack.id;
+  const item = SHOP.find((i) => i.id === id);
+  return item && item.price === 0 && !item.reward && !item.random ? 'starter' : null;
+}
+
+/** Tables by how much is going on in them: one hue; two colours; three; five or more, or a finish. */
+const TABLE_RARITY: Record<string, Rarity> = {
+  goldSilver: 'uncommon', sunset: 'uncommon', lava: 'uncommon', neon: 'uncommon', royal: 'uncommon',
+  iceFire: 'uncommon', nightDay: 'uncommon', mintCoral: 'uncommon',
+  tropical: 'epic', berry: 'epic', autumn: 'epic', trans: 'epic',
+  aurora: 'legendary', carnival: 'legendary', spectrum: 'legendary', kaleidoscope: 'legendary', pride: 'legendary', holo: 'legendary',
+};
+const BACK_RARITY: Record<string, Rarity> = { back_gold: 'epic', back_rainbow: 'legendary' };
+const FRAME_RARITY: Record<string, Rarity> = { silver: 'uncommon', ruby: 'uncommon', emerald: 'uncommon', sapphire: 'uncommon', amethyst: 'uncommon', gold: 'epic' };
+
+/** How rare an item is, shown as the colour of its name (the same colours as achievements):
+ *  rewards are unique, what everyone starts with common, Random legendary; a back from a pack
+ *  is as rare as its pack. */
+export function itemRarity(id: string): Rarity {
+  const item = SHOP.find((i) => i.id === id) ?? SHOP.find((i) => i.pack?.includes(id));
+  if (!item) return 'common';
+  if (item.reward) return 'unique';
+  if (item.random) return 'legendary';
+  if (item.price === 0) return 'common';
+  if (item.pack) return 'uncommon';
+  if (item.kind === 'table') return TABLE_RARITY[id] ?? 'common';
+  if (item.kind === 'back') return BACK_RARITY[id] ?? 'common';
+  if (item.kind === 'frame') return FRAME_RARITY[id] ?? 'common';
+  return 'uncommon';
+}
+/** The rarities the shop uses, for its legend. */
+export const SHOP_RARITIES: Rarity[] = ['common', 'uncommon', 'epic', 'legendary', 'unique'];
 
 /** Free, bought, or in a pack that's bought. */
 export function owns(id: string): boolean {

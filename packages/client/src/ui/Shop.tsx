@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { play } from '../audio';
 import { PAINTS, previewTable, STRIPES, TABLES } from '../background';
 import { ACHIEVEMENTS, hasAchievement } from '../achievements';
@@ -6,7 +6,8 @@ import { buyItem, useChips } from '../chips';
 import { type Key, t } from '../i18n';
 import { saveAvatar, savedAvatar } from '../net';
 import { CARD_STYLES, type CardStyle, getSettings, updateSettings, useSettings } from '../settings';
-import { owns, randomOpen, SHOP, type ShopItem, type ShopKind } from '../shop';
+import { itemRarity, owns, packOf, randomOpen, SHOP, SHOP_RARITIES, type ShopItem, type ShopKind } from '../shop';
+import { RARITY_SHINE } from './Achievements';
 import { formatCount } from '../stats';
 import { ChipCount, ChipIcon, Modal, UiIcon } from './common';
 import { ArtIcon, StyleBackIcon } from './sprites';
@@ -14,6 +15,10 @@ import { ArtIcon, StyleBackIcon } from './sprites';
 const KINDS: ShopKind[] = ['back', 'table', 'avatar', 'frame'];
 /** How long a Buy button waits for its second tap. */
 const CONFIRM_MS = 3000;
+/** How long a table is held before the shop steps aside to show it. */
+const HOLD_MS = 300;
+/** How far the pointer can wander before then and still count as holding (more is a scroll). */
+const HOLD_SLOP = 8;
 
 /** "Red" for `back_red` and `back_red1`, "Red Frame" for `back_red3`, "Red Suits" and "Red Emblem" for 2 and 5. */
 export function backName(b: string): string {
@@ -23,6 +28,9 @@ export function backName(b: string): string {
   const variant: Record<string, Key> = { '3': 'set.cardBack.framed', '2': 'set.cardBack.suits', '5': 'set.cardBack.emblem' };
   return variant[n] ? t(variant[n], { c }) : c;
 }
+
+/** The flavour line under an item: which pack it came from. */
+const packLine = (pack: string): string => (pack === 'starter' ? t('shop.fromStarter') : t('shop.fromPack', { name: t(`shop.${pack}` as Key) }));
 
 export const itemName = (i: ShopItem): string =>
   i.random ? t('set.cardBack.random') : i.pack ? t('shop.pack', { name: t(`shop.${i.id}` as Key), n: i.pack.length }) : i.kind === 'back' ? backName(i.id) : t(`${i.kind}.${i.id}` as Key);
@@ -109,6 +117,66 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
   }, [tab, s.table]);
   useEffect(() => () => previewTable(null), []);
 
+  // Hold a table (and drag about, if you like) to hide the shop and see it behind; let go to bring it back.
+  const [peeking, setPeeking] = useState(false);
+  const hold = useRef<{ x: number; y: number; touch: boolean; on: boolean; timer: number } | null>(null);
+  const swallowClick = useRef(false);
+  const endHold = () => {
+    const h = hold.current;
+    if (!h) return;
+    clearTimeout(h.timer);
+    hold.current = null;
+    if (!h.on) return;
+    setPeeking(false);
+    // The release isn't a tap on the tile's button.
+    swallowClick.current = true;
+    setTimeout(() => (swallowClick.current = false), 400);
+    // A mouse is still over the table it held; a finger has left.
+    if (h.touch) previewTable(s.table !== 'random' ? s.table : null);
+  };
+  // While held, a drag mustn't scroll the list (or the browser would cancel the hold).
+  useEffect(() => {
+    if (!peeking) return;
+    const stop = (e: TouchEvent) => e.preventDefault();
+    document.addEventListener('touchmove', stop, { passive: false });
+    return () => document.removeEventListener('touchmove', stop);
+  }, [peeking]);
+  const holdable = (i: ShopItem) =>
+    i.kind !== 'table' || i.random
+      ? {}
+      : {
+          onPointerDown: (e: PointerEvent) => {
+            if (e.button !== 0) return;
+            const el = e.currentTarget as HTMLElement;
+            const pid = e.pointerId;
+            const h = { x: e.clientX, y: e.clientY, touch: e.pointerType !== 'mouse', on: false, timer: 0 };
+            h.timer = window.setTimeout(() => {
+              h.on = true;
+              try {
+                el.setPointerCapture(pid);
+              } catch {
+                // Pointer already gone: the release will end it.
+              }
+              previewTable(i.id);
+              setPeeking(true);
+            }, HOLD_MS);
+            hold.current = h;
+          },
+          onPointerMove: (e: PointerEvent) => {
+            const h = hold.current;
+            if (h && !h.on && Math.hypot(e.clientX - h.x, e.clientY - h.y) > HOLD_SLOP) endHold();
+          },
+          onPointerUp: endHold,
+          onPointerCancel: endHold,
+          onContextMenu: (e: Event) => e.preventDefault(),
+          onClickCapture: (e: Event) => {
+            if (!swallowClick.current) return;
+            swallowClick.current = false;
+            e.stopPropagation();
+            e.preventDefault();
+          },
+        };
+
   const equipped = (i: ShopItem) => {
     const id = i.random ? 'random' : i.id;
     return i.kind === 'back' ? s.cardBack === id && s.cardStyle === i.style : i.kind === 'table' ? s.table === id : i.kind === 'frame' ? s.frame === id : avatar === id;
@@ -146,11 +214,22 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
     // A reward isn't sold: it says which achievement gives it (a hidden one stays hidden).
     const from = i.reward ? ACHIEVEMENTS.find((a) => a.id === i.reward) : undefined;
     return (
-      <li class={`shop-item${on ? ' on' : ''}${mine ? '' : ' for-sale'}`} key={i.id} onPointerEnter={i.kind === 'table' && !i.random ? () => previewTable(i.id) : undefined}>
+      <li
+        class={`shop-item${on ? ' on' : ''}${mine ? '' : ' for-sale'}${i.kind === 'table' && !i.random ? ' holdable' : ''}`}
+        key={i.id}
+        onPointerEnter={i.kind === 'table' && !i.random ? () => previewTable(i.id) : undefined}
+        {...holdable(i)}
+      >
         <span class="shop-preview">
           <Preview item={i} />
         </span>
-        <span class="shop-name">{itemName(i)}</span>
+        <span class="shop-name">
+          {/* Its rarity, as the colour of its name. */}
+          <span class={`rule-ref${itemRarity(i.id) === 'unique' ? ' rainbow-text' : ''}`} style={{ '--rc': RARITY_SHINE[itemRarity(i.id)] }}>
+            {itemName(i)}
+          </span>
+        </span>
+        {!i.pack && packOf(i.id) && <span class="shop-from">{packLine(packOf(i.id)!)}</span>}
         {on ? (
           <span class="shop-state">{t('shop.equipped')}</span>
         ) : from && !mine ? (
@@ -189,7 +268,7 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
     );
 
   return (
-    <Modal title={t('shop.title')} onClose={onClose} class="shop-modal">
+    <Modal title={t('shop.title')} onClose={onClose} class={`shop-modal${peeking ? ' peeking' : ''}`}>
       <div class="sticky-top shop-top">
         <ChipCount />
         <div class="tabs" role="tablist">
@@ -199,6 +278,12 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
+        {/* What the colours of the names mean. */}
+        <p class="rules-legend ach-legend shop-legend">
+          {SHOP_RARITIES.map((r) => (
+            <span class={`lg rarity-${r}`}>{t(`ach.rarity.${r}`)}</span>
+          ))}
+        </p>
       </div>
       {tab === 'back' &&
         CARD_STYLES.map((style) => (
@@ -212,7 +297,7 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
       {tab === 'table' && (
         <section class="shop-section">
           <p class="muted small center">{t('shop.tableHint')}</p>
-          <ul class="shop-grid" onPointerLeave={() => previewTable(s.table !== 'random' ? s.table : null)}>
+          <ul class="shop-grid" onPointerLeave={() => !hold.current?.on && previewTable(s.table !== 'random' ? s.table : null)}>
             {items('table').map(tile)}
           </ul>
         </section>

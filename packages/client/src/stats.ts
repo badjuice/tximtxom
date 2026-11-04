@@ -32,7 +32,7 @@ export interface MyStats {
   kinds: Record<FormationKind, number>;
   /** Most cards in one straight you showed. */
   longestStraight: number;
-  /** Straights of 5 cards or more you showed. */
+  /** Straights of exactly 5 cards you showed (Long Haul; older saves also counted longer ones). */
   longStraights: number;
   rides: number;
   /** Rides other players took on your formations. */
@@ -282,7 +282,7 @@ export function recordEvent(e: GameEvent, g: GameView, room: RoomView): void {
           formations: s.formations + 1,
           kinds: { ...s.kinds, [e.kind]: s.kinds[e.kind] + 1 },
           longestStraight: e.kind === 'straight' ? Math.max(s.longestStraight, e.cards.length) : s.longestStraight,
-          longStraights: s.longStraights + (e.kind === 'straight' && e.cards.length >= 5 ? 1 : 0),
+          longStraights: s.longStraights + (e.kind === 'straight' && e.cards.length === 5 ? 1 : 0),
         }));
       break;
     case 'ride': {

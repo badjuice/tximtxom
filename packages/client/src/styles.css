@@ -874,9 +874,9 @@ input[type='text'] {
   gap: 6px;
 }
 /* The room's Rules window: the legend and the multiplier button stay at the top, only the
-   rules scroll; two columns of equal width where there's room, every card the same height. */
+   rules scroll, one under another in a single column. */
 .modal.lobby-rules-modal {
-  width: min(940px, 96vw);
+  width: min(620px, 96vw);
   height: min(860px, 92dvh);
 }
 .lobby-rules-modal .modal-body {
@@ -909,7 +909,7 @@ input[type='text'] {
 .table-peek.held {
   filter: brightness(1.2);
 }
-/* The scroller holds a grid of its own: with no height to share out, two-column rows are all as tall as the tallest card. */
+/* The scroller holds a grid of its own: one column of rules. */
 .rules-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -921,12 +921,6 @@ input[type='text'] {
   overflow-y: auto;
   padding: 2px 4px 6px 2px;
 }
-@media (min-width: 900px) {
-  .lobby-rules-modal .rules-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-auto-rows: 1fr;
-  }
-}
 .rules-head {
   flex: none;
   display: flex;
@@ -935,35 +929,41 @@ input[type='text'] {
   margin-bottom: 8px;
 }
 .rules-pay-row {
-  display: flex;
+  /* The switch and the total each keep their own side of the middle, so the
+     total's text changing length never moves the switch. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
   gap: 12px;
 }
-.rules-pay-btn {
-  font: inherit;
-  font-size: 0.85em;
+.rules-pay-switch {
+  grid-column: 2;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 32px;
-  padding: 0 10px;
-  color: #fff;
-  background: var(--grey);
-  border: 0;
-  border-radius: 6px;
-  box-shadow: 0 3px 0 var(--grey-d);
+  font-size: 0.85em;
   cursor: pointer;
 }
-.rules-pay-btn.on {
-  background: var(--blue);
-  box-shadow: 0 3px 0 var(--blue-d);
+.rules-pay-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
-.rules-pay-btn:active {
-  translate: 0 2px;
-  box-shadow: 0 1px 0 var(--grey-d);
+.rules-pay-switch input:checked + .switch {
+  background: var(--blue);
+}
+.rules-pay-switch input:checked + .switch::after {
+  left: 27px;
+  background: #fff;
+}
+.rules-pay-switch input:focus-visible + .switch {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
 }
 .rules-pay-total {
+  grid-column: 3;
+  justify-self: start;
   font-size: 0.9em;
   color: var(--muted);
   visibility: hidden;
@@ -4731,22 +4731,38 @@ input.rename {
 }
 /* What it gives: gold, under the flavour line. */
 .ach-reward {
-  position: relative;
   align-self: flex-start;
-  overflow: hidden;
   font-size: 0.85em;
 }
-/* What an achievement gives: rainbow letters with a light sweeping across them. */
-.ach-reward::after {
-  content: '';
+/* What an achievement gives: rainbow letters with a light sweeping across them.
+   Each letter carries its own copy of the light, cut to its shape, so only the
+   letters shine (not the box round them) and the light hops along with them. */
+.ach-reward .ttx-l {
+  position: relative;
+}
+.ach-reward .ttx-l::after {
+  content: attr(data-ch);
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.7) 50%, transparent 65%) -100% 0 / 200% 100% no-repeat;
-  mix-blend-mode: overlay;
-  animation: shop-sheen 2.2s linear infinite;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.85) 50%, transparent 65%) 100% 0 / 300% 100% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: ach-reward-sheen 2.2s linear calc(var(--ti) * 0.035s) infinite;
   pointer-events: none;
 }
-.reduced-motion .ach-reward::after {
+@keyframes ach-reward-sheen {
+  0% {
+    background-position: 100% 0;
+  }
+  20%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+.reduced-motion .ach-reward .ttx-l::after {
   animation: none;
   background: none;
 }
@@ -6016,8 +6032,9 @@ td.num.pts {
   }
 }
 
-/* Scrollbars everywhere: thin, gold on the dark panel, in their own lane so they
-   never sit over the content (scrollbar-gutter keeps that lane even when idle). */
+/* Scrollbars everywhere: thin, gold on the dark panel, always shown, in their own lane so they
+   never sit over the content (scrollbar-gutter keeps that lane even when idle).
+   RULE: every element that scrolls vertically goes in the scrollbar-gutter list below. */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -6057,7 +6074,9 @@ td.num.pts {
 .chat-list,
 .summary,
 .lobby,
-.title-screen {
+.title-screen,
+.rules-list,
+.ach-list {
   scrollbar-gutter: stable;
 }
 .modal-body,
@@ -6420,6 +6439,34 @@ td.num.pts {
   min-height: 2.3em;
   display: grid;
   place-items: center;
+}
+/* Holding a table hides the shop (all of it, backdrop too) so the table behind shows. */
+.modal-backdrop:has(> .shop-modal.peeking) {
+  background: transparent;
+  backdrop-filter: none;
+}
+.shop-modal.peeking {
+  visibility: hidden;
+}
+/* ...and the menu under it, so only the table is left. */
+.app-root:has(.shop-modal.peeking) > :not(.modal-backdrop) {
+  visibility: hidden;
+}
+.shop-item.holdable {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.shop-legend {
+  margin: 6px 0 0;
+}
+/* Which pack it came from, in small italics under the name. */
+.shop-from {
+  margin-top: -4px;
+  font-size: 0.7em;
+  font-style: italic;
+  color: var(--muted);
+  line-height: 1.1;
 }
 .shop-table {
   display: block;

@@ -96,7 +96,7 @@ function tximtxomRanges(text: string): [number, number][] {
 
 /** One letter of "TximTxom": `ti` is its place in the word (the pattern and wave follow it). */
 const TxLetter = ({ ch, ti }: { ch: string; ti: number }) => (
-  <span class="ttx-l" style={{ '--ti': ti }}>
+  <span class="ttx-l" style={{ '--ti': ti }} data-ch={ch}>
     {ch}
   </span>
 );

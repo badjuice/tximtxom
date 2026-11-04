@@ -34,10 +34,12 @@ export function RulesForm({ rules, onChange, readOnly }: { rules: Rules; onChang
           <span class="lg">{t('rule.tone.neutral')}</span>
         </p>
         <div class="rules-pay-row">
-          <button type="button" class={`rules-pay-btn${showPay ? ' on' : ''}`} aria-pressed={showPay} onClick={() => setShowPay((v) => !v)}>
+          <label class="rules-pay-switch">
             <ChipIcon size={16} />
-            {t('rule.payShow')}
-          </button>
+            <span>{t('rule.payShow')}</span>
+            <input type="checkbox" role="switch" checked={showPay} onChange={(e) => setShowPay(e.currentTarget.checked)} />
+            <span class="switch" aria-hidden="true" />
+          </label>
           {/* Always there, so the row never changes height. */}
           <span class={`rules-pay-total${total > 1 ? ' up' : total < 1 ? ' down' : ''}`}>{t('rule.payTotal', { k: `×${total}` })}</span>
         </div>

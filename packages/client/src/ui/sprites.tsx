@@ -230,14 +230,27 @@ function EditionBack({ back, scale }: { back: string; scale: number }) {
   const { w, h } = cardSize(scale);
   const dpr = Math.min(2, devicePixelRatio || 1);
   const { base, edition } = EDITION_BACKS[back];
+  // Always the pixel art, whichever card style is in use (the board backs have no such frame):
+  // loaded here if it isn't yet, and drawn once it is.
+  const key = 'cards:pixel';
+  const [ready, setReady] = useState(!!atlases[key]);
+  useEffect(() => {
+    if (atlases[key]) return setReady(true);
+    cardAtlases.pixel ??= loadAtlas(CARD_ATLAS.pixel, true);
+    void cardAtlases.pixel.then((a) => {
+      atlases[key] = a;
+      setReady(true);
+    });
+  }, []);
   useLayoutEffect(() => {
-    const c = attachEdition(canvas.current!, base);
+    if (!ready) return;
+    const c = attachEdition(canvas.current!, base, key);
     c.setEdition(edition, false);
     c.drawNow();
     return () => c.detach();
-  }, [base, edition]);
+  }, [base, edition, ready]);
   return (
-    <span class="sprite card tilt" style={spriteStyle('cards', base, fit('cards', scale))} aria-hidden="true" {...tilt}>
+    <span class="sprite card tilt" style={spriteStyle(key, base, fit(key, scale))} aria-hidden="true" {...tilt}>
       <canvas ref={canvas} class="edition-layer" width={Math.round(w * dpr)} height={Math.round(h * dpr)} />
     </span>
   );
