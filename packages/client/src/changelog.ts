@@ -19,6 +19,17 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.60.0',
+    date: '2026-11-04',
+    items: [
+      n("New uncommon achievement, AK-47: hold an Ace, King, 4 and 7 side by side in your hand, in that order.", "Nova conquista invulgar, AK-47: tenha um Ás, um Rei, um 4 e um 7 lado a lado na mão, por esta ordem."),
+      n("Settings, Style: the Joker sits next to the card back. Tap it to switch between the red and the black Joker.", "Definições, Estilo: o Joker fica ao lado das costas das cartas. Toque nele para trocar entre o Joker vermelho e o preto."),
+      n("Gold, silver and bust badges glow in their own colour, with a light sweeping across them.", "Os emblemas de ouro, prata e Rabenta brilham na sua cor, com uma luz a passar por eles."),
+      c("Tapping a card in the Style tab makes it hop, like the Aces on the main menu, instead of leaving it raised.", "Tocar numa carta no separador Estilo fá-la saltar, como os Ases do menu principal, em vez de a deixar levantada."),
+      c("Portuguese now speaks to you as \"você\" everywhere.", "O português agora trata-o por \"você\" em todo o lado."),
+    ],
+  },
+  {
     version: '0.59.0',
     date: '2026-11-04',
     items: [

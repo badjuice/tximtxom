@@ -6,7 +6,7 @@ import { useSettings } from '../settings';
 import { formatCount, locale, type MyStats, useStats } from '../stats';
 import { ACH_PAY, CHIP_SOURCES, type ChipSource, chipsEarned, PAY, useChips } from '../chips';
 import { ChipAmount, ChipIcon, Modal, Rainbow, Tabs, tj, WaveText, withTximTxom } from './common';
-import { CardIcon, Icon } from './sprites';
+import { BadgeIcon, CardIcon } from './sprites';
 
 /** "2h 05m", "12m 30s", "45s". */
 function formatDuration(ms: number): string {
@@ -328,7 +328,7 @@ function StatsPanel() {
           <div class="badge-tiles">
             {(['win', 'silver', 'bust'] as const).map((kind) => (
               <div class={`stat-tile badge-tile badge-${kind}`}>
-                <Icon name={kind} scale={1.6} />
+                <BadgeIcon kind={kind} scale={1.6} />
                 <span class="stat-value">{formatCount(kind === 'win' ? s.gamesWon : kind === 'silver' ? s.silvers : s.busts)}</span>
                 <span class="stat-label">{t(`badge.${kind}` as Key)}</span>
               </div>

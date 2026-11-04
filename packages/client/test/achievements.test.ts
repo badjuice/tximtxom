@@ -60,3 +60,26 @@ describe('formation achievements unlock by exact size', () => {
     expect(a.got.has('straight3')).toBe(false);
   });
 });
+
+describe('AK-47', () => {
+  let a: Awaited<ReturnType<typeof load>>;
+  beforeEach(async () => {
+    a = await load();
+  });
+  const c = (rank: number, suit = 0) => makeCard(rank, suit as 0);
+
+  it('A, K, 4, 7 side by side in that order, anywhere in the hand', () => {
+    a.handArranged([c(9), c(1, 2), c(13, 1), c(4, 3), c(7), c(2)]);
+    expect(a.got.has('ak47')).toBe(true);
+  });
+
+  it('not in another order', () => {
+    a.handArranged([c(13), c(1), c(4), c(7), c(2)]);
+    expect(a.got.has('ak47')).toBe(false);
+  });
+
+  it('not with a card between them', () => {
+    a.handArranged([c(1), c(13), c(5), c(4), c(7)]);
+    expect(a.got.has('ak47')).toBe(false);
+  });
+});

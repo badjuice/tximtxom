@@ -165,12 +165,26 @@ export function Icon({ name, scale = 1, title, class: cls }: { name: string; sca
 export type BadgeKind = 'win' | 'silver' | 'bust';
 export const BADGE_KINDS: BadgeKind[] = ['win', 'silver', 'bust'];
 
+/** A badge's art, glowing in its colour, with a light crossing it now and then. The light is
+ *  masked by the art itself, so it crosses the badge and not the box round it. */
+export function BadgeIcon({ kind, scale = 0.6 }: { kind: BadgeKind; scale?: number }) {
+  const st = spriteStyle('icons', kind, scale);
+  const mask = st.backgroundImage
+    ? { maskImage: st.backgroundImage, WebkitMaskImage: st.backgroundImage, maskSize: st.backgroundSize, WebkitMaskSize: st.backgroundSize, maskPosition: st.backgroundPosition, WebkitMaskPosition: st.backgroundPosition }
+    : null;
+  return (
+    <span class={`sprite icon badge-icon badge-glow-${kind}`} style={st} aria-hidden="true">
+      {mask && <span class="badge-shine" style={mask} />}
+    </span>
+  );
+}
+
 /** One badge with its count ("x2") beside it; its hint names the badge. Nothing when `n` is 0, unless `zero`. */
 export function Badge({ kind, n, scale = 0.6, zero }: { kind: BadgeKind; n: number; scale?: number; zero?: boolean }) {
   if (!n && !zero) return null;
   return (
     <span class={`wins badge-${kind}${n ? '' : ' none'}`} title={t(`badge.${kind}` as Key)}>
-      <Icon name={kind} scale={scale} />
+      <BadgeIcon kind={kind} scale={scale} />
       <b>x{n}</b>
     </span>
   );

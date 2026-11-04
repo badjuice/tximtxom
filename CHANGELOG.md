@@ -5,6 +5,13 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.60.0 (2026-11-04)
+- ✨ New uncommon achievement, AK-47: hold an Ace, King, 4 and 7 side by side in your hand, in that order.
+- ✨ Settings, Style: the Joker sits next to the card back. Tap it to switch between the red and the black Joker.
+- ✨ Gold, silver and bust badges glow in their own colour, with a light sweeping across them.
+- 🔧 Tapping a card in the Style tab makes it hop, like the Aces on the main menu, instead of leaving it raised.
+- 🔧 Portuguese now speaks to you as "você" everywhere.
+
 ## 0.59.0 (2026-11-04)
 - ✨ Shop items have rarities: an item's name is in its rarity's colour, with the colours' legend under the tabs. Tables are rarer the more colours they have.
 - ✨ Hold a table in the Shop (and drag about if you like) to hide the Shop and see the table behind it. Let go to bring the Shop back.

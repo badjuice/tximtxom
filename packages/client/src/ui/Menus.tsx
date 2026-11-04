@@ -511,6 +511,16 @@ function StyleTab() {
   const random = { value: 'random', label: t('set.cardBack.random') };
   // A random suit each time the tab opens.
   const [suit, setSuit] = useState(() => Math.floor(Math.random() * 4) as Suit);
+  // The Joker, red or black: a click turns it to the other.
+  const [joker, setJoker] = useState<'red' | 'black'>('red');
+  // A clicked card hops, as the Aces on the main menu do (restarted in place for a quick second click).
+  const hopCard = (e: MouseEvent) => {
+    const el = (e.currentTarget as HTMLElement).firstElementChild as HTMLElement | null;
+    if (!el) return;
+    el.classList.remove('fan-hop');
+    void el.offsetWidth;
+    el.classList.add('fan-hop');
+  };
   // Each card half over the one before: 7 widths for the row, one for the back.
   const deckScale = innerWidth < 560 ? 0.5 : 0.8;
   const cw = cardSize(deckScale).w;
@@ -521,13 +531,24 @@ function StyleTab() {
         <div class="deck-view" style={{ '--deck-cw': `${cw}px`, '--deck-step': `${cw / 2}px` }}>
           <div class="deck-row" aria-hidden="true">
             {Array.from({ length: 13 }, (_, i) => (
-              <span class="deck-card" tabIndex={-1}>
-                <CardIcon card={makeCard(i + 1, suit)} scale={deckScale} />
+              <span class="deck-card" onClick={hopCard}>
+                <span class="deck-hop">
+                  <CardIcon card={makeCard(i + 1, suit)} scale={deckScale} />
+                </span>
               </span>
             ))}
           </div>
           <button type="button" class="deck-back" title={t('set.nextSuit')} aria-label={t('set.nextSuit')} onClick={() => setSuit((x) => ((x + 1) % 4) as Suit)}>
             {back === 'random' ? <RandomBackIcon backs={backs} scale={deckScale} /> : <CardBackIcon back={back} scale={deckScale} />}
+          </button>
+          <button
+            type="button"
+            class="deck-back deck-joker"
+            title={t('set.otherJoker')}
+            aria-label={t('set.otherJoker')}
+            onClick={() => setJoker((j) => (j === 'red' ? 'black' : 'red'))}
+          >
+            <CardBackIcon back={`joker_${joker}`} scale={deckScale} />
           </button>
         </div>
         <p class="style-sample">{withHighlights(t('set.fontSample'))}</p>

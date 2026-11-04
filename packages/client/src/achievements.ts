@@ -44,7 +44,7 @@ export type AchievementId =
   | 'firstBuy' | 'firstBack' | 'firstTable' | 'firstAvatar' | 'earlyBird'
   | 'allCommons' | 'allUncommons' | 'allEpics' | 'legendDary' | 'notSoSecret' | 'formationHunter' | 'completionist' | 'completionistPlus' | 'completionistPlusPlus'
   | 'averageEnjoyer' | 'localLegend' | 'finalBoss' | 'ceo'
-  | 'curious' | 'redecorate' | 'tinkerer' | 'historian' | 'fullTable' | 'beepBoop' | 'firstTxiJog' | 'dumpsterDiver' | 'hitchhiker' | 'hatTrick';
+  | 'curious' | 'redecorate' | 'tinkerer' | 'historian' | 'fullTable' | 'beepBoop' | 'firstTxiJog' | 'dumpsterDiver' | 'hitchhiker' | 'hatTrick' | 'ak47';
 
 /** One achievement per rule, for playing a round with it on: its card art, and whether it's on. */
 export const RULE_ACHIEVEMENTS = {
@@ -175,6 +175,7 @@ const ALL: Achievement[] = [
   { id: 'busPass', art: 'ride', rarity: 'uncommon', track: 'ridesTaken', goal: 25 },
   { id: 'generous', art: 'villager', rarity: 'uncommon' },
   { id: 'anarchist', art: 'boar', rarity: 'uncommon' },
+  { id: 'ak47', art: 'bandit', rarity: 'uncommon' },
   { id: 'addicted', art: 'timer', rarity: 'uncommon', meter: 'minutes' },
   { id: 'chips100', art: 'ranger', rarity: 'uncommon', meter: 'chips', goal: 10000 },
   { id: 'regular', art: 'timer', rarity: 'epic', meter: 'streak', goal: 7 },
@@ -458,6 +459,13 @@ function formationShown(kind: string, cards: Card[]): void {
   // The Ace in the middle: only the Mobius Strip lets a straight run K-A-2.
   if (ranks.has(13) && ranks.has(1) && ranks.has(2)) unlock('throughAce');
   if ([10, 11, 12, 13, 1].every((r) => ranks.has(r)) && new Set(cards.map(suitOf)).size === 1) unlock('royalFlush');
+}
+
+/** AK-47: an Ace, a King, a 4 and a 7 side by side in your hand, in that order, left to right. */
+const AK47 = [1, 13, 4, 7];
+export function handArranged(order: Card[]): void {
+  if (unlocked.ak47 || order.length < AK47.length) return;
+  for (let i = 0; i + AK47.length <= order.length; i++) if (AK47.every((r, j) => rankOf(order[i + j]) === r)) return unlock('ak47');
 }
 
 /** Checks one game event for achievements. Called once per event, as it happens. */

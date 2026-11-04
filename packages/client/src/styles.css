@@ -5293,12 +5293,18 @@ input.rename {
   width: var(--deck-step, 17px);
   transition: translate 0.12s;
 }
-.deck-card:hover,
-.deck-card:focus,
-.deck-card:active {
-  z-index: 1;
-  translate: 0 -4px;
-  outline: none;
+/* Pointed at: on top and a little up (only with a mouse, so a tap doesn't leave it up). A click hops it. */
+@media (hover: hover) {
+  .deck-card:hover {
+    z-index: 1;
+    translate: 0 -4px;
+  }
+}
+.deck-card {
+  cursor: pointer;
+}
+.deck-hop {
+  display: block;
 }
 .deck-card > .sprite {
   box-shadow: -2px 0 3px rgba(0, 0, 0, 0.3);
@@ -5362,6 +5368,44 @@ input.rename {
 }
 .badge-bust b {
   color: var(--red);
+}
+/* Badges glow in their colour, and a light crosses them on the rules' beat. */
+.badge-icon {
+  --bc: var(--gold);
+  position: relative;
+  filter: drop-shadow(0 0 2px var(--bc));
+  animation: badge-glow 2.4s ease-in-out infinite;
+}
+.badge-glow-silver {
+  --bc: #cfd8da;
+}
+.badge-glow-bust {
+  --bc: #fe5f55;
+}
+@keyframes badge-glow {
+  50% {
+    filter: drop-shadow(0 0 5px var(--bc));
+  }
+}
+.badge-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 38%, rgba(255, 255, 255, 0.85) 50%, transparent 62%) 100% 0 / 300% 100% no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  animation: rule-shine 3.2s linear infinite;
+  pointer-events: none;
+}
+.wins.none .badge-icon,
+.reduced-motion .badge-icon {
+  animation: none;
+}
+.wins.none .badge-icon {
+  filter: none;
+}
+.wins.none .badge-shine,
+.reduced-motion .badge-shine {
+  display: none;
 }
 .wins.none {
   opacity: 0.35;

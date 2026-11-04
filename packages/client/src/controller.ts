@@ -7,7 +7,7 @@ import type { Point } from './game/layout';
 import { cardShort, cardSpoken, type Key, kindName, t, tError } from './i18n';
 import { act, fetchHistory } from './net';
 import { getSettings, onSettings, rollRandomBack, updateSettings } from './settings';
-import { achievementEvent } from './achievements';
+import { achievementEvent, handArranged } from './achievements';
 import { recordEvent } from './stats';
 import { chipsEvent } from './chips';
 import { banner, callout, SEAT_COLORS, type Staged, store, toast } from './store';
@@ -213,6 +213,7 @@ function pushToTable(hints?: SpawnHints): void {
   const s = store.get();
   const autoSort = getSettings().autoSort && !scrambled();
   table.set({ game: s.room?.game ?? null, handOrder, autoSortBy: autoSort ? sortKey() : null, selected: s.selected, staged: s.staged }, hints);
+  if (s.room?.game && s.room.game.you !== null) handArranged(handOrder);
 }
 
 function onRoom(room: RoomView | null, prev: RoomView | null): void {
