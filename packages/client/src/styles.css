@@ -302,7 +302,8 @@ input:focus-visible {
   padding: 0 0.35em;
   margin-left: 0.5em;
   vertical-align: middle;
-  color: var(--panel-in);
+  /* A real key: its own colours in every theme. */
+  color: #2b3c3f;
   background: linear-gradient(#f4f6f1, #d9dfd8);
   border-radius: 5px;
   box-shadow:
@@ -1324,17 +1325,23 @@ input[type='text'] {
   display: flex;
   gap: 4px;
 }
+/* One per option, in the text's own colours so every theme shows them: a hollow square, and
+   the picked one a square with a smaller square inside. */
 .cyc-dot {
-  width: 7px;
-  height: 7px;
+  box-sizing: border-box;
+  width: 8px;
+  height: 8px;
   padding: 0;
-  border: none;
-  border-radius: 2px;
-  background: var(--grey);
+  border: 1px solid var(--muted);
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
 }
 .cyc-dot.on {
+  padding: 1px;
+  border-color: var(--text);
   background: var(--text);
+  background-clip: content-box;
 }
 /* Read-only (or locked): the value and dots stay, the arrows go grey. */
 .cyc-arrow:disabled {
@@ -7069,7 +7076,7 @@ td.num.pts {
 .ui-brutal .mini-switch .knob {
   top: 0;
   left: 0;
-  background: var(--bk);
+  background: var(--knob);
 }
 .ui-brutal .auto-toggle.on .mini-switch {
   background: var(--green);
@@ -7081,4 +7088,17 @@ td.num.pts {
 /* Progress bars: an outlined track. */
 .ui-brutal :is(.ach-progress, .level, .sb-bar) {
   border: 2px solid var(--bk);
+}
+
+/* Themes: what sits in a dark well in the game's own colours gets the theme's own well (an outline
+   colour can be the text's own in a two-colour theme), and the colour-coded lines of how chips are
+   earned read in the text colour where a theme has too few colours to tell them apart. */
+:root:not([data-theme='classic']) :is(.modal .chip-count, .shop-btn.buy, .tag) {
+  background: var(--panel-d);
+}
+:root:not([data-theme='classic']) .tag {
+  color: var(--text);
+}
+:root[data-few] .chips-how > span {
+  color: var(--text) !important;
 }

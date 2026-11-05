@@ -33,12 +33,12 @@ export type Theme =
 export const THEMES: Theme[] = [
   { id: 'classic', kind: 'classic' },
   // Two colours.
-  { id: 'inkPaper', kind: 'two', paper: '#f2eee3', ink: '#1c1b19' },
+  { id: 'inkPaper', kind: 'two', paper: '#dcd4c0', ink: '#1c1b19' },
   { id: 'night', kind: 'two', paper: '#11141c', ink: '#ece6d6' },
-  { id: 'redBlue', kind: 'two', paper: '#1d2c6e', ink: '#ff5d50' },
-  { id: 'goldSilver', kind: 'two', paper: '#c5cace', ink: '#7a5a10' },
+  { id: 'redBlue', kind: 'two', paper: '#141f52', ink: '#ff7a6e' },
   { id: 'terminal', kind: 'two', paper: '#06120a', ink: '#43f57f' },
   // Three colours.
+  { id: 'goldSilver', kind: 'three', paper: '#22262b', ink: '#d5dbe1', accent: '#e8b84a' },
   { id: 'handheld', kind: 'three', paper: '#9bbc0f', ink: '#0f380f', accent: '#306230' },
   { id: 'sunset', kind: 'three', paper: '#2a1640', ink: '#ffe8c4', accent: '#ff7a3d' },
   { id: 'arctic', kind: 'three', paper: '#0d2137', ink: '#f0f7ff', accent: '#4fc4f0' },
@@ -58,25 +58,89 @@ export const THEMES: Theme[] = [
 
 export const themeById = (id: string): Theme => THEMES.find((th) => th.id === id) ?? THEMES[0];
 
-const mix = (a: string, pct: number, b: string) => `color-mix(in srgb, ${a} ${pct}%, ${b})`;
+// --- Colour maths, on #rrggbb (as `color-mix(in srgb, …)` would mix them).
 
-/** Relative brightness of a #rrggbb colour, 0 (black) to 1 (white). */
-function luma(hex: string): number {
+type Rgb = [number, number, number];
+const rgb = (hex: string): Rgb => {
   const n = parseInt(hex.slice(1), 16);
-  return (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+const hex = ([r, g, b]: Rgb): string => `#${[r, g, b].map((v) => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, '0')).join('')}`;
+/** `pct`% of `a`, the rest `b`. */
+export const mix = (a: string, pct: number, b: string): string => {
+  const [x, y] = [rgb(a), rgb(b)];
+  return hex(x.map((v, i) => (v * pct + y[i] * (100 - pct)) / 100) as Rgb);
+};
+/** WCAG relative luminance, 0 (black) to 1 (white). */
+export function luminance(c: string): number {
+  const [r, g, b] = rgb(c).map((v) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
+/** WCAG contrast ratio, 1 to 21. */
+export function contrast(a: string, b: string): number {
+  const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+}
+/** `fg`, moved towards `to` just as far as it takes to read at `min` on every one of `bgs`. */
+function readable(fg: string, bgs: string[], min: number, to: string): string {
+  for (let p = 100; p >= 0; p -= 4) {
+    const c = mix(fg, p, to);
+    if (bgs.every((bg) => contrast(c, bg) >= min)) return c;
+  }
+  return to;
+}
+/** Black or white, whichever reads better on all of `bgs`. */
+const blackOrWhite = (bgs: string[]) => (Math.min(...bgs.map((b) => contrast('#000000', b))) >= Math.min(...bgs.map((b) => contrast('#ffffff', b))) ? '#000000' : '#ffffff');
+
+const BLACK = '#000000';
+const WHITE = '#ffffff';
 
 /** The value of every token for a theme; empty for the classic look (the stylesheet's own). */
 export function themeTokens(th: Theme): Partial<Record<ThemeToken, string>> {
   if (th.kind === 'classic') return {};
-  if (th.kind === 'full') return { ...withDerived({ 'on-accent': '#ffffff', hi: '#ffffff', shade: '#000000', ...th.tokens }, false), ...th.extra };
-  return withDerived(fewColours(th), true);
+  if (th.kind === 'full') {
+    const base = { ...th.tokens } as Record<BaseToken, string>;
+    const accents = ACCENTS.map((k) => base[k]);
+    base['on-accent'] ??= blackOrWhite(accents);
+    base.hi ??= base.text;
+    base.shade ??= BLACK;
+    return readableTokens({ ...withDerived(base, false), ...th.extra });
+  }
+  return readableTokens(withDerived(fewColours(th), true));
+}
+
+/** The coloured backgrounds with text (`--on-accent`) on them. */
+const ACCENTS = ['red', 'blue', 'orange', 'green', 'grey', 'purple', 'gold', 'funny', 'epic', 'yellow'] as const;
+/** Colours that are text on the panels (rule names, rarities, values, highlights). */
+const ON_PANEL = ['gold', 'red-l', 'green-l', 'blue-l', 'blue-n', 'orange-l', 'funny-l', 'epic-l', 'epic-n', 'yellow-l', 'hi'] as const;
+
+/** Every theme stays readable: each text colour is nudged (towards the text's own extreme)
+ *  until it meets WCAG AA on the backgrounds it sits on. */
+function readableTokens(t: Partial<Record<ThemeToken, string>>): Partial<Record<ThemeToken, string>> {
+  const o = { ...t } as Record<ThemeToken, string>;
+  const panels = [o.panel, o['panel-in'], o['panel-d'], o['panel-top'], o['panel-bot']];
+  const far = (c: string) => (luminance(c) > luminance(o.panel) ? WHITE : BLACK);
+  o.text = readable(o.text, panels, 7, far(o.text));
+  o.muted = readable(o.muted, panels, 5, far(o.muted));
+  o['muted-d'] = readable(o['muted-d'], [o.panel, o['panel-in']], 3, far(o['muted-d']));
+  o.locked = readable(o.locked, [o.panel, o['panel-in']], 3, far(o.locked));
+  for (const k of ON_PANEL) o[k] = readable(o[k], panels, 4.5, far(o[k]));
+  // Text on the coloured buttons and tags: the accent moves away from the text on it.
+  const away = contrast(o['on-accent'], BLACK) > contrast(o['on-accent'], WHITE) ? BLACK : WHITE;
+  for (const k of ACCENTS) o[k] = readable(o[k], [o['on-accent']], 4.5, away);
+  o.leave = readable(o.leave, [o['on-accent']], 4.5, away);
+  o['on-yellow'] = readable(o['on-yellow'], [o.yellow, o['yellow-l']], 4.5, blackOrWhite([o.yellow]));
+  o['dis-text'] = readable(o['dis-text'], [o.dis], 3, far(o['dis-text']));
+  return o;
 }
 
 /** The rest of the tokens, from the base ones. `few`: a two- or three-colour theme, whose light
  *  shades stay its own colours (a lighter accent would be a new colour). */
-function withDerived(b: Record<BaseToken, string>, few: boolean): Partial<Record<ThemeToken, string>> {
-  const light = (k: 'red' | 'green' | 'blue' | 'orange' | 'funny' | 'epic' | 'yellow') => (few ? b[k] : mix(b[k], 62, '#ffffff'));
+function withDerived(b: Record<BaseToken, string>, few: boolean): Record<ThemeToken, string> {
+  const light = (k: 'red' | 'green' | 'blue' | 'orange' | 'funny' | 'epic' | 'yellow') => (few ? b[k] : mix(b[k], 62, WHITE));
   return {
     ...b,
     page: mix(b['panel-d'], 70, b.shade),
@@ -94,15 +158,15 @@ function withDerived(b: Record<BaseToken, string>, few: boolean): Partial<Record
     'red-l': light('red'),
     'green-l': light('green'),
     'blue-l': light('blue'),
-    'blue-n': few ? b.blue : mix(b.blue, 78, '#ffffff'),
+    'blue-n': few ? b.blue : mix(b.blue, 78, WHITE),
     'orange-l': light('orange'),
     'funny-l': light('funny'),
     'epic-l': light('epic'),
-    'epic-n': few ? b.epic : mix(b.epic, 50, '#ffffff'),
+    'epic-n': few ? b.epic : mix(b.epic, 50, WHITE),
     'purple-d': mix(b.purple, 62, b.shade),
     'yellow-l': light('yellow'),
     'yellow-d': mix(b.yellow, 60, b.shade),
-    'on-yellow': few ? b['on-accent'] : mix(b.yellow, 20, '#000000'),
+    'on-yellow': few ? b['on-accent'] : mix(b.yellow, 20, BLACK),
     'win-bg': mix(b.green, 24, b['panel-in']),
     'bust-bg': mix(b.red, 24, b['panel-in']),
     'lead-bg': mix(b.green, 18, b.panel),
@@ -117,7 +181,7 @@ function withDerived(b: Record<BaseToken, string>, few: boolean): Partial<Record
 function fewColours(th: Extract<Theme, { kind: 'two' | 'three' }>): Record<BaseToken, string> {
   const { paper, ink } = th;
   const accent = th.accent ?? ink;
-  const [dark, light] = luma(paper) < luma(ink) ? [paper, ink] : [ink, paper];
+  const [dark, light] = luminance(paper) < luminance(ink) ? [paper, ink] : [ink, paper];
   const edge = mix(accent, 60, dark === accent ? light : dark);
   const out = {
     panel: paper,
@@ -128,7 +192,7 @@ function fewColours(th: Extract<Theme, { kind: 'two' | 'three' }>): Record<BaseT
     text: ink,
     muted: mix(ink, 70, paper),
     'on-accent': paper,
-    hi: light,
+    hi: ink,
     shade: dark,
     locked: mix(ink, 45, paper),
     grey: th.accent ? mix(ink, 55, paper) : ink,
@@ -145,33 +209,34 @@ function fewColours(th: Extract<Theme, { kind: 'two' | 'three' }>): Record<BaseT
 export type UiStyle = 'classic' | 'brutal';
 export const UI_STYLES: UiStyle[] = ['classic', 'brutal'];
 
-const BLACK = '#000000';
 /** The neobrutalist look's own colours, used when no theme is picked: saturated flat colours on
- *  cream, black text, and pure black for every edge and shadow. */
+ *  a dark ink panel (no glare), black text on the colours, and pure black for every edge and shadow. */
 const BRUTAL: Theme = {
   id: 'brutal',
   kind: 'full',
   tokens: {
-    red: '#ff4f4f', 'red-d': BLACK, blue: '#3d7bff', 'blue-d': BLACK, orange: '#ff9a1f', 'orange-d': BLACK,
-    green: '#22e08e', 'green-d': BLACK, grey: '#cfcfcf', 'grey-d': BLACK, purple: '#a46bff', gold: '#ffd23f',
-    funny: '#ff5ccd', epic: '#a46bff', yellow: '#ffe14d', locked: '#8f8f8f',
-    panel: '#fff6df', 'panel-d': '#eadfbf', 'panel-in': '#ffffff', 'panel-hi': BLACK, outline: BLACK,
-    text: BLACK, muted: '#4a4a4a',
+    red: '#ff5a5a', 'red-d': BLACK, blue: '#4d8dff', 'blue-d': BLACK, orange: '#ff9f1c', 'orange-d': BLACK,
+    green: '#2ee59d', 'green-d': BLACK, grey: '#a8a3b8', 'grey-d': BLACK, purple: '#b07cff', gold: '#ffd23f',
+    funny: '#ff6ad5', epic: '#b07cff', yellow: '#ffe14d', locked: '#8a8599',
+    panel: '#25232f', 'panel-d': '#17161d', 'panel-in': '#302d3c', 'panel-hi': BLACK, outline: BLACK,
+    text: '#fff3dc', muted: '#c9c1da',
   },
   extra: {
-    'on-accent': BLACK, hi: '#ffffff', shade: BLACK, page: '#fff6df',
-    'panel-top': '#fff6df', 'panel-bot': '#fff6df', 'panel-edge': BLACK, line: BLACK, 'line-hi': BLACK,
-    'red-l': '#ff4f4f', 'green-l': '#13b86f', 'blue-l': '#3d7bff', 'blue-n': '#3d7bff', 'orange-l': '#ff9a1f',
-    'funny-l': '#ff5ccd', 'epic-l': '#8a4dff', 'epic-n': '#8a4dff', 'yellow-l': '#ffe14d', 'yellow-d': BLACK, 'on-yellow': BLACK,
-    'purple-d': BLACK, knob: BLACK, off: '#e6e0cf', 'off-knob': '#8f8f8f', dis: '#d9d3c2', 'dis-text': '#6a6a6a', 'muted-d': '#6a6a6a',
-    'win-bg': '#c9f7df', 'bust-bg': '#ffd2d2', 'lead-bg': '#c9f7df', 'gold-bg': '#fff0b8', leave: '#ff4f4f', 'leave-d': BLACK,
+    'on-accent': BLACK, hi: '#ffffff', shade: BLACK, page: '#17161d',
+    'panel-top': '#25232f', 'panel-bot': '#25232f', 'panel-edge': BLACK, line: BLACK, 'line-hi': BLACK,
+    'red-l': '#ff8a8a', 'green-l': '#5ff0b6', 'blue-l': '#86b2ff', 'blue-n': '#6fa2ff', 'orange-l': '#ffbb5c',
+    'funny-l': '#ff98e3', 'epic-l': '#caa6ff', 'epic-n': '#caa6ff', 'yellow-l': '#ffeb85', 'yellow-d': BLACK, 'on-yellow': BLACK,
+    'purple-d': BLACK, knob: '#fff3dc', off: '#3d3a4c', 'off-knob': '#9c97ad', dis: '#3d3a4c', 'dis-text': '#a29db3', 'muted-d': '#9c97ad',
+    'win-bg': '#1d4a37', 'bust-bg': '#52232a', 'lead-bg': '#1d4a37', 'gold-bg': '#4a3f18', leave: '#ff5a5a', 'leave-d': BLACK,
   },
 };
 
+/** A picked theme recolours either style; with none, the neobrutalist style brings its own colours. */
+export const themeFor = (id: string, style: UiStyle): Theme => (id === 'classic' && style === 'brutal' ? BRUTAL : themeById(id));
+
 export function applyTheme(id: string, style: UiStyle = 'classic', root: HTMLElement = document.documentElement): void {
   root.classList.toggle('ui-brutal', style === 'brutal');
-  // A picked theme recolours either style; with none, the neobrutalist style brings its own colours.
-  const th = id === 'classic' && style === 'brutal' ? BRUTAL : themeById(id);
+  const th = themeFor(id, style);
   const tokens = themeTokens(th);
   for (const k of THEME_TOKENS) {
     const v = tokens[k];
@@ -179,4 +244,5 @@ export function applyTheme(id: string, style: UiStyle = 'classic', root: HTMLEle
     else root.style.removeProperty(`--${k}`);
   }
   root.dataset.theme = th.id;
+  root.toggleAttribute('data-few', th.kind === 'two' || th.kind === 'three');
 }

@@ -5,6 +5,13 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.65.0 (2026-11-05)
+- 🐛 Made the UI more lookable-at by improving the contrasts and reducing the flashbanguiness of the themes and UI styles. The Neobrutalist style no longer flashbangs you: its own colours are now dark panels with saturated colours and pure black edges.
+- 🐛 Every theme now checks its own colours: text, faded text, rarity and rule colours and the text on buttons are nudged until they meet the WCAG contrast guidelines.
+- 🐛 Gold & Silver is now silver and gold on dark metal; Ink & Paper is a softer paper; Red & Blue reads better.
+- 🐛 Option pickers show their options as hollow squares, the picked one a square inside a square, in the text's own colours, so they show in every theme.
+- 🐛 Chip amounts, buy buttons, keys and tags read well in every theme.
+
 ## 0.64.0 (2026-11-05)
 - 🐛 Windows with tabs (Settings, Stats, the scoreboard) no longer scroll when the open tab fits: each tab scrolls on its own, only when it is too tall, and the tab bar stays put.
 - 🐛 In the Shop, the chips, tabs and legend stay put while the items scroll.

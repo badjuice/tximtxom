@@ -19,6 +19,17 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.65.0',
+    date: '2026-11-05',
+    items: [
+      f("Made the UI more lookable-at by improving the contrasts and reducing the flashbanguiness of the themes and UI styles. The Neobrutalist style no longer flashbangs you: its own colours are now dark panels with saturated colours and pure black edges.", "A interface ficou mais olhável: melhores contrastes e menos flashbanguice nos temas e estilos de interface. O estilo Neobrutalista já não lhe dá um flashbang: as suas cores são agora painéis escuros com cores saturadas e contornos pretos puros."),
+      f("Every theme now checks its own colours: text, faded text, rarity and rule colours and the text on buttons are nudged until they meet the WCAG contrast guidelines.", "Todos os temas verificam as suas próprias cores: o texto, o texto esbatido, as cores das raridades e das regras e o texto nos botões são ajustados até cumprirem as diretrizes de contraste WCAG."),
+      f("Gold & Silver is now silver and gold on dark metal; Ink & Paper is a softer paper; Red & Blue reads better.", "Ouro e Prata é agora prata e ouro sobre metal escuro; Tinta e Papel tem um papel mais suave; Vermelho e Azul lê-se melhor."),
+      f("Option pickers show their options as hollow squares, the picked one a square inside a square, in the text's own colours, so they show in every theme.", "Os seletores de opções mostram as opções como quadrados vazios, e a escolhida como um quadrado dentro de um quadrado, nas cores do texto, para se verem em todos os temas."),
+      f("Chip amounts, buy buttons, keys and tags read well in every theme.", "As quantias de fichas, os botões de compra, as teclas e as etiquetas leem-se bem em todos os temas."),
+    ],
+  },
+  {
     version: '0.64.0',
     date: '2026-11-05',
     items: [

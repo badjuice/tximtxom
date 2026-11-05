@@ -220,7 +220,7 @@ const SRC_COLORS: Record<ChipSource, string> = {
   gameWins: '#f7c948',
   achievements: '#ff7eb6',
   daily: '#5fd8d0',
-  firstWin: '#ff6b61',
+  firstWin: '#ff8f86',
 };
 const HOW = { emptied: PAY.emptied, survived: PAY.survived, round: PAY.roundWin, game: PAY.gameWin, per: PAY.perOpponent, daily: PAY.daily, firstWin: PAY.firstWin, low: ACH_PAY.common, high: ACH_PAY.unique };
 const HOW_AMOUNTS = Object.fromEntries(Object.entries(HOW).map(([k, n]) => [k, <ChipAmount n={n} sign />]));
