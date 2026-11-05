@@ -5,6 +5,12 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.61.0 (2026-11-05)
+- ✨ Rarities have shapes as well as colours: common a circle, uncommon a triangle, epic a square, legendary a rhombus, unique a star, secret a cross and locked a ring. They're in the legends and in front of achievement names, Shop item names and rarities named in text.
+- 🔧 The word Chips keeps its flowing colours but no longer waves.
+- 🐛 The spinning chip no longer disappears when it turns edge-on: its striped rim shows.
+- 🐛 A new achievement scrolled under a still mouse counts as seen and loses its New sign.
+
 ## 0.60.0 (2026-11-04)
 - ✨ New uncommon achievement, AK-47: hold an Ace, King, 4 and 7 side by side in your hand, in that order.
 - ✨ Settings, Style: the Joker sits next to the card back. Tap it to switch between the red and the black Joker.

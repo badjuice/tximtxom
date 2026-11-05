@@ -9,7 +9,7 @@ import { CARD_STYLES, type CardStyle, getSettings, updateSettings, useSettings }
 import { itemRarity, owns, packOf, randomOpen, SHOP, SHOP_RARITIES, type ShopItem, type ShopKind } from '../shop';
 import { RARITY_SHINE } from './Achievements';
 import { formatCount } from '../stats';
-import { ChipCount, ChipIcon, Modal, UiIcon } from './common';
+import { ChipCount, ChipIcon, Modal, RarityMark, UiIcon } from './common';
 import { ArtIcon, StyleBackIcon } from './sprites';
 
 const KINDS: ShopKind[] = ['back', 'table', 'avatar', 'frame'];
@@ -224,9 +224,12 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
           <Preview item={i} />
         </span>
         <span class="shop-name">
-          {/* Its rarity, as the colour of its name. */}
-          <span class={`rule-ref${itemRarity(i.id) === 'unique' ? ' rainbow-text' : ''}`} style={{ '--rc': RARITY_SHINE[itemRarity(i.id)] }}>
-            {itemName(i)}
+          {/* Its rarity, as the colour of its name and the shape in front. */}
+          <span>
+            <RarityMark rarity={itemRarity(i.id)} />
+            <span class={`rule-ref${itemRarity(i.id) === 'unique' ? ' rainbow-text' : ''}`} style={{ '--rc': RARITY_SHINE[itemRarity(i.id)] }}>
+              {itemName(i)}
+            </span>
           </span>
         </span>
         {!i.pack && packOf(i.id) && <span class="shop-from">{packLine(packOf(i.id)!)}</span>}

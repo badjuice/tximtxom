@@ -98,7 +98,7 @@ function ChipsPanel() {
             {formatCount(c.balance)} <ChipIcon size={28} />
           </span>
           <span class="stat-label">
-            <Rainbow text={t('chips.now')} />
+            <Rainbow text={t('chips.now')} still />
           </span>
         </div>
         <div class="stat-tile">

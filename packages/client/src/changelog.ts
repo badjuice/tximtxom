@@ -19,6 +19,16 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.61.0',
+    date: '2026-11-05',
+    items: [
+      n("Rarities have shapes as well as colours: common a circle, uncommon a triangle, epic a square, legendary a rhombus, unique a star, secret a cross and locked a ring. They're in the legends and in front of achievement names, Shop item names and rarities named in text.", "As raridades têm formas além das cores: comum um círculo, invulgar um triângulo, épica um quadrado, lendária um losango, única uma estrela, secreta uma cruz e bloqueada um anel. Aparecem nas legendas e antes dos nomes das conquistas, dos artigos da Loja e das raridades no texto."),
+      c("The word Chips keeps its flowing colours but no longer waves.", "A palavra Fichas mantém as cores a correr, mas já não ondula."),
+      f("The spinning chip no longer disappears when it turns edge-on: its striped rim shows.", "A ficha a girar já não desaparece quando fica de lado: vê-se a borda às riscas."),
+      f("A new achievement scrolled under a still mouse counts as seen and loses its New sign.", "Uma conquista nova que passa por baixo do rato parado ao deslizar conta como vista e perde o sinal de Nova."),
+    ],
+  },
+  {
     version: '0.60.0',
     date: '2026-11-04',
     items: [

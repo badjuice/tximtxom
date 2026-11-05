@@ -174,9 +174,18 @@ function rarityWords(): Map<string, Rarity> {
 }
 const SECRET_BEFORE = String.raw`secret(?= achievements?)`;
 
-/** A rarity's name in its colour, with a shine across it and a slow pulse (unique: the rainbow). */
-export const RarityName = ({ rarity, text }: { rarity: Rarity | 'locked'; text: string }) => (
-  <span class={`rarity-text rarity-${rarity}`}>{text}</span>
+/** A rarity's shape in its colour, so rarities differ by more than colour: common a circle,
+ *  uncommon a triangle, epic a square, legendary a rhombus, unique a star, secret a cross,
+ *  locked a ring. */
+export const RarityMark = ({ rarity }: { rarity: Rarity | 'locked' }) => <span class={`rarity-mark rarity-${rarity}`} aria-hidden="true" />;
+
+/** A rarity's name in its colour, with a shine across it and a slow pulse (unique: the rainbow).
+ *  `mark`: its shape in front. */
+export const RarityName = ({ rarity, text, mark }: { rarity: Rarity | 'locked'; text: string; mark?: boolean }) => (
+  <span class="nowrap">
+    {mark && <RarityMark rarity={rarity} />}
+    <span class={`rarity-text rarity-${rarity}`}>{text}</span>
+  </span>
 );
 
 /** An achievement's name with its rarity, for finding achievements named in text. */
@@ -189,9 +198,10 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 /** A rule's name in its tone's colour with a shine sweeping across, wherever rules are named. */
 export const RuleName = ({ name, tone }: { name: string; tone?: Tone | string }) => <span class={`rule-ref tone-${tone ?? 'neutral'}`}>{name}</span>;
 
-/** A word in TximTxom's glowing, waving rainbow: the currency's name. */
-export const Rainbow = ({ text }: { text: string }) => (
-  <span class="ttx">
+/** A word in TximTxom's glowing rainbow. `still`: the colours flow but the letters don't wave
+ *  (the currency's name). */
+export const Rainbow = ({ text, still }: { text: string; still?: boolean }) => (
+  <span class={still ? 'ttx ttx-still' : 'ttx'}>
     {/* Spaces stay plain text: a letter's box would swallow them. */}
     {[...text].map((ch, i) => (ch === ' ' ? ' ' : <TxLetter ch={ch} ti={i} />))}
   </span>
@@ -220,13 +230,13 @@ export function withHighlights(text: string, achs?: Map<string, AchName>): Compo
       m[1] ? (
         <ChipAmount n={m[1].replace(/\s\S+$/, '')} />
       ) : m[2] ? (
-        <Rainbow text={m[2]} />
+        <Rainbow text={m[2]} still />
       ) : achs?.has(m[0]) ? (
         <AchRef name={m[0]} a={achs.get(m[0])!} />
       ) : m[0] === 'TximTxom' ? (
         withTximTxom(m[0])
       ) : rarities.has(m[0]) || m[0] === 'secret' ? (
-        <RarityName rarity={rarities.get(m[0]) ?? 'secret'} text={m[0]} />
+        <RarityName rarity={rarities.get(m[0]) ?? 'secret'} text={m[0]} mark />
       ) : (
         <span class={`rule-ref tone-${tones.get(m[0])}`}>{m[0]}</span>
       ),
@@ -241,7 +251,7 @@ export function withHighlights(text: string, achs?: Map<string, AchName>): Compo
 /** An achievement named in text: "COMMON Curious", the rarity pulsing before the name. */
 const AchRef = ({ name, a }: { name: string; a: AchName }) => (
   <span>
-    <RarityName rarity={a.rarity} text={t(`ach.rarity.${a.rarity}`).toUpperCase()} />{' '}
+    <RarityName rarity={a.rarity} text={t(`ach.rarity.${a.rarity}`).toUpperCase()} mark />{' '}
     <span class={`rule-ref ach-name-ref rarity-${a.rarity}${a.rainbow ? ' rainbow-text' : ''}`}>{name}</span>
   </span>
 );
@@ -954,6 +964,8 @@ export const ChipIcon = ({ size }: { size?: number }) => {
         {CHIP_LAYERS.map((z) => (
           <i class={Math.abs(z) === 2 ? 'chip-face' : 'chip-edge'} style={{ '--z': z, ...(Math.abs(z) === 2 ? face : {}) }} />
         ))}
+        {/* The rim seen side on: the layers are flat, so edge-on they'd vanish without it. */}
+        <i class="chip-side" />
       </span>
     </span>
   );

@@ -5,7 +5,7 @@ import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, c
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
 import { formatCount, type MyStats, refreshInfected, refreshSpread, useStats } from '../stats';
-import { type AchName, ChipAmount, Cycler, Rainbow, RarityName, HintBalloon, Modal, UiIcon, type UiIconName, WaveText, withHighlights } from './common';
+import { type AchName, ChipAmount, Cycler, Rainbow, RarityMark, RarityName, HintBalloon, Modal, UiIcon, type UiIconName, WaveText, withHighlights } from './common';
 import { type AchSort, type AchView, updateSettings, useSettings } from '../settings';
 import { ArtIcon, CardBackIcon } from './sprites';
 import { SHOP } from '../shop';
@@ -214,7 +214,16 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
   const see = (id: AchievementId) => {
     if (!fresh.has(id) || gone.has(id)) return;
     markSeen(id);
-    setGone(new Set(gone).add(id));
+    setGone((g) => new Set(g).add(id));
+  };
+  // Scrolling a card under a still mouse fires no hover, so on scroll the card under the
+  // mouse counts as seen too.
+  const mouse = useRef<{ x: number; y: number } | null>(null);
+  const onScroll = () => {
+    atEnd();
+    const at = mouse.current;
+    const card = at && (document.elementFromPoint(at.x, at.y)?.closest('[data-ach]') as HTMLElement | null);
+    if (card) see(card.dataset.ach as AchievementId);
   };
   return (
     <Modal title={t('ach.title')} onClose={onClose} class="ach-modal">
@@ -275,7 +284,13 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </div>
-      <ul class="ach-list" ref={list} onScroll={atEnd}>
+      <ul
+        class="ach-list"
+        ref={list}
+        onScroll={onScroll}
+        onPointerMove={(e) => (mouse.current = e.pointerType === 'mouse' ? { x: e.clientX, y: e.clientY } : null)}
+        onPointerLeave={() => (mouse.current = null)}
+      >
         {!shown.length && <li class="ach-empty muted">{t(view === 'unlocked' ? 'ach.none.unlocked' : 'ach.none.locked')}</li>}
         {shown.map((a) => {
           const got = !!unlocked[a.id];
@@ -299,7 +314,11 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
               <AchievementIcon a={a} got={got} />
               {fresh.has(a.id) && <NewSign />}
               <span class="ach-text">
-                <span class="ach-name">{hidden ? t('ach.secret') : got ? <Name a={a} /> : text(a, 'name')}</span>
+                <span class="ach-name">
+                  {/* Its rarity's shape; until unlocked, the locked ring. */}
+                  <RarityMark rarity={got ? a.rarity : 'locked'} />
+                  {hidden ? t('ach.secret') : got ? <Name a={a} /> : text(a, 'name')}
+                </span>
                 <span class="ach-desc">{hidden ? t('ach.secretDesc') : withHighlights(text(a, 'desc'))}</span>
                 {!hidden && text(a, 'flavor') && <span class="ach-flavor">{withHighlights(text(a, 'flavor'))}</span>}
                 {/* In rainbow letters with a shine across them: this one gives you something. */}
