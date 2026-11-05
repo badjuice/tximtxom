@@ -5253,11 +5253,14 @@ input.rename {
 .reduced-motion .rarity-text {
   animation: none;
 }
-/* The legends' shapes pump in step with their words (not Locked, whose word stays still). */
-.ach-legend .lg[class*='rarity-']:not(.rarity-locked)::before {
+/* A shape next to its rarity's word pumps in step with it: in the legends (not Locked, whose
+   word stays still) and wherever text names a rarity. A shape before an achievement's name stays still. */
+.ach-legend .lg[class*='rarity-']:not(.rarity-locked)::before,
+.rarity-mark.pump {
   animation: rarity-pump 1.6s ease-in-out infinite;
 }
-.reduced-motion .ach-legend .lg::before {
+.reduced-motion .ach-legend .lg::before,
+.reduced-motion .rarity-mark.pump {
   animation: none;
 }
 /* A card in the Cards stats: the card, then how often. */

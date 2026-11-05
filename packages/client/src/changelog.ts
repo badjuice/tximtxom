@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.62.1',
+    date: '2026-11-05',
+    items: [
+      c("Wherever a rarity's shape sits next to its name (the changelog, achievement descriptions), the shape pumps along with the name. The shape before an achievement's or a Shop item's name stays still.", "Onde a forma de uma raridade está ao lado do seu nome (as Alterações, as descrições das conquistas), a forma pulsa com o nome. A forma antes do nome de uma conquista ou de um artigo da Loja fica parada."),
+    ],
+  },
+  {
     version: '0.62.0',
     date: '2026-11-05',
     items: [

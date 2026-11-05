@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.62.1 (2026-11-05)
+- 🔧 Wherever a rarity's shape sits next to its name (the changelog, achievement descriptions), the shape pumps along with the name. The shape before an achievement's or a Shop item's name stays still.
+
 ## 0.62.0 (2026-11-05)
 - ✨ Themes, a first test: Settings, Style, Theme recolours the menus, windows and buttons. Two colours: Ink and Paper, Night, Red and Blue, Gold and Silver, Terminal. Three colours: Handheld, Sunset, Arctic. A full palette: Pastel. Cards and the table keep their own colours for now; themes will come to the Shop later.
 

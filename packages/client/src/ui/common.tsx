@@ -177,13 +177,15 @@ const SECRET_BEFORE = String.raw`secret(?= achievements?)`;
 /** A rarity's shape in its colour, so rarities differ by more than colour: common a circle,
  *  uncommon a triangle, epic a square, legendary a rhombus, unique a star, secret a cross,
  *  locked a ring. */
-export const RarityMark = ({ rarity }: { rarity: Rarity | 'locked' }) => <span class={`rarity-mark rarity-${rarity}`} aria-hidden="true" />;
+export const RarityMark = ({ rarity, pump }: { rarity: Rarity | 'locked'; pump?: boolean }) => (
+  <span class={`rarity-mark rarity-${rarity}${pump ? ' pump' : ''}`} aria-hidden="true" />
+);
 
 /** A rarity's name in its colour, with a shine across it and a slow pulse (unique: the rainbow).
- *  `mark`: its shape in front. */
+ *  `mark`: its shape in front, pulsing with the name. */
 export const RarityName = ({ rarity, text, mark }: { rarity: Rarity | 'locked'; text: string; mark?: boolean }) => (
   <span class="nowrap">
-    {mark && <RarityMark rarity={rarity} />}
+    {mark && <RarityMark rarity={rarity} pump />}
     <span class={`rarity-text rarity-${rarity}`}>{text}</span>
   </span>
 );
