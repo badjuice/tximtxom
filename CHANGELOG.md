@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.61.1 (2026-11-05)
+- 🔧 The rarity shapes in the Achievements and Shop legends pump along with their names, and the Shop legend's names pump and shine like the Achievements'.
+
 ## 0.61.0 (2026-11-05)
 - ✨ Rarities have shapes as well as colours: common a circle, uncommon a triangle, epic a square, legendary a rhombus, unique a star, secret a cross and locked a ring. They're in the legends and in front of achievement names, Shop item names and rarities named in text.
 - 🔧 The word Chips keeps its flowing colours but no longer waves.

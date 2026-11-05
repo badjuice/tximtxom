@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.61.1',
+    date: '2026-11-05',
+    items: [
+      c("The rarity shapes in the Achievements and Shop legends pump along with their names, and the Shop legend's names pump and shine like the Achievements'.", "As formas das raridades nas legendas das Conquistas e da Loja pulsam com os seus nomes, e os nomes da legenda da Loja pulsam e brilham como os das Conquistas."),
+    ],
+  },
+  {
     version: '0.61.0',
     date: '2026-11-05',
     items: [

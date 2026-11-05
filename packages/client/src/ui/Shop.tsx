@@ -9,7 +9,7 @@ import { CARD_STYLES, type CardStyle, getSettings, updateSettings, useSettings }
 import { itemRarity, owns, packOf, randomOpen, SHOP, SHOP_RARITIES, type ShopItem, type ShopKind } from '../shop';
 import { RARITY_SHINE } from './Achievements';
 import { formatCount } from '../stats';
-import { ChipCount, ChipIcon, Modal, RarityMark, UiIcon } from './common';
+import { ChipCount, ChipIcon, Modal, RarityMark, RarityName, UiIcon } from './common';
 import { ArtIcon, StyleBackIcon } from './sprites';
 
 const KINDS: ShopKind[] = ['back', 'table', 'avatar', 'frame'];
@@ -284,7 +284,9 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
         {/* What the colours of the names mean. */}
         <p class="rules-legend ach-legend shop-legend">
           {SHOP_RARITIES.map((r) => (
-            <span class={`lg rarity-${r}`}>{t(`ach.rarity.${r}`)}</span>
+            <span class={`lg rarity-${r}`}>
+              <RarityName rarity={r} text={t(`ach.rarity.${r}`)} />
+            </span>
           ))}
         </p>
       </div>

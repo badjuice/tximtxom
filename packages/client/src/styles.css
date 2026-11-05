@@ -18,6 +18,15 @@
   --panel-in: #2b3c3f;
   --text: #ffffff;
   --muted: #b5c7c9;
+  /* Named so themes can recolour them. */
+  --outline: #1b2426;
+  --panel-hi: #4f6a70;
+  --epic: #a26bf2;
+  --yellow: #ffcf4a;
+  --locked: #6b7780;
+  /* Highlights and shadows (white and black in the default look). */
+  --hi: #ffffff;
+  --shade: #000000;
   --text-scale: 1;
   --ui-scale: 1;
   --crt: 0.5;
@@ -126,7 +135,7 @@ h2,
 h3 {
   margin: 0 0 0.4em;
   font-weight: normal;
-  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+  text-shadow: 0 3px 0 color-mix(in srgb, var(--shade) 45%, transparent);
 }
 h2 {
   font-size: 1.6em;
@@ -164,16 +173,16 @@ p {
 .panel {
   background: var(--panel);
   border-radius: 12px;
-  border: 3px solid #4f6a70;
+  border: 3px solid var(--panel-hi);
   box-shadow:
     0 6px 0 var(--panel-d),
-    0 10px 24px rgba(0, 0, 0, 0.45);
+    0 10px 24px color-mix(in srgb, var(--shade) 45%, transparent);
   padding: 16px;
 }
 
 .btn {
   font: inherit;
-  color: #fff;
+  color: var(--hi);
   border: none;
   border-radius: 10px;
   padding: 0.45em 0.9em;
@@ -182,7 +191,7 @@ p {
   font-size: 1.05em;
   cursor: pointer;
   position: relative;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  text-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 35%, transparent);
   box-shadow: 0 5px 0 var(--shadow);
   transform: translateY(0);
   transition:
@@ -256,12 +265,12 @@ input:focus-visible {
   padding: 0 0.35em;
   margin-left: 0.5em;
   vertical-align: middle;
-  color: #2b3c3f;
+  color: var(--panel-in);
   background: linear-gradient(#f4f6f1, #d9dfd8);
   border-radius: 5px;
   box-shadow:
     0 2px 0 #8d9a98,
-    0 3px 2px rgba(0, 0, 0, 0.3);
+    0 3px 2px color-mix(in srgb, var(--shade) 30%, transparent);
   text-shadow: none;
   translate: 0 -1px;
 }
@@ -306,9 +315,9 @@ input:not([type]),
 input[type='text'] {
   font: inherit;
   font-size: 1.2em;
-  color: #fff;
+  color: var(--hi);
   background: var(--panel-in);
-  border: 3px solid #4f6a70;
+  border: 3px solid var(--panel-hi);
   border-radius: 8px;
   padding: 0.35em 0.6em;
   width: 100%;
@@ -339,10 +348,10 @@ input[type='text'] {
   font-size: clamp(56px, min(13vw, 22vh), 220px);
   letter-spacing: 2px;
   margin: 0;
-  color: #fff;
+  color: var(--hi);
   text-shadow:
     0 6px 0 var(--red-d),
-    0 10px 0 rgba(0, 0, 0, 0.4);
+    0 10px 0 color-mix(in srgb, var(--shade) 40%, transparent);
 }
 /* A thin dark outline behind each letter keeps the title readable over any colour of the swirl. */
 .logo .wave .w > span {
@@ -356,7 +365,7 @@ input[type='text'] {
   color: var(--blue);
   text-shadow:
     0 6px 0 var(--blue-d),
-    0 10px 0 rgba(0, 0, 0, 0.4);
+    0 10px 0 color-mix(in srgb, var(--shade) 40%, transparent);
 }
 /* Balatro-style text: every letter wobbles gently on its own phase; the
    hops on top are driven from WaveText (they animate translate, this rotate). */
@@ -374,11 +383,11 @@ input[type='text'] {
   display: inline-block;
   color: #ff6b5e;
   text-shadow:
-    1px 0 0 #1b2426,
-    -1px 0 0 #1b2426,
-    0 1px 0 #1b2426,
-    0 -1px 0 #1b2426,
-    0 2px 0 rgba(0, 0, 0, 0.45);
+    1px 0 0 var(--outline),
+    -1px 0 0 var(--outline),
+    0 1px 0 var(--outline),
+    0 -1px 0 var(--outline),
+    0 2px 0 color-mix(in srgb, var(--shade) 45%, transparent);
   will-change: translate;
   /* Each letter runs the same cycles a little behind the one before it, so the
      colours travel left to right and the wave rolls along the word. */
@@ -496,7 +505,7 @@ input[type='text'] {
   color: var(--blue);
   text-shadow:
     0 6px 0 var(--blue-d),
-    0 10px 0 rgba(0, 0, 0, 0.4);
+    0 10px 0 color-mix(in srgb, var(--shade) 40%, transparent);
 }
 /* Balatro-style text: every letter wobbles gently on its own phase; the
    hops on top are driven from WaveText (they animate translate, this rotate). */
@@ -544,7 +553,7 @@ input[type='text'] {
   rotate: var(--a);
   translate: calc(var(--x) - 50%) var(--y);
   transform-origin: 50% 150%;
-  filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 6px 0 color-mix(in srgb, var(--shade) 35%, transparent));
   cursor: grab;
   touch-action: none;
   /* Let go: settle into the slot with a little overshoot. */
@@ -564,7 +573,7 @@ input[type='text'] {
 .logo-fan > span.held {
   cursor: grabbing;
   scale: 1.1;
-  filter: drop-shadow(0 14px 0 rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 14px 0 color-mix(in srgb, var(--shade) 30%, transparent));
   transform-origin: 50% 50%;
   transition:
     rotate 0.15s,
@@ -759,7 +768,7 @@ input[type='text'] {
   border-radius: 10px;
   cursor: pointer;
   padding: 4px 0 4px 12px;
-  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+  text-shadow: 0 4px 0 color-mix(in srgb, var(--shade) 40%, transparent);
 }
 .player-list {
   list-style: none;
@@ -809,7 +818,7 @@ input[type='text'] {
 .me-name {
   padding: 0 4px;
   border-radius: 4px;
-  background: rgba(234, 192, 88, 0.16);
+  background: color-mix(in srgb, var(--gold) 16%, transparent);
   box-shadow: inset 0 0 0 2px var(--gold);
 }
 .dot {
@@ -959,7 +968,7 @@ input[type='text'] {
 }
 .rules-pay-switch input:checked + .switch::after {
   left: 27px;
-  background: #fff;
+  background: var(--hi);
 }
 .rules-pay-switch input:focus-visible + .switch {
   outline: 3px solid var(--gold);
@@ -1048,7 +1057,7 @@ input[type='text'] {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.35) 0 8px, rgba(255, 255, 255, 0.04) 8px 16px);
+  background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--shade) 35%, transparent) 0 8px, color-mix(in srgb, var(--hi) 4%, transparent) 8px 16px);
   pointer-events: none;
 }
 /* Tapped while locked: it shakes, and the rule it needs flashes. */
@@ -1070,7 +1079,7 @@ input[type='text'] {
 }
 @keyframes beckon {
   to {
-    box-shadow: 0 0 0 3px var(--gold), 0 0 16px rgba(255, 207, 74, 0.9);
+    box-shadow: 0 0 0 3px var(--gold), 0 0 16px color-mix(in srgb, var(--yellow) 90%, transparent);
   }
 }
 .toggle.locked > :not(.lock-sign) {
@@ -1085,16 +1094,16 @@ input[type='text'] {
   place-items: center;
   padding: 0 12px;
   text-align: center;
-  color: #fff;
+  color: var(--hi);
   font-size: 1.05em;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+  text-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 60%, transparent);
   pointer-events: none;
 }
 .lock-sign > * {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.75);
+  background: color-mix(in srgb, var(--shade) 75%, transparent);
   border: 2px solid var(--gold);
   color: var(--gold);
   border-radius: 6px;
@@ -1111,7 +1120,7 @@ input[type='text'] {
 .toggle.disabled .switch,
 .toggle.disabled input:checked + .switch {
   background: #3a4a4e;
-  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 3px 0 color-mix(in srgb, var(--shade) 30%, transparent);
 }
 .toggle.disabled .switch::after,
 .toggle.disabled input:checked + .switch::after {
@@ -1124,7 +1133,7 @@ input[type='text'] {
   flex-direction: column;
   gap: 4px;
   padding: 4px;
-  border: 2px solid #4f6a70;
+  border: 2px solid var(--panel-hi);
   border-radius: 10px;
 }
 .setting-group > .bslider,
@@ -1138,7 +1147,7 @@ input[type='text'] {
   left: -12px;
   top: 50%;
   width: 8px;
-  border-top: 2px solid #4f6a70;
+  border-top: 2px solid var(--panel-hi);
 }
 /* Settings: a little denser, so every tab fits without scrolling. */
 .settings-modal .toggle {
@@ -1170,7 +1179,7 @@ input[type='text'] {
   border-radius: 14px;
   position: relative;
   flex: none;
-  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 3px 0 color-mix(in srgb, var(--shade) 30%, transparent);
 }
 .switch::after {
   content: '';
@@ -1182,14 +1191,14 @@ input[type='text'] {
   border-radius: 50%;
   background: #cfd8da;
   transition: left 0.12s;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
 .toggle input:checked + .switch {
   background: var(--red);
 }
 .toggle input:checked + .switch::after {
   left: 27px;
-  background: #fff;
+  background: var(--hi);
 }
 .toggle input:focus-visible + .switch {
   outline: 3px solid var(--gold);
@@ -1241,10 +1250,10 @@ input[type='text'] {
   border-block: 6px solid transparent;
 }
 .cyc-tri.left {
-  border-right: 8px solid #fff;
+  border-right: 8px solid var(--hi);
 }
 .cyc-tri.right {
-  border-left: 8px solid #fff;
+  border-left: 8px solid var(--hi);
 }
 .cyc-mid {
   display: flex;
@@ -1256,7 +1265,7 @@ input[type='text'] {
   padding: 3px 10px 4px;
   background: var(--panel-d);
   border-radius: 8px;
-  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 3px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
 /* Every option in one grid cell: only the current one shows. */
 .cyc-val {
@@ -1285,7 +1294,7 @@ input[type='text'] {
   cursor: pointer;
 }
 .cyc-dot.on {
-  background: #fff;
+  background: var(--hi);
 }
 /* Read-only (or locked): the value and dots stay, the arrows go grey. */
 .cyc-arrow:disabled {
@@ -1435,8 +1444,8 @@ input[type='text'] {
   display: grid;
   place-items: center;
   font-size: 1.6em;
-  color: #fff;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+  color: var(--hi);
+  text-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 60%, transparent);
   pointer-events: none;
 }
 
@@ -1586,7 +1595,7 @@ input[type='text'] {
 .round-chip {
   white-space: nowrap;
   flex: none;
-  background: rgba(30, 43, 45, 0.85);
+  background: color-mix(in srgb, var(--panel-d) 85%, transparent);
   border-radius: 8px;
   padding: 4px 10px;
   display: flex;
@@ -1597,13 +1606,13 @@ input[type='text'] {
 .plate {
   position: absolute;
   transform: translate(-50%, -50%);
-  background: rgba(30, 43, 45, 0.88);
-  border: 4px solid #4f6a70;
+  background: color-mix(in srgb, var(--panel-d) 88%, transparent);
+  border: 4px solid var(--panel-hi);
   border-radius: 10px;
   padding: 3px 10px;
   text-align: center;
   min-width: 110px;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--shade) 35%, transparent);
   transition:
     border-color 0.2s,
     transform 0.2s;
@@ -1614,9 +1623,9 @@ input[type='text'] {
   transform: translate(-50%, -50%) scale(1.06);
   /* Gold outside, the player's colour still showing as a ring inside. */
   box-shadow:
-    inset 0 0 0 3px var(--seat, #4f6a70),
-    0 0 0 3px rgba(234, 192, 88, 0.3),
-    0 4px 0 rgba(0, 0, 0, 0.35);
+    inset 0 0 0 3px var(--seat, var(--panel-hi)),
+    0 0 0 3px color-mix(in srgb, var(--gold) 30%, transparent),
+    0 4px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
 .plate.offline {
   opacity: 0.7;
@@ -1669,8 +1678,8 @@ input[type='text'] {
 .plate.john:not(.active) {
   border-color: transparent;
   background:
-    linear-gradient(rgba(30, 43, 45, 0.95), rgba(30, 43, 45, 0.95)) padding-box,
-    linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #a26bf2, #fe5f55) 0 0 / 200% 100% border-box;
+    linear-gradient(color-mix(in srgb, var(--panel-d) 95%, transparent), color-mix(in srgb, var(--panel-d) 95%, transparent)) padding-box,
+    linear-gradient(90deg, var(--red), var(--orange), var(--gold), var(--green), var(--blue), var(--epic), var(--red)) 0 0 / 200% 100% border-box;
   animation: rainbow-slide 3s linear infinite;
 }
 .reduced-motion .plate.john {
@@ -1683,10 +1692,10 @@ input[type='text'] {
 }
 @keyframes boss-pulse {
   from {
-    box-shadow: 0 0 0 0 rgba(200, 30, 40, 0), 0 4px 0 rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0 0 0 rgba(200, 30, 40, 0), 0 4px 0 color-mix(in srgb, var(--shade) 35%, transparent);
   }
   to {
-    box-shadow: 0 0 14px 3px rgba(200, 30, 40, 0.75), 0 4px 0 rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0 14px 3px rgba(200, 30, 40, 0.75), 0 4px 0 color-mix(in srgb, var(--shade) 35%, transparent);
   }
 }
 /* Simple frames: a ring in their colour round the plate, the seat's colour still inside. */
@@ -1699,7 +1708,7 @@ input[type='text'] {
 .plate.frame-amethyst:not(.active) {
   box-shadow:
     0 0 0 3px var(--ring),
-    0 4px 0 3px rgba(0, 0, 0, 0.35);
+    0 4px 0 3px color-mix(in srgb, var(--shade) 35%, transparent);
 }
 .plate.frame-bronze:not(.active) {
   --ring: #b0703a;
@@ -1708,7 +1717,7 @@ input[type='text'] {
   --ring: #c9d1d9;
 }
 .plate.frame-gold:not(.active) {
-  --ring: #eac058;
+  --ring: var(--gold);
 }
 .plate.frame-ruby:not(.active) {
   --ring: #e0314b;
@@ -1779,14 +1788,14 @@ input[type='text'] {
   right: -12px;
   top: -14px;
   animation: tag-in 0.45s cubic-bezier(0.2, 2, 0.4, 1), tag-bob 1.6s ease-in-out 0.45s infinite alternate;
-  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 3px 0 color-mix(in srgb, var(--shade) 35%, transparent));
   pointer-events: auto;
 }
 .host-tag {
   position: absolute;
   left: -10px;
   top: -12px;
-  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 3px 0 color-mix(in srgb, var(--shade) 35%, transparent));
   pointer-events: auto;
 }
 /* The dealer's D sits on the plate's corner, leaving the name its whole row. */
@@ -1794,7 +1803,7 @@ input[type='text'] {
   position: absolute;
   right: -6px;
   bottom: -6px;
-  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 2px 0 color-mix(in srgb, var(--shade) 35%, transparent));
 }
 /* Plates let clicks through to the table, but their little badges show hints on hover. */
 .plate .dealer-chip,
@@ -1851,13 +1860,13 @@ input[type='text'] {
   justify-content: center;
   font-size: 12px;
   line-height: 1;
-  color: #fff;
+  color: var(--hi);
   /* Readable over the green, the red and the empty part alike. */
   text-shadow:
-    1px 0 0 #000,
-    -1px 0 0 #000,
-    0 1px 0 #000,
-    0 -1px 0 #000;
+    1px 0 0 var(--shade),
+    -1px 0 0 var(--shade),
+    0 1px 0 var(--shade),
+    0 -1px 0 var(--shade);
 }
 .timer-fill {
   height: 100%;
@@ -1872,7 +1881,7 @@ input[type='text'] {
   position: absolute;
   transform: translate(-50%, -50%);
   font-size: 0.85em;
-  background: rgba(30, 43, 45, 0.8);
+  background: color-mix(in srgb, var(--panel-d) 80%, transparent);
   border-radius: 6px;
   padding: 1px 8px;
   white-space: nowrap;
@@ -1889,10 +1898,10 @@ input[type='text'] {
   position: absolute;
   transform: translate(-50%, -100%);
   font-size: 0.8em;
-  color: #fff;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-  background: var(--seat, rgba(30, 43, 45, 0.85));
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  color: var(--hi);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--shade) 50%, transparent);
+  background: var(--seat, color-mix(in srgb, var(--panel-d) 85%, transparent));
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 35%, transparent);
   border-radius: 6px;
   padding: 0 8px;
   white-space: nowrap;
@@ -1905,7 +1914,7 @@ input[type='text'] {
 }
 .fl-rides {
   margin-left: 5px;
-  color: #fff;
+  color: var(--hi);
 }
 .formation-label.end {
   background: var(--red);
@@ -1926,7 +1935,7 @@ input[type='text'] {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(110deg, transparent 38%, rgba(255, 255, 255, 0.9) 50%, transparent 62%) 100% 0 / 300% 100% no-repeat;
+  background: linear-gradient(110deg, transparent 38%, color-mix(in srgb, var(--hi) 90%, transparent) 50%, transparent 62%) 100% 0 / 300% 100% no-repeat;
   opacity: 0;
   animation: fl-shine 0.5s ease-in-out both;
 }
@@ -1968,7 +1977,7 @@ input[type='text'] {
   padding: 2px 10px 2px 4px;
   background: var(--red);
   border-radius: 8px;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--shade) 40%, transparent);
   white-space: nowrap;
   pointer-events: none;
   animation: hint-in 0.14s cubic-bezier(0.2, 1.6, 0.4, 1);
@@ -1999,7 +2008,7 @@ input[type='text'] {
   pointer-events: none;
 }
 .bar-status {
-  background: rgba(30, 43, 45, 0.9);
+  background: color-mix(in srgb, var(--panel-d) 90%, transparent);
   border-radius: 8px;
   padding: 3px 12px;
   text-align: center;
@@ -2039,7 +2048,7 @@ input[type='text'] {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  background: rgba(30, 43, 45, 0.85);
+  background: color-mix(in srgb, var(--panel-d) 85%, transparent);
   border-radius: 8px;
   padding: 3px 6px;
   font-size: 0.8em;
@@ -2051,7 +2060,7 @@ input[type='text'] {
 }
 .mini {
   font: inherit;
-  color: #fff;
+  color: var(--hi);
   background: var(--orange);
   border: none;
   border-radius: 6px;
@@ -2141,7 +2150,7 @@ input[type='text'] {
   top: 0;
   background: var(--c);
   border-radius: 6px;
-  box-shadow: 0 6px 0 color-mix(in srgb, var(--c) 60%, #000);
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--c) 60%, var(--shade));
   animation:
     callout-square var(--life) cubic-bezier(0.2, 0.9, 0.3, 1) forwards,
     callout-fade 0.33s ease-in calc(var(--life) - 0.33s) forwards;
@@ -2158,7 +2167,7 @@ input[type='text'] {
   transform: translate(-50%, -50%);
   display: flex;
   font-size: 3em;
-  color: #fff;
+  color: var(--hi);
   white-space: nowrap;
   /* A solid dark outline, so the white letters read over card backs and bright paint. */
   text-shadow:
@@ -2170,7 +2179,7 @@ input[type='text'] {
     2px -2px 0 var(--panel-d),
     -2px 2px 0 var(--panel-d),
     2px 2px 0 var(--panel-d),
-    0 7px 0 rgba(0, 0, 0, 0.45);
+    0 7px 0 color-mix(in srgb, var(--shade) 45%, transparent);
 }
 .callout.small .callout-text {
   font-size: 2em;
@@ -2254,8 +2263,8 @@ input[type='text'] {
 .joining p {
   margin: 0;
   font-size: 28px;
-  color: #fff;
-  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+  color: var(--hi);
+  text-shadow: 0 3px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
 .reduced-motion .joining {
   animation: none;
@@ -2317,10 +2326,10 @@ input[type='text'] {
   padding: 10px 26px;
   border-radius: 12px;
   background: var(--panel);
-  border: 3px solid #fff;
+  border: 3px solid var(--hi);
   box-shadow:
     0 6px 0 var(--panel-d),
-    0 14px 40px rgba(0, 0, 0, 0.5);
+    0 14px 40px color-mix(in srgb, var(--shade) 50%, transparent);
   animation: banner-in 0.35s cubic-bezier(0.2, 1.8, 0.4, 1);
   pointer-events: none;
   /* Pinned at left: 50%, it would otherwise only grow to half the screen. */
@@ -2331,23 +2340,23 @@ input[type='text'] {
   background: var(--green);
   box-shadow:
     0 6px 0 var(--green-d),
-    0 14px 40px rgba(0, 0, 0, 0.5);
+    0 14px 40px color-mix(in srgb, var(--shade) 50%, transparent);
 }
 .banner.tone-bad {
   background: var(--red);
   box-shadow:
     0 6px 0 var(--red-d),
-    0 14px 40px rgba(0, 0, 0, 0.5);
+    0 14px 40px color-mix(in srgb, var(--shade) 50%, transparent);
 }
 .banner.tone-info {
   background: var(--blue);
   box-shadow:
     0 6px 0 var(--blue-d),
-    0 14px 40px rgba(0, 0, 0, 0.5);
+    0 14px 40px color-mix(in srgb, var(--shade) 50%, transparent);
 }
 .banner-text {
   font-size: 2em;
-  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+  text-shadow: 0 4px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
 .banner-sub {
   font-size: 0.95em;
@@ -2369,7 +2378,7 @@ input[type='text'] {
   background: var(--panel-d);
   border: 2px solid var(--gold);
   border-radius: 8px;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--shade) 40%, transparent);
   font-size: 0.8em;
   line-height: 1.25;
   text-align: center;
@@ -2413,7 +2422,7 @@ input[type='text'] {
   transform: translateX(-50%);
   z-index: 40;
   background: var(--panel);
-  border: 2px solid #4f6a70;
+  border: 2px solid var(--panel-hi);
   border-radius: 8px;
   padding: 6px 14px;
   animation: pop-in 0.2s;
@@ -2422,7 +2431,7 @@ input[type='text'] {
 }
 .toast.error {
   background: var(--red);
-  border-color: #fff;
+  border-color: var(--hi);
 }
 .reconnecting {
   position: fixed;
@@ -2476,7 +2485,7 @@ input[type='text'] {
   min-width: 36px;
   height: 32px;
   font-size: 0.8em;
-  color: #fff;
+  color: var(--hi);
   background: var(--blue);
   border: 0;
   border-radius: 6px;
@@ -2513,7 +2522,7 @@ input[type='text'] {
   padding: 2px 6px;
   line-height: 1.22;
   border-left: 3px solid transparent;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid color-mix(in srgb, var(--hi) 6%, transparent);
 }
 .hline.mine {
   border-left-color: var(--gold);
@@ -2599,7 +2608,7 @@ input[type='text'] {
 @media (max-width: 899px) {
   .history {
     width: min(86vw, 320px);
-    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+    box-shadow: -10px 0 40px color-mix(in srgb, var(--shade) 50%, transparent);
   }
 }
 
@@ -2692,7 +2701,7 @@ input[type='text'] {
 .tilt.tilting {
   --ts: 1.12;
   transition: transform 0.06s linear;
-  filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 6px 0 color-mix(in srgb, var(--shade) 30%, transparent));
   z-index: 2;
 }
 .tilt.tilting::after {
@@ -2700,7 +2709,7 @@ input[type='text'] {
   position: absolute;
   inset: 0;
   border-radius: 4px;
-  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.35), transparent 55%);
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--hi) 35%, transparent), transparent 55%);
   pointer-events: none;
   mix-blend-mode: screen;
 }
@@ -2753,13 +2762,13 @@ input[type='text'] {
   padding: 2px 12px;
   min-height: 28px;
   cursor: pointer;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
 .tab:hover:not(.on) {
   color: var(--text);
 }
 .tab.on {
-  color: #fff;
+  color: var(--hi);
   background: var(--red);
   box-shadow: 0 2px 0 var(--red-d);
 }
@@ -2828,7 +2837,7 @@ input[type='text'] {
   height: 30px;
   background: var(--panel-d);
   border-radius: 8px;
-  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 3px 0 color-mix(in srgb, var(--shade) 35%, transparent);
   position: relative;
   cursor: pointer;
   touch-action: none;
@@ -2847,7 +2856,7 @@ input[type='text'] {
   inset: 0;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--hi);
   white-space: nowrap;
   pointer-events: none;
   text-shadow:
@@ -2922,7 +2931,7 @@ input[type='text'] {
   height: 10px;
   border-radius: 50%;
   background: var(--seat, var(--green));
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--shade) 30%, transparent);
   flex: none;
 }
 .seat-dot.big {
@@ -2930,7 +2939,7 @@ input[type='text'] {
   height: 14px;
 }
 .plate {
-  border-color: color-mix(in srgb, var(--seat, #4f6a70) 85%, #2b3c3f);
+  border-color: color-mix(in srgb, var(--seat, var(--panel-hi)) 85%, var(--panel-in));
 }
 .plate.active {
   border-color: var(--gold);
@@ -2948,9 +2957,9 @@ input[type='text'] {
 }
 .peek-btn {
   font: inherit;
-  color: #fff;
-  background: rgba(30, 43, 45, 0.9);
-  border: 2px solid #8867a5;
+  color: var(--hi);
+  background: color-mix(in srgb, var(--panel-d) 90%, transparent);
+  border: 2px solid var(--purple);
   border-radius: 10px;
   padding: 4px 8px;
   display: flex;
@@ -2959,7 +2968,7 @@ input[type='text'] {
   gap: 2px;
   cursor: pointer;
   font-size: 0.8em;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
 .peek-panel {
   position: absolute;
@@ -3001,7 +3010,7 @@ input[type='text'] {
   flex-direction: column;
 }
 .peek-rank b {
-  color: #fff;
+  color: var(--hi);
   font-weight: normal;
 }
 /* Light suit colours for the dark Peek panel only; chips keep the card colours. */
@@ -3031,11 +3040,11 @@ input[type='text'] {
   flex-direction: row;
   align-items: center;
   gap: 6px;
-  background: rgba(30, 43, 45, 0.88);
+  background: color-mix(in srgb, var(--panel-d) 88%, transparent);
   border-radius: 10px;
   padding: 4px 8px;
   font-size: 0.82em;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--shade) 30%, transparent);
 }
 .hand-points b {
   color: var(--red);
@@ -3100,7 +3109,7 @@ input[type='text'] {
   width: 2px;
   align-self: stretch;
   margin: 2px 2px;
-  background: rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--hi) 18%, transparent);
   border-radius: 1px;
 }
 .auto-toggle {
@@ -3116,7 +3125,7 @@ input[type='text'] {
   cursor: pointer;
 }
 .auto-toggle.on {
-  color: #fff;
+  color: var(--hi);
 }
 .mini-switch {
   position: relative;
@@ -3124,7 +3133,7 @@ input[type='text'] {
   height: 16px;
   border-radius: 8px;
   background: var(--grey-d);
-  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 2px 0 color-mix(in srgb, var(--shade) 35%, transparent);
   transition: background 0.15s;
 }
 .mini-switch .knob {
@@ -3134,7 +3143,7 @@ input[type='text'] {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--hi);
   transition: transform 0.15s;
 }
 .auto-toggle.on .mini-switch {
@@ -3192,12 +3201,12 @@ input[type='text'] {
   from {
     box-shadow:
       0 4px 0 var(--shadow),
-      0 0 0 0 rgba(234, 192, 88, 0.6);
+      0 0 0 0 color-mix(in srgb, var(--gold) 60%, transparent);
   }
   to {
     box-shadow:
       0 4px 0 var(--shadow),
-      0 0 0 6px rgba(234, 192, 88, 0.6);
+      0 0 0 6px color-mix(in srgb, var(--gold) 60%, transparent);
   }
 }
 .hold.drop-over:disabled {
@@ -3207,7 +3216,7 @@ input[type='text'] {
   outline-offset: 2px;
   box-shadow:
     0 4px 0 var(--shadow),
-    0 0 18px 6px rgba(234, 192, 88, 0.7);
+    0 0 18px 6px color-mix(in srgb, var(--gold) 70%, transparent);
   transition: scale 0.12s;
 }
 .reduced-motion .hold.drop-ready:disabled {
@@ -3250,7 +3259,7 @@ input[type='text'] {
   top: 0;
   bottom: 0;
   width: calc(var(--hold, 0) * 100%);
-  background: rgba(255, 255, 255, 0.35);
+  background: color-mix(in srgb, var(--hi) 35%, transparent);
   pointer-events: none;
 }
 .hold .kbd {
@@ -3259,7 +3268,7 @@ input[type='text'] {
   top: 4px;
 }
 .bar-status {
-  border: 1px solid #4f6a70;
+  border: 1px solid var(--panel-hi);
 }
 
 /* --- round summary / game over */
@@ -3355,7 +3364,7 @@ input[type='text'] {
 }
 .sb-total {
   font-size: 1.8em;
-  color: #fff;
+  color: var(--hi);
   text-align: right;
 }
 .sb-meter {
@@ -3437,7 +3446,7 @@ input[type='text'] {
   box-shadow: inset 0 -2px 0 var(--gold);
 }
 .sb-grid td.total {
-  color: #fff;
+  color: var(--hi);
 }
 
 /* --- formations */
@@ -3550,8 +3559,8 @@ input[type='text'] {
   padding: 8px 12px;
   border-radius: 10px;
   background: var(--panel-d);
-  border: 2px solid #fff;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+  border: 2px solid var(--hi);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--shade) 35%, transparent);
   font-size: 0.85em;
   line-height: 1.2;
   pointer-events: none;
@@ -3567,7 +3576,7 @@ input[type='text'] {
   height: 10px;
   margin-left: -6px;
   background: var(--panel-d);
-  border: 2px solid #fff;
+  border: 2px solid var(--hi);
   border-top: 0;
   border-left: 0;
   transform: rotate(45deg);
@@ -3613,7 +3622,7 @@ input[type='text'] {
 /* --- history */
 .hname {
   font-weight: normal;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--shade) 50%, transparent);
 }
 .hscore-title {
   margin-bottom: 2px;
@@ -3673,7 +3682,7 @@ input[type='text'] {
   cursor: pointer;
 }
 .lang-switch button.on {
-  color: #fff;
+  color: var(--hi);
   background: var(--red);
 }
 .player-list li {
@@ -3692,7 +3701,7 @@ input[type='text'] {
   font-size: 1.1em;
 }
 .icon-btn:hover {
-  color: #fff;
+  color: var(--hi);
 }
 /* Lobby rows: Rename and Remove are raised tiles, so they read as buttons. */
 .player-list .icon-btn,
@@ -3700,7 +3709,7 @@ input[type='text'] {
   min-width: 34px;
   min-height: 34px;
   border-radius: 8px;
-  color: #fff;
+  color: var(--hi);
   box-shadow: 0 3px 0 var(--shadow);
   transition:
     translate 0.08s,
@@ -3717,7 +3726,7 @@ input[type='text'] {
 }
 .player-list .icon-btn:hover,
 .player-list .x:hover {
-  color: #fff;
+  color: var(--hi);
   filter: brightness(1.12);
 }
 .player-list .icon-btn:active,
@@ -3799,7 +3808,7 @@ input.rename {
     box-shadow: 0 0 0 2px var(--seat), 0 0 6px 1px color-mix(in srgb, var(--seat) 60%, transparent);
   }
   to {
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--seat) 70%, #fff), 0 0 14px 4px color-mix(in srgb, var(--seat) 95%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--seat) 70%, var(--hi)), 0 0 14px 4px color-mix(in srgb, var(--seat) 95%, transparent);
   }
 }
 .reduced-motion .plate.active .plate-art > * {
@@ -3999,7 +4008,7 @@ input.rename {
 .rules-btn {
   font: inherit;
   font-size: 0.85em;
-  color: #fff;
+  color: var(--hi);
   background: var(--green);
   box-shadow: 0 2px 0 var(--green-d);
   border: none;
@@ -4023,7 +4032,7 @@ input.rename {
 .mini-btn {
   font: inherit;
   font-size: 0.85em;
-  color: #fff;
+  color: var(--hi);
   background: var(--grey);
   box-shadow: 0 2px 0 var(--grey-d);
   border: none;
@@ -4177,10 +4186,10 @@ input.rename {
 }
 .rules-view .toggle.disabled .switch::after {
   background: #cfd8da;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
 .rules-view .toggle.disabled input:checked + .switch::after {
-  background: #fff;
+  background: var(--hi);
 }
 .rules-view .toggle input,
 .rules-view .cyc-dot {
@@ -4330,7 +4339,7 @@ input.rename {
   margin-right: 7px;
   border-radius: 50%;
   background: var(--c);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--shade) 40%, transparent);
 }
 .chips-how {
   line-height: 1.5;
@@ -4409,7 +4418,7 @@ input.rename {
   justify-content: center;
   font-size: 0.36em;
   letter-spacing: 0;
-  color: #fff;
+  color: var(--hi);
   background: var(--green);
   animation: callout-fade 0.25s ease-in 1.35s forwards;
 }
@@ -4551,7 +4560,7 @@ input.rename {
   background: var(--panel-d);
   border: 2px solid var(--red);
   border-radius: 8px;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--shade) 40%, transparent);
   white-space: nowrap;
   animation: hint-in 0.14s cubic-bezier(0.2, 1.6, 0.4, 1);
 }
@@ -4624,7 +4633,7 @@ input.rename {
   overflow: hidden;
   background: var(--gold);
   border-radius: 8px;
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--shade) 20%, transparent);
   transition: width 0.6s cubic-bezier(0.2, 1.2, 0.4, 1);
 }
 .ach-progress-text {
@@ -4633,12 +4642,12 @@ input.rename {
   font-size: 1.05em;
   line-height: 24px;
   text-align: center;
-  color: #fff;
+  color: var(--hi);
   text-shadow:
-    1px 0 0 #1b2426,
-    -1px 0 0 #1b2426,
-    0 1px 0 #1b2426,
-    0 -1px 0 #1b2426;
+    1px 0 0 var(--outline),
+    -1px 0 0 var(--outline),
+    0 1px 0 var(--outline),
+    0 -1px 0 var(--outline);
 }
 .ach-list {
   list-style: none;
@@ -4651,7 +4660,7 @@ input.rename {
 }
 .ach-list li {
   /* Rarity down the left side; grey until unlocked. */
-  --rarity: #6b7780;
+  --rarity: var(--locked);
   display: flex;
   gap: 10px;
   align-items: center;
@@ -4664,13 +4673,13 @@ input.rename {
     inset 0 -6px 0 var(--panel-d);
 }
 .ach-list li.got.rarity-common {
-  --rarity: #009dff;
+  --rarity: var(--blue);
 }
 .ach-list li.got.rarity-uncommon {
-  --rarity: #4bc292;
+  --rarity: var(--green);
 }
 .ach-list li.got.rarity-epic {
-  --rarity: #a26bf2;
+  --rarity: var(--epic);
 }
 .ach-list li.got.rarity-legendary {
   --rarity: var(--gold);
@@ -4685,12 +4694,12 @@ input.rename {
   padding: 3px 7px;
   background:
     linear-gradient(var(--panel-in), var(--panel-in)) padding-box,
-    linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #a26bf2, #fe5f55) 0 0 / 200% 100% border-box;
+    linear-gradient(90deg, var(--red), var(--orange), var(--gold), var(--green), var(--blue), var(--epic), var(--red)) 0 0 / 200% 100% border-box;
   box-shadow: inset 0 -3px 0 var(--panel-d);
   animation: rainbow-slide 3s linear infinite;
 }
 .rule-ref.rainbow-text {
-  background: linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #a26bf2, #fe5f55) 0 0 / 200% 100%;
+  background: linear-gradient(90deg, var(--red), var(--orange), var(--gold), var(--green), var(--blue), var(--epic), var(--red)) 0 0 / 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   animation: rainbow-slide 3s linear infinite;
@@ -4750,13 +4759,13 @@ input.rename {
   margin: 0 0 8px;
 }
 :is(.lg, .rarity-mark).rarity-common {
-  --tone: #009dff;
+  --tone: var(--blue);
 }
 :is(.lg, .rarity-mark).rarity-uncommon {
-  --tone: #4bc292;
+  --tone: var(--green);
 }
 :is(.lg, .rarity-mark).rarity-epic {
-  --tone: #a26bf2;
+  --tone: var(--epic);
 }
 :is(.lg, .rarity-mark).rarity-legendary {
   --tone: var(--gold);
@@ -4765,14 +4774,14 @@ input.rename {
   --tone: var(--red);
 }
 :is(.lg, .rarity-mark).rarity-unique {
-  --tone: #fff;
+  --tone: var(--hi);
 }
 .lg.rarity-unique::before,
 .rarity-mark.rarity-unique {
-  background: linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #a26bf2);
+  background: linear-gradient(90deg, var(--red), var(--orange), var(--gold), var(--green), var(--blue), var(--epic));
 }
 :is(.lg, .rarity-mark).rarity-locked {
-  --tone: #6b7780;
+  --tone: var(--locked);
 }
 /* What it gives: gold, under the flavour line. */
 .ach-reward {
@@ -4792,7 +4801,7 @@ input.rename {
   color: transparent;
   -webkit-text-fill-color: transparent;
   text-shadow: none;
-  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.85) 50%, transparent 65%) 100% 0 / 300% 100% no-repeat;
+  background: linear-gradient(110deg, transparent 35%, color-mix(in srgb, var(--hi) 85%, transparent) 50%, transparent 65%) 100% 0 / 300% 100% no-repeat;
   -webkit-background-clip: text;
   background-clip: text;
   animation: ach-reward-sheen 2.2s linear calc(var(--ti) * 0.035s) infinite;
@@ -4854,7 +4863,7 @@ input.rename {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(100deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%) 100% 0 / 300% 100% no-repeat;
+  background: linear-gradient(100deg, transparent 40%, color-mix(in srgb, var(--hi) 55%, transparent) 50%, transparent 60%) 100% 0 / 300% 100% no-repeat;
   animation: rule-shine 3.2s linear infinite;
 }
 .ach-progress-fill::after {
@@ -4901,7 +4910,7 @@ input.rename {
   font: inherit;
   min-height: 36px;
   padding: 0 10px;
-  color: #fff;
+  color: var(--hi);
   background: var(--blue);
   border: 0;
   border-radius: 6px;
@@ -4933,7 +4942,7 @@ input.rename {
   font: inherit;
   min-height: 36px;
   padding: 0 12px;
-  color: #fff;
+  color: var(--hi);
   background: var(--panel-in);
   border: 2px solid #4d6469;
   border-radius: 6px;
@@ -4943,7 +4952,7 @@ input.rename {
   border-color: var(--blue);
 }
 .locked .ach-track-fill {
-  background: #6b7780;
+  background: var(--locked);
 }
 .ach-track-text {
   position: absolute;
@@ -4953,12 +4962,12 @@ input.rename {
   justify-content: center;
   font-size: 11px;
   line-height: 1;
-  color: #fff;
+  color: var(--hi);
   text-shadow:
-    1px 0 0 #000,
-    -1px 0 0 #000,
-    0 1px 0 #000,
-    0 -1px 0 #000;
+    1px 0 0 var(--shade),
+    -1px 0 0 var(--shade),
+    0 1px 0 var(--shade),
+    0 -1px 0 var(--shade);
 }
 .ach-flavor {
   font-size: 0.78em;
@@ -5002,7 +5011,7 @@ input.rename {
   background: var(--panel-d);
   border: 2px solid var(--gold);
   border-radius: 10px;
-  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--shade) 40%, transparent);
   translate: -50% 0;
   animation: ach-toast 4.8s cubic-bezier(0.2, 1.4, 0.4, 1) both;
   pointer-events: none;
@@ -5054,7 +5063,7 @@ input.rename {
       115deg,
       transparent 40%,
       rgba(255, 220, 120, 0.18) 45%,
-      rgba(255, 255, 255, 0.5) 50%,
+      color-mix(in srgb, var(--hi) 50%, transparent) 50%,
       rgba(255, 220, 120, 0.18) 55%,
       transparent 60%
     )
@@ -5095,7 +5104,7 @@ input.rename {
   pointer-events: none;
   cursor: grabbing;
   scale: 1.12;
-  filter: drop-shadow(0 12px 0 rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 12px 0 color-mix(in srgb, var(--shade) 35%, transparent));
   transition: scale 0.15s;
 }
 .sprite.grabbed.settling {
@@ -5112,12 +5121,12 @@ input.rename {
 /* A rule named in prose: its card's tone colour with a white shine sweeping across now and then. */
 .rule-ref {
   --rc: var(--gold);
-  background: linear-gradient(100deg, var(--rc) 42%, #fff 50%, var(--rc) 58%) 100% 0 / 300% 100%;
+  background: linear-gradient(100deg, var(--rc) 42%, var(--hi) 50%, var(--rc) 58%) 100% 0 / 300% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(0 1px 0 color-mix(in srgb, var(--shade) 55%, transparent));
   animation: rule-shine 3.2s linear infinite;
 }
 .rule-ref.tone-support {
@@ -5134,15 +5143,15 @@ input.rename {
 }
 /* A rarity's name: its colour, a shine across it, and a slow pump. */
 .rarity-text {
-  --rc: #6b7780;
+  --rc: var(--locked);
   display: inline-block;
   font-weight: bold;
-  background: linear-gradient(100deg, var(--rc) 42%, #fff 50%, var(--rc) 58%) 100% 0 / 300% 100%;
+  background: linear-gradient(100deg, var(--rc) 42%, var(--hi) 50%, var(--rc) 58%) 100% 0 / 300% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(0 1px 0 color-mix(in srgb, var(--shade) 55%, transparent));
   animation:
     rule-shine 3.2s linear infinite,
     rarity-pump 1.6s ease-in-out infinite;
@@ -5151,7 +5160,7 @@ input.rename {
   --rc: #38b0ff;
 }
 .rarity-uncommon {
-  --rc: #4bc292;
+  --rc: var(--green);
 }
 .rarity-epic {
   --rc: #b385f7;
@@ -5164,7 +5173,7 @@ input.rename {
 }
 /* Unique: the rainbow slides through, no letter wave. */
 .rarity-text.rarity-unique {
-  background: linear-gradient(90deg, #fe5f55, #fda200, #eac058, #4bc292, #009dff, #a26bf2, #fe5f55) 0 0 / 200% 100%;
+  background: linear-gradient(90deg, var(--red), var(--orange), var(--gold), var(--green), var(--blue), var(--epic), var(--red)) 0 0 / 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   animation:
@@ -5181,6 +5190,13 @@ input.rename {
   }
 }
 .reduced-motion .rarity-text {
+  animation: none;
+}
+/* The legends' shapes pump in step with their words (not Locked, whose word stays still). */
+.ach-legend .lg[class*='rarity-']:not(.rarity-locked)::before {
+  animation: rarity-pump 1.6s ease-in-out infinite;
+}
+.reduced-motion .ach-legend .lg::before {
   animation: none;
 }
 /* A card in the Cards stats: the card, then how often. */
@@ -5237,7 +5253,7 @@ input.rename {
       135deg,
       transparent 44%,
       color-mix(in srgb, var(--rc) 60%, transparent) 47%,
-      color-mix(in srgb, var(--rc) 35%, #fff) 50%,
+      color-mix(in srgb, var(--rc) 35%, var(--hi)) 50%,
       color-mix(in srgb, var(--rc) 60%, transparent) 53%,
       transparent 56%
     )
@@ -5352,14 +5368,14 @@ input.rename {
   display: block;
 }
 .deck-card > .sprite {
-  box-shadow: -2px 0 3px rgba(0, 0, 0, 0.3);
+  box-shadow: -2px 0 3px color-mix(in srgb, var(--shade) 30%, transparent);
 }
 /* The back, apart from the rest past a thin line; a click turns the suit. */
 .deck-back {
   flex: none;
   padding: 0 0 0 16px;
   border: none;
-  border-left: 2px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid color-mix(in srgb, var(--hi) 12%, transparent);
   background: none;
   cursor: pointer;
   transition: translate 0.12s;
@@ -5425,7 +5441,7 @@ input.rename {
   --bc: #cfd8da;
 }
 .badge-glow-bust {
-  --bc: #fe5f55;
+  --bc: var(--red);
 }
 @keyframes badge-glow {
   50% {
@@ -5435,7 +5451,7 @@ input.rename {
 .badge-shine {
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 38%, rgba(255, 255, 255, 0.85) 50%, transparent 62%) 100% 0 / 300% 100% no-repeat;
+  background: linear-gradient(110deg, transparent 38%, color-mix(in srgb, var(--hi) 85%, transparent) 50%, transparent 62%) 100% 0 / 300% 100% no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
   animation: rule-shine 3.2s linear infinite;
@@ -5475,7 +5491,7 @@ input.rename {
   0%,
   100% {
     scale: 1;
-    color: #fff;
+    color: var(--hi);
   }
   50% {
     scale: 1.18;
@@ -5515,7 +5531,7 @@ input.rename {
   align-items: baseline;
   gap: 8px;
   padding: 2px 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid color-mix(in srgb, var(--hi) 6%, transparent);
 }
 .chat-list li > span {
   flex: 1;
@@ -5556,7 +5572,7 @@ input.rename {
   min-width: 0;
   font: inherit;
   font-size: 0.9em;
-  color: #fff;
+  color: var(--hi);
   background: var(--panel-in);
   border: 2px solid #4d6469;
   border-radius: 6px;
@@ -5570,7 +5586,7 @@ input.rename {
   width: 36px;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--hi);
   background: var(--blue);
   border: none;
   border-radius: 6px;
@@ -5581,7 +5597,7 @@ input.rename {
 .chat-send:disabled {
   background: #5b6f74;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.12),
+    inset 0 2px 0 color-mix(in srgb, var(--hi) 12%, transparent),
     0 3px 0 #253134;
   color: #b3c3c7;
   cursor: default;
@@ -5620,7 +5636,7 @@ input.rename {
   gap: 5px;
 }
 .side-tab.on {
-  color: #fff;
+  color: var(--hi);
   border-bottom-color: var(--blue);
 }
 .unread,
@@ -5630,7 +5646,7 @@ input.rename {
   padding: 0 4px;
   border-radius: 9px;
   background: var(--red);
-  color: #fff;
+  color: var(--hi);
   font-size: 0.75em;
   line-height: 18px;
   text-align: center;
@@ -5684,7 +5700,7 @@ input.rename {
   translate: -50% 0;
   z-index: 5;
   pointer-events: none;
-  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 3px 0 color-mix(in srgb, var(--shade) 35%, transparent));
   animation: emote-pop 2.6s ease-out forwards;
 }
 @keyframes emote-pop {
@@ -5730,7 +5746,7 @@ input.rename {
   background: var(--panel);
   border: 2px solid #4d6469;
   border-radius: 8px;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--shade) 40%, transparent);
   animation: hint-in 0.12s ease-out;
 }
 .emote-grid button {
@@ -5768,15 +5784,15 @@ input.rename {
   translate: -50% -50%;
   border-radius: 50%;
   pointer-events: none;
-  background: conic-gradient(var(--gold) calc(var(--cool, 1) * 360deg), rgba(0, 0, 0, 0.35) 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-  filter: drop-shadow(0 0 3px rgba(255, 207, 74, 0.7));
+  background: conic-gradient(var(--gold) calc(var(--cool, 1) * 360deg), color-mix(in srgb, var(--shade) 35%, transparent) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), var(--shade) calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), var(--shade) calc(100% - 3px));
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--yellow) 70%, transparent));
 }
 .emote-grid .emote-ring {
   width: 72px;
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), var(--shade) calc(100% - 6px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), var(--shade) calc(100% - 6px));
 }
 /* On your plate in a game: a small button at its right edge. */
 .emote-picker.on-plate {
@@ -5818,7 +5834,7 @@ input.rename {
   width: 30px;
   height: 30px;
   margin-left: 2px;
-  color: #fff;
+  color: var(--hi);
   font-size: 1.2em;
   line-height: 1;
   background: var(--red);
@@ -5826,7 +5842,7 @@ input.rename {
   box-shadow: 0 3px 0 var(--red-d, #b8403a);
 }
 .history-head .x:hover {
-  color: #fff;
+  color: var(--hi);
   filter: brightness(1.12);
 }
 .history-head .x:active {
@@ -5876,7 +5892,7 @@ td.num.pts {
 .btn .btn-drain {
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.28);
+  background: color-mix(in srgb, var(--hi) 28%, transparent);
   border-radius: inherit;
   pointer-events: none;
   transform-origin: left;
@@ -5917,7 +5933,7 @@ td.num.pts {
   list-style: none;
   margin: 0 0 4px;
   padding: 0 0 0 6px;
-  border-left: 2px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid color-mix(in srgb, var(--hi) 12%, transparent);
 }
 .hfold.past > details > summary {
   margin-top: 4px;
@@ -5938,7 +5954,7 @@ td.num.pts {
 }
 /* Seat colours can match the header's blue: names there go white. */
 .hline.round .hname {
-  color: #fff !important;
+  color: var(--hi) !important;
 }
 
 /* "New!" on an achievement you haven't seen yet, and on the Achievements button:
@@ -5955,10 +5971,10 @@ td.num.pts {
   text-shadow: none;
   white-space: nowrap;
   pointer-events: none;
-  background: linear-gradient(110deg, #ffcf4a 40%, #fff6c8 50%, #ffcf4a 60%) 100% 0 / 300% 100%;
+  background: linear-gradient(110deg, var(--yellow) 40%, #fff6c8 50%, var(--yellow) 60%) 100% 0 / 300% 100%;
   box-shadow:
     0 2px 0 #a8650a,
-    0 0 10px rgba(255, 207, 74, 0.8);
+    0 0 10px color-mix(in srgb, var(--yellow) 80%, transparent);
   rotate: 8deg;
   animation:
     new-pulse 0.9s ease-in-out infinite alternate,
@@ -5969,7 +5985,7 @@ td.num.pts {
     scale: 1.12;
     box-shadow:
       0 2px 0 #a8650a,
-      0 0 18px rgba(255, 207, 74, 1);
+      0 0 18px color-mix(in srgb, var(--yellow) 100%, transparent);
   }
 }
 @keyframes new-shine {
@@ -6007,7 +6023,7 @@ td.num.pts {
   box-shadow:
     inset 0 0 0 3px var(--rarity),
     inset 0 -6px 0 var(--panel-d),
-    0 10px 18px rgba(0, 0, 0, 0.45);
+    0 10px 18px color-mix(in srgb, var(--shade) 45%, transparent);
 }
 @media (hover: hover) {
   .ach-list > li:hover {
@@ -6017,7 +6033,7 @@ td.num.pts {
     box-shadow:
       inset 0 0 0 3px var(--rarity),
       inset 0 -6px 0 var(--panel-d),
-      0 10px 18px rgba(0, 0, 0, 0.45);
+      0 10px 18px color-mix(in srgb, var(--shade) 45%, transparent);
   }
 }
 /* New: a golden tint and glow, on the same beat as its New! sign. The rarity frame stays. */
@@ -6027,22 +6043,22 @@ td.num.pts {
   initial-value: transparent;
 }
 .ach-list > li.new:not(.seen) {
-  --tint: rgba(255, 207, 74, 0.1);
+  --tint: color-mix(in srgb, var(--yellow) 10%, transparent);
   box-shadow:
     inset 0 0 0 3px var(--rarity),
     inset 0 -6px 0 var(--panel-d),
-    0 0 0 2px #ffcf4a,
-    0 0 8px rgba(255, 207, 74, 0.5);
+    0 0 0 2px var(--yellow),
+    0 0 8px color-mix(in srgb, var(--yellow) 50%, transparent);
   animation: new-glow 0.9s ease-in-out infinite alternate;
 }
 @keyframes new-glow {
   to {
-    --tint: rgba(255, 207, 74, 0.24);
+    --tint: color-mix(in srgb, var(--yellow) 24%, transparent);
     box-shadow:
       inset 0 0 0 3px var(--rarity),
       inset 0 -6px 0 var(--panel-d),
       0 0 0 2px #ffe08a,
-      0 0 18px rgba(255, 207, 74, 1);
+      0 0 18px color-mix(in srgb, var(--yellow) 100%, transparent);
   }
 }
 /* Unlocked, and hovered or tapped: a wide shine crosses the whole card, over and over.
@@ -6056,9 +6072,9 @@ td.num.pts {
   background: linear-gradient(
       110deg,
       transparent 40%,
-      color-mix(in srgb, var(--rc, #fff) 22%, transparent) 46%,
-      color-mix(in srgb, var(--rc, #fff) 40%, rgba(255, 255, 255, 0.35)) 50%,
-      color-mix(in srgb, var(--rc, #fff) 22%, transparent) 54%,
+      color-mix(in srgb, var(--rc, var(--hi)) 22%, transparent) 46%,
+      color-mix(in srgb, var(--rc, var(--hi)) 40%, color-mix(in srgb, var(--hi) 35%, transparent)) 50%,
+      color-mix(in srgb, var(--rc, var(--hi)) 22%, transparent) 54%,
       transparent 60%
     )
     100% 0 / 300% 100% no-repeat;
@@ -6139,7 +6155,7 @@ td.num.pts {
 }
 /* Hover: lighter and full width; held: lighter still, ringed in gold. */
 ::-webkit-scrollbar-track:hover {
-  background: color-mix(in srgb, var(--panel-d) 85%, #fff);
+  background: color-mix(in srgb, var(--panel-d) 85%, var(--hi));
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #f3d27e;
@@ -6182,7 +6198,7 @@ td.num.pts {
   margin: -6px 0 0;
   padding: 6px 0 2px;
   background: #3e575c;
-  box-shadow: 0 6px 6px -4px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 6px 6px -4px color-mix(in srgb, var(--shade) 35%, transparent);
 }
 
 /* Credits: a section per kind of help, each name linked to its page. */
@@ -6229,13 +6245,13 @@ td.num.pts {
   flex: none;
   width: 28px;
   height: 38px;
-  color: #fff;
+  color: var(--hi);
   background: var(--red);
-  border: 2px solid #fff;
+  border: 2px solid var(--hi);
   border-radius: 4px;
   box-shadow:
     inset 0 0 0 2px var(--red-d, #b8403a),
-    0 2px 0 rgba(0, 0, 0, 0.4);
+    0 2px 0 color-mix(in srgb, var(--shade) 40%, transparent);
   rotate: -6deg;
 }
 .cr-card .ui-icon {
@@ -6270,17 +6286,17 @@ td.num.pts {
 }
 @keyframes ach-btn-glow {
   from {
-    box-shadow: 0 5px 0 var(--shadow), 0 0 0 2px #ffcf4a, 0 5px 0 2px #ffcf4a, 0 3px 6px rgba(255, 207, 74, 0.4);
+    box-shadow: 0 5px 0 var(--shadow), 0 0 0 2px var(--yellow), 0 5px 0 2px var(--yellow), 0 3px 6px color-mix(in srgb, var(--yellow) 40%, transparent);
     filter: brightness(1);
   }
   to {
-    box-shadow: 0 5px 0 var(--shadow), 0 0 0 3px #ffe08a, 0 5px 0 3px #ffe08a, 0 3px 20px rgba(255, 207, 74, 0.95);
+    box-shadow: 0 5px 0 var(--shadow), 0 0 0 3px #ffe08a, 0 5px 0 3px #ffe08a, 0 3px 20px color-mix(in srgb, var(--yellow) 95%, transparent);
     filter: brightness(1.15);
   }
 }
 .reduced-motion .menu-main.has-new:has(.new-sign) {
   animation: none;
-  box-shadow: 0 5px 0 var(--shadow), 0 0 0 2px #ffcf4a, 0 5px 0 2px #ffcf4a, 0 3px 10px rgba(255, 207, 74, 0.6);
+  box-shadow: 0 5px 0 var(--shadow), 0 0 0 2px var(--yellow), 0 5px 0 2px var(--yellow), 0 3px 10px color-mix(in srgb, var(--yellow) 60%, transparent);
 }
 
 /* ---------------------------------------------------------- chips */
@@ -6340,31 +6356,31 @@ td.num.pts {
 }
 @keyframes chip-glow {
   0% {
-    filter: hue-rotate(0deg) drop-shadow(0 0 1px rgba(234, 192, 88, 0.5)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+    filter: hue-rotate(0deg) drop-shadow(0 0 1px color-mix(in srgb, var(--gold) 50%, transparent)) drop-shadow(0 2px 0 color-mix(in srgb, var(--shade) 45%, transparent));
   }
   16.67% {
-    filter: hue-rotate(60deg) drop-shadow(0 0 5px rgba(234, 192, 88, 0.95)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+    filter: hue-rotate(60deg) drop-shadow(0 0 5px color-mix(in srgb, var(--gold) 95%, transparent)) drop-shadow(0 2px 0 color-mix(in srgb, var(--shade) 45%, transparent));
   }
   33.33% {
-    filter: hue-rotate(120deg) drop-shadow(0 0 1px rgba(234, 192, 88, 0.5)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+    filter: hue-rotate(120deg) drop-shadow(0 0 1px color-mix(in srgb, var(--gold) 50%, transparent)) drop-shadow(0 2px 0 color-mix(in srgb, var(--shade) 45%, transparent));
   }
   50% {
-    filter: hue-rotate(180deg) drop-shadow(0 0 5px rgba(234, 192, 88, 0.95)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+    filter: hue-rotate(180deg) drop-shadow(0 0 5px color-mix(in srgb, var(--gold) 95%, transparent)) drop-shadow(0 2px 0 color-mix(in srgb, var(--shade) 45%, transparent));
   }
   66.67% {
-    filter: hue-rotate(240deg) drop-shadow(0 0 1px rgba(234, 192, 88, 0.5)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+    filter: hue-rotate(240deg) drop-shadow(0 0 1px color-mix(in srgb, var(--gold) 50%, transparent)) drop-shadow(0 2px 0 color-mix(in srgb, var(--shade) 45%, transparent));
   }
   83.33% {
-    filter: hue-rotate(300deg) drop-shadow(0 0 5px rgba(234, 192, 88, 0.95)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+    filter: hue-rotate(300deg) drop-shadow(0 0 5px color-mix(in srgb, var(--gold) 95%, transparent)) drop-shadow(0 2px 0 color-mix(in srgb, var(--shade) 45%, transparent));
   }
   100% {
-    filter: hue-rotate(360deg) drop-shadow(0 0 1px rgba(234, 192, 88, 0.5)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+    filter: hue-rotate(360deg) drop-shadow(0 0 1px color-mix(in srgb, var(--gold) 50%, transparent)) drop-shadow(0 2px 0 color-mix(in srgb, var(--shade) 45%, transparent));
   }
 }
 .reduced-motion .chip-icon,
 .reduced-motion .chip-spin {
   animation: none;
-  filter: drop-shadow(0 0 3px rgba(234, 192, 88, 0.8)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--gold) 80%, transparent)) drop-shadow(0 2px 0 color-mix(in srgb, var(--shade) 45%, transparent));
 }
 /* An amount: the chip, then the number. */
 .chip-amt {
@@ -6407,8 +6423,8 @@ td.num.pts {
   color: var(--gold);
   font-size: 1.25em;
   text-shadow:
-    0 2px 0 rgba(0, 0, 0, 0.7),
-    0 0 8px rgba(0, 0, 0, 0.5);
+    0 2px 0 color-mix(in srgb, var(--shade) 70%, transparent),
+    0 0 8px color-mix(in srgb, var(--shade) 50%, transparent);
   pointer-events: none;
   animation: chip-pop 1.9s ease-out forwards;
 }
@@ -6420,7 +6436,7 @@ td.num.pts {
 /* What paid, over the amount. */
 .chip-pop-why {
   font-size: 0.7em;
-  color: #fff;
+  color: var(--hi);
 }
 @keyframes chip-pop {
   0% {
@@ -6572,8 +6588,8 @@ td.num.pts {
   width: 80px;
   height: 56px;
   border-radius: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+  border: 2px solid color-mix(in srgb, var(--hi) 85%, transparent);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 40%, transparent);
 }
 /* Random: a card-sized "?" (or table-sized, on the tables). */
 .shop-random {
@@ -6582,11 +6598,11 @@ td.num.pts {
   width: 42px;
   height: 59px;
   font-size: 1.8em;
-  color: #fff;
+  color: var(--hi);
   background: var(--grey);
-  border: 2px solid #fff;
+  border: 2px solid var(--hi);
   border-radius: 5px;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 40%, transparent);
 }
 .shop-table.shop-random {
   width: 80px;
@@ -6608,7 +6624,7 @@ td.num.pts {
   border-radius: 6px;
 }
 .shop-btn {
-  color: #fff;
+  color: var(--hi);
   border: 0;
   cursor: pointer;
 }
@@ -6618,11 +6634,11 @@ td.num.pts {
 }
 .shop-btn.buy {
   color: var(--gold);
-  background: #1b2426;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
+  background: var(--outline);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 50%, transparent);
 }
 .shop-btn.buy.asking {
-  color: #fff;
+  color: var(--hi);
   background: var(--green);
   box-shadow: 0 2px 0 var(--green-d);
 }
@@ -6670,10 +6686,10 @@ td.num.pts {
   background: none;
   box-shadow: none;
   font-size: 1.6em;
-  color: #fff;
+  color: var(--hi);
   text-shadow:
-    0 2px 0 rgba(0, 0, 0, 0.6),
-    0 0 6px rgba(0, 0, 0, 0.6);
+    0 2px 0 color-mix(in srgb, var(--shade) 60%, transparent),
+    0 0 6px color-mix(in srgb, var(--shade) 60%, transparent);
 }
 @keyframes shop-fade {
   from {
@@ -6718,7 +6734,7 @@ td.num.pts {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%) -100% 0 / 200% 100% no-repeat;
+  background: linear-gradient(115deg, transparent 35%, color-mix(in srgb, var(--hi) 45%, transparent) 50%, transparent 65%) -100% 0 / 200% 100% no-repeat;
   animation: shop-sheen 2.6s linear infinite;
 }
 @keyframes shop-sheen {
@@ -6777,7 +6793,7 @@ td.num.pts {
   padding: 0 2px;
   font-size: 9px;
   line-height: 1.2;
-  color: #fff;
+  color: var(--hi);
   background: var(--blue);
   border-radius: 3px;
 }
