@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.63.0',
+    date: '2026-11-05',
+    items: [
+      n("A second UI style, a first test: Settings, Style, UI style, Neobrutalist. Square corners, thick black outlines, hard black shadows and saturated colours on cream, with the pixel font and art kept. Pick a Theme too and its colours go on the neobrutalist shapes.", "Um segundo estilo de interface, um primeiro teste: Definições, Estilo, Estilo da interface, Neobrutalista. Cantos retos, contornos pretos grossos, sombras pretas duras e cores saturadas sobre creme, com a letra e a arte em píxeis. Escolha também um Tema e as suas cores vão para as formas neobrutalistas."),
+    ],
+  },
+  {
     version: '0.62.1',
     date: '2026-11-05',
     items: [

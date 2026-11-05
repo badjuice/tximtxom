@@ -7,7 +7,7 @@ import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE, setRules } from '../net';
 import { CARD_STYLES, cardBacks, currentBack, FONTS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { ownedOf, ownsRandom } from '../shop';
-import { THEMES, themeById } from '../themes';
+import { THEMES, themeById, UI_STYLES } from '../themes';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, HintBalloon, Modal, Seen, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
 import { SEAT_COLORS } from './Hud';
@@ -574,6 +574,13 @@ function StyleTab() {
         value={s.table === 'random' && randomTable ? 'random' : tables.includes(s.table) ? s.table : 'felt'}
         options={[...tables.map((id) => ({ value: id, label: t(`table.${id}` as Key) })), ...(randomTable ? [random] : [])]}
         onChange={(table) => updateSettings({ table })}
+      />
+      <Choice
+        label={t('set.uiStyle')}
+        desc={t(`set.uiStyle.${s.uiStyle}.desc` as Key)}
+        value={s.uiStyle}
+        options={UI_STYLES.map((v) => ({ value: v, label: t(`set.uiStyle.${v}` as Key) }))}
+        onChange={(uiStyle) => updateSettings({ uiStyle })}
       />
       <Choice
         label={t('set.theme')}

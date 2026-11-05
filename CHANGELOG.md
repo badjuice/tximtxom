@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.63.0 (2026-11-05)
+- ✨ A second UI style, a first test: Settings, Style, UI style, Neobrutalist. Square corners, thick black outlines, hard black shadows and saturated colours on cream, with the pixel font and art kept. Pick a Theme too and its colours go on the neobrutalist shapes.
+
 ## 0.62.1 (2026-11-05)
 - 🔧 Wherever a rarity's shape sits next to its name (the changelog, achievement descriptions), the shape pumps along with the name. The shape before an achievement's or a Shop item's name stays still.
 

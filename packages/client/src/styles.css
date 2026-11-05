@@ -6866,3 +6866,125 @@ td.num.pts {
   background: var(--blue);
   border-radius: 3px;
 }
+
+/* ---------------------------------------------------------------------------------------------
+   Neobrutalist UI style (Settings, Style, UI style): square corners, thick pure-black outlines,
+   hard black shadows offset down and right (no blur), flat text. The pixel font and pixel art
+   stay; outlines and offsets are whole pixels so everything keeps its crisp pixel edges.
+   Colours come from themes.ts (BRUTAL, or the picked theme). */
+.ui-brutal {
+  --bk: #000000;
+  --bw: 3px;
+  --boff: 4px;
+}
+/* Pointy: no rounded corners anywhere, except the round chip. */
+.ui-brutal *:not(.chip-spin > i),
+.ui-brutal *::before,
+.ui-brutal *::after {
+  border-radius: 0 !important;
+}
+.ui-brutal h1,
+.ui-brutal h2,
+.ui-brutal h3,
+.ui-brutal .btn {
+  text-shadow: none;
+}
+/* Panels and windows. */
+.ui-brutal .panel {
+  background: var(--panel);
+  border: var(--bw) solid var(--bk);
+  box-shadow: 8px 8px 0 var(--bk);
+}
+.ui-brutal .modal-head h2 {
+  border: var(--bw) solid var(--bk);
+  box-shadow: var(--boff) var(--boff) 0 var(--bk);
+}
+.ui-brutal .sticky-top {
+  background: var(--panel);
+  box-shadow: 0 2px 0 var(--bk);
+}
+/* Buttons: outlined, on a hard shadow; they rise on hover and press flat into it. */
+.ui-brutal .btn {
+  border: var(--bw) solid var(--bk);
+  box-shadow: var(--boff) var(--boff) 0 var(--bk);
+}
+.ui-brutal .btn:hover:not(:disabled) {
+  filter: none;
+  transform: translate(-1px, -1px);
+  box-shadow: calc(var(--boff) + 1px) calc(var(--boff) + 1px) 0 var(--bk);
+}
+.ui-brutal .btn:active:not(:disabled) {
+  transform: translate(var(--boff), var(--boff));
+  box-shadow: 0 0 0 var(--bk);
+}
+.ui-brutal .btn:focus-visible,
+.ui-brutal button:focus-visible,
+.ui-brutal input:focus-visible {
+  outline: var(--bw) dashed var(--bk);
+  outline-offset: 3px;
+}
+/* Small controls: tabs, pickers, switches, tags, keys. */
+.ui-brutal :is(.tab, .cyc-arrow, .cyc-mid, .mini, .mini-btn, .rules-btn, .tag-blue, .tag-red, .tag-orange, .tag-grey, .chip-count, .ach-view, .ach-dir, .shop-btn, .lang-switch button, .chat-send, .emote-btn, .history-head .x, .player-list .icon-btn, .player-list .x) {
+  border: 2px solid var(--bk);
+  box-shadow: 3px 3px 0 var(--bk);
+}
+.ui-brutal :is(.tab, .cyc-arrow, .mini, .mini-btn, .rules-btn, .ach-view, .ach-dir, .shop-btn, .chat-send):active:not(:disabled) {
+  translate: 3px 3px;
+  box-shadow: 0 0 0 var(--bk);
+}
+.ui-brutal .tab:not(.on) {
+  box-shadow: none;
+}
+.ui-brutal .switch {
+  border: 2px solid var(--bk);
+}
+/* Rows, tiles and cards in lists. */
+.ui-brutal :is(.toggle, .stat-tile, .shop-item, .rules-pay-row, .chat-form input, .room-code, .hint-balloon, .toast, .banner, .ach-toast, .confirm-pop) {
+  border: 2px solid var(--bk);
+  box-shadow: 3px 3px 0 var(--bk);
+}
+.ui-brutal .toggle[class*='tone-'] {
+  box-shadow:
+    inset 6px 0 0 var(--tone),
+    3px 3px 0 var(--bk);
+}
+.ui-brutal .ach-list li {
+  box-shadow:
+    inset 0 0 0 3px var(--rarity),
+    3px 3px 0 var(--bk);
+  outline: 2px solid var(--bk);
+}
+/* Coloured text on the cream panels gets a 1px pixel outline in black, as the TximTxom letters do. */
+.ui-brutal :is(h3, h4, .ach-count, .stat-value, .shop-state, .pile-label b, .hand-points b, .ach-toast-head) {
+  text-shadow:
+    1px 0 0 var(--bk),
+    -1px 0 0 var(--bk),
+    0 1px 0 var(--bk),
+    0 -1px 0 var(--bk);
+}
+.ui-brutal :is(.rarity-text, .rule-ref, .rainbow-text) {
+  text-shadow: none;
+  filter: drop-shadow(1px 0 0 var(--bk)) drop-shadow(-1px 0 0 var(--bk)) drop-shadow(0 1px 0 var(--bk)) drop-shadow(0 -1px 0 var(--bk));
+}
+/* The small Auto switch: a light track with a black knob, outlined. */
+.ui-brutal .mini-switch {
+  background: var(--off);
+  border: 2px solid var(--bk);
+  box-shadow: none;
+}
+.ui-brutal .mini-switch .knob {
+  top: 0;
+  left: 0;
+  background: var(--bk);
+}
+.ui-brutal .auto-toggle.on .mini-switch {
+  background: var(--green);
+}
+/* The labels on the table get the hard shadow too (not the plates: their frames are box-shadows). */
+.ui-brutal :is(.pile-label, .hand-points) {
+  box-shadow: 3px 3px 0 var(--bk);
+}
+/* Progress bars: an outlined track. */
+.ui-brutal :is(.ach-progress, .level, .sb-bar) {
+  border: 2px solid var(--bk);
+}

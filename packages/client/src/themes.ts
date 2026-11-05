@@ -27,7 +27,8 @@ export type Theme =
   /** `paper`: panels and what sits under text; `ink`: text, outlines and buttons; `accent` (three
    *  colours): the buttons and highlights instead of the ink. */
   | { id: string; kind: 'two' | 'three'; paper: string; ink: string; accent?: string }
-  | { id: string; kind: 'full'; tokens: Record<Exclude<BaseToken, 'on-accent' | 'hi' | 'shade'>, string> };
+  /** `extra`: tokens to set instead of working them out (text on buttons, flat panels…). */
+  | { id: string; kind: 'full'; tokens: Record<Exclude<BaseToken, 'on-accent' | 'hi' | 'shade'>, string>; extra?: Partial<Record<ThemeToken, string>> };
 
 export const THEMES: Theme[] = [
   { id: 'classic', kind: 'classic' },
@@ -68,7 +69,7 @@ function luma(hex: string): number {
 /** The value of every token for a theme; empty for the classic look (the stylesheet's own). */
 export function themeTokens(th: Theme): Partial<Record<ThemeToken, string>> {
   if (th.kind === 'classic') return {};
-  if (th.kind === 'full') return withDerived({ 'on-accent': '#ffffff', hi: '#ffffff', shade: '#000000', ...th.tokens }, false);
+  if (th.kind === 'full') return { ...withDerived({ 'on-accent': '#ffffff', hi: '#ffffff', shade: '#000000', ...th.tokens }, false), ...th.extra };
   return withDerived(fewColours(th), true);
 }
 
@@ -139,8 +140,38 @@ function fewColours(th: Extract<Theme, { kind: 'two' | 'three' }>): Record<BaseT
 }
 
 /** Puts a theme's colours on the page (or takes them off, for the classic look). */
-export function applyTheme(id: string, root: HTMLElement = document.documentElement): void {
-  const th = themeById(id);
+/** The UI's shapes: the classic rounded look, or neobrutalist (square corners, thick black
+ *  outlines, hard black shadows; styles.css `.ui-brutal`). */
+export type UiStyle = 'classic' | 'brutal';
+export const UI_STYLES: UiStyle[] = ['classic', 'brutal'];
+
+const BLACK = '#000000';
+/** The neobrutalist look's own colours, used when no theme is picked: saturated flat colours on
+ *  cream, black text, and pure black for every edge and shadow. */
+const BRUTAL: Theme = {
+  id: 'brutal',
+  kind: 'full',
+  tokens: {
+    red: '#ff4f4f', 'red-d': BLACK, blue: '#3d7bff', 'blue-d': BLACK, orange: '#ff9a1f', 'orange-d': BLACK,
+    green: '#22e08e', 'green-d': BLACK, grey: '#cfcfcf', 'grey-d': BLACK, purple: '#a46bff', gold: '#ffd23f',
+    funny: '#ff5ccd', epic: '#a46bff', yellow: '#ffe14d', locked: '#8f8f8f',
+    panel: '#fff6df', 'panel-d': '#eadfbf', 'panel-in': '#ffffff', 'panel-hi': BLACK, outline: BLACK,
+    text: BLACK, muted: '#4a4a4a',
+  },
+  extra: {
+    'on-accent': BLACK, hi: '#ffffff', shade: BLACK, page: '#fff6df',
+    'panel-top': '#fff6df', 'panel-bot': '#fff6df', 'panel-edge': BLACK, line: BLACK, 'line-hi': BLACK,
+    'red-l': '#ff4f4f', 'green-l': '#13b86f', 'blue-l': '#3d7bff', 'blue-n': '#3d7bff', 'orange-l': '#ff9a1f',
+    'funny-l': '#ff5ccd', 'epic-l': '#8a4dff', 'epic-n': '#8a4dff', 'yellow-l': '#ffe14d', 'yellow-d': BLACK, 'on-yellow': BLACK,
+    'purple-d': BLACK, knob: BLACK, off: '#e6e0cf', 'off-knob': '#8f8f8f', dis: '#d9d3c2', 'dis-text': '#6a6a6a', 'muted-d': '#6a6a6a',
+    'win-bg': '#c9f7df', 'bust-bg': '#ffd2d2', 'lead-bg': '#c9f7df', 'gold-bg': '#fff0b8', leave: '#ff4f4f', 'leave-d': BLACK,
+  },
+};
+
+export function applyTheme(id: string, style: UiStyle = 'classic', root: HTMLElement = document.documentElement): void {
+  root.classList.toggle('ui-brutal', style === 'brutal');
+  // A picked theme recolours either style; with none, the neobrutalist style brings its own colours.
+  const th = id === 'classic' && style === 'brutal' ? BRUTAL : themeById(id);
   const tokens = themeTokens(th);
   for (const k of THEME_TOKENS) {
     const v = tokens[k];
