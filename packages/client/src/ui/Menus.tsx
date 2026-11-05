@@ -539,13 +539,12 @@ function StyleTab() {
               </span>
             ))}
           </div>
-          <button type="button" class="deck-back" title={t('set.nextSuit')} aria-label={t('set.nextSuit')} onClick={() => setSuit((x) => ((x + 1) % 4) as Suit)}>
+          <button type="button" class="deck-back" aria-label={t('set.nextSuit')} onClick={() => setSuit((x) => ((x + 1) % 4) as Suit)}>
             {back === 'random' ? <RandomBackIcon backs={backs} scale={deckScale} /> : <CardBackIcon back={back} scale={deckScale} />}
           </button>
           <button
             type="button"
             class="deck-back deck-joker"
-            title={t('set.otherJoker')}
             aria-label={t('set.otherJoker')}
             onClick={() => setJoker((j) => (j === 'red' ? 'black' : 'red'))}
           >

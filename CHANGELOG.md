@@ -5,6 +5,15 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.64.0 (2026-11-05)
+- 🐛 Windows with tabs (Settings, Stats, the scoreboard) no longer scroll when the open tab fits: each tab scrolls on its own, only when it is too tall, and the tab bar stays put.
+- 🐛 In the Shop, the chips, tabs and legend stay put while the items scroll.
+- 🐛 Scrollbars never hide in Firefox and Zen either: the game draws its own there, always shown, in its own lane.
+- 🐛 The arrows of every option picker in a window line up in one column.
+- 🐛 The main menu keeps the game's own colours whatever the theme.
+- 🐛 The word Chips in the Stats tab no longer waves.
+- 🐛 No more "Next suit" and "The other Joker" hints on the cards in Settings.
+
 ## 0.63.1 (2026-11-05)
 - 🐛 Switching tabs (Settings, Stats, Shop, How to play) keeps each tab where you scrolled it, instead of jumping back to the top. A tab opened for the first time starts at the top.
 

@@ -19,6 +19,19 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.64.0',
+    date: '2026-11-05',
+    items: [
+      f("Windows with tabs (Settings, Stats, the scoreboard) no longer scroll when the open tab fits: each tab scrolls on its own, only when it is too tall, and the tab bar stays put.", "As janelas com separadores (Definições, Estatísticas, o placar) já não deslizam quando o separador aberto cabe: cada separador desliza sozinho, só quando é demasiado alto, e a barra de separadores fica no lugar."),
+      f("In the Shop, the chips, tabs and legend stay put while the items scroll.", "Na Loja, as fichas, os separadores e a legenda ficam no lugar enquanto os artigos deslizam."),
+      f("Scrollbars never hide in Firefox and Zen either: the game draws its own there, always shown, in its own lane.", "As barras de deslocamento também nunca se escondem no Firefox e no Zen: o jogo desenha as suas, sempre à vista, no seu próprio espaço."),
+      f("The arrows of every option picker in a window line up in one column.", "As setas de todos os seletores de opções de uma janela ficam alinhadas numa coluna."),
+      f("The main menu keeps the game's own colours whatever the theme.", "O menu principal mantém as cores do próprio jogo, seja qual for o tema."),
+      f("The word Chips in the Stats tab no longer waves.", "A palavra Fichas no separador das Estatísticas já não ondula."),
+      f("No more \"Next suit\" and \"The other Joker\" hints on the cards in Settings.", "Acabaram as dicas \"Naipe seguinte\" e \"O outro Joker\" nas cartas das Definições."),
+    ],
+  },
+  {
     version: '0.63.1',
     date: '2026-11-05',
     items: [

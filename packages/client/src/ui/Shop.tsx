@@ -300,35 +300,37 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
           ))}
         </p>
       </div>
-      {tab === 'back' &&
-        CARD_STYLES.map((style) => (
+      <div class="tab-scroll">
+        {tab === 'back' &&
+          CARD_STYLES.map((style) => (
+            <section class="shop-section">
+              <h4>{t(`set.cardStyle.${style}`)}</h4>
+              <ul class="shop-grid">
+                {items('back', style).map(tile)}
+              </ul>
+            </section>
+          ))}
+        {tab === 'table' && (
           <section class="shop-section">
-            <h4>{t(`set.cardStyle.${style}`)}</h4>
-            <ul class="shop-grid">
-              {items('back', style).map(tile)}
+            <p class="muted small center">{t('shop.tableHint')}</p>
+            <ul class="shop-grid" onPointerLeave={() => !hold.current?.on && previewTable(s.table !== 'random' ? s.table : null)}>
+              {items('table').map(tile)}
             </ul>
           </section>
-        ))}
-      {tab === 'table' && (
-        <section class="shop-section">
-          <p class="muted small center">{t('shop.tableHint')}</p>
-          <ul class="shop-grid" onPointerLeave={() => !hold.current?.on && previewTable(s.table !== 'random' ? s.table : null)}>
-            {items('table').map(tile)}
-          </ul>
-        </section>
-      )}
-      {tab === 'avatar' && (
-        <section class="shop-section">
-          <p class="muted small center">{t('shop.avatarHint')}</p>
-          <ul class="shop-grid">{items('avatar').map(tile)}</ul>
-        </section>
-      )}
-      {tab === 'frame' && (
-        <section class="shop-section">
-          <p class="muted small center">{t('shop.frameHint')}</p>
-          <ul class="shop-grid">{items('frame').map(tile)}</ul>
-        </section>
-      )}
+        )}
+        {tab === 'avatar' && (
+          <section class="shop-section">
+            <p class="muted small center">{t('shop.avatarHint')}</p>
+            <ul class="shop-grid">{items('avatar').map(tile)}</ul>
+          </section>
+        )}
+        {tab === 'frame' && (
+          <section class="shop-section">
+            <p class="muted small center">{t('shop.frameHint')}</p>
+            <ul class="shop-grid">{items('frame').map(tile)}</ul>
+          </section>
+        )}
+      </div>
     </Modal>
   );
 }

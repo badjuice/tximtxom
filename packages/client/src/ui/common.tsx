@@ -49,7 +49,8 @@ let waveTimer: ReturnType<typeof setInterval> | null = null;
 function waveTick(): void {
   if (document.hidden || document.documentElement.classList.contains('reduced-motion')) return;
   for (const [el, w] of waves) {
-    const letters = el.querySelectorAll('.w > span');
+    // The currency's name keeps still (its colours still flow).
+    const letters = el.querySelectorAll('.w > span:not(.ttx-still)');
     // Positions 0..n-1 hop a letter; position n is the quiet beat before starting over.
     w.pos = (w.pos + 1) % (letters.length + 1);
     const letter = letters[w.pos] as HTMLElement | undefined;
@@ -271,7 +272,8 @@ export function WaveText({ text, max = WAVE_MAX, amp = 3, plain }: { text: strin
   const ref = useWave(amp, on);
   if (!on) return <>{plain ? text : withHighlights(text)}</>;
   // TximTxom and the currency's name in the rainbow.
-  const ranges = plain ? [] : [...tximtxomRanges(text), ...[...text.matchAll(new RegExp(CHIP_WORD, 'g'))].map((m): [number, number] => [m.index!, m.index! + m[0].length])];
+  const chipWords = plain ? [] : [...text.matchAll(new RegExp(CHIP_WORD, 'g'))].map((m): [number, number] => [m.index!, m.index! + m[0].length]);
+  const ranges = plain ? [] : [...tximtxomRanges(text), ...chipWords];
   const inWord = (i: number) => ranges.find(([a, b]) => i >= a && i < b);
   return (
     <span class="wave">
@@ -284,7 +286,12 @@ export function WaveText({ text, max = WAVE_MAX, amp = 3, plain }: { text: strin
             <span class="w">
               {[...w.text].map((ch, j) => {
                 const word = inWord(w.start + j);
-                return <span style={{ '--i': w.start + j }}>{word ? <TxLetter ch={ch} ti={w.start + j - word[0]} /> : ch}</span>;
+                const still = word && chipWords.includes(word);
+                return (
+                  <span class={still ? 'ttx-still' : undefined} style={{ '--i': w.start + j }}>
+                    {word ? <TxLetter ch={ch} ti={w.start + j - word[0]} /> : ch}
+                  </span>
+                );
               })}
             </span>
           </>
@@ -717,8 +724,11 @@ export function Slider(props: { label: string; value: number; min: number; max: 
   );
 }
 
-/** The element that scrolls `el` (its nearest ancestor that scrolls vertically). */
+/** What scrolls under a tab bar: its window's `.tab-scroll`, or else its nearest ancestor
+ *  that scrolls vertically. */
 function scrollerOf(el: Element | null): HTMLElement | null {
+  const own = el?.closest('.modal')?.querySelector<HTMLElement>('.tab-scroll');
+  if (own) return own;
   for (let e = el?.parentElement ?? null; e; e = e.parentElement) {
     const y = getComputedStyle(e).overflowY;
     if (y === 'auto' || y === 'scroll') return e;

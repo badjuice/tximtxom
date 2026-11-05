@@ -7,6 +7,8 @@ import { badDrop, canDrop, drop, initController, send, setHandOrder, tapDrawn, t
 import { greetConsole } from './easterEgg';
 import { Table } from './game/table';
 import { initNet, rejoinRoom, savedRoom } from './net';
+import { initScrollbars } from './scrollbars';
+import { initCyclerAlign } from './ui/alignCyclers';
 import { applyCssSettings, onSettings, updateSettings } from './settings';
 import { initGrab } from './grab';
 import { initStats } from './stats';
@@ -23,6 +25,8 @@ import { loadSpriteAtlases } from './ui/sprites';
 async function boot() {
   greetConsole();
   applyCssSettings();
+  initScrollbars();
+  initCyclerAlign();
   startBackground(document.getElementById('bg') as HTMLCanvasElement);
 
   const font = new FontFace('m6x11', `url(${assetUrl('m6x11plus.woff2')})`);

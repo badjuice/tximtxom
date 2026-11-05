@@ -1,4 +1,6 @@
-:root {
+:root,
+/* The main menu keeps the game's own colours whatever the theme (themes.ts sets them on :root). */
+.title-screen {
   /* Funny rules (Scramble). */
   --funny: #b56be0;
   --red: #fe5f55;
@@ -60,6 +62,8 @@
   --gold-bg: #4a3d24;
   --leave: #7a3a3f;
   --leave-d: #3a1c1f;
+}
+:root {
   --text-scale: 1;
   --ui-scale: 1;
   --crt: 0.5;
@@ -1289,6 +1293,9 @@ input[type='text'] {
   border-left: 8px solid var(--on-accent);
 }
 .cyc-mid {
+  /* As wide as the widest in its window (ui/alignCyclers.ts): the arrows line up. */
+  box-sizing: border-box;
+  width: var(--cyc-w, auto);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -4058,6 +4065,38 @@ input.rename {
   visibility: hidden;
 }
 
+/* A tabbed window: the tab bar stays put and only the open tab scrolls, and only when it is
+   too tall itself. The window is as tall as its tallest tab (so switching never resizes it),
+   up to the screen; each tab then scrolls on its own, keeping its place. */
+.modal-body:has(.tab-body.stacked) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+.modal-body:has(.tab-body.stacked) > .stats {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 0;
+}
+.modal-body .tabs {
+  flex: none;
+}
+.modal-body .tab-body.stacked {
+  flex: 0 1 auto;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+}
+.modal-body .tab-body.stacked > .tab-panel {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  /* Room for the shadows and focus rings at its edges. */
+  padding: 2px 2px 6px;
+}
+
 /* Rules button in the round chip; the rules modal is read-only but not dimmed. */
 .rules-btn {
   font: inherit;
@@ -6206,7 +6245,9 @@ td.num.pts {
 
 /* Scrollbars everywhere: thin, gold on the dark panel, always shown, in their own lane so they
    never sit over the content (scrollbar-gutter keeps that lane even when idle).
-   RULE: every element that scrolls vertically goes in the scrollbar-gutter list below. */
+   RULE: every element that scrolls vertically goes in the scrollbar-gutter list below
+   (or gets its own `scrollbar-gutter: stable`): that is also how scrollbars.ts finds the
+   scrollers it draws a bar for in Firefox. */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -6234,6 +6275,39 @@ td.num.pts {
 }
 ::-webkit-scrollbar-corner {
   background: transparent;
+}
+/* Firefox: the bars scrollbars.ts draws (the browser's own may hide when idle). */
+.fx-sb {
+  scrollbar-width: none;
+  padding-right: calc(var(--sb-pad, 0px) + 9px) !important;
+}
+.fx-scrollbar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9000;
+  width: 8px;
+  background: var(--panel-d);
+  border-radius: 4px;
+  touch-action: none;
+}
+.fx-scrollbar:hover {
+  background: color-mix(in srgb, var(--panel-d) 85%, var(--hi));
+}
+.fx-thumb {
+  box-sizing: border-box;
+  width: 100%;
+  background: var(--gold);
+  border: 1px solid var(--panel-d);
+  border-radius: 4px;
+}
+.fx-thumb:hover {
+  background: var(--yellow-l);
+  border-width: 0;
+}
+.fx-thumb.held {
+  background: var(--yellow-l);
+  border: 1px solid var(--gold);
 }
 @supports not selector(::-webkit-scrollbar) {
   * {
@@ -6560,6 +6634,26 @@ td.num.pts {
 /* --- shop: a grid of tiles (preview, name, price or Use), grouped by card style. */
 .modal.shop-modal {
   width: min(760px, 96vw);
+}
+/* The tabs and legend stay put; only the items scroll. */
+.shop-modal .modal-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+.shop-modal .sticky-top {
+  position: static;
+  margin: 0;
+}
+.shop-modal .tab-scroll {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 4px 2px 6px;
 }
 .shop-top {
   display: flex;
