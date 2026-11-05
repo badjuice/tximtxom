@@ -26,7 +26,40 @@
   --locked: #6b7780;
   /* Highlights and shadows (white and black in the default look). */
   --hi: #ffffff;
+  /* Text on a coloured button. */
+  --on-accent: #ffffff;
   --shade: #000000;
+  /* More surfaces and shades, named for themes (themes.ts works them out for each theme). */
+  --page: #14282a;
+  --panel-top: #3f585d;
+  --panel-bot: #34494d;
+  --panel-edge: #5a777d;
+  --line: #4d6469;
+  --line-hi: #6a868c;
+  --muted-d: #7d8f93;
+  --knob: #cfd8da;
+  --off: #3a4a4e;
+  --off-knob: #6f8186;
+  --dis: #4d5e62;
+  --dis-text: #d3dcde;
+  --red-l: #ff8a82;
+  --green-l: #6ee7a8;
+  --blue-l: #6fcfff;
+  --blue-n: #38b0ff;
+  --orange-l: #ffc35c;
+  --funny-l: #e39bff;
+  --epic-l: #b385f7;
+  --epic-n: #c9a3ff;
+  --purple-d: #5a4270;
+  --yellow-l: #ffe08a;
+  --yellow-d: #a8650a;
+  --on-yellow: #3a1a00;
+  --win-bg: #4a5f2c;
+  --bust-bg: #5a2a2a;
+  --lead-bg: #3d5a3a;
+  --gold-bg: #4a3d24;
+  --leave: #7a3a3f;
+  --leave-d: #3a1c1f;
   --text-scale: 1;
   --ui-scale: 1;
   --crt: 0.5;
@@ -47,7 +80,7 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: #14282a;
+  background: var(--page);
   overscroll-behavior: none;
   touch-action: manipulation;
   user-select: none;
@@ -182,7 +215,7 @@ p {
 
 .btn {
   font: inherit;
-  color: var(--hi);
+  color: var(--on-accent);
   border: none;
   border-radius: 10px;
   padding: 0.45em 0.9em;
@@ -245,7 +278,7 @@ input:focus-visible {
 }
 .btn-purple {
   background: var(--purple);
-  --shadow: #5a4270;
+  --shadow: var(--purple-d);
 }
 .btn-big {
   font-size: 1.35em;
@@ -315,7 +348,7 @@ input:not([type]),
 input[type='text'] {
   font: inherit;
   font-size: 1.2em;
-  color: var(--hi);
+  color: var(--text);
   background: var(--panel-in);
   border: 3px solid var(--panel-hi);
   border-radius: 8px;
@@ -348,7 +381,7 @@ input[type='text'] {
   font-size: clamp(56px, min(13vw, 22vh), 220px);
   letter-spacing: 2px;
   margin: 0;
-  color: var(--hi);
+  color: var(--text);
   text-shadow:
     0 6px 0 var(--red-d),
     0 10px 0 color-mix(in srgb, var(--shade) 40%, transparent);
@@ -764,7 +797,7 @@ input[type='text'] {
   letter-spacing: 12px;
   color: var(--gold);
   background: var(--panel-in);
-  border: 3px dashed #6a868c;
+  border: 3px dashed var(--line-hi);
   border-radius: 10px;
   cursor: pointer;
   padding: 4px 0 4px 12px;
@@ -846,7 +879,7 @@ input[type='text'] {
   place-items: center;
 }
 .x:hover {
-  color: #ff8a82;
+  color: var(--red-l);
 }
 /* How to play, Formations and Rules: a column beside the room panel, or a row above it. */
 .lobby-rules {
@@ -968,7 +1001,7 @@ input[type='text'] {
 }
 .rules-pay-switch input:checked + .switch::after {
   left: 27px;
-  background: var(--hi);
+  background: var(--on-accent);
 }
 .rules-pay-switch input:focus-visible + .switch {
   outline: 3px solid var(--gold);
@@ -1004,10 +1037,10 @@ input[type='text'] {
   visibility: visible;
 }
 :is(.pay-tag, .rules-pay-total).up {
-  color: #6ee7a8;
+  color: var(--green-l);
 }
 :is(.pay-tag, .rules-pay-total).down {
-  color: #ff8a82;
+  color: var(--red-l);
 }
 /* A choice that doesn't apply (the bust limit in Rounds mode). */
 .choice.off {
@@ -1094,7 +1127,7 @@ input[type='text'] {
   place-items: center;
   padding: 0 12px;
   text-align: center;
-  color: var(--hi);
+  color: var(--text);
   font-size: 1.05em;
   text-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 60%, transparent);
   pointer-events: none;
@@ -1119,12 +1152,12 @@ input[type='text'] {
 }
 .toggle.disabled .switch,
 .toggle.disabled input:checked + .switch {
-  background: #3a4a4e;
+  background: var(--off);
   box-shadow: inset 0 3px 0 color-mix(in srgb, var(--shade) 30%, transparent);
 }
 .toggle.disabled .switch::after,
 .toggle.disabled input:checked + .switch::after {
-  background: #6f8186;
+  background: var(--off-knob);
   box-shadow: none;
 }
 /* A switch and the sliders it locks: one frame, the sliders indented under the switch. */
@@ -1189,7 +1222,7 @@ input[type='text'] {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #cfd8da;
+  background: var(--knob);
   transition: left 0.12s;
   box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
@@ -1198,7 +1231,7 @@ input[type='text'] {
 }
 .toggle input:checked + .switch::after {
   left: 27px;
-  background: var(--hi);
+  background: var(--on-accent);
 }
 .toggle input:focus-visible + .switch {
   outline: 3px solid var(--gold);
@@ -1250,10 +1283,10 @@ input[type='text'] {
   border-block: 6px solid transparent;
 }
 .cyc-tri.left {
-  border-right: 8px solid var(--hi);
+  border-right: 8px solid var(--on-accent);
 }
 .cyc-tri.right {
-  border-left: 8px solid var(--hi);
+  border-left: 8px solid var(--on-accent);
 }
 .cyc-mid {
   display: flex;
@@ -1294,7 +1327,7 @@ input[type='text'] {
   cursor: pointer;
 }
 .cyc-dot.on {
-  background: var(--hi);
+  background: var(--text);
 }
 /* Read-only (or locked): the value and dots stay, the arrows go grey. */
 .cyc-arrow:disabled {
@@ -1350,6 +1383,7 @@ input[type='text'] {
 .modal-head h2 {
   text-align: center;
   background: var(--red);
+  color: var(--on-accent);
   border-radius: 8px;
   padding: 4px;
   box-shadow: 0 4px 0 var(--red-d);
@@ -1357,6 +1391,7 @@ input[type='text'] {
 /* Blue, so the title doesn't read as one of the language buttons below it. */
 .language-modal .modal-head h2 {
   background: var(--blue);
+  color: var(--on-accent);
   box-shadow: 0 4px 0 var(--blue-d);
 }
 .modal.language-modal {
@@ -1444,7 +1479,7 @@ input[type='text'] {
   display: grid;
   place-items: center;
   font-size: 1.6em;
-  color: var(--hi);
+  color: var(--text);
   text-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 60%, transparent);
   pointer-events: none;
 }
@@ -1500,6 +1535,7 @@ input[type='text'] {
 }
 .level-chips {
   background: var(--blue);
+  color: var(--on-accent);
   border-radius: 6px;
   padding: 2px 10px;
   min-width: 3em;
@@ -1533,15 +1569,19 @@ input[type='text'] {
 }
 .tag-blue {
   background: var(--blue);
+  color: var(--on-accent);
 }
 .tag-red {
   background: var(--red);
+  color: var(--on-accent);
 }
 .tag-orange {
   background: var(--orange);
+  color: var(--on-accent);
 }
 .tag-grey {
   background: var(--grey);
+  color: var(--on-accent);
 }
 .level-cards {
   display: flex;
@@ -1840,7 +1880,7 @@ input[type='text'] {
   height: 1.3em;
   border-radius: 50%;
   background: var(--gold);
-  color: #3a2a00;
+  color: var(--on-yellow);
   font-size: 0.75em;
   text-shadow: none;
 }
@@ -1860,7 +1900,7 @@ input[type='text'] {
   justify-content: center;
   font-size: 12px;
   line-height: 1;
-  color: var(--hi);
+  color: var(--text);
   /* Readable over the green, the red and the empty part alike. */
   text-shadow:
     1px 0 0 var(--shade),
@@ -1890,6 +1930,7 @@ input[type='text'] {
 .last-pile {
   margin-left: 4px;
   background: var(--red);
+  color: var(--on-accent);
   border-radius: 4px;
   padding: 0 4px;
   font-size: 0.85em;
@@ -1898,7 +1939,7 @@ input[type='text'] {
   position: absolute;
   transform: translate(-50%, -100%);
   font-size: 0.8em;
-  color: var(--hi);
+  color: var(--text);
   text-shadow: 0 1px 0 color-mix(in srgb, var(--shade) 50%, transparent);
   background: var(--seat, color-mix(in srgb, var(--panel-d) 85%, transparent));
   box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 35%, transparent);
@@ -1914,10 +1955,11 @@ input[type='text'] {
 }
 .fl-rides {
   margin-left: 5px;
-  color: var(--hi);
+  color: var(--text);
 }
 .formation-label.end {
   background: var(--red);
+  color: var(--on-accent);
 }
 /* Laid: the badge waits for the cards to land, pops in, then shines (once more per card ridden on). */
 .formation-label.fl-in {
@@ -1976,6 +2018,7 @@ input[type='text'] {
   gap: 6px;
   padding: 2px 10px 2px 4px;
   background: var(--red);
+  color: var(--on-accent);
   border-radius: 8px;
   box-shadow: 0 3px 0 color-mix(in srgb, var(--shade) 40%, transparent);
   white-space: nowrap;
@@ -1988,8 +2031,8 @@ input[type='text'] {
 }
 /* This card can't end the round: grey, saying why. */
 .txijog-drop.blocked {
-  background: #4d5e62;
-  color: #d3dcde;
+  background: var(--dis);
+  color: var(--dis-text);
 }
 .txijog-drop.blocked .sprite {
   filter: grayscale(1);
@@ -2060,7 +2103,7 @@ input[type='text'] {
 }
 .mini {
   font: inherit;
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--orange);
   border: none;
   border-radius: 6px;
@@ -2116,10 +2159,10 @@ input[type='text'] {
   text-align: right;
 }
 .score-table tr.winner td {
-  background: #4a5f2c;
+  background: var(--win-bg);
 }
 .score-table tr.bust td {
-  background: #5a2a2a;
+  background: var(--bust-bg);
 }
 .pen {
   margin-left: 4px;
@@ -2167,7 +2210,7 @@ input[type='text'] {
   transform: translate(-50%, -50%);
   display: flex;
   font-size: 3em;
-  color: var(--hi);
+  color: var(--text);
   white-space: nowrap;
   /* A solid dark outline, so the white letters read over card backs and bright paint. */
   text-shadow:
@@ -2263,7 +2306,7 @@ input[type='text'] {
 .joining p {
   margin: 0;
   font-size: 28px;
-  color: var(--hi);
+  color: var(--text);
   text-shadow: 0 3px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
 .reduced-motion .joining {
@@ -2326,7 +2369,7 @@ input[type='text'] {
   padding: 10px 26px;
   border-radius: 12px;
   background: var(--panel);
-  border: 3px solid var(--hi);
+  border: 3px solid var(--on-accent);
   box-shadow:
     0 6px 0 var(--panel-d),
     0 14px 40px color-mix(in srgb, var(--shade) 50%, transparent);
@@ -2338,18 +2381,21 @@ input[type='text'] {
 }
 .banner.tone-good {
   background: var(--green);
+  color: var(--on-accent);
   box-shadow:
     0 6px 0 var(--green-d),
     0 14px 40px color-mix(in srgb, var(--shade) 50%, transparent);
 }
 .banner.tone-bad {
   background: var(--red);
+  color: var(--on-accent);
   box-shadow:
     0 6px 0 var(--red-d),
     0 14px 40px color-mix(in srgb, var(--shade) 50%, transparent);
 }
 .banner.tone-info {
   background: var(--blue);
+  color: var(--on-accent);
   box-shadow:
     0 6px 0 var(--blue-d),
     0 14px 40px color-mix(in srgb, var(--shade) 50%, transparent);
@@ -2431,6 +2477,7 @@ input[type='text'] {
 }
 .toast.error {
   background: var(--red);
+  color: var(--on-accent);
   border-color: var(--hi);
 }
 .reconnecting {
@@ -2441,6 +2488,7 @@ input[type='text'] {
   z-index: 45;
   text-align: center;
   background: var(--red);
+  color: var(--on-accent);
   padding: calc(4px + var(--safe-top)) 0 4px;
 }
 
@@ -2485,7 +2533,7 @@ input[type='text'] {
   min-width: 36px;
   height: 32px;
   font-size: 0.8em;
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--blue);
   border: 0;
   border-radius: 6px;
@@ -2529,6 +2577,7 @@ input[type='text'] {
 }
 .hline.round {
   background: var(--blue);
+  color: var(--on-accent);
   text-align: center;
   margin: 6px 0 2px;
   padding: 1px 6px;
@@ -2621,8 +2670,8 @@ input[type='text'] {
 }
 
 .panel {
-  background: linear-gradient(180deg, #3f585d 0%, #34494d 100%);
-  border-color: #5a777d;
+  background: linear-gradient(180deg, var(--panel-top) 0%, var(--panel-bot) 100%);
+  border-color: var(--panel-edge);
   border-radius: 14px;
 }
 
@@ -2654,16 +2703,16 @@ input[type='text'] {
   border-radius: 4px;
 }
 .hl-r {
-  color: #ff8a80;
+  color: var(--red-l);
 }
 .hl-g {
-  color: #7be0b1;
+  color: var(--green-l);
 }
 .hl-b {
-  color: #6cc4ff;
+  color: var(--blue-l);
 }
 .hl-o {
-  color: #ffc35c;
+  color: var(--orange-l);
 }
 .bad {
   color: var(--red);
@@ -2768,7 +2817,7 @@ input[type='text'] {
   color: var(--text);
 }
 .tab.on {
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--red);
   box-shadow: 0 2px 0 var(--red-d);
 }
@@ -2856,7 +2905,7 @@ input[type='text'] {
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--hi);
+  color: var(--text);
   white-space: nowrap;
   pointer-events: none;
   text-shadow:
@@ -2919,6 +2968,7 @@ input[type='text'] {
 }
 .bust-chip {
   background: var(--red);
+  color: var(--on-accent);
   border-radius: 6px;
   padding: 0 6px;
   box-shadow: 0 2px 0 var(--red-d);
@@ -2957,7 +3007,7 @@ input[type='text'] {
 }
 .peek-btn {
   font: inherit;
-  color: var(--hi);
+  color: var(--text);
   background: color-mix(in srgb, var(--panel-d) 90%, transparent);
   border: 2px solid var(--purple);
   border-radius: 10px;
@@ -3010,7 +3060,7 @@ input[type='text'] {
   flex-direction: column;
 }
 .peek-rank b {
-  color: var(--hi);
+  color: var(--text);
   font-weight: normal;
 }
 /* Light suit colours for the dark Peek panel only; chips keep the card colours. */
@@ -3097,12 +3147,14 @@ input[type='text'] {
 }
 .mini {
   background: var(--grey);
+  color: var(--on-accent);
   box-shadow: 0 2px 0 var(--grey-d);
   min-height: 30px;
   padding: 2px 10px;
 }
 .mini.on {
   background: var(--orange);
+  color: var(--on-accent);
   box-shadow: 0 2px 0 var(--orange-d);
 }
 .sort-sep {
@@ -3125,7 +3177,7 @@ input[type='text'] {
   cursor: pointer;
 }
 .auto-toggle.on {
-  color: var(--hi);
+  color: var(--text);
 }
 .mini-switch {
   position: relative;
@@ -3143,7 +3195,7 @@ input[type='text'] {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--hi);
+  background: var(--on-accent);
   transition: transform 0.15s;
 }
 .auto-toggle.on .mini-switch {
@@ -3345,7 +3397,7 @@ input[type='text'] {
   box-shadow: 0 3px 0 var(--panel-d);
 }
 .sb-row.lead {
-  background: #3d5a3a;
+  background: var(--lead-bg);
 }
 .sb-rank {
   color: var(--gold);
@@ -3364,7 +3416,7 @@ input[type='text'] {
 }
 .sb-total {
   font-size: 1.8em;
-  color: var(--hi);
+  color: var(--text);
   text-align: right;
 }
 .sb-meter {
@@ -3440,13 +3492,13 @@ input[type='text'] {
   color: var(--muted);
 }
 .sb-grid td.bad {
-  color: #ff9f97;
+  color: var(--red-l);
 }
 .sb-grid td.ender {
   box-shadow: inset 0 -2px 0 var(--gold);
 }
 .sb-grid td.total {
-  color: var(--hi);
+  color: var(--text);
 }
 
 /* --- formations */
@@ -3488,7 +3540,7 @@ input[type='text'] {
 }
 .f-tximtxom {
   margin-top: 6px;
-  background: #4a3d24;
+  background: var(--gold-bg);
 }
 .f-tximtxom .f-cards .sprite.card {
   transition: transform 0.25s;
@@ -3559,7 +3611,7 @@ input[type='text'] {
   padding: 8px 12px;
   border-radius: 10px;
   background: var(--panel-d);
-  border: 2px solid var(--hi);
+  border: 2px solid var(--text);
   box-shadow: 0 4px 0 color-mix(in srgb, var(--shade) 35%, transparent);
   font-size: 0.85em;
   line-height: 1.2;
@@ -3576,7 +3628,7 @@ input[type='text'] {
   height: 10px;
   margin-left: -6px;
   background: var(--panel-d);
-  border: 2px solid var(--hi);
+  border: 2px solid var(--text);
   border-top: 0;
   border-left: 0;
   transform: rotate(45deg);
@@ -3682,7 +3734,7 @@ input[type='text'] {
   cursor: pointer;
 }
 .lang-switch button.on {
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--red);
 }
 .player-list li {
@@ -3701,7 +3753,7 @@ input[type='text'] {
   font-size: 1.1em;
 }
 .icon-btn:hover {
-  color: var(--hi);
+  color: var(--text);
 }
 /* Lobby rows: Rename and Remove are raised tiles, so they read as buttons. */
 .player-list .icon-btn,
@@ -3709,7 +3761,7 @@ input[type='text'] {
   min-width: 34px;
   min-height: 34px;
   border-radius: 8px;
-  color: var(--hi);
+  color: var(--text);
   box-shadow: 0 3px 0 var(--shadow);
   transition:
     translate 0.08s,
@@ -3719,14 +3771,16 @@ input[type='text'] {
 .player-list .icon-btn {
   --shadow: var(--blue-d);
   background: var(--blue);
+  color: var(--on-accent);
 }
 .player-list .x {
   --shadow: var(--red-d);
   background: var(--red);
+  color: var(--on-accent);
 }
 .player-list .icon-btn:hover,
 .player-list .x:hover {
-  color: var(--hi);
+  color: var(--text);
   filter: brightness(1.12);
 }
 .player-list .icon-btn:active,
@@ -4008,7 +4062,7 @@ input.rename {
 .rules-btn {
   font: inherit;
   font-size: 0.85em;
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--green);
   box-shadow: 0 2px 0 var(--green-d);
   border: none;
@@ -4032,7 +4086,7 @@ input.rename {
 .mini-btn {
   font: inherit;
   font-size: 0.85em;
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--grey);
   box-shadow: 0 2px 0 var(--grey-d);
   border: none;
@@ -4051,27 +4105,32 @@ input.rename {
 }
 .mini-orange {
   background: var(--orange);
+  color: var(--on-accent);
   box-shadow: 0 2px 0 var(--orange-d);
 }
 .mini-green {
   background: var(--green);
+  color: var(--on-accent);
   box-shadow: 0 2px 0 var(--green-d);
 }
 .mini-red {
   background: var(--red);
+  color: var(--on-accent);
   box-shadow: 0 2px 0 var(--red-d);
 }
 .mini-blue {
   background: var(--blue);
+  color: var(--on-accent);
   box-shadow: 0 2px 0 var(--blue-d);
 }
 .mini-purple {
   background: var(--purple);
-  box-shadow: 0 2px 0 #5a4470;
+  color: var(--on-accent);
+  box-shadow: 0 2px 0 var(--purple-d);
 }
 .mini-leave {
-  background: #7a3a3f;
-  box-shadow: 0 2px 0 #3a1c1f;
+  background: var(--leave);
+  box-shadow: 0 2px 0 var(--leave-d);
 }
 .mini-btn.pressed {
   transform: translateY(2px);
@@ -4185,11 +4244,11 @@ input.rename {
   background: var(--red);
 }
 .rules-view .toggle.disabled .switch::after {
-  background: #cfd8da;
+  background: var(--knob);
   box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 35%, transparent);
 }
 .rules-view .toggle.disabled input:checked + .switch::after {
-  background: var(--hi);
+  background: var(--on-accent);
 }
 .rules-view .toggle input,
 .rules-view .cyc-dot {
@@ -4418,7 +4477,7 @@ input.rename {
   justify-content: center;
   font-size: 0.36em;
   letter-spacing: 0;
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--green);
   animation: callout-fade 0.25s ease-in 1.35s forwards;
 }
@@ -4642,7 +4701,7 @@ input.rename {
   font-size: 1.05em;
   line-height: 24px;
   text-align: center;
-  color: var(--hi);
+  color: var(--text);
   text-shadow:
     1px 0 0 var(--outline),
     -1px 0 0 var(--outline),
@@ -4910,7 +4969,7 @@ input.rename {
   font: inherit;
   min-height: 36px;
   padding: 0 10px;
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--blue);
   border: 0;
   border-radius: 6px;
@@ -4926,10 +4985,12 @@ input.rename {
 }
 .ach-view-locked {
   background: var(--grey);
+  color: var(--on-accent);
   box-shadow: 0 3px 0 var(--grey-d);
 }
 .ach-view-unlocked {
   background: var(--green);
+  color: var(--on-accent);
   box-shadow: 0 3px 0 var(--green-d, #2e8a68);
 }
 .ach-empty {
@@ -4942,9 +5003,9 @@ input.rename {
   font: inherit;
   min-height: 36px;
   padding: 0 12px;
-  color: var(--hi);
+  color: var(--text);
   background: var(--panel-in);
-  border: 2px solid #4d6469;
+  border: 2px solid var(--line);
   border-radius: 6px;
   cursor: pointer;
 }
@@ -4962,7 +5023,7 @@ input.rename {
   justify-content: center;
   font-size: 11px;
   line-height: 1;
-  color: var(--hi);
+  color: var(--text);
   text-shadow:
     1px 0 0 var(--shade),
     -1px 0 0 var(--shade),
@@ -4982,10 +5043,10 @@ input.rename {
   width: 34px;
   height: 48px;
   background: var(--grey);
-  border: 2px solid #b8c4c6;
+  border: 2px solid var(--muted);
   border-radius: 4px;
   box-shadow: inset 0 0 0 2px var(--grey-d);
-  color: #d4dcdd;
+  color: var(--knob);
   font-size: 1.6em;
 }
 .ach-blank .lock {
@@ -5130,16 +5191,16 @@ input.rename {
   animation: rule-shine 3.2s linear infinite;
 }
 .rule-ref.tone-support {
-  --rc: #6ee7a8;
+  --rc: var(--green-l);
 }
 .rule-ref.tone-info {
-  --rc: #6fcfff;
+  --rc: var(--blue-l);
 }
 .rule-ref.tone-punish {
-  --rc: #ff8a82;
+  --rc: var(--red-l);
 }
 .rule-ref.tone-funny {
-  --rc: #e39bff;
+  --rc: var(--funny-l);
 }
 /* A rarity's name: its colour, a shine across it, and a slow pump. */
 .rarity-text {
@@ -5157,19 +5218,19 @@ input.rename {
     rarity-pump 1.6s ease-in-out infinite;
 }
 .rarity-common {
-  --rc: #38b0ff;
+  --rc: var(--blue-n);
 }
 .rarity-uncommon {
   --rc: var(--green);
 }
 .rarity-epic {
-  --rc: #b385f7;
+  --rc: var(--epic-l);
 }
 .rarity-legendary {
   --rc: var(--gold);
 }
 .rarity-secret {
-  --rc: #ff6b61;
+  --rc: var(--red-l);
 }
 /* Unique: the rainbow slides through, no letter wave. */
 .rarity-text.rarity-unique {
@@ -5210,7 +5271,7 @@ input.rename {
   row-gap: 4px;
 }
 .ach-name-ref.rarity-common {
-  --rc: #38b0ff;
+  --rc: var(--blue-n);
 }
 @keyframes rule-shine {
   0% {
@@ -5232,16 +5293,16 @@ input.rename {
   position: relative;
 }
 .rule-card.tone-support {
-  --rc: #6ee7a8;
+  --rc: var(--green-l);
 }
 .rule-card.tone-info {
-  --rc: #6fcfff;
+  --rc: var(--blue-l);
 }
 .rule-card.tone-punish {
-  --rc: #ff8a82;
+  --rc: var(--red-l);
 }
 .rule-card.tone-funny {
-  --rc: #e39bff;
+  --rc: var(--funny-l);
 }
 .rule-card::before {
   content: '';
@@ -5288,10 +5349,12 @@ input.rename {
 }
 .pile-draw {
   background: var(--blue);
+  color: var(--on-accent);
   border-radius: 4px 0 0 4px;
 }
 .pile-take {
   background: var(--red);
+  color: var(--on-accent);
   border-radius: 0 4px 4px 0;
 }
 .pile-bar > .empty {
@@ -5491,7 +5554,7 @@ input.rename {
   0%,
   100% {
     scale: 1;
-    color: var(--hi);
+    color: var(--text);
   }
   50% {
     scale: 1.18;
@@ -5550,14 +5613,14 @@ input.rename {
 .chat-list time {
   flex: none;
   font-size: 0.8em;
-  color: #7d8f93;
+  color: var(--muted-d);
 }
 /* A day's first message: its date across the list. */
 .chat-list li.chat-day {
   justify-content: center;
   margin: 4px 0 2px;
   font-size: 0.8em;
-  color: #9fb3b8;
+  color: var(--muted);
   border-bottom: none;
 }
 .chat-list li.mine {
@@ -5572,9 +5635,9 @@ input.rename {
   min-width: 0;
   font: inherit;
   font-size: 0.9em;
-  color: var(--hi);
+  color: var(--text);
   background: var(--panel-in);
-  border: 2px solid #4d6469;
+  border: 2px solid var(--line);
   border-radius: 6px;
   padding: 5px 8px;
 }
@@ -5586,7 +5649,7 @@ input.rename {
   width: 36px;
   display: grid;
   place-items: center;
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--blue);
   border: none;
   border-radius: 6px;
@@ -5595,11 +5658,11 @@ input.rename {
 }
 /* Nothing to send yet: still a raised button, only grey. */
 .chat-send:disabled {
-  background: #5b6f74;
+  background: var(--dis);
   box-shadow:
     inset 0 2px 0 color-mix(in srgb, var(--hi) 12%, transparent),
-    0 3px 0 #253134;
-  color: #b3c3c7;
+    0 3px 0 var(--panel-d);
+  color: var(--muted);
   cursor: default;
 }
 .lobby-chat {
@@ -5636,7 +5699,7 @@ input.rename {
   gap: 5px;
 }
 .side-tab.on {
-  color: var(--hi);
+  color: var(--text);
   border-bottom-color: var(--blue);
 }
 .unread,
@@ -5646,7 +5709,7 @@ input.rename {
   padding: 0 4px;
   border-radius: 9px;
   background: var(--red);
-  color: var(--hi);
+  color: var(--on-accent);
   font-size: 0.75em;
   line-height: 18px;
   text-align: center;
@@ -5725,7 +5788,7 @@ input.rename {
   display: grid;
   place-items: center;
   background: var(--panel-in);
-  border: 2px solid #4d6469;
+  border: 2px solid var(--line);
   border-radius: 6px;
   cursor: pointer;
   padding: 0;
@@ -5744,7 +5807,7 @@ input.rename {
   gap: 4px;
   padding: 6px;
   background: var(--panel);
-  border: 2px solid #4d6469;
+  border: 2px solid var(--line);
   border-radius: 8px;
   box-shadow: 0 4px 0 color-mix(in srgb, var(--shade) 40%, transparent);
   animation: hint-in 0.12s ease-out;
@@ -5761,6 +5824,7 @@ input.rename {
 }
 .emote-grid button:hover {
   background: var(--blue);
+  color: var(--on-accent);
 }
 /* Resting after an emote: greyed out under a gold ring that empties as the wait runs out. */
 .emote-btn {
@@ -5834,7 +5898,7 @@ input.rename {
   width: 30px;
   height: 30px;
   margin-left: 2px;
-  color: var(--hi);
+  color: var(--on-accent);
   font-size: 1.2em;
   line-height: 1;
   background: var(--red);
@@ -5842,7 +5906,7 @@ input.rename {
   box-shadow: 0 3px 0 var(--red-d, #b8403a);
 }
 .history-head .x:hover {
-  color: var(--hi);
+  color: var(--text);
   filter: brightness(1.12);
 }
 .history-head .x:active {
@@ -5954,7 +6018,7 @@ td.num.pts {
 }
 /* Seat colours can match the header's blue: names there go white. */
 .hline.round .hname {
-  color: var(--hi) !important;
+  color: var(--text) !important;
 }
 
 /* "New!" on an achievement you haven't seen yet, and on the Achievements button:
@@ -5967,13 +6031,13 @@ td.num.pts {
   padding: 1px 7px;
   border-radius: 6px;
   font-size: 13px;
-  color: #3a1a00;
+  color: var(--on-yellow);
   text-shadow: none;
   white-space: nowrap;
   pointer-events: none;
-  background: linear-gradient(110deg, var(--yellow) 40%, #fff6c8 50%, var(--yellow) 60%) 100% 0 / 300% 100%;
+  background: linear-gradient(110deg, var(--yellow) 40%, var(--yellow-l) 50%, var(--yellow) 60%) 100% 0 / 300% 100%;
   box-shadow:
-    0 2px 0 #a8650a,
+    0 2px 0 var(--yellow-d),
     0 0 10px color-mix(in srgb, var(--yellow) 80%, transparent);
   rotate: 8deg;
   animation:
@@ -5984,7 +6048,7 @@ td.num.pts {
   to {
     scale: 1.12;
     box-shadow:
-      0 2px 0 #a8650a,
+      0 2px 0 var(--yellow-d),
       0 0 18px color-mix(in srgb, var(--yellow) 100%, transparent);
   }
 }
@@ -6057,7 +6121,7 @@ td.num.pts {
     box-shadow:
       inset 0 0 0 3px var(--rarity),
       inset 0 -6px 0 var(--panel-d),
-      0 0 0 2px #ffe08a,
+      0 0 0 2px var(--yellow-l),
       0 0 18px color-mix(in srgb, var(--yellow) 100%, transparent);
   }
 }
@@ -6158,11 +6222,11 @@ td.num.pts {
   background: color-mix(in srgb, var(--panel-d) 85%, var(--hi));
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f3d27e;
+  background: var(--yellow-l);
   border-width: 0;
 }
 ::-webkit-scrollbar-thumb:active {
-  background: #fff1c2;
+  background: var(--yellow-l);
   border: 1px solid var(--gold);
 }
 ::-webkit-scrollbar-corner {
@@ -6197,7 +6261,7 @@ td.num.pts {
   z-index: 3;
   margin: -6px 0 0;
   padding: 6px 0 2px;
-  background: #3e575c;
+  background: var(--panel-top);
   box-shadow: 0 6px 6px -4px color-mix(in srgb, var(--shade) 35%, transparent);
 }
 
@@ -6235,7 +6299,7 @@ td.num.pts {
 }
 .cr-section a,
 .cr-section b {
-  color: #6fcfff;
+  color: var(--blue-l);
   font-weight: normal;
 }
 /* Each section's icon on a little card back: red, white frame, like the deck's. */
@@ -6245,9 +6309,9 @@ td.num.pts {
   flex: none;
   width: 28px;
   height: 38px;
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--red);
-  border: 2px solid var(--hi);
+  border: 2px solid var(--on-accent);
   border-radius: 4px;
   box-shadow:
     inset 0 0 0 2px var(--red-d, #b8403a),
@@ -6290,7 +6354,7 @@ td.num.pts {
     filter: brightness(1);
   }
   to {
-    box-shadow: 0 5px 0 var(--shadow), 0 0 0 3px #ffe08a, 0 5px 0 3px #ffe08a, 0 3px 20px color-mix(in srgb, var(--yellow) 95%, transparent);
+    box-shadow: 0 5px 0 var(--shadow), 0 0 0 3px var(--yellow-l), 0 5px 0 3px var(--yellow-l), 0 3px 20px color-mix(in srgb, var(--yellow) 95%, transparent);
     filter: brightness(1.15);
   }
 }
@@ -6398,7 +6462,7 @@ td.num.pts {
   min-height: 40px;
   padding: 0 12px 0 8px;
   background: rgba(20, 30, 32, 0.85);
-  border: 2px solid #4d6469;
+  border: 2px solid var(--line);
   border-radius: 20px;
   color: var(--gold);
   font-size: 1.1em;
@@ -6436,7 +6500,7 @@ td.num.pts {
 /* What paid, over the amount. */
 .chip-pop-why {
   font-size: 0.7em;
-  color: var(--hi);
+  color: var(--text);
 }
 @keyframes chip-pop {
   0% {
@@ -6598,9 +6662,9 @@ td.num.pts {
   width: 42px;
   height: 59px;
   font-size: 1.8em;
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--grey);
-  border: 2px solid var(--hi);
+  border: 2px solid var(--on-accent);
   border-radius: 5px;
   box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 40%, transparent);
 }
@@ -6624,12 +6688,13 @@ td.num.pts {
   border-radius: 6px;
 }
 .shop-btn {
-  color: var(--hi);
+  color: var(--text);
   border: 0;
   cursor: pointer;
 }
 .shop-btn.equip {
   background: var(--blue);
+  color: var(--on-accent);
   box-shadow: 0 2px 0 var(--blue-d);
 }
 .shop-btn.buy {
@@ -6638,7 +6703,7 @@ td.num.pts {
   box-shadow: 0 2px 0 color-mix(in srgb, var(--shade) 50%, transparent);
 }
 .shop-btn.buy.asking {
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--green);
   box-shadow: 0 2px 0 var(--green-d);
 }
@@ -6686,7 +6751,7 @@ td.num.pts {
   background: none;
   box-shadow: none;
   font-size: 1.6em;
-  color: var(--hi);
+  color: var(--text);
   text-shadow:
     0 2px 0 color-mix(in srgb, var(--shade) 60%, transparent),
     0 0 6px color-mix(in srgb, var(--shade) 60%, transparent);
@@ -6747,6 +6812,7 @@ td.num.pts {
   display: grid;
   place-items: center;
   background: var(--grey);
+  color: var(--on-accent);
   box-shadow: 0 3px 0 var(--grey-d);
   cursor: help;
 }
@@ -6793,7 +6859,7 @@ td.num.pts {
   padding: 0 2px;
   font-size: 9px;
   line-height: 1.2;
-  color: var(--hi);
+  color: var(--on-accent);
   background: var(--blue);
   border-radius: 3px;
 }

@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.62.0',
+    date: '2026-11-05',
+    items: [
+      n("Themes, a first test: Settings, Style, Theme recolours the menus, windows and buttons. Two colours: Ink and Paper, Night, Red and Blue, Gold and Silver, Terminal. Three colours: Handheld, Sunset, Arctic. A full palette: Pastel. Cards and the table keep their own colours for now; themes will come to the Shop later.", "Temas, um primeiro teste: Definições, Estilo, Tema muda as cores dos menus, janelas e botões. Duas cores: Tinta e Papel, Noite, Vermelho e Azul, Ouro e Prata, Terminal. Três cores: Consola Portátil, Pôr do Sol, Ártico. Uma paleta completa: Pastel. As cartas e a mesa mantêm as suas cores por agora; os temas vão chegar à Loja mais tarde."),
+    ],
+  },
+  {
     version: '0.61.1',
     date: '2026-11-05',
     items: [

@@ -1,5 +1,6 @@
 import { assetUrl } from './version';
 import { FREE_PIXEL_BACKS, ownedOf, ownsRandom } from './shop';
+import { applyTheme } from './themes';
 import { useEffect, useState } from 'preact/hooks';
 
 /** The card art: Kenney's pixel cards, or the smooth cards of his Boardgame Pack. */
@@ -124,6 +125,8 @@ export interface Settings {
   table: string;
   /** The frame round your plate (shop.ts frames), sent to the room you join. */
   frame: string;
+  /** The UI's colours (themes.ts). */
+  theme: string;
   announce: boolean;
   /** Mirrors the bottom button bar for left-handed players. */
   leftHanded: boolean;
@@ -173,6 +176,7 @@ export const DEFAULT_SETTINGS: Settings = {
   achView: 'all',
   table: 'felt',
   frame: 'none',
+  theme: 'classic',
   announce: true,
   leftHanded: false,
   historyOpen: false,
@@ -265,6 +269,7 @@ export function applyCssSettings(): void {
   root.classList.toggle('lefty', current.leftHanded);
   root.classList.toggle('smooth-all', current.smooth === 'all');
   root.classList.toggle('cards-board', current.cardStyle === 'board');
+  applyTheme(current.theme);
   // Missing letters (suits, dashes) fall back to the game's own font.
   loadFont(current.font);
   root.style.setProperty('--font', current.font !== 'm6x11' && fontsReady.has(current.font) ? `tt-${current.font}, m6x11` : 'm6x11');

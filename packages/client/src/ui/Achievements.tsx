@@ -12,7 +12,15 @@ import { SHOP } from '../shop';
 import { itemName } from './Shop';
 
 /** Each rarity's colour, as the shine on unlocked achievements (lighter than the frame, to read as light). */
-export const RARITY_SHINE: Record<Rarity, string> = { common: '#6fcfff', uncommon: '#6ee7a8', epic: '#c9a3ff', legendary: '#eac058', unique: '#ffffff', secret: '#ff8a82' };
+/** Each rarity's light colour (theme tokens, styles.css). */
+export const RARITY_SHINE: Record<Rarity, string> = {
+  common: 'var(--blue-l)',
+  uncommon: 'var(--green-l)',
+  epic: 'var(--epic-n)',
+  legendary: 'var(--gold)',
+  unique: 'var(--hi)',
+  secret: 'var(--red-l)',
+};
 const RARITIES: Rarity[] = ['common', 'uncommon', 'epic', 'legendary', 'unique', 'secret'];
 
 /** The achievement's art: a rule or character card, or a card from the deck. `shine`: the rarity's glint across it. */
@@ -298,7 +306,7 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
           return (
             <li
               class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}${fresh.has(a.id) ? (gone.has(a.id) ? ' new seen' : ' new') : ''}${lifted === a.id ? ' lifted' : ''}`}
-              style={got ? { '--rc': a.rainbow ? '#fff' : RARITY_SHINE[a.rarity] } : undefined}
+              style={got ? { '--rc': a.rainbow ? 'var(--hi)' : RARITY_SHINE[a.rarity] } : undefined}
               onPointerEnter={() => see(a.id)}
               onPointerUp={(e) => e.pointerType !== 'mouse' && setLifted((l) => (l === a.id ? null : a.id))}
               title={got ? undefined : t('ach.locked')}

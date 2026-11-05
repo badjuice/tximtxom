@@ -7,6 +7,7 @@ import { type Key, LANG_NAMES, type Lang, t } from '../i18n';
 import { leaveRoom, MODE, setRules } from '../net';
 import { CARD_STYLES, cardBacks, currentBack, FONTS, resetSettings, type Settings, updateSettings, useSettings } from '../settings';
 import { ownedOf, ownsRandom } from '../shop';
+import { THEMES, themeById } from '../themes';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, HintBalloon, Modal, Seen, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
 import { SEAT_COLORS } from './Hud';
@@ -573,6 +574,13 @@ function StyleTab() {
         value={s.table === 'random' && randomTable ? 'random' : tables.includes(s.table) ? s.table : 'felt'}
         options={[...tables.map((id) => ({ value: id, label: t(`table.${id}` as Key) })), ...(randomTable ? [random] : [])]}
         onChange={(table) => updateSettings({ table })}
+      />
+      <Choice
+        label={t('set.theme')}
+        desc={t(`set.theme.${themeById(s.theme).kind}` as Key)}
+        value={themeById(s.theme).id}
+        options={THEMES.map((th) => ({ value: th.id, label: t(`theme.${th.id}` as Key) }))}
+        onChange={(theme) => updateSettings({ theme })}
       />
       <Choice label={t('set.font')} desc={t('set.font.by', { author: FONTS.find((f) => f.id === s.font)?.author ?? '' })} value={s.font} options={FONTS.map((f) => ({ value: f.id, label: f.name }))} onChange={(font) => updateSettings({ font, fontPicked: true })} />
     </>
