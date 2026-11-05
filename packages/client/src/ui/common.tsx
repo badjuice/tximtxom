@@ -717,9 +717,47 @@ export function Slider(props: { label: string; value: number; min: number; max: 
   );
 }
 
+/** The element that scrolls `el` (its nearest ancestor that scrolls vertically). */
+function scrollerOf(el: Element | null): HTMLElement | null {
+  for (let e = el?.parentElement ?? null; e; e = e.parentElement) {
+    const y = getComputedStyle(e).overflowY;
+    if (y === 'auto' || y === 'scroll') return e;
+  }
+  return null;
+}
+
+/** For a tab bar over one scrolling window: each tab keeps where it was scrolled to, and a tab
+ *  opened for the first time starts at the top. `bar` goes on the tab bar; call `leave()` just
+ *  before switching tabs. */
+export function useTabScroll<T>(active: T) {
+  const bar = useRef<HTMLDivElement>(null);
+  const scrolls = useRef(new Map<T, number>());
+  const shown = useRef(active);
+  useLayoutEffect(() => {
+    if (shown.current === active) return;
+    shown.current = active;
+    const sc = scrollerOf(bar.current);
+    if (sc) sc.scrollTop = scrolls.current.get(active) ?? 0;
+  }, [active]);
+  // Taken as the press starts: focusing a tab scrolled partly out of view scrolls the window
+  // back to it before the click.
+  const atPress = useRef<number | null>(null);
+  const press = () => {
+    atPress.current = scrollerOf(bar.current)?.scrollTop ?? null;
+  };
+  const leave = () => {
+    const sc = scrollerOf(bar.current);
+    const y = atPress.current ?? sc?.scrollTop;
+    atPress.current = null;
+    if (y !== undefined) scrolls.current.set(shown.current, y);
+  };
+  return { bar, leave, press };
+}
+
 export function Tabs<T extends string>(props: { tabs: { id: T; label: string }[]; active: T; onChange: (id: T) => void }) {
+  const { bar, leave, press } = useTabScroll(props.active);
   return (
-    <div class="tabs" role="tablist">
+    <div class="tabs" role="tablist" ref={bar} onPointerDownCapture={press}>
       {props.tabs.map((tb) => (
         <button
           type="button"
@@ -728,6 +766,7 @@ export function Tabs<T extends string>(props: { tabs: { id: T; label: string }[]
           class={`tab${tb.id === props.active ? ' on' : ''}`}
           onClick={() => {
             play('button', { volume: 0.5 });
+            if (tb.id !== props.active) leave();
             props.onChange(tb.id);
           }}
         >

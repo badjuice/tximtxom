@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.63.1 (2026-11-05)
+- 🐛 Switching tabs (Settings, Stats, Shop, How to play) keeps each tab where you scrolled it, instead of jumping back to the top. A tab opened for the first time starts at the top.
+
 ## 0.63.0 (2026-11-05)
 - ✨ A second UI style, a first test: Settings, Style, UI style, Neobrutalist. Square corners, thick black outlines, hard black shadows and saturated colours on cream, with the pixel font and art kept. Pick a Theme too and its colours go on the neobrutalist shapes.
 

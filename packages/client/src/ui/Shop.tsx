@@ -9,7 +9,7 @@ import { CARD_STYLES, type CardStyle, getSettings, updateSettings, useSettings }
 import { itemRarity, owns, packOf, randomOpen, SHOP, SHOP_RARITIES, type ShopItem, type ShopKind } from '../shop';
 import { RARITY_SHINE } from './Achievements';
 import { formatCount } from '../stats';
-import { ChipCount, ChipIcon, Modal, RarityMark, RarityName, UiIcon } from './common';
+import { ChipCount, ChipIcon, Modal, RarityMark, RarityName, UiIcon, useTabScroll } from './common';
 import { ArtIcon, StyleBackIcon } from './sprites';
 
 const KINDS: ShopKind[] = ['back', 'table', 'avatar', 'frame'];
@@ -103,6 +103,7 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
   const s = useSettings();
   const chips = useChips();
   const [tab, setTab] = useState<ShopKind>('back');
+  const tabScroll = useTabScroll(tab);
   const [asking, setAsking] = useState<string | null>(null);
   const [avatar, setAvatar] = useState(savedAvatar() ?? 'villager');
   // A second tap buys; after a while the button goes back to its price.
@@ -274,9 +275,18 @@ export function ShopMenu({ onClose }: { onClose: () => void }) {
     <Modal title={t('shop.title')} onClose={onClose} class={`shop-modal${peeking ? ' peeking' : ''}`}>
       <div class="sticky-top shop-top">
         <ChipCount />
-        <div class="tabs" role="tablist">
+        <div class="tabs" role="tablist" ref={tabScroll.bar} onPointerDownCapture={tabScroll.press}>
           {KINDS.map((k) => (
-            <button type="button" role="tab" aria-selected={tab === k} class={`tab${tab === k ? ' on' : ''}`} onClick={() => setTab(k)}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === k}
+              class={`tab${tab === k ? ' on' : ''}`}
+              onClick={() => {
+                if (k !== tab) tabScroll.leave();
+                setTab(k);
+              }}
+            >
               {t(`shop.tab.${k}`)}
             </button>
           ))}

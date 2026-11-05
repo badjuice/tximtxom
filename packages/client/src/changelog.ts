@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.63.1',
+    date: '2026-11-05',
+    items: [
+      f("Switching tabs (Settings, Stats, Shop, How to play) keeps each tab where you scrolled it, instead of jumping back to the top. A tab opened for the first time starts at the top.", "Mudar de separador (Definições, Estatísticas, Loja, Como jogar) mantém cada separador onde o deixou, em vez de voltar ao topo. Um separador aberto pela primeira vez começa no topo."),
+    ],
+  },
+  {
     version: '0.63.0',
     date: '2026-11-05',
     items: [
