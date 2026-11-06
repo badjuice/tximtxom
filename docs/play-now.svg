@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="172" height="52" viewBox="0 0 172 52" role="img" aria-label="Play now">
+<title>Play now</title>
+<style>text{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}</style>
+<rect x="1" y="1" width="170" height="50" rx="12" fill="#7fa480" stroke="#080909" stroke-width="2"/>
+<path d="M26 17 L39 26 L26 35 Z" fill="#080909"/>
+<text x="50" y="32.5" font-size="18" font-weight="700" fill="#080909">Play now</text>
+</svg>
