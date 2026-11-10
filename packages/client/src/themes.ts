@@ -99,7 +99,7 @@ const BLACK = '#000000';
 const WHITE = '#ffffff';
 
 /** The value of every token for a theme; empty for the classic look (the stylesheet's own). */
-export function themeTokens(th: Theme): Partial<Record<ThemeToken, string>> {
+export function themeTokens(th: Theme, style: UiStyle = 'classic'): Partial<Record<ThemeToken, string>> {
   if (th.kind === 'classic') return {};
   if (th.kind === 'full') {
     const base = { ...th.tokens } as Record<BaseToken, string>;
@@ -107,19 +107,26 @@ export function themeTokens(th: Theme): Partial<Record<ThemeToken, string>> {
     base['on-accent'] ??= blackOrWhite(accents);
     base.hi ??= base.text;
     base.shade ??= BLACK;
-    return readableTokens({ ...withDerived(base, false), ...th.extra });
+    const t = { ...withDerived(base, false), ...th.extra };
+    // The neobrutalist style's text on colours: white on a hard black shadow, in every full theme.
+    if (style === 'brutal') t['on-accent'] = WHITE;
+    return readableTokens(t, style === 'brutal');
   }
-  return readableTokens(withDerived(fewColours(th), true));
+  // A two- or three-colour theme keeps its own paper on its colours (it has no white).
+  return readableTokens(withDerived(fewColours(th), true), false);
 }
 
 /** The coloured backgrounds with text (`--on-accent`) on them. */
 const ACCENTS = ['red', 'blue', 'orange', 'green', 'grey', 'purple', 'gold', 'funny', 'epic', 'yellow'] as const;
+/** The colours with white text on them in the neobrutalist style (gold and yellow keep dark
+ *  text, `--on-yellow`: white can't read on them). */
+export const SHADOWED = ['red', 'blue', 'orange', 'green', 'grey', 'purple', 'leave'] as const;
 /** Colours that are text on the panels (rule names, rarities, values, highlights). */
 const ON_PANEL = ['gold', 'red-l', 'green-l', 'blue-l', 'blue-n', 'orange-l', 'funny-l', 'epic-l', 'epic-n', 'yellow-l', 'hi'] as const;
 
 /** Every theme stays readable: each text colour is nudged (towards the text's own extreme)
  *  until it meets WCAG AA on the backgrounds it sits on. */
-function readableTokens(t: Partial<Record<ThemeToken, string>>): Partial<Record<ThemeToken, string>> {
+function readableTokens(t: Partial<Record<ThemeToken, string>>, shadowed: boolean): Partial<Record<ThemeToken, string>> {
   const o = { ...t } as Record<ThemeToken, string>;
   const panels = [o.panel, o['panel-in'], o['panel-d'], o['panel-top'], o['panel-bot']];
   const far = (c: string) => (luminance(c) > luminance(o.panel) ? WHITE : BLACK);
@@ -128,10 +135,14 @@ function readableTokens(t: Partial<Record<ThemeToken, string>>): Partial<Record<
   o['muted-d'] = readable(o['muted-d'], [o.panel, o['panel-in']], 3, far(o['muted-d']));
   o.locked = readable(o.locked, [o.panel, o['panel-in']], 3, far(o.locked));
   for (const k of ON_PANEL) o[k] = readable(o[k], panels, 4.5, far(o[k]));
-  // Text on the coloured buttons and tags: the accent moves away from the text on it.
+  // Text on the coloured buttons and tags: the accent moves away from the text on it. White text
+  // on its hard black shadow counts as large text (WCAG 3:1): the shadow edges every letter.
   const away = contrast(o['on-accent'], BLACK) > contrast(o['on-accent'], WHITE) ? BLACK : WHITE;
-  for (const k of ACCENTS) o[k] = readable(o[k], [o['on-accent']], 4.5, away);
-  o.leave = readable(o.leave, [o['on-accent']], 4.5, away);
+  if (shadowed) for (const k of SHADOWED) o[k] = readable(o[k], [WHITE], 3, BLACK);
+  else {
+    for (const k of ACCENTS) o[k] = readable(o[k], [o['on-accent']], 4.5, away);
+    o.leave = readable(o.leave, [o['on-accent']], 4.5, away);
+  }
   o['on-yellow'] = readable(o['on-yellow'], [o.yellow, o['yellow-l']], 4.5, blackOrWhite([o.yellow]));
   o['dis-text'] = readable(o['dis-text'], [o.dis], 3, far(o['dis-text']));
   return o;
@@ -217,14 +228,14 @@ const BRUTAL: Theme = {
   id: 'brutal',
   kind: 'full',
   tokens: {
-    red: '#ff5a5a', 'red-d': BLACK, blue: '#4d8dff', 'blue-d': BLACK, orange: '#ff9f1c', 'orange-d': BLACK,
-    green: '#2ee59d', 'green-d': BLACK, grey: '#a8a3b8', 'grey-d': BLACK, purple: '#b07cff', gold: '#ffd23f',
+    red: '#ff5a5a', 'red-d': BLACK, blue: '#4d8dff', 'blue-d': BLACK, orange: '#ec7a0e', 'orange-d': BLACK,
+    green: '#14a86c', 'green-d': BLACK, grey: '#7d788f', 'grey-d': BLACK, purple: '#9f66ff', gold: '#ffd23f',
     funny: '#ff6ad5', epic: '#b07cff', yellow: '#ffe14d', locked: '#8a8599',
     panel: '#25232f', 'panel-d': '#17161d', 'panel-in': '#302d3c', 'panel-hi': BLACK, outline: BLACK,
     text: '#fff3dc', muted: '#c9c1da',
   },
   extra: {
-    'on-accent': BLACK, hi: '#ffffff', shade: BLACK, page: '#17161d',
+    'on-accent': WHITE, hi: '#ffffff', shade: BLACK, page: '#17161d',
     'panel-top': '#25232f', 'panel-bot': '#25232f', 'panel-edge': BLACK, line: BLACK, 'line-hi': BLACK,
     'red-l': '#ff8a8a', 'green-l': '#5ff0b6', 'blue-l': '#86b2ff', 'blue-n': '#6fa2ff', 'orange-l': '#ffbb5c',
     'funny-l': '#ff98e3', 'epic-l': '#caa6ff', 'epic-n': '#caa6ff', 'yellow-l': '#ffeb85', 'yellow-d': BLACK, 'on-yellow': BLACK,
@@ -239,12 +250,16 @@ export const themeFor = (id: string, style: UiStyle): Theme => (id === 'classic'
 export function applyTheme(id: string, style: UiStyle = 'brutal', root: HTMLElement = document.documentElement): void {
   root.classList.toggle('ui-brutal', style === 'brutal');
   const th = themeFor(id, style);
-  const tokens = themeTokens(th);
+  const tokens = themeTokens(th, style);
   for (const k of THEME_TOKENS) {
     const v = tokens[k];
     if (v) root.style.setProperty(`--${k}`, v);
     else root.style.removeProperty(`--${k}`);
   }
+  // The hard shadow under text on the colours (styles.css): only under light text.
+  const ink = tokens['on-accent'];
+  if (ink && luminance(ink) < 0.4) root.style.setProperty('--ink-shadow', 'transparent');
+  else root.style.removeProperty('--ink-shadow');
   root.dataset.theme = th.id;
   root.toggleAttribute('data-few', th.kind === 'two' || th.kind === 'three');
 }

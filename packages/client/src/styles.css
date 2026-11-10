@@ -7024,6 +7024,8 @@ td.num.pts {
    Colours come from themes.ts (BRUTAL, or the picked theme). */
 .ui-brutal {
   --bk: #000000;
+  /* Under light text on the colours only (themes.ts): a shadow under dark text would smear it. */
+  --ink-shadow: var(--bk);
   --bw: 3px;
   --boff: 4px;
 }
@@ -7034,10 +7036,77 @@ td.num.pts {
   border-radius: 0 !important;
 }
 .ui-brutal h1,
-.ui-brutal h2,
-.ui-brutal h3,
-.ui-brutal .btn {
+.ui-brutal h3 {
   text-shadow: none;
+}
+/* Text on the colours: white on a hard black shadow, like the TximTxom letters. The list is every
+   rule whose text is var(--on-accent) (test/themes.test.ts checks it stays complete); keys and
+   anything on yellow keep their own dark text. */
+.ui-brutal :is(
+  .btn,
+  .modal-head h2,
+  .language-modal .modal-head h2,
+  .level-chips,
+  .tag-blue,
+  .tag-red,
+  .tag-orange,
+  .tag-grey,
+  .last-pile,
+  .formation-label.end,
+  .txijog-drop,
+  .mini,
+  .banner.tone-good,
+  .banner.tone-bad,
+  .banner.tone-info,
+  .toast.error,
+  .reconnecting,
+  .hcopy,
+  .hline.round,
+  .tab.on,
+  .bust-chip,
+  .mini.on,
+  .lang-switch button.on,
+  .player-list .icon-btn,
+  .player-list .x,
+  .rules-btn,
+  .mini-btn,
+  .mini-orange,
+  .mini-green,
+  .mini-red,
+  .mini-blue,
+  .mini-purple,
+  .copied-msg,
+  .ach-view,
+  .ach-view-locked,
+  .ach-view-unlocked,
+  .pile-draw,
+  .pile-take,
+  .chat-send,
+  .unread,
+  .unread-dot,
+  .emote-grid button:hover,
+  .history-head .x,
+  .cr-card,
+  .shop-random,
+  .shop-btn.equip,
+  .shop-btn.buy.asking,
+  .shop-btn.reward,
+  .peek-twice
+) {
+  text-shadow: 2px 2px 0 var(--ink-shadow);
+}
+.ui-brutal :is(.kbd, .tag-blue, .tag-red, .tag-orange, .tag-grey, .mini, .mini-btn, .unread, .unread-dot, .copied-msg) {
+  text-shadow: 1px 1px 0 var(--ink-shadow);
+}
+.ui-brutal .kbd {
+  text-shadow: none;
+}
+/* The main menu keeps the classic colours (white text) whatever the theme. */
+.ui-brutal .title-screen {
+  --ink-shadow: var(--bk);
+}
+.ui-brutal .cyc-tri {
+  filter: drop-shadow(1px 1px 0 var(--ink-shadow));
 }
 /* Panels and windows. */
 .ui-brutal .panel {

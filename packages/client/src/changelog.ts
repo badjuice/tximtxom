@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.68.0',
+    date: '2026-11-10',
+    items: [
+      c("In the Classic style, text on the coloured buttons, title bars and tabs is now white on a hard black shadow, like the TximTxom letters, so it no longer gets lost on the red. It's the same everywhere in the game.", "No estilo Clássico, o texto nos botões coloridos, nas barras de título e nos separadores é agora branco com uma sombra preta dura, como as letras do TximTxom, e já não se perde no vermelho. É igual em todo o jogo."),
+      c("The Classic style's orange, green, grey and purple are a little deeper, so the white text on them reads well.", "O laranja, o verde, o cinzento e o roxo do estilo Clássico estão um pouco mais escuros, para o texto branco se ler bem."),
+      f("Every theme keeps its text readable in the Classic style too: colours under white text get deeper where they need to, and themes with dark text on their colours get no shadow to smear it.", "Todos os temas mantêm o texto legível também no estilo Clássico: as cores debaixo de texto branco ficam mais escuras onde é preciso, e os temas com texto escuro nas cores não levam sombra a borrá-lo."),
+    ],
+  },
+  {
     version: '0.67.0',
     date: '2026-11-10',
     items: [

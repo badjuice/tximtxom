@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.68.0 (2026-11-10)
+- 🔧 In the Classic style, text on the coloured buttons, title bars and tabs is now white on a hard black shadow, like the TximTxom letters, so it no longer gets lost on the red. It's the same everywhere in the game.
+- 🔧 The Classic style's orange, green, grey and purple are a little deeper, so the white text on them reads well.
+- 🐛 Every theme keeps its text readable in the Classic style too: colours under white text get deeper where they need to, and themes with dark text on their colours get no shadow to smear it.
+
 ## 0.67.0 (2026-11-10)
 - 🐛 The buttons at the end of a round or game no longer spill out at bigger text sizes: they're all one size, two to a row, with shorter names (Leave, To lobby, Play again), and wrap onto a second line only if they still don't fit.
 - 🔧 The Table button is now Peek table: it has an eye, a dashed edge and a "hold to look" line, since it shows the table only while you hold it.
