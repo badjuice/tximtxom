@@ -49,6 +49,8 @@ let waveTimer: ReturnType<typeof setInterval> | null = null;
 function waveTick(): void {
   if (document.hidden || document.documentElement.classList.contains('reduced-motion')) return;
   for (const [el, w] of waves) {
+    if (el.closest('[data-offscreen]')) continue; // scrolled far out of view: still
+
     // The currency's name keeps still (its colours still flow).
     const letters = el.querySelectorAll('.w > span:not(.ttx-still)');
     // Positions 0..n-1 hop a letter; position n is the quiet beat before starting over.

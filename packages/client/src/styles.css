@@ -6166,6 +6166,16 @@ td.num.pts {
 .ach-list > li {
   position: relative;
 }
+/* Far out of the list's view (Achievements.tsx marks them): no animations at all, so
+   scrolling only draws the cards near the screen. */
+[data-offscreen],
+[data-offscreen] *,
+[data-offscreen]::before,
+[data-offscreen]::after,
+[data-offscreen] *::before,
+[data-offscreen] *::after {
+  animation: none !important;
+}
 .ach-list > li {
   --tint: transparent;
   background-image: linear-gradient(var(--tint), var(--tint));

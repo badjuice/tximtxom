@@ -156,6 +156,12 @@ function sorted(by: AchSort, desc: boolean, unlocked: Unlocked, mine: MyStats): 
 /** The looping shines on unlocked cards: the art's, the name's and the whole card's. */
 const SHINES = new Set(['rule-card-shine', 'rule-shine', 'ach-card-shine', 'rainbow-slide']);
 
+/** Every shine under `el` on the page clock's beat. */
+function syncShines(el: Element | null | undefined) {
+  for (const a of el?.getAnimations({ subtree: true }) ?? [])
+    if (a instanceof CSSAnimation && SHINES.has(a.animationName) && a.startTime !== 0) a.startTime = 0;
+}
+
 /** An unlocked achievement's name, shining in its rarity's colour (rainbow for the rainbow ones). */
 const Name = ({ a }: { a: Achievement }) => (
   <span class={`rule-ref${a.rainbow ? ' rainbow-text' : ''}`} style={{ '--rc': RARITY_SHINE[a.rarity] }}>
@@ -209,10 +215,29 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
   const list = useRef<HTMLUListElement>(null);
   // Every shine on the page clock's beat, so a card unlocked while this is open
   // (its shines start late) glints together with the rest.
-  useLayoutEffect(() => {
-    for (const a of list.current?.parentElement?.getAnimations({ subtree: true }) ?? [])
-      if (a instanceof CSSAnimation && SHINES.has(a.animationName) && a.startTime !== 0) a.startTime = 0;
-  });
+  useLayoutEffect(() => syncShines(list.current?.parentElement));
+  // Cards well outside the list's view stop animating (data-offscreen; styles.css), and start
+  // again half a screen before they scroll in. All of them at once were thousands of
+  // animations, and fast scrolling outran the drawing: cards showed up late.
+  useEffect(() => {
+    const root = list.current;
+    if (!root || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const { target, isIntersecting } of entries) {
+          const el = target as HTMLElement;
+          if (isIntersecting === !('offscreen' in el.dataset)) continue;
+          if (isIntersecting) {
+            delete el.dataset.offscreen;
+            syncShines(el);
+          } else el.dataset.offscreen = '';
+        }
+      },
+      { root, rootMargin: '50% 0px' },
+    );
+    for (const li of root.children) io.observe(li);
+    return () => io.disconnect();
+  }, [shown.map((a) => a.id).join()]);
   // Only the whole list counts: a filtered one is too easy to reach the end of.
   const atEnd = () => {
     const el = list.current;

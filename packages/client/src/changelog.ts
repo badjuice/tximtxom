@@ -19,6 +19,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.68.1',
+    date: '2026-11-10',
+    items: [
+      f("Achievements no longer show up late when you scroll fast: only the cards near the screen animate now, instead of every card in the list at once.", "As conquistas já não aparecem atrasadas quando se faz scroll depressa: agora só os cartões perto do ecrã estão animados, em vez de todos os da lista ao mesmo tempo."),
+    ],
+  },
+  {
     version: '0.68.0',
     date: '2026-11-10',
     items: [

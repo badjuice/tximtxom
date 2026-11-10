@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.68.1 (2026-11-10)
+- 🐛 Achievements no longer show up late when you scroll fast: only the cards near the screen animate now, instead of every card in the list at once.
+
 ## 0.68.0 (2026-11-10)
 - 🔧 In the Classic style, text on the coloured buttons, title bars and tabs is now white on a hard black shadow, like the TximTxom letters, so it no longer gets lost on the red. It's the same everywhere in the game.
 - 🔧 The Classic style's orange, green, grey and purple are a little deeper, so the white text on them reads well.
