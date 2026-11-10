@@ -55,6 +55,15 @@ const SETTLE_MS = 2400;
 
 /** The round's (or game's) summary, once the table has settled: the last formations and their
  *  chips show first. Holding the Table button hides it, to look at the cards. */
+/** A pixel eye, drawn in the text's colour: the peek button looks. */
+function EyeIcon() {
+  return (
+    <svg class="eye-icon" viewBox="0 0 11 7" aria-hidden="true" shape-rendering="crispEdges">
+      <path fill="currentColor" d="M0 2h1v1h-1zM0 3h1v1h-1zM0 4h1v1h-1zM1 1h1v1h-1zM1 5h1v1h-1zM2 1h1v1h-1zM2 5h1v1h-1zM3 0h1v1h-1zM3 6h1v1h-1zM4 0h1v1h-1zM4 2h1v1h-1zM4 3h1v1h-1zM4 4h1v1h-1zM4 6h1v1h-1zM5 0h1v1h-1zM5 2h1v1h-1zM5 3h1v1h-1zM5 4h1v1h-1zM5 6h1v1h-1zM6 0h1v1h-1zM6 2h1v1h-1zM6 3h1v1h-1zM6 4h1v1h-1zM6 6h1v1h-1zM7 0h1v1h-1zM7 6h1v1h-1zM8 1h1v1h-1zM8 5h1v1h-1zM9 1h1v1h-1zM9 5h1v1h-1zM10 2h1v1h-1zM10 3h1v1h-1zM10 4h1v1h-1z" />
+    </svg>
+  );
+}
+
 function Summary({ g, room }: { g: GameView; room: RoomView }) {
   const over = g.phase === 'roundOver' || g.phase === 'gameOver';
   const [shown, setShown] = useState(false);
@@ -75,7 +84,7 @@ function Summary({ g, room }: { g: GameView; room: RoomView }) {
   const peekBtn = (
     <button
       type="button"
-      class={`btn btn-grey btn-big table-peek${peek ? ' held' : ''}`}
+      class={`btn btn-big hold table-peek${peek ? ' held' : ''}`}
         onPointerDown={hold(true)}
         onPointerUp={hold(false)}
         onPointerLeave={hold(false)}
@@ -85,7 +94,12 @@ function Summary({ g, room }: { g: GameView; room: RoomView }) {
       onContextMenu={(e) => e.preventDefault()}
       title={t('sum.peek')}
     >
-      <span class="btn-label">{t('sum.peekShort')}</span>
+      <span class="btn-label">
+        <span>
+          <EyeIcon /> {t('sum.peekShort')}
+        </span>
+        <small class="hold-sub">{t('sum.peekHold')}</small>
+      </span>
     </button>
   );
   return <div class={peek ? 'summary-peek' : undefined}>{g.phase === 'roundOver' ? <RoundSummary g={g} peek={peekBtn} /> : <GameOver g={g} room={room} peek={peekBtn} />}</div>;
@@ -801,6 +815,7 @@ function GameOver({ g, room, peek }: { g: GameView; room: RoomView; peek: Compon
   return (
     <Modal
       title={title}
+      wide
       class="summary-modal"
       corner={
         <button
@@ -815,15 +830,15 @@ function GameOver({ g, room, peek }: { g: GameView; room: RoomView; peek: Compon
       footer={
         <>
           {peek}
-          <Button color="orange" onClick={leaveRoom}>
-            {t('top.leave')}
+          <Button color="orange" big onClick={leaveRoom}>
+            {t('go.leave')}
           </Button>
           {isHost ? (
             <>
-              <Button color="blue" onClick={() => void startGame()}>
+              <Button color="blue" big onClick={() => void startGame()}>
                 {t('go.backToLobby')}
               </Button>
-              <Button color="green" onClick={() => void playAgain()}>
+              <Button color="green" big onClick={() => void playAgain()}>
                 {t('go.playAgain')}
               </Button>
             </>

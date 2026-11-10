@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.67.0 (2026-11-10)
+- 🐛 The buttons at the end of a round or game no longer spill out at bigger text sizes: they're all one size, two to a row, with shorter names (Leave, To lobby, Play again), and wrap onto a second line only if they still don't fit.
+- 🔧 The Table button is now Peek table: it has an eye, a dashed edge and a "hold to look" line, since it shows the table only while you hold it.
+- 🐛 A window title no longer runs under the copy button in its corner.
+
 ## 0.66.0 (2026-11-10)
 - 🔧 The neobrutalist UI style is now the default, and it's called Classic. The original rounded style is now called Balala, still in Settings > Style.
 - 🐛 Coloured text in the Classic style no longer has a black outline bleeding into its letters.

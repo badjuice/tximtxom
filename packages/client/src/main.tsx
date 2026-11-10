@@ -48,7 +48,7 @@ async function boot() {
   });
   table.onLayout = (layout) => store.set({ layout });
   await table.init(document.getElementById('stage')!);
-  if (import.meta.env.DEV) Object.assign(window, { __table: table, __send: send, __lang: (lang: 'en' | 'pt') => updateSettings({ lang }) });
+  if (import.meta.env.DEV) Object.assign(window, { __table: table, __store: store, __send: send, __lang: (lang: 'en' | 'pt') => updateSettings({ lang }) });
   initController(table);
   initChat();
   initEmotes();

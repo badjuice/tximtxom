@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.67.0',
+    date: '2026-11-10',
+    items: [
+      f("The buttons at the end of a round or game no longer spill out at bigger text sizes: they're all one size, two to a row, with shorter names (Leave, To lobby, Play again), and wrap onto a second line only if they still don't fit.", "Os botões no fim de uma ronda ou jogo já não transbordam com letra maior: têm todos o mesmo tamanho, dois por linha, com nomes mais curtos (Sair, Ir à sala, Jogar de novo), e só passam para uma segunda linha se mesmo assim não couberem."),
+      c("The Table button is now Peek table: it has an eye, a dashed edge and a \"hold to look\" line, since it shows the table only while you hold it.", "O botão Mesa é agora Ver a mesa: tem um olho, um contorno tracejado e a indicação \"mantenha premido\", porque só mostra a mesa enquanto o segura."),
+      f("A window title no longer runs under the copy button in its corner.", "O título de uma janela já não passa por baixo do botão de copiar no canto."),
+    ],
+  },
+  {
     version: '0.66.0',
     date: '2026-11-10',
     items: [

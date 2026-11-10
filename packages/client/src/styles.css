@@ -960,6 +960,51 @@ input[type='text'] {
 .table-peek.held {
   filter: brightness(1.2);
 }
+/* The peek button isn't an action like the others: a panel-coloured button with a dashed edge,
+   an eye and a "hold to look" line, like the other hold buttons. */
+.table-peek {
+  background: var(--panel-in);
+  color: var(--text);
+  text-shadow: none;
+  outline: 2px dashed var(--muted);
+  outline-offset: -6px;
+}
+.ui-brutal .table-peek {
+  outline-offset: -7px;
+}
+.table-peek .hold-sub {
+  color: var(--muted);
+  opacity: 1;
+}
+.eye-icon {
+  width: 1.1em;
+  height: 0.7em;
+  vertical-align: -0.02em;
+}
+/* The summary's buttons: all one size, two to a row, their labels wrapping if they must. */
+.summary-modal .modal-foot {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  align-items: stretch;
+}
+.summary-modal .modal-foot > .btn {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  font-size: 1.2em;
+}
+.summary-modal .modal-foot .btn-label,
+.summary-modal .modal-foot .hold .btn-label > span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  line-height: 1.1;
+}
+.summary-modal .modal-foot > .muted {
+  align-self: center;
+  text-align: center;
+}
 /* The scroller holds a grid of its own: one column of rules. */
 .rules-grid {
   display: grid;
@@ -4304,6 +4349,10 @@ input.rename {
 /* A small square button in a modal's title bar (game report). */
 .modal-head {
   position: relative;
+}
+/* A title with a button in its corner keeps clear of it on both sides (so it stays centred). */
+.modal-head:has(.modal-corner) h2 {
+  padding-inline: 44px;
 }
 .modal-corner {
   position: absolute;
