@@ -7039,6 +7039,16 @@ td.num.pts {
 .ui-brutal .switch {
   border: 2px solid var(--bk);
 }
+/* The knob, centred in what the outline leaves (48x24): 3px clear all round. */
+.ui-brutal .switch::after {
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+}
+.ui-brutal :is(.toggle, .rules-pay-switch) input:checked + .switch::after {
+  left: 27px;
+}
 /* Rows, tiles and cards in lists. */
 .ui-brutal :is(.toggle, .stat-tile, .shop-item, .rules-pay-row, .chat-form input, .room-code, .hint-balloon, .toast, .banner, .ach-toast, .confirm-pop) {
   border: 2px solid var(--bk);
@@ -7055,17 +7065,10 @@ td.num.pts {
     3px 3px 0 var(--bk);
   outline: 2px solid var(--bk);
 }
-/* Coloured text on the cream panels gets a 1px pixel outline in black, as the TximTxom letters do. */
-.ui-brutal :is(h3, h4, .ach-count, .stat-value, .shop-state, .pile-label b, .hand-points b, .ach-toast-head) {
-  text-shadow:
-    1px 0 0 var(--bk),
-    -1px 0 0 var(--bk),
-    0 1px 0 var(--bk),
-    0 -1px 0 var(--bk);
-}
-.ui-brutal :is(.rarity-text, .rule-ref, .rainbow-text) {
+/* Flat text: coloured text sits on the dark panels as it is, with no outline or shadow eating
+   into its letters. */
+.ui-brutal :is(h3, h4, .ach-count, .stat-value, .shop-state, .pile-label b, .hand-points b, .ach-toast-head, .rarity-text, .rule-ref, .rainbow-text) {
   text-shadow: none;
-  filter: drop-shadow(1px 0 0 var(--bk)) drop-shadow(-1px 0 0 var(--bk)) drop-shadow(0 1px 0 var(--bk)) drop-shadow(0 -1px 0 var(--bk));
 }
 /* The small Auto switch: a light track with a black knob, outlined. */
 .ui-brutal .mini-switch {
@@ -7074,8 +7077,10 @@ td.num.pts {
   box-shadow: none;
 }
 .ui-brutal .mini-switch .knob {
-  top: 0;
-  left: 0;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
   background: var(--knob);
 }
 .ui-brutal .auto-toggle.on .mini-switch {

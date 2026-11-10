@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.66.0 (2026-11-10)
+- 🔧 The neobrutalist UI style is now the default, and it's called Classic. The original rounded style is now called Balala, still in Settings > Style.
+- 🐛 Coloured text in the Classic style no longer has a black outline bleeding into its letters.
+- 🐛 The squares inside the switches sit centred in the Classic style.
+
 ## 0.65.0 (2026-11-05)
 - 🐛 Made the UI more lookable-at by improving the contrasts and reducing the flashbanguiness of the themes and UI styles. The Neobrutalist style no longer flashbangs you: its own colours are now dark panels with saturated colours and pure black edges.
 - 🐛 Every theme now checks its own colours: text, faded text, rarity and rule colours and the text on buttons are nudged until they meet the WCAG contrast guidelines.

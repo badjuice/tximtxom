@@ -19,6 +19,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.66.0',
+    date: '2026-11-10',
+    items: [
+      c("The neobrutalist UI style is now the default, and it's called Classic. The original rounded style is now called Balala, still in Settings > Style.", "O estilo de interface neobrutalista é agora o padrão e chama-se Clássico. O estilo arredondado original chama-se agora Balala e continua em Definições > Estilo."),
+      f("Coloured text in the Classic style no longer has a black outline bleeding into its letters.", "O texto colorido no estilo Clássico já não tem um contorno preto a invadir as letras."),
+      f("The squares inside the switches sit centred in the Classic style.", "Os quadrados dentro dos interruptores ficam centrados no estilo Clássico."),
+    ],
+  },
+  {
     version: '0.65.0',
     date: '2026-11-05',
     items: [

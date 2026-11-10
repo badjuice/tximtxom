@@ -129,6 +129,8 @@ export interface Settings {
   theme: string;
   /** The UI's shapes: classic or neobrutalist (themes.ts). */
   uiStyle: UiStyle;
+  /** Whether the UI style was picked by hand (from 0.66 the default is neobrutalist). */
+  uiStylePicked: boolean;
   announce: boolean;
   /** Mirrors the bottom button bar for left-handed players. */
   leftHanded: boolean;
@@ -179,7 +181,8 @@ export const DEFAULT_SETTINGS: Settings = {
   table: 'felt',
   frame: 'none',
   theme: 'classic',
-  uiStyle: 'classic',
+  uiStyle: 'brutal',
+  uiStylePicked: false,
   announce: true,
   leftHanded: false,
   historyOpen: false,
@@ -210,6 +213,9 @@ function load(): Settings {
     }
     // Before 0.52 m6x11 was the default and saved with everything else: Digital Disco takes over.
     if (saved.font === 'm6x11' && !saved.fontPicked) delete saved.font;
+    // Before 0.66 the rounded style was the default and saved with everything else: the
+    // neobrutalist one takes over, unless the style was picked by hand.
+    if (!saved.uiStylePicked) delete saved.uiStyle;
     return { ...DEFAULT_SETTINGS, ...saved };
   } catch {
     return { ...DEFAULT_SETTINGS };

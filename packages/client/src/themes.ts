@@ -207,7 +207,9 @@ function fewColours(th: Extract<Theme, { kind: 'two' | 'three' }>): Record<BaseT
 /** The UI's shapes: the classic rounded look, or neobrutalist (square corners, thick black
  *  outlines, hard black shadows; styles.css `.ui-brutal`). */
 export type UiStyle = 'classic' | 'brutal';
-export const UI_STYLES: UiStyle[] = ['classic', 'brutal'];
+// Shown as Classic (brutal, the default) and Balala (classic, the original rounded look); the ids
+// stay as they were so saved settings keep working.
+export const UI_STYLES: UiStyle[] = ['brutal', 'classic'];
 
 /** The neobrutalist look's own colours, used when no theme is picked: saturated flat colours on
  *  a dark ink panel (no glare), black text on the colours, and pure black for every edge and shadow. */
@@ -234,7 +236,7 @@ const BRUTAL: Theme = {
 /** A picked theme recolours either style; with none, the neobrutalist style brings its own colours. */
 export const themeFor = (id: string, style: UiStyle): Theme => (id === 'classic' && style === 'brutal' ? BRUTAL : themeById(id));
 
-export function applyTheme(id: string, style: UiStyle = 'classic', root: HTMLElement = document.documentElement): void {
+export function applyTheme(id: string, style: UiStyle = 'brutal', root: HTMLElement = document.documentElement): void {
   root.classList.toggle('ui-brutal', style === 'brutal');
   const th = themeFor(id, style);
   const tokens = themeTokens(th);

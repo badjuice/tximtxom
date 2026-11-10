@@ -579,7 +579,7 @@ function StyleTab() {
         desc={t(`set.uiStyle.${s.uiStyle}.desc` as Key)}
         value={s.uiStyle}
         options={UI_STYLES.map((v) => ({ value: v, label: t(`set.uiStyle.${v}` as Key) }))}
-        onChange={(uiStyle) => updateSettings({ uiStyle })}
+        onChange={(uiStyle) => updateSettings({ uiStyle, uiStylePicked: true })}
       />
       <Choice
         label={t('set.theme')}
