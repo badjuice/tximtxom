@@ -42,39 +42,50 @@ function hop(amp: number): Keyframe[] {
   return frames;
 }
 
-// One clock drives every wave on screen; each wave keeps its own position.
-const waves = new Map<HTMLElement, { pos: number; amp: number }>();
+// One clock drives every wave on screen; each wave keeps its own position, and its letters
+// (found once, again only when the text changes). Waves out of sight (scrolled away, hidden, or
+// far down a list: data-offscreen) keep still.
+const waves = new Map<HTMLElement, { pos: number; amp: number; letters: HTMLElement[] | null; seen: boolean }>();
 let waveTimer: ReturnType<typeof setInterval> | null = null;
+const waveSight =
+  typeof IntersectionObserver === 'undefined'
+    ? null
+    : new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          const w = waves.get(e.target as HTMLElement);
+          if (w) w.seen = e.isIntersecting;
+        }
+      });
 
 function waveTick(): void {
   if (document.hidden || document.documentElement.classList.contains('reduced-motion')) return;
   for (const [el, w] of waves) {
-    if (el.closest('[data-offscreen]')) continue; // scrolled far out of view: still
-
+    if (!w.seen || el.closest('[data-offscreen]')) continue;
     // The currency's name keeps still (its colours still flow).
-    const letters = el.querySelectorAll('.w > span:not(.ttx-still)');
+    if (!w.letters?.[0]?.isConnected) w.letters = Array.from(el.querySelectorAll<HTMLElement>('.w > span:not(.ttx-still)'));
     // Positions 0..n-1 hop a letter; position n is the quiet beat before starting over.
-    w.pos = (w.pos + 1) % (letters.length + 1);
-    const letter = letters[w.pos] as HTMLElement | undefined;
-    letter?.animate(hop(Math.round(w.amp)), { duration: HOP_MS });
+    w.pos = (w.pos + 1) % (w.letters.length + 1);
+    w.letters[w.pos]?.animate(hop(Math.round(w.amp)), { duration: HOP_MS });
   }
 }
 
-function useWave(amp: number, on: boolean) {
+function useWave(amp: number, on: boolean, text: string) {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    waves.set(el, { pos: -1, amp });
+    waves.set(el, { pos: -1, amp, letters: null, seen: !waveSight });
+    waveSight?.observe(el);
     waveTimer ??= setInterval(waveTick, WAVE_STEP_MS);
     return () => {
       waves.delete(el);
+      waveSight?.unobserve(el);
       if (!waves.size && waveTimer) {
         clearInterval(waveTimer);
         waveTimer = null;
       }
     };
-  }, [amp, on]);
+  }, [amp, on, text]);
   return ref;
 }
 
@@ -271,7 +282,7 @@ export function tj(key: Key, vars: Record<string, ComponentChildren>): Component
  *  `plain` keeps "TximTxom" in its own colours (the title screen logo). */
 export function WaveText({ text, max = WAVE_MAX, amp = 3, plain }: { text: string; max?: number; amp?: number; plain?: boolean }) {
   const on = text.length <= max;
-  const ref = useWave(amp, on);
+  const ref = useWave(amp, on, text);
   if (!on) return <>{plain ? text : withHighlights(text)}</>;
   // TximTxom and the currency's name in the rainbow.
   const chipWords = plain ? [] : [...text.matchAll(new RegExp(CHIP_WORD, 'g'))].map((m): [number, number] => [m.index!, m.index! + m[0].length]);

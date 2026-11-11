@@ -11,7 +11,7 @@ import { THEMES, themeById, UI_STYLES } from '../themes';
 import { store, useStore } from '../store';
 import { Button, Choice, Credits, HintBalloon, Modal, Seen, Rich, Slider, Tabs, Toggle, WaveText, withHighlights } from './common';
 import { SEAT_COLORS } from './Hud';
-import { CHANGELOG, type ChangeKind, KIND_ICON } from '../changelog';
+import type { ChangeKind } from '../changelog';
 import { CONTACT_EMAIL, ISSUES_URL, VERSION } from '../version';
 import { RulesForm, RulesSummary } from './RulesForm';
 import { achievementNames, AchievementsMenu } from './Achievements';
@@ -105,8 +105,19 @@ function LeaveConfirm({ onClose }: { onClose: () => void }) {
 
 /** Every change to the game, one release at a time (newest first), each
  *  change marked new / changed / fixed / removed. Arrows page through them. */
+// The changelog is the biggest file in the game, and only this window needs it: it loads on its
+// own, a few seconds after the game starts (so it's there by the time anyone opens it).
+type ChangelogFile = typeof import('../changelog');
+let changelogFile: ChangelogFile | null = null;
+const loadChangelog = () => import('../changelog').then((m) => (changelogFile = m));
+setTimeout(() => void loadChangelog().catch(() => {}), 5000);
+
 function Changelog({ onClose }: { onClose: () => void }) {
   const { lang } = useSettings();
+  const [file, setFile] = useState(changelogFile);
+  useEffect(() => {
+    if (!file) void loadChangelog().then(setFile);
+  }, []);
   const kinds: ChangeKind[] = ['new', 'change', 'fix', 'removed'];
   const achs = achievementNames();
   return (
@@ -130,26 +141,30 @@ function Changelog({ onClose }: { onClose: () => void }) {
         </>
       }
     >
-      <div class="sticky-top">
-        <p class="cl-legend">
-          {kinds.map((k) => (
-            <span class={`cl-kind k-${k}`}>
-              {KIND_ICON[k]} {t(`cl.${k}` as Key)}
-            </span>
-          ))}
-        </p>
-      </div>
-      {CHANGELOG.map((rel, i) => (
+      {file && (
+        <div class="sticky-top">
+          <p class="cl-legend">
+            {kinds.map((k) => (
+              <span class={`cl-kind k-${k}`}>
+                {file.KIND_ICON[k]} {t(`cl.${k}` as Key)}
+              </span>
+            ))}
+          </p>
+        </div>
+      )}
+      {file?.CHANGELOG.map((rel, i) => (
         <section class="cl-release">
           <h3>
-            v{rel.version} <span class="muted">· {rel.date}</span>
+            v{rel.version}
+            {rel.title && <span class="cl-title">{lang === 'pt' ? rel.title.pt : rel.title.en}</span>}
+            <span class="muted">· {rel.date}</span>
             {i === 0 && <span class="tag">{t('cl.current')}</span>}
           </h3>
           <ul>
             {rel.items.map((it) => (
               <li class={`k-${it.kind}`}>
                 <span class="cl-icon" title={t(`cl.${it.kind}` as Key)} aria-label={t(`cl.${it.kind}` as Key)}>
-                  {KIND_ICON[it.kind]}
+                  {file.KIND_ICON[it.kind]}
                 </span>
                 <span>{withHighlights(lang === 'pt' ? it.pt : it.en, achs)}</span>
               </li>
@@ -159,7 +174,7 @@ function Changelog({ onClose }: { onClose: () => void }) {
       ))}
       <Credits />
       {/* Scrolled all the way down: Nerd. */}
-      <Seen onSeen={() => unlock('nerd')} />
+      {file && <Seen onSeen={() => unlock('nerd')} />}
     </Modal>
   );
 }

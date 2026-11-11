@@ -3,6 +3,7 @@
 // turn and each card copies the result into its own 2D canvas, so any number
 // of cards share a single GL context.
 import { upscaled } from '../pixelArt';
+import { frameRate } from '../power';
 import { getSettings } from '../settings';
 import { atlasFrame } from './sprites';
 
@@ -139,6 +140,10 @@ interface Entry {
   spawning: { start: number; ms: number; seed: number; done: () => void } | null;
   /** The last frame, read back from WebGL. */
   pixels: ImageData | null;
+  /** On screen (not scrolled away or hidden): only these are drawn. */
+  seen: boolean;
+  /** What the last still frame showed, so a card that can't change (reduced motion) isn't drawn again. */
+  drawn: string;
 }
 
 let gl: WebGLRenderingContext | null = null;
@@ -147,7 +152,16 @@ const uniforms: Record<string, WebGLUniformLocation | null> = {};
 const entries = new Set<Entry>();
 const images = new Map<string, Promise<HTMLImageElement>>();
 let frame = 0;
+let lastDraw = 0;
 const start = performance.now();
+// Each card's canvas, watched for being on screen: drawing one means reading its pixels back
+// from the GPU, too slow to spend on cards nobody can see.
+const sight =
+  typeof IntersectionObserver === 'undefined'
+    ? null
+    : new IntersectionObserver((list) => {
+        for (const x of list) for (const e of entries) if (e.canvas === x.target) e.seen = x.isIntersecting;
+      });
 
 function setup(): boolean {
   if (gl) return true;
@@ -225,9 +239,11 @@ function applyArt(e: Entry, { art, w, h }: { art: HTMLCanvasElement; w: number; 
   g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
   g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
   e.texSize = [w, h];
+  e.drawn = '';
 }
 
-function draw(now: number): void {
+/** `all`: every card, seen or not (drawNow). */
+function draw(now: number, all = false): void {
   const g = gl;
   if (!g || !glCanvas) return;
   const reduced = getSettings().reducedMotion;
@@ -246,7 +262,14 @@ function draw(now: number): void {
       }
     }
     if (!e.tex || (!e.edition && spawn <= 0)) continue;
+    if (!all && (!e.seen || e.canvas.closest('[data-offscreen]'))) continue;
     const { width: w, height: h } = e.canvas;
+    const since = (now - e.landedAt) / 1000;
+    const flash = reduced ? 0 : Math.max(0, 1 - since / 0.45);
+    // Reduced motion stands the shine still: draw it again only when something about it changed.
+    const still = reduced && spawn <= 0 ? `${e.edition}|${e.tilt}|${w}x${h}|${filter}` : '';
+    if (still && still === e.drawn) continue;
+    e.drawn = still;
     if (glCanvas.width !== w || glCanvas.height !== h) {
       glCanvas.width = w;
       glCanvas.height = h;
@@ -264,8 +287,7 @@ function draw(now: number): void {
     g.uniform1i(uniforms.edition, e.edition ? EDITION_ID[e.edition] : PLAIN);
     g.uniform1f(uniforms.spawn, Math.min(1, spawn));
     g.uniform1f(uniforms.seed, sp?.seed ?? 0);
-    const since = (now - e.landedAt) / 1000;
-    g.uniform1f(uniforms.flash, reduced ? 0 : Math.max(0, 1 - since / 0.45));
+    g.uniform1f(uniforms.flash, flash);
     g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
     // Read back as plain RGBA rather than drawImage(glCanvas): some GPU-accelerated
     // browsers swap red and blue on that copy (blue diamonds that turn orange).
@@ -276,7 +298,11 @@ function draw(now: number): void {
 }
 
 function loop(now: number): void {
-  draw(now);
+  // At the frame rate the table and the background keep (power.ts); a little early is fine.
+  if (now - lastDraw >= 1000 / frameRate() - 4) {
+    lastDraw = now;
+    draw(now);
+  }
   frame = entries.size ? requestAnimationFrame(loop) : 0;
 }
 
@@ -288,8 +314,9 @@ function loop(now: number): void {
 /** `atlas`: where `face` is drawn from (the card style in use, unless one is named). */
 export function attachEdition(canvas: HTMLCanvasElement, face: string, atlas = 'cards') {
   const ctx = canvas.getContext('2d')!;
-  const e: Entry = { canvas, ctx, tex: null, texSize: [1, 1], edition: null, tilt: [0, 0], landedAt: 0, spawning: null, pixels: null };
+  const e: Entry = { canvas, ctx, tex: null, texSize: [1, 1], edition: null, tilt: [0, 0], landedAt: 0, spawning: null, pixels: null, seen: true, drawn: '' };
   entries.add(e);
+  sight?.observe(canvas);
   void cardTexture(e, face, atlas);
   if (!frame) frame = requestAnimationFrame(loop);
   return {
@@ -302,7 +329,7 @@ export function attachEdition(canvas: HTMLCanvasElement, face: string, atlas = '
     },
     /** Draws it now rather than on the next frame (once its texture is ready). */
     drawNow() {
-      draw(performance.now());
+      draw(performance.now(), true);
     },
     setTilt(x: number, y: number) {
       e.tilt = [x, y];
@@ -315,6 +342,7 @@ export function attachEdition(canvas: HTMLCanvasElement, face: string, atlas = '
     },
     detach() {
       entries.delete(e);
+      sight?.unobserve(canvas);
       e.spawning = null;
       if (e.tex) gl?.deleteTexture(e.tex);
     },

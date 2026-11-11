@@ -1,6 +1,7 @@
 import { RULE_REQUIRES, type Rules } from '@tximtxom/shared';
 import { ACH_PAY, chipsEarned, chipsNow } from '../chips';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { memo } from 'preact/compat';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { type Achievement, type AchievementId, ACHIEVEMENTS, ADDICTED_MINUTES, carrierId, isNew, markSeen, onUnlock, unlock, type Rarity, REWARDS, RULE_ACH_IDS, type RuleAch, STAT_METERS, TOAST_MS, TRACKS, type Unlocked, useAchievementToast, useUnlocked } from '../achievements';
 import { play } from '../audio';
 import { type Key, t } from '../i18n';
@@ -8,6 +9,7 @@ import { formatCount, type MyStats, refreshInfected, refreshSpread, useStats } f
 import { type AchName, ChipAmount, Cycler, Rainbow, RarityMark, RarityName, HintBalloon, Modal, UiIcon, type UiIconName, WaveText, withHighlights } from './common';
 import { type AchSort, type AchView, updateSettings, useSettings } from '../settings';
 import { ArtIcon, CardBackIcon } from './sprites';
+import { syncShines } from '../offscreen';
 import { SHOP } from '../shop';
 import { itemName } from './Shop';
 
@@ -153,15 +155,6 @@ function sorted(by: AchSort, desc: boolean, unlocked: Unlocked, mine: MyStats): 
   });
 }
 
-/** The looping shines on unlocked cards: the art's, the name's and the whole card's. */
-const SHINES = new Set(['rule-card-shine', 'rule-shine', 'ach-card-shine', 'rainbow-slide']);
-
-/** Every shine under `el` on the page clock's beat. */
-function syncShines(el: Element | null | undefined) {
-  for (const a of el?.getAnimations({ subtree: true }) ?? [])
-    if (a instanceof CSSAnimation && SHINES.has(a.animationName) && a.startTime !== 0) a.startTime = 0;
-}
-
 /** An unlocked achievement's name, shining in its rarity's colour (rainbow for the rainbow ones). */
 const Name = ({ a }: { a: Achievement }) => (
   <span class={`rule-ref${a.rainbow ? ' rainbow-text' : ''}`} style={{ '--rc': RARITY_SHINE[a.rarity] }}>
@@ -178,6 +171,57 @@ function AchievementIcon({ a, got }: { a: Achievement; got: boolean }) {
     </span>
   );
 }
+
+interface CardHandlers {
+  see: (id: AchievementId) => void;
+  lift: (id: AchievementId) => void;
+  pick: (a: Achievement, got: boolean, at: DOMRect) => void;
+}
+
+/** One achievement in the list. Memo'd: hovering one card draws only that card again, not all of them. */
+const AchCard = memo(function AchCard(props: {
+  a: Achievement;
+  got: boolean;
+  fresh: boolean;
+  gone: boolean;
+  lifted: boolean;
+  meter: ReturnType<typeof meter>;
+  lang: string;
+  on: CardHandlers;
+}) {
+  const { a, got, fresh, gone, lifted, meter: m, on } = props;
+  const hidden = a.secret && !got;
+  return (
+    <li
+      class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}${fresh ? (gone ? ' new seen' : ' new') : ''}${lifted ? ' lifted' : ''}`}
+      style={got ? { '--rc': a.rainbow ? 'var(--hi)' : RARITY_SHINE[a.rarity] } : undefined}
+      onPointerEnter={() => on.see(a.id)}
+      onPointerUp={(e) => e.pointerType !== 'mouse' && on.lift(a.id)}
+      title={got ? undefined : t('ach.locked')}
+      data-ach={a.id}
+      onClick={(e) => on.pick(a, got, (e.currentTarget as HTMLElement).getBoundingClientRect())}
+    >
+      <AchievementIcon a={a} got={got} />
+      {fresh && <NewSign />}
+      <span class="ach-text">
+        <span class="ach-name">
+          {/* Its rarity's shape; until unlocked, the locked ring. */}
+          <RarityMark rarity={got ? a.rarity : 'locked'} />
+          {hidden ? t('ach.secret') : got ? <Name a={a} /> : text(a, 'name')}
+        </span>
+        <span class="ach-desc">{hidden ? t('ach.secretDesc') : withHighlights(text(a, 'desc'))}</span>
+        {!hidden && text(a, 'flavor') && <span class="ach-flavor">{withHighlights(text(a, 'flavor'))}</span>}
+        {/* In rainbow letters with a shine across them: this one gives you something. */}
+        {!hidden && REWARDS[a.id] && (
+          <span class="ach-reward">
+            <Rainbow text={rewardText(REWARDS[a.id]!)} />
+          </span>
+        )}
+        {m && <Progress {...m} />}
+      </span>
+    </li>
+  );
+}, (x, y) => x.a === y.a && x.got === y.got && x.fresh === y.fresh && x.gone === y.gone && x.lifted === y.lifted && x.lang === y.lang && x.on === y.on && x.meter?.count === y.meter?.count && x.meter?.goal === y.meter?.goal && x.meter?.unit === y.meter?.unit);
 
 /** Taps on your Infected card that show the Infected counts. */
 const INFECTED_TAPS = 10;
@@ -209,35 +253,13 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
   const [lifted, setLifted] = useState<AchievementId | null>(null);
   const [when, setWhen] = useState<{ id: AchievementId; at: DOMRect } | null>(null);
   const closeWhen = useCallback(() => setWhen(null), []);
-  const { achSort: sort, achSortDesc: desc, achView: view } = useSettings();
+  const { achSort: sort, achSortDesc: desc, achView: view, lang } = useSettings();
   const shown = sorted(sort, desc, unlocked, mine).filter((a) => view === 'all' || !!unlocked[a.id] === (view === 'unlocked'));
   // Window Shopper: the list scrolled to its end, or short enough to show it all at once.
   const list = useRef<HTMLUListElement>(null);
   // Every shine on the page clock's beat, so a card unlocked while this is open
   // (its shines start late) glints together with the rest.
-  useLayoutEffect(() => syncShines(list.current?.parentElement));
-  // Cards well outside the list's view stop animating (data-offscreen; styles.css), and start
-  // again half a screen before they scroll in. All of them at once were thousands of
-  // animations, and fast scrolling outran the drawing: cards showed up late.
-  useEffect(() => {
-    const root = list.current;
-    if (!root || typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const { target, isIntersecting } of entries) {
-          const el = target as HTMLElement;
-          if (isIntersecting === !('offscreen' in el.dataset)) continue;
-          if (isIntersecting) {
-            delete el.dataset.offscreen;
-            syncShines(el);
-          } else el.dataset.offscreen = '';
-        }
-      },
-      { root, rootMargin: '50% 0px' },
-    );
-    for (const li of root.children) io.observe(li);
-    return () => io.disconnect();
-  }, [shown.map((a) => a.id).join()]);
+  useLayoutEffect(() => syncShines(list.current?.parentElement), [unlocked, sort, desc, view]);
   // Only the whole list counts: a filtered one is too easy to reach the end of.
   const atEnd = () => {
     const el = list.current;
@@ -249,6 +271,23 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
     markSeen(id);
     setGone((g) => new Set(g).add(id));
   };
+  // The cards' handlers, the same functions every render (so a card that didn't change isn't
+  // drawn again: AchCard is memo'd), calling the latest of these.
+  const latest = useRef({ see, tapInfected });
+  latest.current = { see, tapInfected };
+  const on = useMemo<CardHandlers>(
+    () => ({
+      see: (id) => latest.current.see(id),
+      lift: (id) => setLifted((l) => (l === id ? null : id)),
+      pick: (a, got, at) => {
+        latest.current.see(a.id);
+        if (got && a.id === 'infected') latest.current.tapInfected();
+        // When it was unlocked, in a balloon: a second tap, a scroll or a tap elsewhere hides it.
+        setWhen((w) => (w?.id === a.id || !got ? null : { id: a.id, at }));
+      },
+    }),
+    [],
+  );
   // Scrolling a card under a still mouse fires no hover, so on scroll the card under the
   // mouse counts as seen too.
   const mouse = useRef<{ x: number; y: number } | null>(null);
@@ -327,45 +366,18 @@ export function AchievementsMenu({ onClose }: { onClose: () => void }) {
         {!shown.length && <li class="ach-empty muted">{t(view === 'unlocked' ? 'ach.none.unlocked' : 'ach.none.locked')}</li>}
         {shown.map((a) => {
           const got = !!unlocked[a.id];
-          const hidden = a.secret && !got;
           return (
-            <li
-              class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}${fresh.has(a.id) ? (gone.has(a.id) ? ' new seen' : ' new') : ''}${lifted === a.id ? ' lifted' : ''}`}
-              style={got ? { '--rc': a.rainbow ? 'var(--hi)' : RARITY_SHINE[a.rarity] } : undefined}
-              onPointerEnter={() => see(a.id)}
-              onPointerUp={(e) => e.pointerType !== 'mouse' && setLifted((l) => (l === a.id ? null : a.id))}
-              title={got ? undefined : t('ach.locked')}
-              data-ach={a.id}
-              onClick={(e) => {
-                see(a.id);
-                if (got && a.id === 'infected') tapInfected();
-                // When it was unlocked, in a balloon: a second tap, a scroll or a tap elsewhere hides it.
-                const at = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                setWhen((w) => (w?.id === a.id || !got ? null : { id: a.id, at }));
-              }}
-            >
-              <AchievementIcon a={a} got={got} />
-              {fresh.has(a.id) && <NewSign />}
-              <span class="ach-text">
-                <span class="ach-name">
-                  {/* Its rarity's shape; until unlocked, the locked ring. */}
-                  <RarityMark rarity={got ? a.rarity : 'locked'} />
-                  {hidden ? t('ach.secret') : got ? <Name a={a} /> : text(a, 'name')}
-                </span>
-                <span class="ach-desc">{hidden ? t('ach.secretDesc') : withHighlights(text(a, 'desc'))}</span>
-                {!hidden && text(a, 'flavor') && <span class="ach-flavor">{withHighlights(text(a, 'flavor'))}</span>}
-                {/* In rainbow letters with a shine across them: this one gives you something. */}
-                {!hidden && REWARDS[a.id] && (
-                  <span class="ach-reward">
-                    <Rainbow text={rewardText(REWARDS[a.id]!)} />
-                  </span>
-                )}
-                {!hidden && (() => {
-                  const m = meter(a, mine, unlocked);
-                  return m && <Progress {...m} />;
-                })()}
-              </span>
-            </li>
+            <AchCard
+              key={a.id}
+              a={a}
+              got={got}
+              fresh={fresh.has(a.id)}
+              gone={gone.has(a.id)}
+              lifted={lifted === a.id}
+              meter={a.secret && !got ? null : meter(a, mine, unlocked)}
+              lang={lang}
+              on={on}
+            />
           );
         })}
       </ul>

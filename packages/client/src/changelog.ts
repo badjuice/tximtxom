@@ -6,6 +6,8 @@ export type ChangeKind = 'new' | 'change' | 'fix' | 'removed';
 
 export interface Release {
   version: string;
+  /** A name for a bigger update, shown beside its version. */
+  title?: { en: string; pt: string };
   date: string;
   items: { kind: ChangeKind; en: string; pt: string }[];
 }
@@ -18,6 +20,22 @@ const f = (en: string, pt: string) => ({ kind: 'fix' as const, en, pt });
 const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
+  {
+    version: '0.69.0',
+    title: { en: 'Nice and Smooth', pt: 'Nice e Fluido' },
+    date: '2026-11-11',
+    items: [
+      c("Long lists (achievements, the shop, the rules) only animate what's near the screen, so they keep up however fast you scroll.", "As listas compridas (conquistas, loja, regras) só animam o que está perto do ecrã, por isso acompanham o scroll por mais rápido que seja."),
+      c("Hopping letters keep still while they're out of sight.", "As letras saltitantes ficam quietas enquanto não estão à vista."),
+      c("Card editions (Foil, Holographic and the rest) are only drawn while you can see them and at the frame rate you picked, and with reduced motion only when they change.", "As edições das cartas (Folha, Holográfica e as outras) só são desenhadas enquanto estão à vista e à taxa de fotogramas escolhida, e com movimento reduzido só quando mudam."),
+      c("Firefox: the scrollbars only update when something moves, not on every frame.", "Firefox: as barras de scroll só se atualizam quando algo mexe, e não a cada fotograma."),
+      c("With its animation off, the background stops drawing once its colours settle.", "Com a animação desligada, o fundo deixa de ser desenhado assim que as cores assentam."),
+      c("The turn timer's bar glides smoothly, and its number updates once a second.", "A barra do tempo de jogada desliza suavemente, e o número atualiza-se uma vez por segundo."),
+      c("The game loads faster: the table's code and the changelog now load on their own, alongside everything else, and the first download is about 40% smaller.", "O jogo carrega mais depressa: o código da mesa e a lista de alterações carregam agora à parte, ao mesmo tempo que o resto, e o primeiro download é cerca de 40% mais pequeno."),
+      c("The fonts are about seven times smaller, and the board game cards a third of their size, with not a single pixel changed.", "Os tipos de letra estão cerca de sete vezes mais pequenos, e as cartas do jogo de tabuleiro com um terço do tamanho, sem mudar um único píxel."),
+      c("Hovering or tapping an achievement redraws only that card, not the whole list.", "Passar o rato ou tocar numa conquista só redesenha esse cartão, e não a lista toda."),
+    ],
+  },
   {
     version: '0.68.1',
     date: '2026-11-10',

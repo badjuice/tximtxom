@@ -323,18 +323,26 @@ function Plate({ g, room, seat, L }: { g: GameView; room: RoomView; seat: number
 }
 
 function TimerBar({ deadline, total }: { deadline: number; total: number }) {
+  // Drawn again once a second, as the number changes, not four times a second: the bar glides
+  // (a transform, no layout) to where it will be at the next second.
   const [now, setNow] = useState(Date.now());
+  const ms = Math.max(0, deadline - now);
+  const step = ms % 1000 || 1000;
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(id);
-  }, []);
-  const left = Math.max(0, deadline - now) / 1000;
+    if (!ms) return;
+    const id = setTimeout(() => setNow(Date.now()), step + 5);
+    return () => clearTimeout(id);
+  }, [now, deadline]);
+  const left = Math.ceil(ms / 1000);
   return (
-    <div class="timer" role="timer" aria-label={`${Math.ceil(left)}s`}>
-      <div class={`timer-fill${left < 8 ? ' low' : ''}`} style={{ width: `${(100 * left) / total}%` }} />
+    <div class="timer" role="timer" aria-label={`${left}s`}>
+      <div
+        class={`timer-fill${left <= 8 ? ' low' : ''}`}
+        style={{ transform: `scaleX(${Math.max(0, ms - step) / 1000 / total})`, transitionDuration: `${ms ? step : 0}ms` }}
+      />
       {/* The seconds left, in the middle of the bar. */}
       <span class="timer-secs" aria-hidden="true">
-        {Math.ceil(left)}s
+        {left}s
       </span>
     </div>
   );

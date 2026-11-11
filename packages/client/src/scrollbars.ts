@@ -19,9 +19,21 @@ interface Bar {
 const bars = new Map<HTMLElement, Bar>();
 let selector = '';
 let frame = 0;
+// Bars are placed only while something may move them: for a while after a scroll, a resize, a
+// change to the page or an animation starting or ending, not on every frame forever (each
+// placing measures every list's layout).
+let busyUntil = 0;
+const BUSY_MS = 500;
+const sized = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => wake());
+
+/** Places the bars over the next half second. */
+function wake(): void {
+  busyUntil = Math.max(busyUntil, performance.now() + BUSY_MS);
+  if (bars.size && !frame) frame = requestAnimationFrame(tick);
+}
 
 /** The selectors the stylesheet gives `scrollbar-gutter: stable`. */
-function gutterSelectors(): string {
+export function gutterSelectors(): string {
   const out: string[] = [];
   const walk = (rules: CSSRuleList) => {
     for (const r of Array.from(rules)) {
@@ -54,6 +66,7 @@ function attach(el: HTMLElement): void {
   document.body.append(track);
   const bar: Bar = { el, track, thumb, shown: false };
   bars.set(el, bar);
+  sized?.observe(el);
 
   thumb.addEventListener('pointerdown', (e) => {
     e.preventDefault();
@@ -94,6 +107,7 @@ function attach(el: HTMLElement): void {
 }
 
 function detach(bar: Bar): void {
+  sized?.unobserve(bar.el);
   bar.track.remove();
   bar.el.classList.remove('fx-sb');
   bar.el.style.removeProperty('--sb-pad');
@@ -106,11 +120,17 @@ function scrolls(el: HTMLElement): boolean {
   return (cs.overflowY === 'auto' || cs.overflowY === 'scroll') && cs.scrollbarGutter.includes('stable');
 }
 
-/** Finds the scrollers there are now (new ones get a bar, gone ones lose theirs). */
-function scan(): void {
+/** Finds the scrollers there are now (new ones get a bar, gone ones lose theirs). Whether any did. */
+function scan(): boolean {
+  const before = bars.size;
+  let changed = false;
   for (const bar of [...bars.values()]) if (!bar.el.isConnected || !scrolls(bar.el)) detach(bar);
-  for (const el of document.querySelectorAll<HTMLElement>(selector)) if (!bars.has(el) && scrolls(el)) attach(el);
-  if (bars.size && !frame) frame = requestAnimationFrame(tick);
+  for (const el of document.querySelectorAll<HTMLElement>(selector))
+    if (!bars.has(el) && scrolls(el)) {
+      attach(el);
+      changed = true;
+    }
+  return changed || bars.size !== before;
 }
 
 function hide(bar: Bar): void {
@@ -121,7 +141,7 @@ function hide(bar: Bar): void {
 /** Puts each bar over its element's lane, sized to what it shows, or hides it. */
 function tick(): void {
   frame = 0;
-  if (!bars.size) return;
+  if (!bars.size || performance.now() > busyUntil) return;
   if (!document.hidden) {
     for (const bar of bars.values()) {
       const { el, track, thumb } = bar;
@@ -162,11 +182,24 @@ export function initScrollbars(): void {
   if (!selector) return;
   document.documentElement.classList.add('fx-bars');
   let queued = 0;
-  new MutationObserver(() => {
+  // A change in a list or round one (its content, a window opening) may move its bar; one
+  // elsewhere (the menu's cards) doesn't.
+  let near = false;
+  new MutationObserver((list) => {
+    near ||= list.some(({ target }) => [...bars.keys()].some((el) => el.contains(target) || target.contains(el)));
     queued ||= window.setTimeout(() => {
       queued = 0;
-      scan();
+      if (scan() || near) wake();
+      near = false;
     }, 60);
   }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+  addEventListener('scroll', () => wake(), { capture: true, passive: true });
+  addEventListener('resize', () => wake());
+  document.addEventListener('visibilitychange', () => wake());
+  // A window popping in or out carries its list's bar with it.
+  // (One inside a list, a card's, doesn't.)
+  const around = (e: Event) => e.target instanceof Node && [...bars.keys()].some((el) => (e.target as Node).contains(el)) && wake();
+  for (const ev of ['animationstart', 'animationend', 'transitionrun', 'transitionend']) document.addEventListener(ev, around);
   scan();
+  wake();
 }

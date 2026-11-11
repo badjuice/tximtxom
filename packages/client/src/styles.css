@@ -1970,7 +1970,8 @@ input[type='text'] {
 .timer-fill {
   height: 100%;
   background: var(--green);
-  transition: width 0.25s linear;
+  transform-origin: left;
+  transition: transform linear;
 }
 .timer-fill.low {
   background: var(--red);
@@ -4650,8 +4651,17 @@ input.rename {
   margin: 0 0 4px;
   color: var(--gold);
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 0 8px;
   align-items: center;
+}
+/* A bigger update's name, beside its version. */
+.cl-title {
+  color: var(--text);
+}
+.cl-title::before {
+  content: '— ';
+  color: var(--gold);
 }
 .cl-release ul {
   list-style: none;

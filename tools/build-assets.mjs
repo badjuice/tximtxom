@@ -501,13 +501,12 @@ async function buildAtlas(name, entries, w, h, scale = 1) {
   });
   const width = cols * w;
   const height = rows * h;
-  await sharp({ create: { width, height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-    .composite(composites)
-    // Pixel art fits a palette; smooth art keeps every colour.
-    .png(scale === 1 ? { compressionLevel: 9, palette: true, effort: 10 } : { compressionLevel: 9 })
-    .toFile(path.join(OUT, `${name}.png`));
+  // Pixel art fits a palette PNG; smooth art keeps every colour, in lossless WebP (a third of the PNG).
+  const image = scale === 1 ? `${name}.png` : `${name}.webp`;
+  const sheet = sharp({ create: { width, height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } }).composite(composites);
+  await (scale === 1 ? sheet.png({ compressionLevel: 9, palette: true, effort: 10 }) : sheet.webp({ lossless: true, effort: 6 })).toFile(path.join(OUT, image));
   // `scale`: pixels per art pixel, so Pixi sizes the frames like the pixel cards.
-  const json = { frames, meta: { image: `${name}.png`, size: { w: width, h: height }, scale } };
+  const json = { frames, meta: { image, size: { w: width, h: height }, scale } };
   fs.writeFileSync(path.join(OUT, `${name}.json`), JSON.stringify(json));
   console.log(`atlas ${name}: ${entries.length} frames, ${width}x${height}`);
 }

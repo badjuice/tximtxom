@@ -5,8 +5,8 @@ import { initAudio, unlockAudio } from './audio';
 import { startBackground } from './background';
 import { badDrop, canDrop, drop, initController, send, setHandOrder, tapDrawn, tapEmpty, tapHand } from './controller';
 import { greetConsole } from './easterEgg';
-import { Table } from './game/table';
 import { initNet, rejoinRoom, savedRoom } from './net';
+import { initOffscreen } from './offscreen';
 import { initScrollbars } from './scrollbars';
 import { initCyclerAlign } from './ui/alignCyclers';
 import { applyCssSettings, onSettings, updateSettings } from './settings';
@@ -23,14 +23,18 @@ import { initEmotes } from './ui/Emotes';
 import { loadSpriteAtlases } from './ui/sprites';
 
 async function boot() {
+  // The table (Pixi, most of the code) comes in its own file, downloading alongside the font,
+  // the sprites and the music rather than before all of them.
+  const tableCode = import('./game/table');
   greetConsole();
   applyCssSettings();
   initScrollbars();
+  initOffscreen();
   initCyclerAlign();
   startBackground(document.getElementById('bg') as HTMLCanvasElement);
 
   const font = new FontFace('m6x11', `url(${assetUrl('m6x11plus.woff2')})`);
-  await Promise.all([font.load().then((f) => document.fonts.add(f)).catch(() => {}), loadSpriteAtlases()]);
+  const [{ Table }] = await Promise.all([tableCode, font.load().then((f) => document.fonts.add(f)).catch(() => {}), loadSpriteAtlases()]);
 
   const table = new Table({
     onTapHand: tapHand,

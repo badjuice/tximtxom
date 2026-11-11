@@ -52,11 +52,11 @@ export type AchSort = 'default' | 'complete' | 'rarity' | 'similar' | 'date' | '
 export type FontId = 'm6x11' | 'grapeSoda' | 'cutePixel' | 'superstar' | 'digitalDisco';
 /** `author` is credited under the choice (see assets/fonts/README.md). */
 export const FONTS: { id: FontId; name: string; author: string; file: string }[] = [
-  { id: 'digitalDisco', name: 'Digital Disco', author: 'jeti (CC BY 4.0)', file: 'fonts/digital-disco/DigitalDisco.ttf' },
+  { id: 'digitalDisco', name: 'Digital Disco', author: 'jeti (CC BY 4.0)', file: 'fonts/digital-disco/DigitalDisco.woff2' },
   { id: 'm6x11', name: 'm6x11', author: 'Daniel Linssen', file: 'm6x11plus.woff2' },
-  { id: 'grapeSoda', name: 'Grape Soda', author: 'jeti (CC BY 4.0)', file: 'fonts/grape-soda/GrapeSoda.ttf' },
-  { id: 'cutePixel', name: 'CutePixel', author: 'zK4rim', file: 'fonts/cutepixel/CutePixel.ttf' },
-  { id: 'superstar', name: 'Superstar', author: 'memesbruh03', file: 'fonts/superstar/superstar_memesbruh03.ttf' },
+  { id: 'grapeSoda', name: 'Grape Soda', author: 'jeti (CC BY 4.0)', file: 'fonts/grape-soda/GrapeSoda.woff2' },
+  { id: 'cutePixel', name: 'CutePixel', author: 'zK4rim', file: 'fonts/cutepixel/CutePixel.woff2' },
+  { id: 'superstar', name: 'Superstar', author: 'memesbruh03', file: 'fonts/superstar/superstar_memesbruh03.woff2' },
 ];
 
 /** Fonts asked for, and fonts ready to use; the page switches once its font is in. */

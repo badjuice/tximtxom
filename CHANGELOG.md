@@ -5,6 +5,17 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.69.0 — Nice and Smooth (2026-11-11)
+- 🔧 Long lists (achievements, the shop, the rules) only animate what's near the screen, so they keep up however fast you scroll.
+- 🔧 Hopping letters keep still while they're out of sight.
+- 🔧 Card editions (Foil, Holographic and the rest) are only drawn while you can see them and at the frame rate you picked, and with reduced motion only when they change.
+- 🔧 Firefox: the scrollbars only update when something moves, not on every frame.
+- 🔧 With its animation off, the background stops drawing once its colours settle.
+- 🔧 The turn timer's bar glides smoothly, and its number updates once a second.
+- 🔧 The game loads faster: the table's code and the changelog now load on their own, alongside everything else, and the first download is about 40% smaller.
+- 🔧 The fonts are about seven times smaller, and the board game cards a third of their size, with not a single pixel changed.
+- 🔧 Hovering or tapping an achievement redraws only that card, not the whole list.
+
 ## 0.68.1 (2026-11-10)
 - 🐛 Achievements no longer show up late when you scroll fast: only the cards near the screen animate now, instead of every card in the list at once.
 

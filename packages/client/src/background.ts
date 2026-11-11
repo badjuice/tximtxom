@@ -193,11 +193,14 @@ let paint = 0;
 let spinBoost = 0;
 
 let mood: Mood = 'menu';
+/** Starts drawing again after the background stood still (set by startBackground). */
+let wake = () => {};
 
 export function setMood(name: Mood): void {
   mood = name;
   const next = name === 'table' ? tablePalette() : MOODS[name];
   shownTable = name === 'table' ? tableId() : null;
+  wake();
   if (next === target) return;
   target = next;
   // Like moving between screens in Balatro: the paint spins up while the colours change.
@@ -210,6 +213,7 @@ export function previewTable(id: string | null): void {
   shownTable = shown;
   // Only the colours change: no spin-up, so hovering along the list stays calm.
   target = shown ? TABLES[shown] : MOODS[mood as keyof typeof MOODS];
+  wake();
 }
 
 /** Picks a different random palette for the table (used by the next setMood('table')). */
@@ -222,6 +226,7 @@ export function shuffleTablePalette(): void {
 /** Briefly speeds up the swirl, for big plays and screen changes. */
 export function swirl(amount = 1): void {
   if (!getSettings().reducedMotion) spinBoost = Math.min(3, spinBoost + amount);
+  wake();
 }
 
 export function startBackground(canvas: HTMLCanvasElement): void {
@@ -263,14 +268,31 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     gl.viewport(0, 0, canvas.width, canvas.height);
   };
   resize();
-  addEventListener('resize', resize);
+  addEventListener('resize', () => {
+    resize();
+    wake();
+  });
 
   let time = 0;
   let spinTime = 0;
   let last = performance.now();
   let frameSkip = 0;
+  // Standing still (the animation off and the colours settled), it stops drawing at all until
+  // something changes (wake).
+  let running = true;
+  let next = 0;
+  let finalDrawn = false;
+  wake = () => {
+    finalDrawn = false;
+    if (running) return;
+    running = true;
+    frameSkip = 0;
+    last = performance.now();
+    next = requestAnimationFrame(frame);
+  };
+  const settled = (a: number, b: number) => Math.abs(a - b) < 0.002;
   const frame = (now: number) => {
-    requestAnimationFrame(frame);
+    next = requestAnimationFrame(frame);
     // Capped by the FPS setting (a little early is fine: frames don't land exactly).
     if (now - last < 1000 / frameRate() - 4) return;
     const dt = Math.min(0.1, (now - last) / 1000);
@@ -300,8 +322,18 @@ export function startBackground(canvas: HTMLCanvasElement): void {
       time = (time + dt * (1 + spinBoost * 2)) % 2000;
       spinTime = (spinTime + dt * (1 + spinBoost * 6)) % (20 * Math.PI * 100);
     }
-    // When static, only redraw occasionally (colour changes) to save battery.
-    if (!animate && ++frameSkip % 10 !== 0) return;
+    if (!animate) {
+      const fade = (flag ? 1 : 0) + (shownTable && SHEEN.has(shownTable) ? 1 : 0) * 2 + (shownTable && HOLO.has(shownTable) ? 1 : 0) * 4 + (paints ? 1 : 0) * 8;
+      const still = colours.every((c, i) => c.every((v, j) => settled(v, target[i][j]))) && [stripes, sheen, holo, paint].every((v, k) => settled(v, (fade >> k) & 1));
+      // Settled: one last frame, then stop. Until then, only redraw occasionally (colour changes) to save battery.
+      if (still && finalDrawn) {
+        cancelAnimationFrame(next);
+        running = false;
+        return;
+      }
+      if (still) finalDrawn = true;
+      else if (++frameSkip % 10 !== 0) return;
+    }
     gl.uniform2f(uRes, canvas.width, canvas.height);
     gl.uniform1f(uTime, time);
     gl.uniform1f(uSpin, spinTime);
@@ -314,8 +346,11 @@ export function startBackground(canvas: HTMLCanvasElement): void {
     gl.uniform1f(uPaint, paint);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
-  requestAnimationFrame(frame);
-  onSettings(() => (frameSkip = 0));
+  next = requestAnimationFrame(frame);
+  onSettings(() => {
+    frameSkip = 0;
+    wake();
+  });
   // A new Table setting shows at once if the table is up.
   onSettings(() => mood === 'table' && setMood('table'));
 }

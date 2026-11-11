@@ -13,7 +13,7 @@ const lines = [
   '',
 ];
 for (const r of CHANGELOG) {
-  lines.push(`## ${r.version} (${r.date})`);
+  lines.push(`## ${r.version}${r.title ? ` — ${r.title.en}` : ''} (${r.date})`);
   for (const i of r.items) lines.push(`- ${KIND_ICON[i.kind]} ${i.en}`);
   lines.push('');
 }
