@@ -5,6 +5,9 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.69.3 (2026-11-11)
+- 🔧 Rules: the chip multipliers stand out. Each rule's sits on its card's top edge as a tag, green when it pays more and red when it pays less, and the game's total is always shown beside the switch.
+
 ## 0.69.2 (2026-11-11)
 - 🔧 Emotes rest for half as long between sends (1.5 seconds), and a new one replaces the one still showing.
 - 🔧 The emotes' rest shows as a proper ring: a gold arc that drains clockwise, round the button and over the open emotes.

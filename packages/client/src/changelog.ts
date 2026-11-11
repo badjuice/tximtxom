@@ -21,6 +21,13 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.69.3',
+    date: '2026-11-11',
+    items: [
+      c("Rules: the chip multipliers stand out. Each rule's sits on its card's top edge as a tag, green when it pays more and red when it pays less, and the game's total is always shown beside the switch.", "Regras: os multiplicadores de fichas destacam-se. O de cada regra fica no topo da sua carta como uma etiqueta, verde quando paga mais e vermelha quando paga menos, e o total do jogo aparece sempre ao lado do interruptor."),
+    ],
+  },
+  {
     version: '0.69.2',
     date: '2026-11-11',
     items: [

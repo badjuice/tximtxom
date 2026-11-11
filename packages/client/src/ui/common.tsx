@@ -578,7 +578,7 @@ export function Toggle(props: {
 export const PayTag = ({ k }: { k: number }) => (
   <span class={`pay-tag${k > 1 ? ' up' : k < 1 ? ' down' : ''}`}>
     ×{k}
-    <ChipIcon size={12} />
+    <ChipIcon size={14} />
   </span>
 );
 
