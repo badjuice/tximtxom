@@ -87,8 +87,13 @@ function useCooldown(el: { current: HTMLElement | null }): boolean {
   return cooling;
 }
 
-/** A ring that empties as the rest runs out. */
-const CoolRing = () => <span class="emote-ring" aria-hidden="true" />;
+/** A ring that empties as the rest runs out (its length is --cool, set each frame). */
+const CoolRing = () => (
+  <svg class="emote-ring" viewBox="0 0 36 36" aria-hidden="true">
+    <circle class="ring-track" cx="18" cy="18" r="16" />
+    <circle class="ring-fill" cx="18" cy="18" r="16" pathLength="100" />
+  </svg>
+);
 
 const touch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
 
@@ -126,7 +131,7 @@ export function EmotePicker({ class: cls, once }: { class?: string; once?: boole
   }, [open]);
   return (
     <span class={`emote-picker${cls ? ` ${cls}` : ''}${cooling ? ' cooling' : ''}`} ref={box}>
-      <button type="button" class="emote-btn" aria-label={t('emote.open')} title={t('emote.open')} aria-expanded={open} onClick={() => setOpen(!open)}>
+      <button type="button" class="emote-btn" aria-label={t('emote.open')} aria-expanded={open} onClick={() => setOpen(!open)}>
         <EmoteIcon id="faceHappy" scale={1.5} />
         {cooling && !open && <CoolRing />}
       </button>
@@ -137,7 +142,6 @@ export function EmotePicker({ class: cls, once }: { class?: string; once?: boole
               type="button"
               role="menuitem"
               aria-label={t(`emote.${id}` as Key)}
-              title={t(`emote.${id}` as Key)}
               disabled={cooling}
               onClick={() => {
                 if (once && touch) setOpen(false);

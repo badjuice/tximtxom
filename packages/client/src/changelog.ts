@@ -21,6 +21,15 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.69.2',
+    date: '2026-11-11',
+    items: [
+      c("Emotes rest for half as long between sends (1.5 seconds), and a new one replaces the one still showing.", "Os emotes descansam metade do tempo entre envios (1,5 segundos), e um novo substitui o que ainda está à vista."),
+      c("The emotes' rest shows as a proper ring: a gold arc that drains clockwise, round the button and over the open emotes.", "O descanso dos emotes aparece como um anel a sério: um arco dourado que se esvazia no sentido dos ponteiros do relógio, à volta do botão e por cima dos emotes abertos."),
+      r("The emotes no longer show their names as a hint when hovered.", "Os emotes já não mostram o nome como dica ao passar o rato."),
+    ],
+  },
+  {
     version: '0.69.1',
     date: '2026-11-11',
     items: [

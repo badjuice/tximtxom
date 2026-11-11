@@ -5,6 +5,11 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
+## 0.69.2 (2026-11-11)
+- 🔧 Emotes rest for half as long between sends (1.5 seconds), and a new one replaces the one still showing.
+- 🔧 The emotes' rest shows as a proper ring: a gold arc that drains clockwise, round the button and over the open emotes.
+- 🗑️ The emotes no longer show their names as a hint when hovered.
+
 ## 0.69.1 (2026-11-11)
 - ✨ New achievement: Roll Credits, for reaching the end of the Credits.
 - 🐛 An achievement's New! sign no longer flashes back each time you switch what the Achievements window shows, once you've seen it.

@@ -39,8 +39,8 @@ export interface ChatLine {
 /** The emotes a player can send: a bubble over their plate for a moment. */
 export const EMOTES = ['faceHappy', 'faceSad', 'faceAngry', 'laugh', 'heart', 'heartBroken', 'exclamation', 'question', 'idea', 'sleeps', 'cash', 'stars'] as const;
 export type EmoteId = (typeof EMOTES)[number];
-/** Shortest time between two emotes from one player (a little over a bubble's 2.6s). */
-export const EMOTE_GAP_MS = 3000;
+/** Shortest time between two emotes from one player (a new one replaces the bubble still showing). */
+export const EMOTE_GAP_MS = 1500;
 export const EMOTE_KEEP = 8;
 
 /** One emote sent. */
