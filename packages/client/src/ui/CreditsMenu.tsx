@@ -1,6 +1,7 @@
 import { type Key, t } from '../i18n';
 import { AUTHOR_URL } from '../version';
-import { Modal, UiIcon, type UiIconName, withTximTxom } from './common';
+import { unlock } from '../achievements';
+import { Modal, Seen, UiIcon, type UiIconName, withTximTxom } from './common';
 
 /** One credited name: what they made, and where to find them (if anywhere). */
 interface Credit {
@@ -117,6 +118,8 @@ export function CreditsMenu({ onClose }: { onClose: () => void }) {
           </ul>
         </section>
       ))}
+      {/* The end of the list (on a tall screen, there as it opens): Roll Credits. */}
+      <Seen onSeen={() => unlock('rollCredits')} />
     </Modal>
   );
 }

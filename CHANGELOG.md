@@ -5,7 +5,14 @@ Versions follow semantic versioning; up to 0.11.0 they were assigned afterwards 
 
 ✨ new · 🔧 changed · 🐛 fixed · 🗑️ removed
 
-## 0.69.0 — Nice and Smooth (2026-11-11)
+## 0.69.1 (2026-11-11)
+- ✨ New achievement: Roll Credits, for reaching the end of the Credits.
+- 🐛 An achievement's New! sign no longer flashes back each time you switch what the Achievements window shows, once you've seen it.
+- 🐛 The language buttons are as wide as the window's title and Back button, and centred.
+- 🐛 A hovered achievement no longer covers the cards next to it: the list leaves a little more room between them.
+- 🐛 Formations: the row for straights that wrap round always has its Mobius Strip card to tap, even with the rule off, and the card explains Mobius Strip rather than Ace High.
+
+## 0.69.0 — The Nice and Smooth Update (2026-11-11)
 - 🔧 Long lists (achievements, the shop, the rules) only animate what's near the screen, so they keep up however fast you scroll.
 - 🔧 Hopping letters keep still while they're out of sight.
 - 🔧 Card editions (Foil, Holographic and the rest) are only drawn while you can see them and at the frame rate you picked, and with reduced motion only when they change.

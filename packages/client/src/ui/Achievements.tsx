@@ -191,6 +191,9 @@ const AchCard = memo(function AchCard(props: {
 }) {
   const { a, got, fresh, gone, lifted, meter: m, on } = props;
   const hidden = a.secret && !got;
+  // Seen before this card was drawn (the list re-sorted or re-filtered): no sign at all. Only a
+  // card seen while it's on screen plays the fade, or it would flash back in on every redraw.
+  const [seenBefore] = useState(gone);
   return (
     <li
       class={`${got ? 'got' : 'locked'} rarity-${a.rarity}${a.rainbow ? ' rainbow' : ''}${fresh ? (gone ? ' new seen' : ' new') : ''}${lifted ? ' lifted' : ''}`}
@@ -202,7 +205,7 @@ const AchCard = memo(function AchCard(props: {
       onClick={(e) => on.pick(a, got, (e.currentTarget as HTMLElement).getBoundingClientRect())}
     >
       <AchievementIcon a={a} got={got} />
-      {fresh && <NewSign />}
+      {fresh && !seenBefore && <NewSign />}
       <span class="ach-text">
         <span class="ach-name">
           {/* Its rarity's shape; until unlocked, the locked ring. */}

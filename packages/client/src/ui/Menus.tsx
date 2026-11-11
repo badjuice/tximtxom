@@ -371,7 +371,15 @@ function useTximTxomExample(superposition: boolean, mobius: boolean) {
 }
 
 /** The rule behind each rule card on the Formations screen. */
-const RULE_OF_CARD: Record<string, Key> = { softcore: 'rule.softcore', mixed: 'rule.smeared', ace: 'rule.superposition', twodecks: 'rule.twoDecks' };
+/** Each optional formation's rule, and the card that stands for it (Möbius shares Superposition's Ace). */
+const RULE_CARD = {
+  softcore: ['rule.softcore', 'softcore'],
+  twoDecks: ['rule.twoDecks', 'twodecks'],
+  smeared: ['rule.smeared', 'mixed'],
+  superposition: ['rule.superposition', 'ace'],
+  mobius: ['rule.mobius', 'ace'],
+} as const satisfies Record<string, [Key, string]>;
+type RuleCard = keyof typeof RULE_CARD;
 
 /** What each card is worth: an Ace 1, number cards as printed, J 11, Q 12, K 13. */
 function PointValues({ narrow }: { narrow: boolean }) {
@@ -405,12 +413,12 @@ function Formations({ onClose }: { onClose: () => void }) {
   const polydactyly = !!rules?.polydactyly;
   const tximtxom = useTximTxomExample(superposition, mobius);
   // The rule card last tapped, and where it is: its rule shows in a balloon pointing at it.
-  const [rule, setRule] = useState<string | null>(null);
+  const [rule, setRule] = useState<RuleCard | null>(null);
   const [at, setAt] = useState<DOMRect | null>(null);
   const closeRule = useCallback(() => setRule(null), []);
   // Smaller example cards on phones so the list fits without scrolling.
   const narrow = innerWidth <= 700 || innerHeight <= 500;
-  const row = (name: string, color: string, cards: number[], desc: string, opts: { off?: boolean; joker?: string; needs?: string } = {}) => (
+  const row = (name: string, color: string, cards: number[], desc: string, opts: { off?: boolean; rule?: RuleCard; needs?: string } = {}) => (
     <div class={`f-row${opts.off ? ' off' : ''}`}>
       <span class={`level-tag tag-${color}`}>
         <WaveText text={name} />
@@ -421,19 +429,19 @@ function Formations({ onClose }: { onClose: () => void }) {
         ))}
       </span>
       <span class="f-desc">
-        {opts.joker && (
+        {opts.rule && (
           <button
             type="button"
-            class={`f-rule${rule === opts.joker ? ' on' : ''}`}
-            aria-label={t(RULE_OF_CARD[opts.joker])}
-            aria-expanded={rule === opts.joker}
+            class={`f-rule${rule === opts.rule ? ' on' : ''}`}
+            aria-label={t(RULE_CARD[opts.rule][0])}
+            aria-expanded={rule === opts.rule}
             onClick={(e) => {
               play('button', { volume: 0.5 });
               setAt((e.currentTarget as HTMLElement).getBoundingClientRect());
-              setRule(rule === opts.joker ? null : opts.joker!);
+              setRule(rule === opts.rule ? null : opts.rule!);
             }}
           >
-            <ArtIcon name={opts.joker} scale={0.3} rule />
+            <ArtIcon name={RULE_CARD[opts.rule][1]} scale={0.3} rule />
           </button>
         )}
         <span>
@@ -451,15 +459,15 @@ function Formations({ onClose }: { onClose: () => void }) {
       </p>
       <PointValues narrow={narrow} />
       <div class="f-grid">
-        {row(t('pair'), 'blue', EX.pair, t('f.pair'), { off: !softcore, joker: 'softcore', needs: softcore ? undefined : needs('rule.softcore') })}
+        {row(t('pair'), 'blue', EX.pair, t('f.pair'), { off: !softcore, rule: 'softcore', needs: softcore ? undefined : needs('rule.softcore') })}
         {row(t('trio'), 'blue', EX.trio, t('f.trio'))}
         {row(t('quad'), 'blue', EX.quad, t('f.quad'))}
-        {row(t('f.bigSet'), 'blue', EX.bigSet, t('f.bigSetDesc'), { off: !twoDecks, joker: 'twodecks', needs: twoDecks ? undefined : needs('rule.twoDecks') })}
+        {row(t('f.bigSet'), 'blue', EX.bigSet, t('f.bigSetDesc'), { off: !twoDecks, rule: 'twoDecks', needs: twoDecks ? undefined : needs('rule.twoDecks') })}
         {row(t('straight'), 'red', EX.straight, t('f.straight'))}
-        {row(t('f.mixed'), 'red', EX.mixed, t('f.mixedOn'), { off: !smeared, joker: 'mixed', needs: smeared ? undefined : needs('rule.smeared') })}
+        {row(t('f.mixed'), 'red', EX.mixed, t('f.mixedOn'), { off: !smeared, rule: 'smeared', needs: smeared ? undefined : needs('rule.smeared') })}
         {row(t('f.aceLow'), 'red', EX.aceLow, t('f.aceLowDesc'))}
-        {row(t('f.aceHigh'), 'red', EX.aceHigh, t('f.aceHighOn'), { off: !superposition, joker: 'ace', needs: superposition ? undefined : needs('rule.superposition') })}
-        {mobius ? row(t('f.loop'), 'red', EX.bad, t('f.loopDesc'), { joker: 'ace' }) : row(t('f.noWrap'), 'grey', EX.bad, t('f.noWrapDesc'), { off: true, needs: t('f.wrapNeeds', { rule: t('rule.mobius'), base: t('rule.superposition') }) })}
+        {row(t('f.aceHigh'), 'red', EX.aceHigh, t('f.aceHighOn'), { off: !superposition, rule: 'superposition', needs: superposition ? undefined : needs('rule.superposition') })}
+        {mobius ? row(t('f.loop'), 'red', EX.bad, t('f.loopDesc'), { rule: 'mobius' }) : row(t('f.noWrap'), 'grey', EX.bad, t('f.noWrapDesc'), { off: true, rule: 'mobius', needs: t('f.wrapNeeds', { rule: t('rule.mobius'), base: t('rule.superposition') }) })}
       </div>
       <div class="f-row f-tximtxom">
         <span class="level-tag tag-orange">
@@ -479,7 +487,7 @@ function Formations({ onClose }: { onClose: () => void }) {
       <p class="f-rule-note muted">{t('f.ruleHint')}</p>
       {rule && at && (
         <HintBalloon at={at} onClose={closeRule} keep=".f-rule">
-          <b>{withHighlights(t(RULE_OF_CARD[rule]))}</b> {withHighlights(t(`${RULE_OF_CARD[rule]}.desc` as Key))}
+          <b>{withHighlights(t(RULE_CARD[rule][0]))}</b> {withHighlights(t(`${RULE_CARD[rule][0]}.desc` as Key))}
         </HintBalloon>
       )}
     </Modal>

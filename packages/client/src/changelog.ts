@@ -21,8 +21,19 @@ const r = (en: string, pt: string) => ({ kind: 'removed' as const, en, pt });
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.69.1',
+    date: '2026-11-11',
+    items: [
+      n("New achievement: Roll Credits, for reaching the end of the Credits.", "Nova conquista: Genérico Final, por chegar ao fim dos Créditos."),
+      f("An achievement's New! sign no longer flashes back each time you switch what the Achievements window shows, once you've seen it.", "O sinal Nova! de uma conquista já vista deixa de voltar a piscar sempre que se muda o que a janela das Conquistas mostra."),
+      f("The language buttons are as wide as the window's title and Back button, and centred.", "Os botões das línguas têm a largura do título e do botão Voltar da janela, e estão centrados."),
+      f("A hovered achievement no longer covers the cards next to it: the list leaves a little more room between them.", "Uma conquista com o rato por cima já não tapa as cartas ao lado: a lista deixa um pouco mais de espaço entre elas."),
+      f("Formations: the row for straights that wrap round always has its Mobius Strip card to tap, even with the rule off, and the card explains Mobius Strip rather than Ace High.", "Formações: a linha das escadas que dão a volta tem sempre a carta da Fita de Mobius para tocar, mesmo com a regra desligada, e a carta explica a Fita de Mobius e não o Ás Alto."),
+    ],
+  },
+  {
     version: '0.69.0',
-    title: { en: 'Nice and Smooth', pt: 'Nice e Fluido' },
+    title: { en: 'The Nice and Smooth Update', pt: 'A Atualização Nice e Fluida' },
     date: '2026-11-11',
     items: [
       c("Long lists (achievements, the shop, the rules) only animate what's near the screen, so they keep up however fast you scroll.", "As listas compridas (conquistas, loja, regras) só animam o que está perto do ecrã, por isso acompanham o scroll por mais rápido que seja."),
